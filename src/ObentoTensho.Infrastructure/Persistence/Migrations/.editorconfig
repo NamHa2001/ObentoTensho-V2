@@ -1,0 +1,3 @@
+[*.cs]
+# Migration do EF sinh ra: bỏ qua bộ phân tích mã (docs/srs/05 DB-12)
+generated_code = true

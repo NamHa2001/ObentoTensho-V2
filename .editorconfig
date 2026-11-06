@@ -14,3 +14,6 @@ indent_size = 2
 [*.cs]
 csharp_style_namespace_declarations = file_scoped:warning
 dotnet_sort_system_directives_first = true
+
+# ASP.NET Core không có SynchronizationContext nên không cần ConfigureAwait(false)
+dotnet_diagnostic.MA0004.severity = none

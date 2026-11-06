@@ -1,3 +1,4 @@
 [*.cs]
 # Tên test theo mã yêu cầu (docs/srs/07 TST-01) có dấu gạch dưới
 dotnet_diagnostic.CA1707.severity = none
+dotnet_diagnostic.CA1711.severity = none

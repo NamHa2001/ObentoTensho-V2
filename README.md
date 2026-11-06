@@ -34,6 +34,17 @@ npx ng build admin
 npx ng test customer --watch=false
 ```
 
+## Kiểm thử tích hợp (CSDL thật)
+
+Test tích hợp tạo lại CSDL `ObentoTensho_V2_Test` rồi chạy migration. Mặc định dùng SQL Server cục bộ (Windows Authentication). Máy khác hoặc CI đặt biến `OBENTO_TEST_SQL` là chuỗi kết nối tới máy chủ (không có tên CSDL).
+
+Áp migration cho CSDL phát triển (chuỗi kết nối qua biến môi trường, không đưa vào mã):
+
+```
+dotnet tool restore
+dotnet tool run dotnet-ef database update --project src/ObentoTensho.Infrastructure
+```
+
 ## Cấu hình và bí mật
 
 Không đưa mật khẩu, khóa API hay chuỗi kết nối thật vào repo. Giá trị thật đặt trong User Secrets (máy phát triển) hoặc biến môi trường (máy chủ).
