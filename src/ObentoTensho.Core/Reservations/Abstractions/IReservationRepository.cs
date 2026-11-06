@@ -1,3 +1,4 @@
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Reservations.Domain;
 
 namespace ObentoTensho.Core.Reservations.Abstractions;
@@ -41,4 +42,7 @@ public interface IReservationRepository
 
     // Ca đã từng có đặt bàn thì chỉ được tắt, không xóa (lịch sử đặt bàn tham chiếu ca)
     Task<bool> HasAnyForSlotAsync(int slotId, CancellationToken cancellationToken);
+
+    // Cho các việc theo lịch; mỗi lần lấy giới hạn số lượng để một lượt chạy không quá lâu
+    Task<IReadOnlyList<Guid>> ListIdsAsync(ReservationStatus status, DateTime fromUtc, DateTime toUtc, bool reminderNotSent, int limit, CancellationToken cancellationToken);
 }

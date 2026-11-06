@@ -32,6 +32,7 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         builder.UseSetting("Email:FromAddress", "no-reply@mail.obento.test");
         builder.UseSetting("Email:ReplyTo", "lienhe@obento.test");
         builder.UseSetting("Outbox:Enabled", "false");
+        builder.UseSetting("Jobs:Enabled", "false");
 
         // Số vòng tối thiểu cho phép để test chạy nhanh hơn
         builder.UseSetting("Security:PasswordHashing:Iterations", "210000");

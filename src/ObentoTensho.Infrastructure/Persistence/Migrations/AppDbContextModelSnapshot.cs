@@ -937,6 +937,59 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.ToTable("TableAreas", (string)null);
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Verification.Domain.OtpChallenge", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<byte>("Attempts")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("IpHash")
+                        .HasColumnType("char(64)");
+
+                    b.Property<byte>("Purpose")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TargetHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<DateTime?>("VerifiedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("IpHash", "CreatedAtUtc");
+
+                    b.HasIndex("TargetHash", "CreatedAtUtc");
+
+                    b.ToTable("OtpChallenges", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OtpChallenges_Attempts", "[Attempts] >= 0");
+
+                            t.HasCheckConstraint("CK_OtpChallenges_Purpose", "[Purpose] BETWEEN 0 AND 1");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Infrastructure.Messaging.OutboxMessage", b =>
                 {
                     b.Property<long>("Id")

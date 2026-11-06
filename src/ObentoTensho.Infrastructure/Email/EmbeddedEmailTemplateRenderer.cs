@@ -32,7 +32,7 @@ internal sealed partial class EmbeddedEmailTemplateRenderer : IEmailTemplateRend
         var subject = Fill(template.Subject, request.Values, encode: false).ReplaceLineEndings(" ");
         var text = Fill(template.Text, request.Values, encode: false);
         var html = EmailLayout.Wrap(language, subject, Fill(template.Html, request.Values, encode: true));
-        return new EmailMessage(request.To, subject, html, text);
+        return new EmailMessage(request.To, subject, html, text, request.Attachments);
     }
 
     private static string Fill(string template, IReadOnlyDictionary<string, string> values, bool encode) =>

@@ -109,6 +109,9 @@ public sealed class ReservationTransitions(
             case ReservationStatus.Confirmed:
                 emails.EnqueueConfirmed(reservation, accessToken: null);
                 break;
+            case ReservationStatus.Cancelled when actor == ReservationActor.System:
+                emails.EnqueueAutoCancelled(reservation);
+                break;
             case ReservationStatus.Cancelled when actor == ReservationActor.Staff && from == ReservationStatus.Pending:
                 emails.EnqueueRejected(reservation, reason?.Trim() ?? string.Empty);
                 break;

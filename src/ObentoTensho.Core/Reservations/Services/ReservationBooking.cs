@@ -54,6 +54,8 @@ public sealed class ReservationBooking(
             CreatedByStaffId = draft.StaffId,
             ContactConfirmedAtUtc = byStaff ? now : null,
             ConfirmedByStaffId = draft.StaffId,
+            OtpRequired = draft.ContactVerified,
+            ContactVerifiedAtUtc = draft.ContactVerified ? now : null,
             Lang = draft.Lang,
             ReservedDate = draft.Date,
             ReservedTime = draft.Time,

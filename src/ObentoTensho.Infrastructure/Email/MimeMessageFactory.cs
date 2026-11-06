@@ -17,7 +17,13 @@ internal static class MimeMessageFactory
 
         mime.To.Add(MailboxAddress.Parse(message.To));
         mime.Subject = message.Subject;
-        mime.Body = new BodyBuilder { HtmlBody = message.HtmlBody, TextBody = message.TextBody }.ToMessageBody();
+        var body = new BodyBuilder { HtmlBody = message.HtmlBody, TextBody = message.TextBody };
+        foreach (var attachment in message.Attachments ?? [])
+        {
+            body.Attachments.Add(attachment.FileName, System.Text.Encoding.UTF8.GetBytes(attachment.Content), ContentType.Parse(attachment.ContentType));
+        }
+
+        mime.Body = body.ToMessageBody();
         return mime;
     }
 }

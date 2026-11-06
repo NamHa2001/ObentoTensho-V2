@@ -14,16 +14,24 @@ namespace ObentoTensho.Infrastructure.Messaging;
 internal sealed class ReservationEmailOutbox(AppDbContext db, IClock clock, IOptions<PublicLinkOptions> links) : IReservationEmailOutbox
 {
     public void EnqueueReceived(Reservation reservation, string accessToken) =>
-        Enqueue(EmailKind.ReservationReceived, reservation, ("manageLink", ManageLink(reservation, accessToken)));
+        Enqueue(EmailKind.ReservationReceived, reservation, withCalendar: true, ("manageLink", ManageLink(reservation, accessToken)));
 
     public void EnqueueConfirmed(Reservation reservation, string? accessToken) =>
-        Enqueue(EmailKind.ReservationConfirmed, reservation, ("manageLink", ManageLink(reservation, accessToken)));
+        Enqueue(EmailKind.ReservationConfirmed, reservation, withCalendar: true, ("manageLink", ManageLink(reservation, accessToken)));
+
+    public void EnqueueReminder(Reservation reservation) =>
+        Enqueue(EmailKind.ReservationReminder, reservation, withCalendar: true, ("manageLink", ManageLink(reservation, accessToken: null)));
+
+    public void EnqueueAutoCancelled(Reservation reservation) =>
+        Enqueue(EmailKind.ReservationAutoCancelled, reservation, withCalendar: false, ("bookingLink", BookingLink()));
 
     public void EnqueueRejected(Reservation reservation, string reason) =>
-        Enqueue(EmailKind.ReservationRejected, reservation, ("reason", reason), ("bookingLink", links.Value.PublicBaseUrl.TrimEnd('/') + "/reservations"));
+        Enqueue(EmailKind.ReservationRejected, reservation, withCalendar: false, ("reason", reason), ("bookingLink", BookingLink()));
 
     public void EnqueueCancelled(Reservation reservation) =>
-        Enqueue(EmailKind.ReservationCancelled, reservation, ("bookingLink", links.Value.PublicBaseUrl.TrimEnd('/') + "/reservations"));
+        Enqueue(EmailKind.ReservationCancelled, reservation, withCalendar: false, ("bookingLink", BookingLink()));
+
+    private string BookingLink() => links.Value.PublicBaseUrl.TrimEnd('/') + "/reservations";
 
     // Có token: mở thẳng trang hủy; không có (thư thứ hai): trang tra cứu bằng mã + 4 số cuối SĐT
     private string ManageLink(Reservation reservation, string? accessToken)
@@ -35,7 +43,7 @@ internal sealed class ReservationEmailOutbox(AppDbContext db, IClock clock, IOpt
             : $"{baseUrl}/reservations/manage?code={code}#token={Uri.EscapeDataString(accessToken)}";
     }
 
-    private void Enqueue(EmailKind kind, Reservation reservation, params (string Key, string Value)[] extra)
+    private void Enqueue(EmailKind kind, Reservation reservation, bool withCalendar, params (string Key, string Value)[] extra)
     {
         if (reservation.GuestEmail is null)
         {
@@ -55,8 +63,11 @@ internal sealed class ReservationEmailOutbox(AppDbContext db, IClock clock, IOpt
             values[key] = value;
         }
 
-        var request = new EmailRequest(kind, reservation.GuestEmail, reservation.Lang, values, $"{EmailTypes.Of(kind)}:{reservation.Id:N}", reservation.Id.ToString());
         var now = clock.UtcNow;
+        IReadOnlyList<EmailAttachment>? attachments = withCalendar
+            ? [new EmailAttachment("obento-tensho.ics", "text/calendar; charset=utf-8; method=PUBLISH", ReservationCalendar.Create(reservation, now))]
+            : null;
+        var request = new EmailRequest(kind, reservation.GuestEmail, reservation.Lang, values, $"{EmailTypes.Of(kind)}:{reservation.Id:N}", reservation.Id.ToString(), attachments);
         db.OutboxMessages.Add(new OutboxMessage
         {
             Type = AccountEmailOutbox.EmailType,

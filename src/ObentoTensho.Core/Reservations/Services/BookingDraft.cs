@@ -20,4 +20,5 @@ public sealed record BookingDraft(
     Guid? UserId,
     Guid? StaffId,
     ReservationStatus InitialStatus,
-    string? OverrideCapacityReason);
+    string? OverrideCapacityReason,
+    bool ContactVerified = false);

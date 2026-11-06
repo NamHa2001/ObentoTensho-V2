@@ -18,7 +18,7 @@ public static class AuthConfiguration
     public const string AdminCorsPolicy = "admin";
 
     private static readonly string[] AllowedHeaders =
-        ["Authorization", "Content-Type", TrustedOriginFilter.ClientHeader, "Idempotency-Key", "If-Match"];
+        ["Authorization", "Content-Type", TrustedOriginFilter.ClientHeader, TurnstileFilter.Header, "Idempotency-Key", "If-Match"];
 
     public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {

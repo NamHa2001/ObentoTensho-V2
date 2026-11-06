@@ -4,6 +4,7 @@ using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Notifications.Domain;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
+using ObentoTensho.Core.Verification.Domain;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
 
@@ -44,6 +45,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<SlotDayCapacity> SlotDayCapacity => Set<SlotDayCapacity>();
 
     public DbSet<DailyCounter> DailyCounters => Set<DailyCounter>();
+
+    public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

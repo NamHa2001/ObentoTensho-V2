@@ -36,6 +36,8 @@ public static class ApiProblems
         [ErrorCodes.DateBlocked] = (StatusCodes.Status400BadRequest, "Quán tạm ngừng nhận đặt vào thời gian này"),
         [ErrorCodes.ReservationLimit] = (StatusCodes.Status409Conflict, "Số điện thoại đã có đủ đặt bàn đang chờ"),
         [ErrorCodes.OtpRequired] = (StatusCodes.Status409Conflict, "Cần xác minh liên hệ"),
+        [ErrorCodes.OtpInvalid] = (StatusCodes.Status422UnprocessableEntity, "Mã xác minh không đúng hoặc đã hết hạn"),
+        [ErrorCodes.CaptchaFailed] = (StatusCodes.Status400BadRequest, "Xác minh chống máy tự động không thành công"),
         [ErrorCodes.InvalidTransition] = (StatusCodes.Status409Conflict, "Không thể chuyển sang trạng thái này"),
         [ErrorCodes.ContactNotConfirmed] = (StatusCodes.Status409Conflict, "Chưa gọi xác minh với khách"),
         [ErrorCodes.CallAttemptsExceeded] = (StatusCodes.Status409Conflict, "Đã gọi đủ số lần cho phép"),

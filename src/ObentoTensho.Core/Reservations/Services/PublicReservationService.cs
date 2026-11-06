@@ -10,6 +10,7 @@ using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Core.Verification.Services;
 
 namespace ObentoTensho.Core.Reservations.Services;
 
@@ -19,6 +20,7 @@ public sealed class PublicReservationService(
     ReservationSchedule schedule,
     ReservationBooking booking,
     ReservationTransitions transitions,
+    OtpService otp,
     ISecureTokenService secureTokens,
     IActionThrottle throttle,
     IReservationSettings settings,
@@ -51,17 +53,11 @@ public sealed class PublicReservationService(
             return Result.Failure<PublicReservationDto>(ErrorCodes.ValidationFailed);
         }
 
-        var now = clock.UtcNow;
-        if (await reservations.CountActiveForPhoneAsync(phone, now, cancellationToken) >= settings.MaxActivePerPhone)
+        var email = EmailAddress.Normalize(request.GuestEmail);
+        var contact = await CheckContactAsync(phone, email, request.OtpCode, cancellationToken);
+        if (contact.ErrorCode is { } error)
         {
-            return Result.Failure<PublicReservationDto>(ErrorCodes.ReservationLimit);
-        }
-
-        // BR-RSV-21/22: SĐT có lịch sử không đến hoặc quán bật chống lạm dụng ⇒ phải xác minh OTP (luồng OTP ở bước sau)
-        var flagged = await reservations.FlaggedPhonesAsync([phone], now - NoShowWindow, settings.NoShowFlagCount, cancellationToken);
-        if (settings.RequireContactVerify || flagged.Count > 0)
-        {
-            return Result.Failure<PublicReservationDto>(ErrorCodes.OtpRequired);
+            return Result.Failure<PublicReservationDto>(error);
         }
 
         var draft = new BookingDraft(
@@ -72,7 +68,7 @@ public sealed class PublicReservationService(
             request.ChildCount,
             request.GuestName.Trim(),
             phone,
-            EmailAddress.Normalize(request.GuestEmail),
+            email,
             Clean(request.SpecialRequest),
             InternalNote: null,
             request.Lang ?? AuthPolicy.DefaultLanguage,
@@ -80,12 +76,39 @@ public sealed class PublicReservationService(
             userId,
             StaffId: null,
             ReservationStatus.Pending,
-            OverrideCapacityReason: null);
+            OverrideCapacityReason: null,
+            ContactVerified: contact.Verified);
 
         var created = await booking.BookAsync(draft, cancellationToken);
         return created.IsSuccess
             ? Result.Success(created.Value.ToPublic())
             : Result.Failure<PublicReservationDto>(created.ErrorCode ?? ErrorCodes.SlotFull);
+    }
+
+    // BR-RSV-20: giới hạn theo SĐT. BR-RSV-21/22: SĐT có lịch sử không đến hoặc quán bật chống lạm dụng ⇒
+    // phải nhập mã gửi tới email; chỉ giữ chỗ khi mã đúng nên không có đặt bàn "chờ OTP" treo chỗ.
+    private async Task<(string? ErrorCode, bool Verified)> CheckContactAsync(string phone, string email, string? otpCode, CancellationToken cancellationToken)
+    {
+        var now = clock.UtcNow;
+        if (await reservations.CountActiveForPhoneAsync(phone, now, cancellationToken) >= settings.MaxActivePerPhone)
+        {
+            return (ErrorCodes.ReservationLimit, false);
+        }
+
+        var flagged = await reservations.FlaggedPhonesAsync([phone], now - NoShowWindow, settings.NoShowFlagCount, cancellationToken);
+        if (!settings.RequireContactVerify && flagged.Count == 0)
+        {
+            return (null, false);
+        }
+
+        if (string.IsNullOrEmpty(otpCode))
+        {
+            return (ErrorCodes.OtpRequired, false);
+        }
+
+        return await otp.VerifyAsync(OtpPurpose.ReservationContact, email, otpCode, relatedEntityId: null, cancellationToken)
+            ? (null, true)
+            : (ErrorCodes.OtpInvalid, false);
     }
 
     // Sai mã và sai SĐT trả cùng NOT_FOUND để không dò được mã nào tồn tại

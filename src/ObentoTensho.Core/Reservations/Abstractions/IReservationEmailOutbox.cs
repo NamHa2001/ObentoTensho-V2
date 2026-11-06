@@ -13,4 +13,10 @@ public interface IReservationEmailOutbox
     void EnqueueRejected(Reservation reservation, string reason);
 
     void EnqueueCancelled(Reservation reservation);
+
+    // BR-RSV-08: nhắc một lần trước giờ hẹn
+    void EnqueueReminder(Reservation reservation);
+
+    // BR-RSV-25: quán chưa kịp xác nhận nên hệ thống tự hủy — xin lỗi, mời chọn giờ khác
+    void EnqueueAutoCancelled(Reservation reservation);
 }

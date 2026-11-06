@@ -13,6 +13,9 @@ public static class EmailTypes
         EmailKind.ReservationConfirmed => "reservation_confirmed",
         EmailKind.ReservationRejected => "reservation_rejected",
         EmailKind.ReservationCancelled => "reservation_cancelled",
+        EmailKind.ReservationReminder => "reservation_reminder",
+        EmailKind.ReservationAutoCancelled => "reservation_auto_cancelled",
+        EmailKind.VerificationCode => "verification_code",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

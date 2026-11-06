@@ -20,6 +20,7 @@ public sealed class EmailTemplateTests
         ["manageLink"] = "https://www.obento.test/reservations/manage?code=OBT-8K4Q-7ZM2#token=abc",
         ["bookingLink"] = "https://www.obento.test/reservations",
         ["reason"] = "Ca đã kín chỗ",
+        ["minutes"] = "5",
     };
 
     public static TheoryData<EmailKind, string> Cases()

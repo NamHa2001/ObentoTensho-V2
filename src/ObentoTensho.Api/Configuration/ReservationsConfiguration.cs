@@ -1,7 +1,10 @@
 using FluentValidation;
+using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos.Reservations;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Reservations.Services;
 using ObentoTensho.Core.Reservations.Validators;
+using ObentoTensho.Core.Verification.Services;
 
 namespace ObentoTensho.Api.Configuration;
 
@@ -19,6 +22,14 @@ public static class ReservationsConfiguration
         services.AddScoped<PublicReservationService>();
         services.AddScoped<ReservationDeskService>();
         services.AddScoped<ReservationStaffService>();
+        services.AddScoped<OtpService>();
+        services.AddScoped<TurnstileFilter>();
+
+        // Việc định kỳ (docs/srs/20 §4)
+        services.AddScoped<ReservationJobs>();
+        services.AddScoped<IRecurringJob, ReservationReminderJob>();
+        services.AddScoped<IRecurringJob, ReservationNoShowJob>();
+        services.AddScoped<IRecurringJob, ReservationPendingCutoffJob>();
         return services;
     }
 }

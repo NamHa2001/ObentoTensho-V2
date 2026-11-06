@@ -22,6 +22,7 @@ public sealed class ReservationsController(ReservationSchedule schedule, PublicR
     [HttpPost]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitConfiguration.ReservationPolicy)]
+    [ServiceFilter<TurnstileFilter>]
     public async Task<IActionResult> Create(CreateReservationRequest request, CancellationToken cancellationToken) =>
         this.CreatedOrProblem(await reservations.CreateAsync(request, User.CustomerId(), cancellationToken));
 

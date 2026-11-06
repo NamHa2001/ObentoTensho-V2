@@ -10,5 +10,8 @@ public enum EmailKind
     ReservationReceived,
     ReservationConfirmed,
     ReservationRejected,
-    ReservationCancelled
+    ReservationCancelled,
+    ReservationReminder,
+    ReservationAutoCancelled,
+    VerificationCode
 }

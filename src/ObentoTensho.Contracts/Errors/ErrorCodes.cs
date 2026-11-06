@@ -36,6 +36,12 @@ public static class ErrorCodes
     public const string DateBlocked = "DATE_BLOCKED";
     public const string ReservationLimit = "RSV_LIMIT";
     public const string OtpRequired = "OTP_REQUIRED";
+
+    // Mã OTP sai, hết hạn hoặc đã hủy vì sai quá số lần (BR-AUTH-18)
+    public const string OtpInvalid = "OTP_INVALID";
+
+    // Turnstile không hợp lệ hoặc dịch vụ kiểm tra không phản hồi (SEC-57)
+    public const string CaptchaFailed = "CAPTCHA_FAILED";
     public const string InvalidTransition = "INVALID_TRANSITION";
     public const string ContactNotConfirmed = "CONTACT_NOT_CONFIRMED";
     public const string CallAttemptsExceeded = "CALL_ATTEMPTS_EXCEEDED";

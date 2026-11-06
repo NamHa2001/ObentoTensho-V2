@@ -23,8 +23,15 @@ public sealed class ReservationOptions : IReservationSettings
 
     public int TimeStepMinutes { get; set; } = 15;
 
+    public int GraceMinutes { get; set; } = 15;
+
+    public int PendingCutoffMinutes { get; set; } = 60;
+
+    public int ReminderLeadMinutes { get; set; } = 120;
+
     public bool IsValid() =>
         MaxGuestsPerBooking is >= 1 and <= 100 && MaxAdvanceDays is >= 1 and <= 365 && MaxActivePerPhone is >= 1 and <= 10
         && CallAttempts is >= 1 and <= 10 && NoShowFlagCount is >= 1 and <= 10 && LargePartySize is >= 2 and <= 50
-        && TimeStepMinutes is 5 or 10 or 15 or 30 or 60;
+        && TimeStepMinutes is 5 or 10 or 15 or 30 or 60
+        && GraceMinutes is >= 5 and <= 120 && PendingCutoffMinutes is >= 5 and <= 240 && ReminderLeadMinutes is >= 30 and <= 1440;
 }

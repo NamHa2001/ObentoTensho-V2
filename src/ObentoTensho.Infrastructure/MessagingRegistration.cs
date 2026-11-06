@@ -3,9 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Notifications.Abstractions;
 using ObentoTensho.Core.Notifications.Services;
+using ObentoTensho.Core.Verification.Abstractions;
 using ObentoTensho.Infrastructure.Email;
+using ObentoTensho.Infrastructure.Jobs;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
+using ObentoTensho.Infrastructure.Reservations;
+using ObentoTensho.Infrastructure.Security;
 
 namespace ObentoTensho.Infrastructure;
 
@@ -41,6 +45,30 @@ public static class MessagingRegistration
         services.AddScoped<OutboxStore>();
         services.AddSingleton<OutboxProcessor>();
         services.AddHostedService<OutboxWorker>();
+
+        // OTP (BR-AUTH-18)
+        services.AddOptions<OtpOptions>()
+            .Bind(configuration.GetSection(OtpOptions.SectionName))
+            .Validate(o => o.DailyQuota is >= 10 and <= 100_000, "Otp:DailyQuota phải từ 10 đến 100000.")
+            .ValidateOnStart();
+        services.AddSingleton<IOtpSettings>(sp => sp.GetRequiredService<IOptions<OtpOptions>>().Value);
+        services.AddScoped<IOtpRepository, OtpRepository>();
+        services.AddScoped<IOtpEmailOutbox, OtpEmailOutbox>();
+
+        // Turnstile (SEC-22, SEC-57) — chờ tối đa 5 giây rồi từ chối
+        services.AddOptions<TurnstileOptions>()
+            .Bind(configuration.GetSection(TurnstileOptions.SectionName))
+            .Validate(o => o.Validate(isProduction) is null, "Cấu hình Turnstile không hợp lệ (xem TurnstileOptions.Validate).")
+            .ValidateOnStart();
+        services.AddHttpClient<ITurnstileVerifier, CloudflareTurnstileVerifier>(c => c.Timeout = TimeSpan.FromSeconds(5));
+
+        // Việc định kỳ (docs/srs/20 §4)
+        services.AddOptions<JobOptions>()
+            .Bind(configuration.GetSection(JobOptions.SectionName))
+            .Validate(o => o.TickSeconds is >= 5 and <= 300, "Jobs:TickSeconds phải từ 5 đến 300.")
+            .ValidateOnStart();
+        services.AddSingleton<SqlJobLock>();
+        services.AddHostedService<RecurringJobWorker>();
         return services;
     }
 }

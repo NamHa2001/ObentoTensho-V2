@@ -1,0 +1,21 @@
+subject: Nhắc lịch: đặt bàn {{code}} lúc {{time}} ngày {{date}}
+===
+Xin chào {{fullName}},
+
+Obento Tensho xin nhắc bạn lịch đặt bàn sắp tới:
+
+Mã đặt bàn: {{code}}
+Ngày: {{date}}
+Giờ: {{time}} (giờ Việt Nam)
+Số khách: {{guests}}
+
+Chúng tôi rất mong được đón tiếp bạn. Nếu không thể đến, vui lòng hủy để nhường chỗ cho khách khác: {{manageLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Obento Tensho xin nhắc bạn lịch đặt bàn sắp tới:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đặt bàn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ngày</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ</td><td style="padding:4px 0">{{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số khách</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<p>Chúng tôi rất mong được đón tiếp bạn. Nếu không thể đến, vui lòng hủy để nhường chỗ cho khách khác.</p><p><a class="button" href="{{manageLink}}">Xem hoặc hủy đặt bàn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

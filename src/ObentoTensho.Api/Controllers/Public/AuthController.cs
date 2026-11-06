@@ -25,6 +25,7 @@ public sealed class AuthController(
     [HttpPost("register")]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    [ServiceFilter<TurnstileFilter>]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var result = await registration.RegisterAsync(request, cancellationToken);

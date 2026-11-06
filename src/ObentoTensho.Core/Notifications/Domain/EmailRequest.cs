@@ -8,4 +8,5 @@ public sealed record EmailRequest(
     string Language,
     IReadOnlyDictionary<string, string> Values,
     string IdempotencyKey,
-    string? RelatedEntityId);
+    string? RelatedEntityId,
+    IReadOnlyList<EmailAttachment>? Attachments = null);

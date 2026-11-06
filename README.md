@@ -70,4 +70,8 @@ Sau Nginx/Cloudflare, khai báo proxy được tin để lấy IP thật của k
 
 Email: máy dev mặc định `Email:Mode = pickup` — thư được ghi thành tệp `.eml` trong thư mục `mail-pickup/` (mở bằng Outlook/Thunderbird để xem). Máy chủ bắt buộc `Email__Mode=smtp` cùng `Email__SmtpHost`, `Email__SmtpPort`, `Email__SmtpUsername`, `Email__SmtpPassword` của dịch vụ gửi thư (Brevo/Mailgun/SES…), `Email__FromAddress` (vd `no-reply@mail.<tên-miền>`), `Email__ReplyTo` (email quán), `Email__DailyQuota` (hạn mức ngày của gói đang dùng), và `Web__PublicBaseUrl` / `Web__AdminBaseUrl` để dựng liên kết trong thư. Thư được gửi bởi bộ xử lý nền chạy trong API; tắt bằng `Outbox__Enabled=false` trên instance không muốn gửi.
 
+Chống bot: máy chủ bắt buộc `Turnstile__Enabled=true`, `Turnstile__SecretKey` (khóa bí mật Cloudflare Turnstile) và `Turnstile__AllowedHostnames__0` (tên miền trang khách). Frontend gửi token trong header `X-Turnstile-Token` khi đặt bàn, gửi mã OTP và đăng ký. Máy dev để tắt.
+
+Việc định kỳ (nhắc đặt bàn, tự no-show, tự hủy đặt bàn treo) chạy nền trong API, dùng khóa `sp_getapplock` nên chạy nhiều instance không trùng; tắt bằng `Jobs__Enabled=false`. Hạn mức mã OTP mỗi ngày: `Otp__DailyQuota` (mặc định 200). Núm vặn đặt bàn: `Reservation__*` (xem `ReservationOptions`).
+
 Tài khoản SuperAdmin đầu tiên: khi hệ thống chưa có SuperAdmin nào, đặt `Seed__SuperAdmin__Email`, `Seed__SuperAdmin__FullName`, `Seed__SuperAdmin__Password` rồi khởi động API. Lần đăng nhập đầu sẽ bắt đổi mật khẩu và thiết lập 2FA; sau đó xóa các biến này. Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.
