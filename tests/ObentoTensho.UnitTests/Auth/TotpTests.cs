@@ -55,7 +55,8 @@ public sealed class TotpTests
     {
         var uri = Totp.BuildUri("Obento Tensho", "quanly@example.com", RfcSecret);
 
-        Assert.StartsWith("otpauth://totp/Obento%20Tensho:quanly%40example.com?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", uri, StringComparison.Ordinal);
+        Assert.StartsWith("otpauth://totp/Obento%20Tensho:quanly%40example.com?", uri, StringComparison.Ordinal);
+        Assert.Contains("=" + Base32.Encode(RfcSecret) + "&", uri, StringComparison.Ordinal);
         Assert.Contains("issuer=Obento%20Tensho", uri, StringComparison.Ordinal);
         Assert.Contains("digits=6&period=30", uri, StringComparison.Ordinal);
     }

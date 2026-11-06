@@ -1,0 +1,4 @@
+# Báo động giả đã kiểm tra. Mỗi dòng: <commit>:<file>:<rule>:<line> — kèm lý do ngay phía trên.
+
+# Khóa thử nghiệm công khai của RFC 6238 ("12345678901234567890" dạng Base32) trong test TOTP, không phải bí mật
+ffeca06414121723c1cda5fc18e84d5d33cdc2e6:tests/ObentoTensho.UnitTests/Auth/TotpTests.cs:generic-api-key:58
