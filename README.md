@@ -15,8 +15,23 @@ Website nhà hàng **Obento Tensho (お弁当 天晟)**: giới thiệu, thực 
 ```
 src/      mã backend .NET
 tests/    kiểm thử backend
-web/      workspace Angular
+web/      workspace Angular (projects/customer, projects/admin)
 deploy/   Docker, Compose, Nginx, script
+```
+
+## Build và kiểm thử
+
+Yêu cầu: .NET SDK 10 (ghim ở `global.json`), Node.js 24, Angular CLI 21.
+
+```
+dotnet build ObentoTensho.sln
+dotnet test ObentoTensho.sln
+
+cd web
+npm ci
+npx ng build customer
+npx ng build admin
+npx ng test customer --watch=false
 ```
 
 ## Cấu hình và bí mật

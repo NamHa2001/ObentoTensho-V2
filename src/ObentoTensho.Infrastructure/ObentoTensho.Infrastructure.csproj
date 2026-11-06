@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\ObentoTensho.Contracts\ObentoTensho.Contracts.csproj" />
+    <ProjectReference Include="..\ObentoTensho.Core\ObentoTensho.Core.csproj" />
+  </ItemGroup>
+
+</Project>
