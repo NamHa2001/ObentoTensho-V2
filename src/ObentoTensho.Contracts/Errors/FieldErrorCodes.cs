@@ -11,4 +11,5 @@ public static class FieldErrorCodes
     public const string PasswordTooCommon = "PASSWORD_TOO_COMMON";
     public const string PasswordContainsEmail = "PASSWORD_CONTAINS_EMAIL";
     public const string SameAsCurrent = "SAME_AS_CURRENT";
+    public const string Overlap = "OVERLAP";
 }

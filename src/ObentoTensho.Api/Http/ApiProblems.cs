@@ -20,6 +20,13 @@ public static class ApiProblems
         [ErrorCodes.NotFound] = (StatusCodes.Status404NotFound, "Không tìm thấy"),
         [ErrorCodes.AccountLocked] = (StatusCodes.Status423Locked, "Tài khoản đang bị khóa"),
         [ErrorCodes.TokenInvalid] = (StatusCodes.Status400BadRequest, "Liên kết không hợp lệ hoặc đã hết hạn"),
+        [ErrorCodes.PreconditionFailed] = (StatusCodes.Status412PreconditionFailed, "Dữ liệu đã bị người khác thay đổi, hãy tải lại"),
+        [ErrorCodes.PreconditionRequired] = (StatusCodes.Status428PreconditionRequired, "Thiếu If-Match (phiên bản dữ liệu)"),
+        [ErrorCodes.DuplicateName] = (StatusCodes.Status409Conflict, "Tên đã tồn tại"),
+        [ErrorCodes.AreaHasTables] = (StatusCodes.Status409Conflict, "Khu vực còn bàn"),
+        [ErrorCodes.AreaInactive] = (StatusCodes.Status400BadRequest, "Khu vực không tồn tại hoặc đang tắt"),
+        [ErrorCodes.SlotOverlap] = (StatusCodes.Status409Conflict, "Ca phục vụ bị chồng lấn"),
+        [ErrorCodes.SlotOutsideOpeningHours] = (StatusCodes.Status409Conflict, "Ca phục vụ nằm ngoài giờ mở cửa"),
         [ErrorCodes.RateLimited] = (StatusCodes.Status429TooManyRequests, "Quá nhiều yêu cầu, vui lòng thử lại sau"),
         [ErrorCodes.InternalError] = (StatusCodes.Status500InternalServerError, "Lỗi hệ thống"),
     };

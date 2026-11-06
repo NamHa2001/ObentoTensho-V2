@@ -14,5 +14,16 @@ public static class ErrorCodes
     public const string Forbidden = "FORBIDDEN";
     public const string NotFound = "NOT_FOUND";
     public const string RateLimited = "RATE_LIMITED";
+
+    // docs/srs/09 §4: ETag/If-Match không khớp (người khác vừa sửa) hoặc thiếu If-Match
+    public const string PreconditionFailed = "PRECONDITION_FAILED";
+    public const string PreconditionRequired = "PRECONDITION_REQUIRED";
+
+    // Bàn, ca, giờ mở cửa (docs/srs/16)
+    public const string DuplicateName = "DUPLICATE_NAME";
+    public const string AreaHasTables = "AREA_HAS_TABLES";
+    public const string AreaInactive = "AREA_INACTIVE";
+    public const string SlotOverlap = "SLOT_OVERLAP";
+    public const string SlotOutsideOpeningHours = "SLOT_OUTSIDE_OPENING_HOURS";
     public const string InternalError = "INTERNAL_ERROR";
 }

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Infrastructure.Caching;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
@@ -40,6 +42,9 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IAccountEmailOutbox, AccountEmailOutbox>();
         services.AddScoped<IAuditTrail, EfAuditTrail>();
+        services.AddScoped<ITableLayoutRepository, TableLayoutRepository>();
+        services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddSingleton<IPublicScheduleCache, MemoryPublicScheduleCache>();
 
         return services;
     }

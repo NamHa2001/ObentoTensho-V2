@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
 
@@ -20,11 +21,27 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    public DbSet<TableArea> TableAreas => Set<TableArea>();
+
+    public DbSet<DiningTable> Tables => Set<DiningTable>();
+
+    public DbSet<OpeningHour> OpeningHours => Set<OpeningHour>();
+
+    public DbSet<SpecialHour> SpecialHours => Set<SpecialHour>();
+
+    public DbSet<ServiceSlot> ServiceSlots => Set<ServiceSlot>();
+
+    public DbSet<BlockedDate> BlockedDates => Set<BlockedDate>();
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         // DB-01: datetime2(3), luôn UTC
         configurationBuilder.Properties<DateTime>().HaveColumnType("datetime2(3)").HaveConversion<UtcDateTimeConverter>();
         configurationBuilder.Properties<DateTime?>().HaveColumnType("datetime2(3)").HaveConversion<NullableUtcDateTimeConverter>();
+
+        // Giờ địa phương trong ngày (giờ mở cửa, ca) chỉ cần tới giây
+        configurationBuilder.Properties<TimeOnly>().HaveColumnType("time(0)");
+        configurationBuilder.Properties<TimeOnly?>().HaveColumnType("time(0)");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -19,6 +19,7 @@ public static class ApiConfiguration
 
                 // Enum dạng chuỗi snake_case, giống giá trị lưu CSDL (vd "password_change")
                 o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
+                o.JsonSerializerOptions.Converters.Add(new TimeOnlyJsonConverter());
             })
             .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = context =>
             {

@@ -19,6 +19,7 @@ builder.Services.AddWebOrigins(builder.Configuration);
 builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
 builder.Services.AddApiRateLimiting(builder.Configuration);
 builder.Services.AddAuthServices();
+builder.Services.AddTablesServices();
 
 var app = builder.Build();
 

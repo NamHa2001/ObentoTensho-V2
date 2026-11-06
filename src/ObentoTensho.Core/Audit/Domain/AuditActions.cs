@@ -10,4 +10,12 @@ public static class AuditActions
     public const string StaffPasswordChanged = "auth.staff.password_changed";
     public const string StaffInviteAccepted = "auth.staff.invite_accepted";
     public const string RefreshTokenReuseDetected = "auth.refresh_token.reuse_detected";
+
+    // BR-TBL-15: mọi thay đổi bàn/ca/khóa ngày/giờ mở cửa ghi trước-sau
+    public const string Created = "created";
+    public const string Updated = "updated";
+    public const string Deleted = "deleted";
+    public const string StatusChanged = "status_changed";
+
+    public static string For(string entityType, string change) => $"tables.{entityType}.{change}";
 }

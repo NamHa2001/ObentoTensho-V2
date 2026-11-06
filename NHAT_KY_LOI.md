@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Bàn, khu vực, ca phục vụ, khóa ngày, giờ mở cửa (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Test audit đỏ: `NewDataJson` chứa `"B1 cửa sổ"` thay vì `"B1 cửa sổ"` | `System.Text.Json` mặc định mã hóa mọi ký tự ngoài ASCII; nhật ký vẫn đúng nhưng người xem đọc không được và tốn dung lượng | `AuditRedactor` ghi JSON với `JavaScriptEncoder.Create(UnicodeRanges.All)` (giữ chữ Việt/Nhật, vẫn mã hóa `<`, `>`, `&`) | JSON lưu CSDL để người đọc thì đặt Encoder rõ ràng; có test với chuỗi tiếng Việt |
+| Test đỏ `ObjectDisposedException: Cannot access a closed Stream` ở helper đăng nhập test | Đọc body của cùng một `HttpResponseMessage` hai lần (`ReadFromJsonAsync` đóng luồng sau lần đầu) | Đọc `data` một lần rồi tách `challenge`/`session` từ cùng `JsonElement` | Mỗi phản hồi chỉ gọi đọc body một lần; tách dữ liệu sau |
+| Build lỗi hàng loạt `CA1305`/`MA0011` ở `id.ToString()` và `CA1716` với tham số tên `to` | Analyzer bắt định dạng số theo văn hóa và tên trùng từ khóa VB | `ToString(CultureInfo.InvariantCulture)`; đổi tên tham số `fromDate`/`toDate` | Định danh trong log/audit luôn dùng InvariantCulture |
+
 ## Phân quyền, audit, giới hạn tần suất, header bảo mật (06/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

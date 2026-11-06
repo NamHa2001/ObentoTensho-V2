@@ -381,6 +381,274 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.BlockedDate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("AppliesTo")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date")
+                        .HasColumnName("BlockedDate");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time(0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByStaffId");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("BlockedDates", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BlockedDates_AppliesTo", "[AppliesTo] BETWEEN 0 AND 2");
+
+                            t.HasCheckConstraint("CK_BlockedDates_Range", "([StartTime] IS NULL AND [EndTime] IS NULL) OR ([StartTime] IS NOT NULL AND [EndTime] IS NOT NULL AND [StartTime] < [EndTime])");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.DiningTable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AreaId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("CurrentStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("MaxCapacity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinCapacity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("TableName");
+
+                    b.Property<int>("PosX")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PosY")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Rotation")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AreaId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Tables", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Tables_Capacity", "[MinCapacity] >= 1 AND [MaxCapacity] >= [MinCapacity]");
+
+                            t.HasCheckConstraint("CK_Tables_CurrentStatus", "[CurrentStatus] BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_Tables_Layout", "[PosX] >= 0 AND [PosY] >= 0 AND [Width] >= 0 AND [Height] >= 0 AND [Rotation] BETWEEN 0 AND 359");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.OpeningHour", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeOnly>("CloseTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<bool>("CrossesMidnight")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("DayOfWeek")
+                        .HasColumnType("tinyint");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeOnly>("OpenTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DayOfWeek", "OpenTime")
+                        .IsUnique();
+
+                    b.ToTable("OpeningHours", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OpeningHours_DayOfWeek", "[DayOfWeek] BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("CK_OpeningHours_Range", "[IsClosed] = 1 OR ([CrossesMidnight] = 0 AND [OpenTime] < [CloseTime]) OR ([CrossesMidnight] = 1 AND [CloseTime] < [OpenTime])");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.ServiceSlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte?>("DayOfWeek")
+                        .HasColumnType("tinyint");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int?>("MaxGuests")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxReservations")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time(0)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceSlots", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ServiceSlots_Capacity", "[MaxReservations] >= 1 AND ([MaxGuests] IS NULL OR [MaxGuests] >= 1)");
+
+                            t.HasCheckConstraint("CK_ServiceSlots_DayOfWeek", "[DayOfWeek] IS NULL OR [DayOfWeek] BETWEEN 0 AND 6");
+
+                            t.HasCheckConstraint("CK_ServiceSlots_Range", "[StartTime] < [EndTime]");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.SpecialHour", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeOnly?>("CloseTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<Guid>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsClosed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<TimeOnly?>("OpenTime")
+                        .HasColumnType("time(0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByStaffId");
+
+                    b.HasIndex("Date", "OpenTime")
+                        .IsUnique()
+                        .HasFilter("[OpenTime] IS NOT NULL");
+
+                    b.ToTable("SpecialHours", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SpecialHours_Range", "([IsClosed] = 1 AND [OpenTime] IS NULL AND [CloseTime] IS NULL) OR ([IsClosed] = 0 AND [OpenTime] < [CloseTime])");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.TableArea", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("TableAreas", (string)null);
+                });
+
             modelBuilder.Entity("ObentoTensho.Infrastructure.Messaging.OutboxMessage", b =>
                 {
                     b.Property<long>("Id")
@@ -447,6 +715,33 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.BlockedDate", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.DiningTable", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Tables.Domain.TableArea", null)
+                        .WithMany()
+                        .HasForeignKey("AreaId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.SpecialHour", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

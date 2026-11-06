@@ -1,5 +1,7 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Unicode;
 
 namespace ObentoTensho.Core.Audit.Domain;
 
@@ -7,6 +9,9 @@ namespace ObentoTensho.Core.Audit.Domain;
 public static class AuditRedactor
 {
     public const string Hidden = "***";
+
+    // Giữ nguyên tiếng Việt/Nhật để người xem nhật ký đọc được; ký tự nhạy cảm HTML vẫn bị mã hóa
+    private static readonly JsonSerializerOptions WriteOptions = new() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.All) };
 
     private static readonly string[] SecretMarkers = ["password", "token", "secret", "hash", "stamp", "recoverycode", "otp", "totp"];
 
@@ -19,7 +24,7 @@ public static class AuditRedactor
 
         var node = JsonSerializer.SerializeToNode(data, JsonSerializerOptions.Web);
         Redact(node);
-        return node?.ToJsonString();
+        return node?.ToJsonString(WriteOptions);
     }
 
     public static string MaskEmail(string email)

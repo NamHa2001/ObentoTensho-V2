@@ -55,6 +55,43 @@ public sealed class AdminAuthApiClient(ApiFactory factory, SqlServerFixture fixt
     public Task<HttpResponseMessage> LoginAsync(string email, string password = Password) =>
         PostAsync("login", new { email, password });
 
+    // Tạo nhân viên vai trò `role` và đăng nhập hết các bước (tự thiết lập 2FA cho SuperAdmin/Manager); trả access token
+    public async Task<string> SignInAsync(StaffRole role)
+    {
+        var (id, email) = await CreateStaffAsync(role);
+        // Body chỉ đọc được một lần
+        var data = await ReadDataAsync(await LoginAsync(email));
+        var challenge = data.GetProperty("challenge");
+        if (challenge.ValueKind == JsonValueKind.Null)
+        {
+            return data.GetProperty("session").GetProperty("accessToken").GetString() ?? string.Empty;
+        }
+
+        var token = challenge.GetProperty("challengeToken").GetString();
+        (await PostAsync("2fa/setup", new { challengeToken = token })).EnsureSuccessStatusCode();
+        var secret = await ReadTotpSecretAsync(id);
+        var confirm = await PostAsync("2fa/setup/confirm", new { challengeToken = token, code = CurrentCode(secret) });
+        confirm.EnsureSuccessStatusCode();
+        return (await ReadDataAsync(confirm)).GetProperty("session").GetProperty("accessToken").GetString() ?? string.Empty;
+    }
+
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string accessToken, object? body = null, string? ifMatch = null)
+    {
+        var request = new HttpRequestMessage(method, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        if (body is not null)
+        {
+            request.Content = JsonContent.Create(body);
+        }
+
+        if (ifMatch is not null)
+        {
+            request.Headers.TryAddWithoutValidation("If-Match", ifMatch);
+        }
+
+        return _http.SendAsync(request);
+    }
+
     public Task<HttpResponseMessage> RefreshAsync(string? refreshToken, string origin = ApiFactory.AdminOrigin)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/auth/refresh-token");
