@@ -1,0 +1,44 @@
+# Build
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+TestResults/
+coverage/
+*.log
+[Ll]ogs/
+
+# Node / Angular
+node_modules/
+dist/
+.angular/
+.nx/
+*.tsbuildinfo
+
+# Bí mật và cấu hình máy
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
+*.secret
+*credentials*
+
+# Dữ liệu và tệp người dùng
+uploads/
+App_Data/
+*.bak
+*.mdf
+*.ldf
+
+# Hệ điều hành và trình soạn thảo
+.DS_Store
+Thumbs.db
+.idea/
