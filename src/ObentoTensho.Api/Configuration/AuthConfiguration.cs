@@ -26,11 +26,14 @@ public static class AuthConfiguration
         services.AddSingleton<IValidator<LoginRequest>, LoginRequestValidator>();
         services.AddSingleton<IValidator<StaffChangePasswordRequest>, StaffChangePasswordRequestValidator>();
         services.AddSingleton<IValidator<AcceptInviteRequest>, AcceptInviteRequestValidator>();
+        services.AddSingleton<IValidator<ResetPasswordRequest>, ResetPasswordRequestValidator>();
 
         services.AddScoped<SessionFactory>();
         services.AddScoped<AccessTokenSessionValidator>();
         services.AddScoped<CustomerSessionService>();
         services.AddScoped<CustomerRegistrationService>();
+        services.AddScoped<CustomerAccountService>();
+        services.AddScoped<StaffPasswordResetService>();
         services.AddScoped<StaffSignInFlow>();
         services.AddScoped<StaffLoginService>();
         services.AddScoped<StaffTwoFactorService>();

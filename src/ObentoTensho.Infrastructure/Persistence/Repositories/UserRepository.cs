@@ -33,6 +33,15 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
         return state;
     }
 
+    public Task<User?> FindByEmailForUpdateAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+        db.Users.SingleOrDefaultAsync(u => u.Email == normalizedEmail, cancellationToken);
+
+    public Task<User?> FindByEmailVerifyTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken) =>
+        db.Users.SingleOrDefaultAsync(u => u.EmailVerifyTokenHash == tokenHash, cancellationToken);
+
+    public Task<User?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken) =>
+        db.Users.SingleOrDefaultAsync(u => u.ResetPasswordTokenHash == tokenHash, cancellationToken);
+
     public void Add(User user) => db.Users.Add(user);
 
     public Task RegisterFailedLoginAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken)

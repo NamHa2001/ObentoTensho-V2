@@ -11,6 +11,13 @@ public interface IUserRepository
 
     Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);
 
+    // Bản được theo dõi thay đổi, lưu bằng IUnitOfWork
+    Task<User?> FindByEmailForUpdateAsync(string normalizedEmail, CancellationToken cancellationToken);
+
+    Task<User?> FindByEmailVerifyTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken);
+
+    Task<User?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken);
+
     void Add(User user);
 
     // Tăng bộ đếm sai trong SQL (không đọc-sửa-ghi) để các yêu cầu song song không vượt được ngưỡng khóa

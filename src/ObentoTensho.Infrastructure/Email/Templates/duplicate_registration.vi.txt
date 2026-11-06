@@ -1,0 +1,20 @@
+subject: Có người vừa đăng ký bằng email của bạn
+===
+Xin chào {{fullName}},
+
+Chúng tôi vừa nhận được yêu cầu đăng ký tài khoản Obento Tensho bằng địa chỉ email này, nhưng email này đã có tài khoản.
+
+Nếu đó là bạn, hãy đăng nhập tại: {{loginLink}}
+Nếu quên mật khẩu, bạn có thể đặt lại mật khẩu ở trang đăng nhập.
+
+Nếu không phải bạn, bạn không cần làm gì — tài khoản của bạn vẫn an toàn.
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Chúng tôi vừa nhận được yêu cầu đăng ký tài khoản Obento Tensho bằng địa chỉ email này, nhưng email này đã có tài khoản.</p>
+<p>Nếu đó là bạn, hãy đăng nhập tại đây. Nếu quên mật khẩu, bạn có thể đặt lại mật khẩu ở trang đăng nhập.</p>
+<p><a class="button" href="{{loginLink}}">Đăng nhập</a></p>
+<p>Nếu không phải bạn, bạn không cần làm gì — tài khoản của bạn vẫn an toàn.</p>
+<p>Trân trọng,<br>Obento Tensho</p>

@@ -1,0 +1,10 @@
+namespace ObentoTensho.Core.Notifications.Domain;
+
+// Danh mục email (docs/srs/20 §2); thêm loại mới phải có mẫu đủ vi/en/ja
+public enum EmailKind
+{
+    VerifyEmail,
+    DuplicateRegistration,
+    PasswordReset,
+    PasswordChanged
+}

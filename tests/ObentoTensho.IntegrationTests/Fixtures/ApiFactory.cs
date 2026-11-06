@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using ObentoTensho.Core.Notifications.Abstractions;
+using ObentoTensho.Infrastructure.Messaging;
 
 namespace ObentoTensho.IntegrationTests.Fixtures;
 
@@ -14,6 +16,9 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
     public const string CustomerOrigin = "https://www.obento.test";
     public const string AdminOrigin = "https://admin.obento.test";
 
+    // Thư "gửi" trong test nằm ở đây; hộp thư đi không tự chạy, test gọi ProcessOutboxAsync
+    public FakeEmailSender Emails { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
@@ -22,6 +27,11 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         builder.UseSetting("Jwt:SigningKeys:test-1", Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
         builder.UseSetting("Web:CustomerOrigins:0", CustomerOrigin);
         builder.UseSetting("Web:AdminOrigins:0", AdminOrigin);
+        builder.UseSetting("Web:PublicBaseUrl", CustomerOrigin);
+        builder.UseSetting("Web:AdminBaseUrl", AdminOrigin);
+        builder.UseSetting("Email:FromAddress", "no-reply@mail.obento.test");
+        builder.UseSetting("Email:ReplyTo", "lienhe@obento.test");
+        builder.UseSetting("Outbox:Enabled", "false");
 
         // Số vòng tối thiểu cho phép để test chạy nhanh hơn
         builder.UseSetting("Security:PasswordHashing:Iterations", "210000");
@@ -39,7 +49,17 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         {
             services.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly);
             services.AddTransient<Microsoft.AspNetCore.Hosting.IStartupFilter, TestRemoteIpStartupFilter>();
+            services.AddSingleton<IEmailSender>(Emails);
         });
+    }
+
+    // Chạy hộp thư đi tới khi hết tin tới hạn (gồm cả tin còn sót của test khác — vô hại)
+    public async Task ProcessOutboxAsync()
+    {
+        var processor = Services.GetRequiredService<OutboxProcessor>();
+        while (await processor.ProcessBatchAsync(CancellationToken.None) > 0)
+        {
+        }
     }
 
     public HttpClient CreateApiClient() =>

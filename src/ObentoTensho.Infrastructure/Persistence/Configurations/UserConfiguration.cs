@@ -43,5 +43,9 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.EmailCanonical);
         builder.HasIndex(u => u.PhoneNumber);
+
+        // Tra liên kết xác thực email / đặt lại mật khẩu theo băm token
+        builder.HasIndex(u => u.EmailVerifyTokenHash).IsUnique().HasFilter("[EmailVerifyTokenHash] IS NOT NULL");
+        builder.HasIndex(u => u.ResetPasswordTokenHash).IsUnique().HasFilter("[ResetPasswordTokenHash] IS NOT NULL");
     }
 }

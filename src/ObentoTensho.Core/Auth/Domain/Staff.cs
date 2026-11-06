@@ -21,6 +21,10 @@ public sealed class Staff
 
     public string? InviteTokenHash { get; set; }
 
+    public string? ResetPasswordTokenHash { get; set; }
+
+    public DateTime? ResetPasswordExpiryUtc { get; set; }
+
     public DateTime? InviteExpiryUtc { get; set; }
 
     public required string SecurityStamp { get; set; }

@@ -58,11 +58,16 @@ dotnet user-secrets set "Jwt:ActiveKeyId" "dev-1"
 dotnet user-secrets set "Jwt:SigningKeys:dev-1" "<khóa Base64 ngẫu nhiên 32 byte, ví dụ: openssl rand -base64 32>"
 dotnet user-secrets set "Web:CustomerOrigins:0" "http://localhost:4200"
 dotnet user-secrets set "Web:AdminOrigins:0" "http://localhost:4201"
+dotnet user-secrets set "Web:PublicBaseUrl" "http://localhost:4200"
+dotnet user-secrets set "Web:AdminBaseUrl" "http://localhost:4201"
+dotnet user-secrets set "Email:FromAddress" "no-reply@localhost.test"
 dotnet run
 ```
 
 Máy chủ dùng biến môi trường tương ứng (`ConnectionStrings__Default`, `Jwt__ActiveKeyId`, `Jwt__SigningKeys__<kid>`, `Web__CustomerOrigins__0`, `Web__AdminOrigins__0`) và bắt buộc đặt `DataProtection__KeysPath` tới một thư mục bền (volume riêng, có sao lưu): khóa trong thư mục này giải mã khóa 2FA của nhân viên, mất thư mục thì mọi nhân viên phải thiết lập lại 2FA.
 
 Sau Nginx/Cloudflare, khai báo proxy được tin để lấy IP thật của khách (dùng cho giới hạn tần suất và audit): `Network__KnownProxies__0=<IP proxy>` hoặc `Network__KnownNetworks__0=<dải CIDR>`. Không khai báo thì chỉ tin `localhost` và header `X-Forwarded-For` từ nơi khác bị bỏ qua. Giới hạn tần suất chỉnh bằng `RateLimiting__LoginPerMinute` (mặc định 10) và `RateLimiting__GeneralPerMinute` (mặc định 100); bộ đếm hiện nằm trong bộ nhớ của từng tiến trình.
+
+Email: máy dev mặc định `Email:Mode = pickup` — thư được ghi thành tệp `.eml` trong thư mục `mail-pickup/` (mở bằng Outlook/Thunderbird để xem). Máy chủ bắt buộc `Email__Mode=smtp` cùng `Email__SmtpHost`, `Email__SmtpPort`, `Email__SmtpUsername`, `Email__SmtpPassword` của dịch vụ gửi thư (Brevo/Mailgun/SES…), `Email__FromAddress` (vd `no-reply@mail.<tên-miền>`), `Email__ReplyTo` (email quán), `Email__DailyQuota` (hạn mức ngày của gói đang dùng), và `Web__PublicBaseUrl` / `Web__AdminBaseUrl` để dựng liên kết trong thư. Thư được gửi bởi bộ xử lý nền chạy trong API; tắt bằng `Outbox__Enabled=false` trên instance không muốn gửi.
 
 Tài khoản SuperAdmin đầu tiên: khi hệ thống chưa có SuperAdmin nào, đặt `Seed__SuperAdmin__Email`, `Seed__SuperAdmin__FullName`, `Seed__SuperAdmin__Password` rồi khởi động API. Lần đăng nhập đầu sẽ bắt đổi mật khẩu và thiết lập 2FA; sau đó xóa các biến này. Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.

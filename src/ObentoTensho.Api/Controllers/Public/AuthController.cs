@@ -15,7 +15,10 @@ namespace ObentoTensho.Api.Controllers.Public;
 [ApiController]
 [Route("api/v1/auth")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AuthController(CustomerRegistrationService registration, CustomerSessionService sessions) : ControllerBase
+public sealed class AuthController(
+    CustomerRegistrationService registration,
+    CustomerSessionService sessions,
+    CustomerAccountService accounts) : ControllerBase
 {
     private const string Cookie = RefreshTokenCookie.CustomerName;
 
@@ -60,6 +63,37 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
         RefreshTokenCookie.Clear(Response, Cookie);
         return NoContent();
     }
+
+    [HttpPost("verify-email")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> VerifyEmail(TokenRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await accounts.VerifyEmailAsync(request.Token, cancellationToken));
+
+    // Phản hồi luôn 202 dù email có tài khoản hay không (BR-AUTH-14)
+    [HttpPost("resend-verification")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ResendVerification(EmailOnlyRequest request, CancellationToken cancellationToken)
+    {
+        await accounts.ResendVerificationAsync(request.Email, cancellationToken);
+        return Accepted();
+    }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ForgotPassword(EmailOnlyRequest request, CancellationToken cancellationToken)
+    {
+        await accounts.ForgotPasswordAsync(request.Email, cancellationToken);
+        return Accepted();
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await accounts.ResetPasswordAsync(request, cancellationToken));
 
     private IActionResult StartSession(Result<AuthSession> result)
     {

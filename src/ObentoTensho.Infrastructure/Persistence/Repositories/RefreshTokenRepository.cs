@@ -43,6 +43,9 @@ internal sealed class RefreshTokenRepository(AppDbContext db) : IRefreshTokenRep
     public Task<DateTime> GetFamilyStartedAtAsync(Guid familyId, CancellationToken cancellationToken) =>
         db.RefreshTokens.Where(t => t.FamilyId == familyId).MinAsync(t => t.CreatedAtUtc, cancellationToken);
 
+    public Task RevokeAllForUserAsync(Guid userId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken) =>
+        Revoke(db.RefreshTokens.Where(t => t.UserId == userId), reason, nowUtc, cancellationToken);
+
     public Task RevokeAllForStaffAsync(Guid staffId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken) =>
         Revoke(db.RefreshTokens.Where(t => t.StaffId == staffId), reason, nowUtc, cancellationToken);
 

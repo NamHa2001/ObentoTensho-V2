@@ -26,5 +26,7 @@ public interface IRefreshTokenRepository
     // Thời điểm đăng nhập của gia đình token (token đầu tiên) — mốc hạn tuyệt đối của phiên nhân viên
     Task<DateTime> GetFamilyStartedAtAsync(Guid familyId, CancellationToken cancellationToken);
 
+    Task RevokeAllForUserAsync(Guid userId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken);
+
     Task RevokeAllForStaffAsync(Guid staffId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken);
 }

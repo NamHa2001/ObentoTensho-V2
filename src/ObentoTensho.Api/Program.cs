@@ -15,6 +15,7 @@ builder.Services.AddApiControllers();
 builder.Services.AddHealthChecks();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSecurityFoundation(builder.Configuration);
+builder.Services.AddMessaging(builder.Configuration, builder.Environment.IsProduction());
 builder.Services.AddWebOrigins(builder.Configuration);
 builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
 builder.Services.AddApiRateLimiting(builder.Configuration);

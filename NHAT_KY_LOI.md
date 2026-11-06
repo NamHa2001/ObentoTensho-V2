@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Email và hộp thư đi (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Mọi test mẫu email đỏ `Thiếu mẫu email verify_email.vi`, dù `dotnet msbuild -getItem:EmbeddedResource` liệt kê đủ 12 tệp | Tệp tên `*.vi.txt`, `*.en.txt`, `*.ja.txt`: MSBuild coi `.vi/.en/.ja` là mã văn hóa nên tách sang assembly vệ tinh `bin/.../vi/*.resources.dll`, assembly chính không có | Thêm `WithCulture="false"` cho `EmbeddedResource` của mẫu; kiểm lại bằng `Assembly.GetManifestResourceNames()` (13 tài nguyên) | Tài nguyên nhúng có đuôi trùng mã ngôn ngữ luôn đặt `WithCulture="false"`; có test đếm số mẫu nạp được |
+| `sed` sửa dòng có `Email\Templates\*.txt` trong `.csproj` không đổi gì (không báo lỗi) | Gạch chéo ngược và `*` trong mẫu sed bị shell/regex hiểu khác | Sửa bằng công cụ chỉnh sửa file rồi đọc lại dòng đó | Không dùng sed cho dòng có `\`; sau mỗi lần sửa bằng lệnh, `grep` lại kết quả |
+| Lệnh python dài trong heredoc (mẫu email có tiếng Nhật, dấu gạch ngang dài) báo `unexpected EOF while looking for matching` | Như mục "Nền CSDL": heredoc dài bị shell phân tích sai | Ghi script vào thư mục tạm bằng công cụ ghi file rồi chạy `python script.py` | Nội dung dài/đa ngôn ngữ luôn ghi ra tệp trước |
+
 ## Bàn, khu vực, ca phục vụ, khóa ngày, giờ mở cửa (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

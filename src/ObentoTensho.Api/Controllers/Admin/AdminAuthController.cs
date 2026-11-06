@@ -22,7 +22,8 @@ public sealed class AdminAuthController(
     StaffLoginService login,
     StaffTwoFactorService twoFactor,
     StaffPasswordService passwords,
-    StaffSessionService sessions) : ControllerBase
+    StaffSessionService sessions,
+    StaffPasswordResetService passwordReset) : ControllerBase
 {
     private const string Cookie = RefreshTokenCookie.AdminName;
 
@@ -101,6 +102,21 @@ public sealed class AdminAuthController(
         RefreshTokenCookie.Clear(Response, Cookie);
         return NoContent();
     }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ForgotPassword(EmailOnlyRequest request, CancellationToken cancellationToken)
+    {
+        await passwordReset.ForgotPasswordAsync(request.Email, cancellationToken);
+        return Accepted();
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await passwordReset.ResetPasswordAsync(request, cancellationToken));
 
     private IActionResult SignIn(Result<StaffSignInResult> result)
     {

@@ -21,6 +21,9 @@ public static class AuthPolicy
     // BR-AUTH-02
     public static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
 
+    // BR-AUTH-07
+    public static readonly TimeSpan PasswordResetLifetime = TimeSpan.FromMinutes(30);
+
     // BR-AUTH-08
     public static readonly TimeSpan EmailVerificationLifetime = TimeSpan.FromHours(24);
 

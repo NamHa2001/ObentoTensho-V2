@@ -1,0 +1,18 @@
+subject: Xác nhận email tài khoản Obento Tensho
+===
+Xin chào {{fullName}},
+
+Cảm ơn bạn đã đăng ký tài khoản tại Obento Tensho. Vui lòng mở liên kết dưới đây để xác nhận địa chỉ email (liên kết có hiệu lực trong 24 giờ):
+
+{{link}}
+
+Nếu bạn không đăng ký tài khoản, hãy bỏ qua email này.
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Cảm ơn bạn đã đăng ký tài khoản tại Obento Tensho. Vui lòng bấm nút dưới đây để xác nhận địa chỉ email (liên kết có hiệu lực trong 24 giờ):</p>
+<p><a class="button" href="{{link}}">Xác nhận email</a></p>
+<p>Nếu bạn không đăng ký tài khoản, hãy bỏ qua email này.</p>
+<p>Trân trọng,<br>Obento Tensho</p>

@@ -23,6 +23,12 @@ internal sealed class StaffRepository(AppDbContext db, IMemoryCache cache) : ISt
     public Task<Staff?> FindByInviteTokenHashForUpdateAsync(string inviteTokenHash, CancellationToken cancellationToken) =>
         db.StaffMembers.SingleOrDefaultAsync(s => s.InviteTokenHash == inviteTokenHash, cancellationToken);
 
+    public Task<Staff?> FindByEmailForUpdateAsync(string normalizedEmail, CancellationToken cancellationToken) =>
+        db.StaffMembers.SingleOrDefaultAsync(s => s.Email == normalizedEmail, cancellationToken);
+
+    public Task<Staff?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken) =>
+        db.StaffMembers.SingleOrDefaultAsync(s => s.ResetPasswordTokenHash == tokenHash, cancellationToken);
+
     public Task<bool> AnyWithRoleAsync(StaffRole role, CancellationToken cancellationToken) =>
         db.StaffMembers.AnyAsync(s => s.Role == role, cancellationToken);
 

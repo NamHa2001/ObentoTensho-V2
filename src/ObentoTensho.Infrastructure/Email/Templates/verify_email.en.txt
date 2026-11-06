@@ -1,0 +1,18 @@
+subject: Confirm your Obento Tensho account email
+===
+Hello {{fullName}},
+
+Thank you for registering an account at Obento Tensho. Please open the link below to confirm your email address (the link is valid for 24 hours):
+
+{{link}}
+
+If you did not register an account, please ignore this email.
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Thank you for registering an account at Obento Tensho. Please click the button below to confirm your email address (the link is valid for 24 hours):</p>
+<p><a class="button" href="{{link}}">Confirm email</a></p>
+<p>If you did not register an account, please ignore this email.</p>
+<p>Kind regards,<br>Obento Tensho</p>

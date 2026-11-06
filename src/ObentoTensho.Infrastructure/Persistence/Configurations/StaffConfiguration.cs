@@ -29,6 +29,7 @@ internal sealed class StaffConfiguration : IEntityTypeConfiguration<Staff>
         builder.Property(s => s.PasswordHash).HasColumnType("varchar(256)");
         builder.Property(s => s.Role).HasConversion<string>().HasColumnType("varchar(30)").IsRequired();
         builder.Property(s => s.InviteTokenHash).HasColumnType("char(64)");
+        builder.Property(s => s.ResetPasswordTokenHash).HasColumnType("char(64)");
         builder.Property(s => s.SecurityStamp).HasColumnType("char(32)").IsRequired();
         builder.Property(s => s.TotpSecretEncrypted).HasColumnType("varbinary(256)");
 
@@ -39,5 +40,6 @@ internal sealed class StaffConfiguration : IEntityTypeConfiguration<Staff>
 
         // Tra liên kết mời theo băm token
         builder.HasIndex(s => s.InviteTokenHash).IsUnique().HasFilter("[InviteTokenHash] IS NOT NULL");
+        builder.HasIndex(s => s.ResetPasswordTokenHash).IsUnique().HasFilter("[ResetPasswordTokenHash] IS NOT NULL");
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Notifications.Domain;
 using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
@@ -20,6 +21,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     public DbSet<TableArea> TableAreas => Set<TableArea>();
 

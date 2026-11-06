@@ -46,9 +46,9 @@ public sealed class CustomerAuthApiTests : IDisposable
         Assert.False(user.IsEmailVerified);
         Assert.NotNull(user.EmailVerifyTokenHash);
 
-        var mails = await db.OutboxMessages.Where(m => m.PayloadJson.Contains(email)).Select(m => m.Type).ToListAsync();
-        Assert.Contains(AccountEmailOutbox.EmailVerificationType, mails, StringComparer.Ordinal);
-        Assert.Contains(AccountEmailOutbox.DuplicateRegistrationType, mails, StringComparer.Ordinal);
+        var mails = await db.OutboxMessages.Where(m => m.PayloadJson.Contains(email)).Select(m => m.PayloadJson).ToListAsync();
+        Assert.Contains(mails, p => p.Contains("\"kind\":\"verify_email\"", StringComparison.Ordinal));
+        Assert.Contains(mails, p => p.Contains("\"kind\":\"duplicate_registration\"", StringComparison.Ordinal));
     }
 
     [Fact]

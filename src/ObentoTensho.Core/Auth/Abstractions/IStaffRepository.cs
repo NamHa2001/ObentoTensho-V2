@@ -15,6 +15,10 @@ public interface IStaffRepository
 
     Task<Staff?> FindByInviteTokenHashForUpdateAsync(string inviteTokenHash, CancellationToken cancellationToken);
 
+    Task<Staff?> FindByEmailForUpdateAsync(string normalizedEmail, CancellationToken cancellationToken);
+
+    Task<Staff?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken);
+
     Task<bool> AnyWithRoleAsync(StaffRole role, CancellationToken cancellationToken);
 
     Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);

@@ -20,7 +20,9 @@ internal sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outb
 
         builder.HasIndex(m => m.IdempotencyKey).IsUnique();
 
-        // PERF-53: bộ xử lý chỉ quét bản chưa xử lý
-        builder.HasIndex(m => m.Id).HasDatabaseName("IX_OutboxMessages_Pending").HasFilter("[ProcessedAtUtc] IS NULL");
+        // PERF-53: bộ xử lý chỉ quét tin còn chờ, theo thứ tự tới hạn
+        builder.HasIndex(m => new { m.NextAttemptAtUtc, m.Id })
+            .HasDatabaseName("IX_OutboxMessages_Pending")
+            .HasFilter("[ProcessedAtUtc] IS NULL AND [FailedAtUtc] IS NULL");
     }
 }

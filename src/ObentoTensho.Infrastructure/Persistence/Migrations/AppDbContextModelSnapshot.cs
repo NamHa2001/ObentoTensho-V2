@@ -186,6 +186,12 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("varchar(256)");
 
+                    b.Property<DateTime?>("ResetPasswordExpiryUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("ResetPasswordTokenHash")
+                        .HasColumnType("char(64)");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("varchar(30)");
@@ -211,6 +217,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasIndex("InviteTokenHash")
                         .IsUnique()
                         .HasFilter("[InviteTokenHash] IS NOT NULL");
+
+                    b.HasIndex("ResetPasswordTokenHash")
+                        .IsUnique()
+                        .HasFilter("[ResetPasswordTokenHash] IS NOT NULL");
 
                     b.ToTable("Staff", null, t =>
                         {
@@ -367,7 +377,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("EmailCanonical");
 
+                    b.HasIndex("EmailVerifyTokenHash")
+                        .IsUnique()
+                        .HasFilter("[EmailVerifyTokenHash] IS NOT NULL");
+
                     b.HasIndex("PhoneNumber");
+
+                    b.HasIndex("ResetPasswordTokenHash")
+                        .IsUnique()
+                        .HasFilter("[ResetPasswordTokenHash] IS NOT NULL");
 
                     b.ToTable("Users", null, t =>
                         {
@@ -378,6 +396,64 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_Users_MemberTier", "[MemberTier] BETWEEN 0 AND 3");
 
                             t.HasCheckConstraint("CK_Users_Points", "[CurrentPoints] >= 0 AND [PointsDebt] >= 0 AND [AccumulatedPoints] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Notifications.Domain.EmailLog", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RelatedEntityId")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<string>("ToEmail")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("SentAtUtc")
+                        .HasFilter("[Status] = 1");
+
+                    b.HasIndex("ToEmail", "SentAtUtc")
+                        .HasFilter("[Status] = 1");
+
+                    b.ToTable("EmailLogs", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmailLogs_Attempts", "[Attempts] >= 0");
+
+                            t.HasCheckConstraint("CK_EmailLogs_Status", "[Status] BETWEEN 0 AND 3");
                         });
                 });
 
@@ -663,12 +739,21 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<DateTime?>("FailedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
                         .HasColumnType("varchar(150)");
 
                     b.Property<string>("LastError")
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("LockedUntilUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime>("NextAttemptAtUtc")
+                        .HasColumnType("datetime2(3)");
 
                     b.Property<string>("PayloadJson")
                         .IsRequired()
@@ -683,12 +768,12 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Id")
-                        .HasDatabaseName("IX_OutboxMessages_Pending")
-                        .HasFilter("[ProcessedAtUtc] IS NULL");
-
                     b.HasIndex("IdempotencyKey")
                         .IsUnique();
+
+                    b.HasIndex("NextAttemptAtUtc", "Id")
+                        .HasDatabaseName("IX_OutboxMessages_Pending")
+                        .HasFilter("[ProcessedAtUtc] IS NULL AND [FailedAtUtc] IS NULL");
 
                     b.ToTable("OutboxMessages", null, t =>
                         {
