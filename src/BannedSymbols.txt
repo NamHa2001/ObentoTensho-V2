@@ -1,0 +1,5 @@
+P:System.DateTime.Now;Dùng IClock (docs/srs/06 TIME-02)
+P:System.DateTime.UtcNow;Dùng IClock (docs/srs/06 TIME-02)
+P:System.DateTime.Today;Dùng IClock.TodayLocal (docs/srs/06 TIME-04)
+P:System.DateTimeOffset.Now;Dùng IClock (docs/srs/06 TIME-02)
+P:System.DateTimeOffset.UtcNow;Dùng IClock (docs/srs/06 TIME-02)

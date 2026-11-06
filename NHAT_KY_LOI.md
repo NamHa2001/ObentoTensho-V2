@@ -13,6 +13,12 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Xác thực – nền tảng: giờ VN, băm mật khẩu, token an toàn (06/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Test `Malformed_hash_fails_without_throwing("không-phải-base64")` đỏ: ném `FormatException` | `PasswordHasher.VerifyHashedPassword` của Identity giải Base64 bản băm mà không bắt lỗi; bản băm hỏng trong CSDL sẽ thành lỗi 500 khi đăng nhập | Bọc lời gọi trong `try/catch (FormatException)` ở `Pbkdf2PasswordHasher.Verify`, trả `PasswordCheckResult.Failed` | Với thư viện bên ngoài nhận dữ liệu lấy từ CSDL, luôn viết test cho dữ liệu hỏng |
+
 ## Nền CSDL – EF Core, migration, kiểm thử tích hợp (06/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

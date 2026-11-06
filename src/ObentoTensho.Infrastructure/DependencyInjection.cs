@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ObentoTensho.Core.Auth.Abstractions;
+using ObentoTensho.Core.Time;
 using ObentoTensho.Infrastructure.Persistence;
+using ObentoTensho.Infrastructure.Security;
+using ObentoTensho.Infrastructure.Time;
 
 namespace ObentoTensho.Infrastructure;
 
@@ -22,6 +26,25 @@ public static class DependencyInjection
         services.AddDbContextPool<AppDbContext>(options => options.UseSqlServer(
             connectionString,
             sql => sql.EnableRetryOnFailure().CommandTimeout(CommandTimeoutSeconds)));
+
+        return services;
+    }
+
+    public static IServiceCollection AddSecurityFoundation(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<IClock, SystemClock>();
+
+        // Số vòng băm dưới mức tối thiểu thì dừng ngay khi khởi động
+        services.AddOptions<PasswordHashingOptions>()
+            .Bind(configuration.GetSection(PasswordHashingOptions.SectionName))
+            .Validate(
+                o => o.Iterations >= PasswordHashingOptions.MinimumIterations,
+                $"Security:PasswordHashing:Iterations phải từ {PasswordHashingOptions.MinimumIterations} trở lên.")
+            .ValidateOnStart();
+
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddSingleton<ISecureTokenService, SecureTokenService>();
 
         return services;
     }
