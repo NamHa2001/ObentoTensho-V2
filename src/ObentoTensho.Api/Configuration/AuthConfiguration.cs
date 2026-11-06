@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ObentoTensho.Api.Http;
@@ -14,25 +15,41 @@ namespace ObentoTensho.Api.Configuration;
 
 public static class AuthConfiguration
 {
-    public const string CustomerCorsPolicy = "customer";
+    public const string AdminCorsPolicy = "admin";
 
-    public static IServiceCollection AddCustomerAuth(this IServiceCollection services)
+    private static readonly string[] AllowedHeaders =
+        ["Authorization", "Content-Type", TrustedOriginFilter.ClientHeader, "Idempotency-Key", "If-Match"];
+
+    public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {
         services.AddSingleton<IValidator<RegisterRequest>, RegisterRequestValidator>();
         services.AddSingleton<IValidator<LoginRequest>, LoginRequestValidator>();
-        services.AddScoped<CustomerSessionFactory>();
+        services.AddSingleton<IValidator<StaffChangePasswordRequest>, StaffChangePasswordRequestValidator>();
+        services.AddSingleton<IValidator<AcceptInviteRequest>, AcceptInviteRequestValidator>();
+
+        services.AddScoped<SessionFactory>();
+        services.AddScoped<AccessTokenSessionValidator>();
         services.AddScoped<CustomerSessionService>();
         services.AddScoped<CustomerRegistrationService>();
-        services.AddScoped<AccessTokenSessionValidator>();
-        services.AddScoped<TrustedOriginFilter>();
+        services.AddScoped<StaffSignInFlow>();
+        services.AddScoped<StaffLoginService>();
+        services.AddScoped<StaffTwoFactorService>();
+        services.AddScoped<StaffPasswordService>();
+        services.AddScoped<StaffSessionService>();
+        services.AddScoped<StaffBootstrapService>();
+        services.AddScoped<CustomerOriginFilter>();
+        services.AddScoped<AdminOriginFilter>();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
-        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value));
+        services.AddAuthentication(AuthSchemes.Customer).AddJwtBearer(AuthSchemes.Customer).AddJwtBearer(AuthSchemes.Staff);
+        services.AddOptions<JwtBearerOptions>(AuthSchemes.Customer)
+            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.CustomerAudience, isStaff: false));
+        services.AddOptions<JwtBearerOptions>(AuthSchemes.Staff)
+            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.AdminAudience, isStaff: true));
 
         // AR-09: mặc định từ chối; endpoint công khai phải ghi [AllowAnonymous]
-        services.AddAuthorizationBuilder()
-            .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+        services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder(AuthSchemes.Customer, AuthSchemes.Staff)
+            .RequireAuthenticatedUser()
+            .Build());
 
         return services;
     }
@@ -41,27 +58,33 @@ public static class AuthConfiguration
     {
         services.AddOptions<WebOriginsOptions>()
             .Bind(configuration.GetSection(WebOriginsOptions.SectionName))
-            .Validate(o => o.Validate() is null, "Cấu hình Web:CustomerOrigins không hợp lệ.")
+            .Validate(o => o.Validate() is null, "Cấu hình Web:CustomerOrigins / Web:AdminOrigins không hợp lệ.")
             .ValidateOnStart();
 
+        // SEC-41: CORS theo bề mặt — mặc định chỉ origin khách; API quản trị gắn [EnableCors(AdminCorsPolicy)]
         services.AddCors();
-        services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
-            .Configure<IOptions<WebOriginsOptions>>((cors, web) => cors.AddPolicy(CustomerCorsPolicy, policy => policy
-                .WithOrigins([.. web.Value.CustomerOrigins])
-                .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE")
-                .WithHeaders("Authorization", "Content-Type", TrustedOriginFilter.ClientHeader, "Idempotency-Key", "If-Match")
-                .AllowCredentials()));
+        services.AddOptions<CorsOptions>().Configure<IOptions<WebOriginsOptions>>((cors, web) =>
+        {
+            cors.AddDefaultPolicy(policy => ConfigurePolicy(policy, web.Value.CustomerOrigins));
+            cors.AddPolicy(AdminCorsPolicy, policy => ConfigurePolicy(policy, web.Value.AdminOrigins));
+        });
 
         return services;
     }
 
-    private static void ConfigureBearer(JwtBearerOptions bearer, JwtOptions jwt)
+    private static void ConfigurePolicy(CorsPolicyBuilder policy, IEnumerable<string> origins) =>
+        policy.WithOrigins([.. origins])
+            .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE")
+            .WithHeaders(AllowedHeaders)
+            .AllowCredentials();
+
+    private static void ConfigureBearer(JwtBearerOptions bearer, JwtOptions jwt, string audience, bool isStaff)
     {
         bearer.MapInboundClaims = false;
         bearer.TokenValidationParameters = new TokenValidationParameters
         {
             ValidIssuer = jwt.Issuer,
-            ValidAudience = jwt.CustomerAudience,
+            ValidAudience = audience,
             IssuerSigningKeys = jwt.GetValidationKeys().ToList(),
             ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
             RequireExpirationTime = true,
@@ -72,7 +95,7 @@ public static class AuthConfiguration
         };
         bearer.Events = new JwtBearerEvents
         {
-            OnTokenValidated = ValidateSessionAsync,
+            OnTokenValidated = context => ValidateSessionAsync(context, isStaff),
             OnChallenge = context =>
             {
                 context.HandleResponse();
@@ -84,14 +107,17 @@ public static class AuthConfiguration
     }
 
     // SEC-50: token hợp lệ về chữ ký nhưng tài khoản đã khóa hoặc đổi security stamp thì bị từ chối
-    private static async Task ValidateSessionAsync(TokenValidatedContext context)
+    private static async Task ValidateSessionAsync(TokenValidatedContext context, bool isStaff)
     {
         var subject = context.Principal?.FindFirst(AccessTokenClaims.Subject)?.Value;
         var stamp = context.Principal?.FindFirst(AccessTokenClaims.SecurityStamp)?.Value;
         var validator = context.HttpContext.RequestServices.GetRequiredService<AccessTokenSessionValidator>();
+        var cancellationToken = context.HttpContext.RequestAborted;
 
-        if (!Guid.TryParse(subject, out var userId)
-            || !await validator.IsCustomerSessionValidAsync(userId, stamp, context.HttpContext.RequestAborted))
+        var valid = Guid.TryParse(subject, out var id) && (isStaff
+            ? await validator.IsStaffSessionValidAsync(id, stamp, cancellationToken)
+            : await validator.IsCustomerSessionValidAsync(id, stamp, cancellationToken));
+        if (!valid)
         {
             context.Fail("Phiên đã bị thu hồi.");
         }

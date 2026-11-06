@@ -1,0 +1,76 @@
+using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Auth.Abstractions;
+using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Time;
+
+namespace ObentoTensho.Core.Auth.Services;
+
+// Trình tự sau khi mật khẩu đúng (docs/srs/10 §4.2):
+// 2FA (nếu đã bật) → đổi mật khẩu (nếu bắt buộc) → thiết lập 2FA (nếu role bắt buộc mà chưa bật) → cấp phiên.
+// 2FA đi trước đổi mật khẩu để người chỉ biết mật khẩu không tự đặt được mật khẩu mới.
+public sealed class StaffSignInFlow(
+    IStaffRepository staff,
+    IStaffChallengeTokens challenges,
+    SessionFactory sessions,
+    IUnitOfWork unitOfWork,
+    IClock clock)
+{
+    public async Task<StaffSignInResult> ContinueAsync(Staff member, bool secondFactorPassed, ClientInfo client, CancellationToken cancellationToken)
+    {
+        if (!secondFactorPassed && member.TotpEnabled)
+        {
+            return Challenge(member, StaffChallengeKind.TotpVerify, secondFactorPassed);
+        }
+
+        if (member.MustChangePassword)
+        {
+            return Challenge(member, StaffChallengeKind.PasswordChange, secondFactorPassed);
+        }
+
+        if (!secondFactorPassed && AuthPolicy.RequiresTwoFactor(member.Role))
+        {
+            return Challenge(member, StaffChallengeKind.TotpSetup, secondFactorPassed);
+        }
+
+        return StaffSignInResult.Authenticated(await StartSessionAsync(member, client, cancellationToken));
+    }
+
+    public async Task<AuthSession> StartSessionAsync(Staff member, ClientInfo client, CancellationToken cancellationToken)
+    {
+        var now = clock.UtcNow;
+        await staff.ResetFailedLoginsAsync(member.Id, cancellationToken);
+        await staff.RecordLoginAsync(member.Id, now, cancellationToken);
+        await sessions.EnforceStaffSessionLimitAsync(member.Id, cancellationToken);
+        var session = sessions.CreateForStaff(member, Guid.CreateVersion7(), now, sessions.NewRefreshToken(), client);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return session;
+    }
+
+    // Mã tạm chỉ hợp lệ khi đúng loại, còn hạn, tài khoản còn hoạt động, không bị khóa và security stamp chưa đổi
+    public async Task<(Staff Member, StaffChallenge Challenge)?> ResolveAsync(string? token, StaffChallengeKind kind, CancellationToken cancellationToken)
+    {
+        var challenge = string.IsNullOrEmpty(token) ? null : challenges.Unprotect(token);
+        var now = clock.UtcNow;
+        if (challenge is null || challenge.Kind != kind || challenge.ExpiresAtUtc <= now)
+        {
+            return null;
+        }
+
+        var member = await staff.FindByIdAsync(challenge.StaffId, cancellationToken);
+        if (member is null || !member.IsActive || member.LockoutEndUtc > now
+            || !string.Equals(member.SecurityStamp, challenge.SecurityStamp, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        return (member, challenge);
+    }
+
+    private StaffSignInResult Challenge(Staff member, StaffChallengeKind kind, bool secondFactorPassed)
+    {
+        var expiresAt = clock.UtcNow + AuthPolicy.StaffChallengeLifetime;
+        var token = challenges.Protect(new StaffChallenge(member.Id, kind, member.SecurityStamp, expiresAt, secondFactorPassed));
+        return StaffSignInResult.Challenged(new IssuedChallenge(kind, token, expiresAt));
+    }
+}

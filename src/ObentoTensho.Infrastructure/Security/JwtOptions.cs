@@ -17,6 +17,8 @@ public sealed class JwtOptions
 
     public string CustomerAudience { get; set; } = "obento-customer";
 
+    public string AdminAudience { get; set; } = "obento-admin";
+
     public int AccessTokenMinutes { get; set; } = 15;
 
     // SEC-50: khóa luân phiên theo "kid"; ký bằng khóa đang dùng, xác minh bằng mọi khóa còn trong danh sách
@@ -31,9 +33,14 @@ public sealed class JwtOptions
     // Trả null khi hợp lệ; dùng cho ValidateOnStart để thiếu/yếu khóa thì app không chạy
     public string? Validate()
     {
-        if (string.IsNullOrWhiteSpace(Issuer) || string.IsNullOrWhiteSpace(CustomerAudience))
+        if (string.IsNullOrWhiteSpace(Issuer) || string.IsNullOrWhiteSpace(CustomerAudience) || string.IsNullOrWhiteSpace(AdminAudience))
         {
-            return "Thiếu Jwt:Issuer hoặc Jwt:CustomerAudience.";
+            return "Thiếu Jwt:Issuer, Jwt:CustomerAudience hoặc Jwt:AdminAudience.";
+        }
+
+        if (string.Equals(CustomerAudience, AdminAudience, StringComparison.Ordinal))
+        {
+            return "Jwt:CustomerAudience và Jwt:AdminAudience phải khác nhau.";
         }
 
         if (AccessTokenMinutes is < 1 or > 60)

@@ -12,6 +12,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<Staff> StaffMembers => Set<Staff>();
 
+    public DbSet<StaffRecoveryCode> StaffRecoveryCodes => Set<StaffRecoveryCode>();
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

@@ -10,4 +10,5 @@ public static class FieldErrorCodes
     public const string OutOfRange = "OUT_OF_RANGE";
     public const string PasswordTooCommon = "PASSWORD_TOO_COMMON";
     public const string PasswordContainsEmail = "PASSWORD_CONTAINS_EMAIL";
+    public const string SameAsCurrent = "SAME_AS_CURRENT";
 }

@@ -13,6 +13,12 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Xác thực – đăng nhập nhân viên, 2FA, lời mời (06/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Test `Sai_TOTP_5_lan_thi_tai_khoan_bi_khoa` đỏ: sau 5 lần sai mã 2FA vẫn đăng nhập tiếp được (`200` thay vì `401`) — **lỗ hổng**: người biết mật khẩu đoán mã TOTP không giới hạn | Bước mật khẩu đúng gọi `ResetFailedLoginsAsync`, xóa luôn các lần sai 2FA trước đó; kẻ tấn công chỉ cần sai 4 lần rồi đăng nhập lại | Bỏ việc xóa bộ đếm ở bước mật khẩu; chỉ xóa khi đã qua 2FA hoặc khi cấp phiên (`StaffSignInFlow.StartSessionAsync`) | Với đăng nhập nhiều bước, trạng thái chống dò chỉ được đặt lại sau bước **cuối**; luôn có test "sai bước 2 nhiều lần" |
+
 ## Xác thực – đăng ký, đăng nhập, phiên của khách (06/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

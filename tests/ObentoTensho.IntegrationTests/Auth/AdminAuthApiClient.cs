@@ -1,0 +1,103 @@
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using ObentoTensho.Api.Http;
+using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Auth.Abstractions;
+using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.IntegrationTests.Fixtures;
+
+namespace ObentoTensho.IntegrationTests.Auth;
+
+// Gọi API xác thực quản trị và chuẩn bị dữ liệu nhân viên trực tiếp trong CSDL test
+public sealed class AdminAuthApiClient(ApiFactory factory, SqlServerFixture fixture)
+{
+    public const string Password = "Ca-lam-sang-2026";
+
+    private readonly HttpClient _http = factory.CreateApiClient();
+
+    public async Task<(Guid Id, string Email)> CreateStaffAsync(StaffRole role, bool mustChangePassword = false, string? passwordHash = null)
+    {
+        var hasher = factory.Services.GetRequiredService<IPasswordHasher>();
+        var staff = new Staff
+        {
+            FullName = "Nhân Viên Thử",
+            Email = $"nv.{Guid.NewGuid():N}@obento.test",
+            PasswordHash = passwordHash ?? hasher.Hash(Password),
+            Role = role,
+            MustChangePassword = mustChangePassword,
+            SecurityStamp = Guid.NewGuid().ToString("N"),
+            CreatedAtUtc = DateTime.UtcNow,
+        };
+
+        await using var db = fixture.CreateContext();
+        db.StaffMembers.Add(staff);
+        await db.SaveChangesAsync();
+        return (staff.Id, staff.Email);
+    }
+
+    public async Task<byte[]> ReadTotpSecretAsync(Guid staffId)
+    {
+        await using var db = fixture.CreateContext();
+        var encrypted = await db.StaffMembers.Where(s => s.Id == staffId).Select(s => s.TotpSecretEncrypted).SingleAsync();
+        var protector = factory.Services.GetRequiredService<ITotpSecretProtector>();
+        return protector.Unprotect(encrypted ?? []) ?? throw new InvalidOperationException("Chưa có khóa TOTP.");
+    }
+
+    public static string CurrentCode(byte[] secret, int stepOffset = 0) =>
+        Totp.ComputeCode(secret, Totp.GetStep(DateTime.UtcNow) + stepOffset);
+
+    public Task<HttpResponseMessage> PostAsync(string path, object body) =>
+        _http.PostAsJsonAsync("/api/v1/admin/auth/" + path, body);
+
+    public Task<HttpResponseMessage> LoginAsync(string email, string password = Password) =>
+        PostAsync("login", new { email, password });
+
+    public Task<HttpResponseMessage> RefreshAsync(string? refreshToken, string origin = ApiFactory.AdminOrigin)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/auth/refresh-token");
+        if (refreshToken is not null)
+        {
+            request.Headers.Add("Cookie", $"{RefreshTokenCookie.AdminName}={refreshToken}");
+        }
+
+        request.Headers.Add("Origin", origin);
+        request.Headers.Add(TrustedOriginFilter.ClientHeader, "admin");
+        return _http.SendAsync(request);
+    }
+
+    public Task<HttpResponseMessage> GetAsync(string path, string accessToken)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        return _http.SendAsync(request);
+    }
+
+    public static async Task<JsonElement> ReadDataAsync(HttpResponseMessage response)
+    {
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return body.GetProperty("data");
+    }
+
+    // (loại bước, mã tạm) khi phản hồi là challenge; null khi đã có phiên
+    public static async Task<(string Kind, string Token)?> ReadChallengeAsync(HttpResponseMessage response)
+    {
+        var data = await ReadDataAsync(response);
+        var challenge = data.GetProperty("challenge");
+        return challenge.ValueKind == JsonValueKind.Null
+            ? null
+            : (challenge.GetProperty("kind").GetString() ?? string.Empty, challenge.GetProperty("challengeToken").GetString() ?? string.Empty);
+    }
+
+    public static string? ReadAdminCookie(HttpResponseMessage response)
+    {
+        var prefix = RefreshTokenCookie.AdminName + "=";
+        var header = response.Headers.TryGetValues("Set-Cookie", out var values)
+            ? values.FirstOrDefault(v => v.StartsWith(prefix, StringComparison.Ordinal))
+            : null;
+        var value = header?[prefix.Length..].Split(';')[0];
+        return string.IsNullOrEmpty(value) ? null : value;
+    }
+}

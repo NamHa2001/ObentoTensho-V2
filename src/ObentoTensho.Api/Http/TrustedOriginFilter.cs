@@ -1,15 +1,15 @@
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Options;
-using ObentoTensho.Api.Configuration;
 using ObentoTensho.Contracts.Errors;
 
 namespace ObentoTensho.Api.Http;
 
 // SEC-42: endpoint dùng cookie (refresh, logout) chỉ nhận yêu cầu từ origin frontend, có header tùy biến
 // mà form cross-site không tự thêm được. SameSite=Strict không đủ vì www./admin./api. cùng một site.
-public sealed class TrustedOriginFilter(IOptions<WebOriginsOptions> options) : IResourceFilter
+public abstract class TrustedOriginFilter : IResourceFilter
 {
     public const string ClientHeader = "X-OT-Client";
+
+    protected abstract IEnumerable<string> AllowedOrigins { get; }
 
     public void OnResourceExecuting(ResourceExecutingContext context)
     {
@@ -32,7 +32,7 @@ public sealed class TrustedOriginFilter(IOptions<WebOriginsOptions> options) : I
         }
 
         var origin = request.Headers.Origin.ToString();
-        if (!options.Value.CustomerOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        if (!AllowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
         {
             return false;
         }

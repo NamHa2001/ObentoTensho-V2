@@ -197,6 +197,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<bool>("TotpEnabled")
                         .HasColumnType("bit");
 
+                    b.Property<long?>("TotpLastUsedStep")
+                        .HasColumnType("bigint");
+
                     b.Property<byte[]>("TotpSecretEncrypted")
                         .HasColumnType("varbinary(256)");
 
@@ -204,6 +207,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("InviteTokenHash")
+                        .IsUnique()
+                        .HasFilter("[InviteTokenHash] IS NOT NULL");
 
                     b.ToTable("Staff", null, t =>
                         {
@@ -213,6 +220,32 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Staff_Role", "[Role] IN ('SuperAdmin', 'Manager', 'Reception', 'Kitchen', 'Cashier', 'ContentEditor')");
                         });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Auth.Domain.StaffRecoveryCode", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<Guid>("StaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("UsedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId", "CodeHash")
+                        .IsUnique();
+
+                    b.ToTable("StaffRecoveryCodes", (string)null);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Auth.Domain.User", b =>
@@ -406,6 +439,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Auth.Domain.StaffRecoveryCode", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

@@ -10,6 +10,7 @@ namespace ObentoTensho.IntegrationTests.Fixtures;
 public sealed class ApiFactory(string connectionString) : WebApplicationFactory<Program>
 {
     public const string CustomerOrigin = "https://www.obento.test";
+    public const string AdminOrigin = "https://admin.obento.test";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -18,6 +19,7 @@ public sealed class ApiFactory(string connectionString) : WebApplicationFactory<
         builder.UseSetting("Jwt:ActiveKeyId", "test-1");
         builder.UseSetting("Jwt:SigningKeys:test-1", Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
         builder.UseSetting("Web:CustomerOrigins:0", CustomerOrigin);
+        builder.UseSetting("Web:AdminOrigins:0", AdminOrigin);
 
         // Số vòng tối thiểu cho phép để test chạy nhanh hơn
         builder.UseSetting("Security:PasswordHashing:Iterations", "210000");

@@ -57,7 +57,10 @@ dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Database=O
 dotnet user-secrets set "Jwt:ActiveKeyId" "dev-1"
 dotnet user-secrets set "Jwt:SigningKeys:dev-1" "<khóa Base64 ngẫu nhiên 32 byte, ví dụ: openssl rand -base64 32>"
 dotnet user-secrets set "Web:CustomerOrigins:0" "http://localhost:4200"
+dotnet user-secrets set "Web:AdminOrigins:0" "http://localhost:4201"
 dotnet run
 ```
 
-Máy chủ dùng biến môi trường tương ứng (`ConnectionStrings__Default`, `Jwt__ActiveKeyId`, `Jwt__SigningKeys__<kid>`, `Web__CustomerOrigins__0`). Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.
+Máy chủ dùng biến môi trường tương ứng (`ConnectionStrings__Default`, `Jwt__ActiveKeyId`, `Jwt__SigningKeys__<kid>`, `Web__CustomerOrigins__0`, `Web__AdminOrigins__0`) và bắt buộc đặt `DataProtection__KeysPath` tới một thư mục bền (volume riêng, có sao lưu): khóa trong thư mục này giải mã khóa 2FA của nhân viên, mất thư mục thì mọi nhân viên phải thiết lập lại 2FA.
+
+Tài khoản SuperAdmin đầu tiên: khi hệ thống chưa có SuperAdmin nào, đặt `Seed__SuperAdmin__Email`, `Seed__SuperAdmin__FullName`, `Seed__SuperAdmin__Password` rồi khởi động API. Lần đăng nhập đầu sẽ bắt đổi mật khẩu và thiết lập 2FA; sau đó xóa các biến này. Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.

@@ -24,11 +24,8 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
             .Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat);
 
         RuleFor(r => r.Password)
-            .Must(v => !string.IsNullOrEmpty(v)).WithErrorCode(FieldErrorCodes.Required)
-            .Must(v => v is null || v.Length >= AuthPolicy.PasswordMinLength).WithErrorCode(FieldErrorCodes.TooShort)
-            .Must(v => v is null || v.Length <= AuthPolicy.PasswordMaxLength).WithErrorCode(FieldErrorCodes.TooLong)
-            .Must(v => v is null || !commonPasswords.Contains(v)).WithErrorCode(FieldErrorCodes.PasswordTooCommon)
-            .Must((r, v) => !ContainsEmail(v, r.Email)).WithErrorCode(FieldErrorCodes.PasswordContainsEmail);
+            .StrongPassword(commonPasswords)
+            .Must((r, v) => !PasswordRules.ContainsEmail(v, r.Email)).WithErrorCode(FieldErrorCodes.PasswordContainsEmail);
 
         RuleFor(r => r.DateOfBirth)
             .Must(d => d is null || (d.Value >= EarliestDateOfBirth && d.Value <= clock.TodayLocal))
@@ -37,17 +34,5 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
         RuleFor(r => r.PreferredLang)
             .Must(l => l is null || AuthPolicy.SupportedLanguages.Contains(l, StringComparer.Ordinal))
             .WithErrorCode(FieldErrorCodes.OutOfRange);
-    }
-
-    // BR-AUTH-01: mật khẩu không được chứa phần trước @ của email
-    private static bool ContainsEmail(string? password, string? email)
-    {
-        if (string.IsNullOrEmpty(password) || string.IsNullOrWhiteSpace(email))
-        {
-            return false;
-        }
-
-        var local = EmailAddress.LocalPart(EmailAddress.Normalize(email));
-        return local.Length >= 3 && password.Contains(local, StringComparison.OrdinalIgnoreCase);
     }
 }

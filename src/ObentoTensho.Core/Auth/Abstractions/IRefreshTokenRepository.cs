@@ -20,4 +20,11 @@ public interface IRefreshTokenRepository
 
     // Các phiên còn hiệu lực của khách, mới nhất trước
     Task<IReadOnlyList<Guid>> GetActiveUserFamiliesAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Guid>> GetActiveStaffFamiliesAsync(Guid staffId, DateTime nowUtc, CancellationToken cancellationToken);
+
+    // Thời điểm đăng nhập của gia đình token (token đầu tiên) — mốc hạn tuyệt đối của phiên nhân viên
+    Task<DateTime> GetFamilyStartedAtAsync(Guid familyId, CancellationToken cancellationToken);
+
+    Task RevokeAllForStaffAsync(Guid staffId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken);
 }

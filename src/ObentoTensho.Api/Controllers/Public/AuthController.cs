@@ -15,6 +15,8 @@ namespace ObentoTensho.Api.Controllers.Public;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(CustomerRegistrationService registration, CustomerSessionService sessions) : ControllerBase
 {
+    private const string Cookie = RefreshTokenCookie.CustomerName;
+
     [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
@@ -33,13 +35,13 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
 
     [HttpPost("refresh-token")]
     [AllowAnonymous]
-    [ServiceFilter<TrustedOriginFilter>]
+    [ServiceFilter<CustomerOriginFilter>]
     public async Task<IActionResult> RefreshToken(CancellationToken cancellationToken)
     {
-        var result = await sessions.RefreshAsync(RefreshTokenCookie.Read(Request), HttpContext.GetClientInfo(), cancellationToken);
+        var result = await sessions.RefreshAsync(RefreshTokenCookie.Read(Request, Cookie), HttpContext.GetClientInfo(), cancellationToken);
         if (!result.IsSuccess)
         {
-            RefreshTokenCookie.Clear(Response);
+            RefreshTokenCookie.Clear(Response, Cookie);
         }
 
         return StartSession(result);
@@ -47,11 +49,11 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
 
     [HttpPost("logout")]
     [AllowAnonymous]
-    [ServiceFilter<TrustedOriginFilter>]
+    [ServiceFilter<CustomerOriginFilter>]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        await sessions.LogoutAsync(RefreshTokenCookie.Read(Request), cancellationToken);
-        RefreshTokenCookie.Clear(Response);
+        await sessions.LogoutAsync(RefreshTokenCookie.Read(Request, Cookie), cancellationToken);
+        RefreshTokenCookie.Clear(Response, Cookie);
         return NoContent();
     }
 
@@ -63,7 +65,7 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
         }
 
         var session = result.Value;
-        RefreshTokenCookie.Write(Response, session.RefreshToken, session.RefreshTokenExpiresAtUtc);
+        RefreshTokenCookie.Write(Response, Cookie, session.RefreshToken, session.RefreshTokenExpiresAtUtc);
         return Ok(new ApiResponse<AccessTokenResponse>(
             new AccessTokenResponse(session.AccessToken.Value, session.AccessToken.ExpiresAtUtc)));
     }

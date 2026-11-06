@@ -36,5 +36,8 @@ internal sealed class StaffConfiguration : IEntityTypeConfiguration<Staff>
         builder.Property(s => s.MustChangePassword).HasDefaultValue(true).ValueGeneratedNever();
 
         builder.HasIndex(s => s.Email).IsUnique();
+
+        // Tra liên kết mời theo băm token
+        builder.HasIndex(s => s.InviteTokenHash).IsUnique().HasFilter("[InviteTokenHash] IS NOT NULL");
     }
 }

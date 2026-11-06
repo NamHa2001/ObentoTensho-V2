@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,9 @@ public static class ApiConfiguration
             {
                 // SEC-48: body có trường lạ bị từ chối
                 o.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;
+
+                // Enum dạng chuỗi snake_case, giống giá trị lưu CSDL (vd "password_change")
+                o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
             })
             .ConfigureApiBehaviorOptions(o => o.InvalidModelStateResponseFactory = context =>
             {

@@ -34,9 +34,22 @@ internal sealed class RefreshTokenRepository(AppDbContext db) : IRefreshTokenRep
     public Task RevokeFamiliesAsync(IReadOnlyCollection<Guid> familyIds, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken) =>
         Revoke(db.RefreshTokens.Where(t => familyIds.Contains(t.FamilyId)), reason, nowUtc, cancellationToken);
 
-    public async Task<IReadOnlyList<Guid>> GetActiveUserFamiliesAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken) =>
-        await db.RefreshTokens.AsNoTracking()
-            .Where(t => t.UserId == userId && t.RevokedAtUtc == null && t.ExpiresAtUtc > nowUtc)
+    public Task<IReadOnlyList<Guid>> GetActiveUserFamiliesAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken) =>
+        ActiveFamilies(db.RefreshTokens.Where(t => t.UserId == userId), nowUtc, cancellationToken);
+
+    public Task<IReadOnlyList<Guid>> GetActiveStaffFamiliesAsync(Guid staffId, DateTime nowUtc, CancellationToken cancellationToken) =>
+        ActiveFamilies(db.RefreshTokens.Where(t => t.StaffId == staffId), nowUtc, cancellationToken);
+
+    public Task<DateTime> GetFamilyStartedAtAsync(Guid familyId, CancellationToken cancellationToken) =>
+        db.RefreshTokens.Where(t => t.FamilyId == familyId).MinAsync(t => t.CreatedAtUtc, cancellationToken);
+
+    public Task RevokeAllForStaffAsync(Guid staffId, RefreshTokenRevokedReason reason, DateTime nowUtc, CancellationToken cancellationToken) =>
+        Revoke(db.RefreshTokens.Where(t => t.StaffId == staffId), reason, nowUtc, cancellationToken);
+
+    // Token đầu chuỗi còn hiệu lực của mỗi phiên, mới nhất trước
+    private static async Task<IReadOnlyList<Guid>> ActiveFamilies(IQueryable<RefreshToken> tokens, DateTime nowUtc, CancellationToken cancellationToken) =>
+        await tokens.AsNoTracking()
+            .Where(t => t.RevokedAtUtc == null && t.ExpiresAtUtc > nowUtc)
             .OrderByDescending(t => t.CreatedAtUtc)
             .ThenByDescending(t => t.Id)
             .Select(t => t.FamilyId)

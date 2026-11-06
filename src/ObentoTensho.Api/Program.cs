@@ -11,16 +11,17 @@ builder.Services.AddHealthChecks();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSecurityFoundation(builder.Configuration);
 builder.Services.AddWebOrigins(builder.Configuration);
-builder.Services.AddCustomerAuth();
+builder.Services.AddAuthServices();
 
 var app = builder.Build();
 
 app.UseApiExceptionHandler();
-app.UseCors(AuthConfiguration.CustomerCorsPolicy);
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health/live").AllowAnonymous();
 
-app.Run();
+await app.SeedSuperAdminAsync();
+await app.RunAsync();

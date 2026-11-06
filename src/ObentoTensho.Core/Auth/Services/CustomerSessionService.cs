@@ -15,7 +15,7 @@ public sealed class CustomerSessionService(
     IRefreshTokenRepository refreshTokens,
     IUnitOfWork unitOfWork,
     IPasswordHasher passwordHasher,
-    CustomerSessionFactory sessions,
+    SessionFactory sessions,
     IClock clock,
     IValidator<LoginRequest> loginValidator)
 {
@@ -53,8 +53,8 @@ public sealed class CustomerSessionService(
         }
 
         await AfterSuccessfulPasswordAsync(user, check, request.Password, cancellationToken);
-        await sessions.EnforceSessionLimitAsync(user.Id, cancellationToken);
-        var session = sessions.Create(user, Guid.CreateVersion7(), sessions.NewRefreshToken(), client);
+        await sessions.EnforceUserSessionLimitAsync(user.Id, cancellationToken);
+        var session = sessions.CreateForUser(user, Guid.CreateVersion7(), sessions.NewRefreshToken(), client);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success<AuthSession>(session);
     }
@@ -102,7 +102,7 @@ public sealed class CustomerSessionService(
             return Unauthenticated;
         }
 
-        var session = sessions.Create(user, stored.FamilyId, next, client);
+        var session = sessions.CreateForUser(user, stored.FamilyId, next, client);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success<AuthSession>(session);
     }

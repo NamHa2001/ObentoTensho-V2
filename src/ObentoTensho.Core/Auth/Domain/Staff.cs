@@ -29,6 +29,9 @@ public sealed class Staff
 
     public bool TotpEnabled { get; set; }
 
+    // Bước TOTP đã dùng gần nhất: mã cùng bước hoặc cũ hơn bị từ chối (chống dùng lại mã vừa bị nhìn trộm)
+    public long? TotpLastUsedStep { get; set; }
+
     public int FailedLoginCount { get; set; }
 
     public DateTime? LockoutEndUtc { get; set; }

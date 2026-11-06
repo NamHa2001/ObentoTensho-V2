@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IAccountEmailOutbox, AccountEmailOutbox>();
 
@@ -61,6 +63,17 @@ public static class DependencyInjection
         services.AddOptions<JwtOptions>().Bind(configuration.GetSection(JwtOptions.SectionName)).ValidateOnStart();
         services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+
+        // Khóa Data Protection mã hóa khóa TOTP: máy chủ phải đặt DataProtection:KeysPath tới thư mục bền
+        var dataProtection = services.AddDataProtection().SetApplicationName("ObentoTensho");
+        var keysPath = configuration["DataProtection:KeysPath"];
+        if (!string.IsNullOrWhiteSpace(keysPath))
+        {
+            dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+        }
+
+        services.AddSingleton<IStaffChallengeTokens, DataProtectionStaffChallengeTokens>();
+        services.AddSingleton<ITotpSecretProtector, DataProtectionTotpSecretProtector>();
 
         return services;
     }

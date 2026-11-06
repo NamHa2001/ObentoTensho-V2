@@ -8,6 +8,9 @@ public static class ErrorCodes
     public const string TokenExpired = "TOKEN_EXPIRED";
     public const string InvalidCredentials = "INVALID_CREDENTIALS";
     public const string AccountLocked = "ACCOUNT_LOCKED";
+
+    // Liên kết mời/đặt lại mật khẩu sai, đã dùng hoặc hết hạn
+    public const string TokenInvalid = "TOKEN_INVALID";
     public const string Forbidden = "FORBIDDEN";
     public const string NotFound = "NOT_FOUND";
     public const string InternalError = "INTERNAL_ERROR";
