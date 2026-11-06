@@ -13,5 +13,6 @@ public static class ErrorCodes
     public const string TokenInvalid = "TOKEN_INVALID";
     public const string Forbidden = "FORBIDDEN";
     public const string NotFound = "NOT_FOUND";
+    public const string RateLimited = "RATE_LIMITED";
     public const string InternalError = "INTERNAL_ERROR";
 }

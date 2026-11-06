@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Auth;
@@ -19,6 +21,7 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
 
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var result = await registration.RegisterAsync(request, cancellationToken);
@@ -27,6 +30,7 @@ public sealed class AuthController(CustomerRegistrationService registration, Cus
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         var result = await sessions.LoginAsync(request, HttpContext.GetClientInfo(), cancellationToken);

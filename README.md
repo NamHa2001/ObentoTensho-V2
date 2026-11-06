@@ -63,4 +63,6 @@ dotnet run
 
 Máy chủ dùng biến môi trường tương ứng (`ConnectionStrings__Default`, `Jwt__ActiveKeyId`, `Jwt__SigningKeys__<kid>`, `Web__CustomerOrigins__0`, `Web__AdminOrigins__0`) và bắt buộc đặt `DataProtection__KeysPath` tới một thư mục bền (volume riêng, có sao lưu): khóa trong thư mục này giải mã khóa 2FA của nhân viên, mất thư mục thì mọi nhân viên phải thiết lập lại 2FA.
 
+Sau Nginx/Cloudflare, khai báo proxy được tin để lấy IP thật của khách (dùng cho giới hạn tần suất và audit): `Network__KnownProxies__0=<IP proxy>` hoặc `Network__KnownNetworks__0=<dải CIDR>`. Không khai báo thì chỉ tin `localhost` và header `X-Forwarded-For` từ nơi khác bị bỏ qua. Giới hạn tần suất chỉnh bằng `RateLimiting__LoginPerMinute` (mặc định 10) và `RateLimiting__GeneralPerMinute` (mặc định 100); bộ đếm hiện nằm trong bộ nhớ của từng tiến trình.
+
 Tài khoản SuperAdmin đầu tiên: khi hệ thống chưa có SuperAdmin nào, đặt `Seed__SuperAdmin__Email`, `Seed__SuperAdmin__FullName`, `Seed__SuperAdmin__Password` rồi khởi động API. Lần đăng nhập đầu sẽ bắt đổi mật khẩu và thiết lập 2FA; sau đó xóa các biến này. Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.

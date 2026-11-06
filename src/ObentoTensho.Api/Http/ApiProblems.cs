@@ -19,6 +19,8 @@ public static class ApiProblems
         [ErrorCodes.Forbidden] = (StatusCodes.Status403Forbidden, "Không đủ quyền"),
         [ErrorCodes.NotFound] = (StatusCodes.Status404NotFound, "Không tìm thấy"),
         [ErrorCodes.AccountLocked] = (StatusCodes.Status423Locked, "Tài khoản đang bị khóa"),
+        [ErrorCodes.TokenInvalid] = (StatusCodes.Status400BadRequest, "Liên kết không hợp lệ hoặc đã hết hạn"),
+        [ErrorCodes.RateLimited] = (StatusCodes.Status429TooManyRequests, "Quá nhiều yêu cầu, vui lòng thử lại sau"),
         [ErrorCodes.InternalError] = (StatusCodes.Status500InternalServerError, "Lỗi hệ thống"),
     };
 

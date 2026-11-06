@@ -17,6 +17,7 @@ public sealed class StaffPasswordService(
     IPasswordHasher passwordHasher,
     ISecureTokenService secureTokens,
     StaffSignInFlow flow,
+    AuthSecurityEvents securityEvents,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<StaffChangePasswordRequest> changeValidator,
@@ -42,6 +43,7 @@ public sealed class StaffPasswordService(
         if (passwordHasher.Verify(currentHash, request.CurrentPassword) == PasswordCheckResult.Failed)
         {
             await staff.RegisterFailedLoginAsync(member.Id, clock.UtcNow + AuthPolicy.LockoutDuration, cancellationToken);
+            await securityEvents.StaffLoginFailedAsync(member.Id, member.Email, "wrong_current_password", cancellationToken);
             return Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
         }
 
@@ -55,7 +57,7 @@ public sealed class StaffPasswordService(
             return Result.Failure<StaffSignInResult>(ErrorCodes.Unauthenticated);
         }
 
-        await SetPasswordAsync(tracked, request.NewPassword, cancellationToken);
+        await SetPasswordAsync(tracked, request.NewPassword, securityEvents.RecordStaffPasswordChanged, cancellationToken);
         return Result.Success(await flow.ContinueAsync(tracked, challenge.SecondFactorPassed, client, cancellationToken));
     }
 
@@ -78,12 +80,12 @@ public sealed class StaffPasswordService(
             return Result.Failure(ErrorCodes.ValidationFailed, ContainsEmailError(PasswordField));
         }
 
-        await SetPasswordAsync(tracked, request.Password, cancellationToken);
+        await SetPasswordAsync(tracked, request.Password, securityEvents.RecordStaffInviteAccepted, cancellationToken);
         return Result.Success();
     }
 
     // Đổi mật khẩu ⇒ đổi security stamp và thu hồi mọi phiên (SEC-06); liên kết mời chỉ dùng một lần
-    private async Task SetPasswordAsync(Staff tracked, string password, CancellationToken cancellationToken)
+    private async Task SetPasswordAsync(Staff tracked, string password, Action<Staff> recordEvent, CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
         tracked.PasswordHash = passwordHasher.Hash(password);
@@ -92,6 +94,7 @@ public sealed class StaffPasswordService(
         tracked.InviteTokenHash = null;
         tracked.InviteExpiryUtc = null;
         tracked.SecurityStamp = secureTokens.NewSecurityStamp();
+        recordEvent(tracked);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         await refreshTokens.RevokeAllForStaffAsync(tracked.Id, RefreshTokenRevokedReason.PasswordChanged, now, cancellationToken);
     }

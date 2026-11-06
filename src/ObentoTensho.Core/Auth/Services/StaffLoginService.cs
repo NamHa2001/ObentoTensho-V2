@@ -13,9 +13,12 @@ public sealed class StaffLoginService(
     IStaffRepository staff,
     IPasswordHasher passwordHasher,
     StaffSignInFlow flow,
+    AuthSecurityEvents securityEvents,
     IClock clock,
     IValidator<LoginRequest> loginValidator)
 {
+    private static readonly Result<StaffSignInResult> InvalidCredentials = Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+
     public async Task<Result<StaffSignInResult>> LoginAsync(LoginRequest request, ClientInfo client, CancellationToken cancellationToken)
     {
         var validation = await loginValidator.ValidateAsync(request, cancellationToken);
@@ -25,25 +28,29 @@ public sealed class StaffLoginService(
         }
 
         var now = clock.UtcNow;
-        var member = await staff.FindByEmailAsync(EmailAddress.Normalize(request.Email), cancellationToken);
+        var email = EmailAddress.Normalize(request.Email);
+        var member = await staff.FindByEmailAsync(email, cancellationToken);
 
         // Chưa nhận lời mời (chưa có mật khẩu), không tồn tại hay đang bị khóa: cùng phản hồi
         if (member?.PasswordHash is null || member.LockoutEndUtc > now)
         {
             passwordHasher.SimulateVerify(request.Password);
-            return Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+            await securityEvents.StaffLoginFailedAsync(member?.Id, email, member is null ? "unknown_account" : "locked_or_no_password", cancellationToken);
+            return InvalidCredentials;
         }
 
         var check = passwordHasher.Verify(member.PasswordHash, request.Password);
         if (check == PasswordCheckResult.Failed)
         {
             await staff.RegisterFailedLoginAsync(member.Id, now + AuthPolicy.LockoutDuration, cancellationToken);
-            return Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+            await securityEvents.StaffLoginFailedAsync(member.Id, email, "wrong_password", cancellationToken);
+            return InvalidCredentials;
         }
 
         if (!member.IsActive)
         {
-            return Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+            await securityEvents.StaffLoginFailedAsync(member.Id, email, "inactive", cancellationToken);
+            return InvalidCredentials;
         }
 
         // Không xóa bộ đếm sai ở đây: nếu còn bước 2FA, xóa sớm sẽ cho phép đoán mã TOTP vô hạn

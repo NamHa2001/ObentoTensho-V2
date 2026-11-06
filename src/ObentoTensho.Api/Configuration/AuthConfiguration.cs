@@ -1,12 +1,12 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos.Auth;
 using ObentoTensho.Contracts.Errors;
+using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Services;
 using ObentoTensho.Core.Auth.Validators;
 using ObentoTensho.Infrastructure.Security;
@@ -42,14 +42,14 @@ public static class AuthConfiguration
 
         services.AddAuthentication(AuthSchemes.Customer).AddJwtBearer(AuthSchemes.Customer).AddJwtBearer(AuthSchemes.Staff);
         services.AddOptions<JwtBearerOptions>(AuthSchemes.Customer)
-            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.CustomerAudience, isStaff: false));
+            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.CustomerAudience, AuthSchemes.Customer));
         services.AddOptions<JwtBearerOptions>(AuthSchemes.Staff)
-            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.AdminAudience, isStaff: true));
+            .Configure<IOptions<JwtOptions>>((bearer, jwt) => ConfigureBearer(bearer, jwt.Value, jwt.Value.AdminAudience, AuthSchemes.Staff));
 
-        // AR-09: mặc định từ chối; endpoint công khai phải ghi [AllowAnonymous]
-        services.AddAuthorizationBuilder().SetFallbackPolicy(new AuthorizationPolicyBuilder(AuthSchemes.Customer, AuthSchemes.Staff)
-            .RequireAuthenticatedUser()
-            .Build());
+        services.AddAuthorizationBuilder().AddAppPolicies();
+        services.AddHttpContextAccessor();
+        services.AddScoped<IAuditContext, HttpAuditContext>();
+        services.AddScoped<AuthSecurityEvents>();
 
         return services;
     }
@@ -78,8 +78,9 @@ public static class AuthConfiguration
             .WithHeaders(AllowedHeaders)
             .AllowCredentials();
 
-    private static void ConfigureBearer(JwtBearerOptions bearer, JwtOptions jwt, string audience, bool isStaff)
+    private static void ConfigureBearer(JwtBearerOptions bearer, JwtOptions jwt, string audience, string scheme)
     {
+        var isStaff = string.Equals(scheme, AuthSchemes.Staff, StringComparison.Ordinal);
         bearer.MapInboundClaims = false;
         bearer.TokenValidationParameters = new TokenValidationParameters
         {
@@ -92,6 +93,9 @@ public static class AuthConfiguration
             ClockSkew = JwtOptions.ClockSkew,
             NameClaimType = AccessTokenClaims.Subject,
             RoleClaimType = AccessTokenClaims.Role,
+
+            // Audit phân biệt người gọi là nhân viên hay khách theo loại xác thực
+            AuthenticationType = scheme,
         };
         bearer.Events = new JwtBearerEvents
         {

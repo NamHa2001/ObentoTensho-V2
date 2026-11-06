@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos;
@@ -27,16 +28,19 @@ public sealed class AdminAuthController(
 
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken) =>
         SignIn(await login.LoginAsync(request, HttpContext.GetClientInfo(), cancellationToken));
 
     [HttpPost("2fa/verify")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> VerifyTwoFactor(TwoFactorVerifyRequest request, CancellationToken cancellationToken) =>
         SignIn(await twoFactor.VerifyAsync(request, HttpContext.GetClientInfo(), cancellationToken));
 
     [HttpPost("2fa/setup")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> BeginTwoFactorSetup(ChallengeTokenRequest request, CancellationToken cancellationToken)
     {
         var result = await twoFactor.BeginSetupAsync(request.ChallengeToken, cancellationToken);
@@ -45,6 +49,7 @@ public sealed class AdminAuthController(
 
     [HttpPost("2fa/setup/confirm")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> ConfirmTwoFactorSetup(TotpSetupConfirmRequest request, CancellationToken cancellationToken)
     {
         var result = await twoFactor.ConfirmSetupAsync(request, HttpContext.GetClientInfo(), cancellationToken);
@@ -59,11 +64,13 @@ public sealed class AdminAuthController(
 
     [HttpPost("change-password")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> ChangePassword(StaffChangePasswordRequest request, CancellationToken cancellationToken) =>
         SignIn(await passwords.ChangePasswordAsync(request, HttpContext.GetClientInfo(), cancellationToken));
 
     [HttpPost("accept-invite")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> AcceptInvite(AcceptInviteRequest request, CancellationToken cancellationToken)
     {
         var result = await passwords.AcceptInviteAsync(request, cancellationToken);

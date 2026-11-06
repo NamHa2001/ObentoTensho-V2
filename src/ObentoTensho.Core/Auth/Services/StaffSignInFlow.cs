@@ -13,6 +13,7 @@ public sealed class StaffSignInFlow(
     IStaffRepository staff,
     IStaffChallengeTokens challenges,
     SessionFactory sessions,
+    AuthSecurityEvents securityEvents,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
@@ -43,6 +44,7 @@ public sealed class StaffSignInFlow(
         await staff.RecordLoginAsync(member.Id, now, cancellationToken);
         await sessions.EnforceStaffSessionLimitAsync(member.Id, cancellationToken);
         var session = sessions.CreateForStaff(member, Guid.CreateVersion7(), now, sessions.NewRefreshToken(), client);
+        securityEvents.RecordStaffLoginSucceeded(member);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return session;
     }

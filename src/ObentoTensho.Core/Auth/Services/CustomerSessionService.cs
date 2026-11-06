@@ -16,6 +16,7 @@ public sealed class CustomerSessionService(
     IUnitOfWork unitOfWork,
     IPasswordHasher passwordHasher,
     SessionFactory sessions,
+    AuthSecurityEvents securityEvents,
     IClock clock,
     IValidator<LoginRequest> loginValidator)
 {
@@ -78,6 +79,7 @@ public sealed class CustomerSessionService(
         if (stored.RevokedAtUtc is not null)
         {
             await refreshTokens.RevokeFamilyAsync(stored.FamilyId, RefreshTokenRevokedReason.ReuseDetected, now, cancellationToken);
+            await securityEvents.RefreshTokenReuseDetectedAsync(stored.FamilyId, stored.UserId, stored.StaffId, cancellationToken);
             return Unauthenticated;
         }
 
@@ -99,6 +101,7 @@ public sealed class CustomerSessionService(
         {
             // Yêu cầu khác vừa dùng cùng token trước
             await refreshTokens.RevokeFamilyAsync(stored.FamilyId, RefreshTokenRevokedReason.ReuseDetected, now, cancellationToken);
+            await securityEvents.RefreshTokenReuseDetectedAsync(stored.FamilyId, stored.UserId, stored.StaffId, cancellationToken);
             return Unauthenticated;
         }
 

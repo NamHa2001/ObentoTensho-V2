@@ -13,10 +13,19 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Phân quyền, audit, giới hạn tần suất, header bảo mật (06/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Thêm `ProjectReference` tới `ObentoTensho.Api` vào `ArchTests` nhưng build lỗi `CS0234: The type or namespace name 'AspNetCore' does not exist` | Api dùng SDK Web (kéo theo framework ASP.NET Core), project test dùng SDK thường nên không thấy các kiểu ASP.NET Core qua tham chiếu project | Thêm `<FrameworkReference Include="Microsoft.AspNetCore.App" />` vào project test | Project thường muốn đọc kiểu của Api/Infrastructure phải khai báo cùng FrameworkReference |
+| Build lỗi `CA1711: Rename type name StaffPermission so that it does not end in 'Permission'` | Hậu tố `Permission` dành cho kiểu quyền của .NET | Đổi tên enum thành `StaffCapability`, lớp ma trận thành `StaffCapabilities` | Tránh hậu tố `Permission`, `Attribute`, `Collection`… cho kiểu không thuộc loại đó |
+| Test chức năng gọi đăng nhập nhiều lần từ cùng "IP" của TestServer có thể chạm giới hạn 10 lần/phút | Mọi yêu cầu của TestServer chung một địa chỉ (không có IP thật) | `ApiFactory` mặc định nâng giới hạn; test giới hạn tần suất tự hạ xuống 3; `TestRemoteIpStartupFilter` gán IP theo header `X-Test-Remote-Ip` để test proxy/IP thật | Giới hạn tần suất luôn đọc từ cấu hình, không hằng số trong mã |
+
 ## Xác thực – đăng nhập nhân viên, 2FA, lời mời (06/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
 |---|---|---|---|
+| CI job "Quét bí mật" đỏ: gitleaks báo `generic-api-key` ở `TotpTests.cs` dòng 58 | Chuỗi Base32 của khóa mẫu công khai RFC 6238 đứng ngay sau `secret=` trong URI kỳ vọng nên khớp luật phát hiện API key (báo động giả) | Viết lại test để không ghép `secret=` với chuỗi cố định; thêm dấu vân tay `<commit>:<file>:<rule>:<line>` của phát hiện cũ vào `.gitleaksignore` kèm lý do (không viết lại lịch sử nhánh đã đẩy) | Dữ liệu mẫu trong test không đặt sau các từ khóa `secret=`, `key=`, `token=`; sinh từ mã (vd `Base32.Encode(...)`) thay vì chuỗi cố định |
 | Test `Sai_TOTP_5_lan_thi_tai_khoan_bi_khoa` đỏ: sau 5 lần sai mã 2FA vẫn đăng nhập tiếp được (`200` thay vì `401`) — **lỗ hổng**: người biết mật khẩu đoán mã TOTP không giới hạn | Bước mật khẩu đúng gọi `ResetFailedLoginsAsync`, xóa luôn các lần sai 2FA trước đó; kẻ tấn công chỉ cần sai 4 lần rồi đăng nhập lại | Bỏ việc xóa bộ đếm ở bước mật khẩu; chỉ xóa khi đã qua 2FA hoặc khi cấp phiên (`StaffSignInFlow.StartSessionAsync`) | Với đăng nhập nhiều bước, trạng thái chống dò chỉ được đặt lại sau bước **cuối**; luôn có test "sai bước 2 nhiều lần" |
 
 ## Xác thực – đăng ký, đăng nhập, phiên của khách (06/11/2026)

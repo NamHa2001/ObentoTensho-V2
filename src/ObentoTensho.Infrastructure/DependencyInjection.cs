@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Time;
@@ -38,6 +39,7 @@ public static class DependencyInjection
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IAccountEmailOutbox, AccountEmailOutbox>();
+        services.AddScoped<IAuditTrail, EfAuditTrail>();
 
         return services;
     }

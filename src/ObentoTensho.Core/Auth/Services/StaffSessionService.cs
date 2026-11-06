@@ -12,6 +12,7 @@ public sealed class StaffSessionService(
     IRefreshTokenRepository refreshTokens,
     IUnitOfWork unitOfWork,
     SessionFactory sessions,
+    AuthSecurityEvents securityEvents,
     IClock clock)
 {
     public async Task<Result<AuthSession>> RefreshAsync(string? refreshToken, ClientInfo client, CancellationToken cancellationToken)
@@ -28,6 +29,7 @@ public sealed class StaffSessionService(
         if (stored.RevokedAtUtc is not null)
         {
             await refreshTokens.RevokeFamilyAsync(stored.FamilyId, RefreshTokenRevokedReason.ReuseDetected, now, cancellationToken);
+            await securityEvents.RefreshTokenReuseDetectedAsync(stored.FamilyId, stored.UserId, stored.StaffId, cancellationToken);
             return Result.Failure<AuthSession>(ErrorCodes.Unauthenticated);
         }
 
@@ -47,6 +49,7 @@ public sealed class StaffSessionService(
         if (!await refreshTokens.TryMarkRotatedAsync(stored.Id, next.Hash, now, cancellationToken))
         {
             await refreshTokens.RevokeFamilyAsync(stored.FamilyId, RefreshTokenRevokedReason.ReuseDetected, now, cancellationToken);
+            await securityEvents.RefreshTokenReuseDetectedAsync(stored.FamilyId, stored.UserId, stored.StaffId, cancellationToken);
             return Result.Failure<AuthSession>(ErrorCodes.Unauthenticated);
         }
 

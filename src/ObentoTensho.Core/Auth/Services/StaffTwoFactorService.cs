@@ -14,6 +14,7 @@ public sealed class StaffTwoFactorService(
     ITotpSecretProtector secretProtector,
     ISecureTokenService secureTokens,
     StaffSignInFlow flow,
+    AuthSecurityEvents securityEvents,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
@@ -25,15 +26,23 @@ public sealed class StaffTwoFactorService(
         }
 
         var member = resolved.Member;
-        var passed = !string.IsNullOrEmpty(request.Code)
-            ? await TryConsumeTotpAsync(member, request.Code, cancellationToken) is not null
-            : await TryUseRecoveryCodeAsync(member, request.RecoveryCode, cancellationToken);
+        var usesRecoveryCode = string.IsNullOrEmpty(request.Code);
+        var passed = usesRecoveryCode
+            ? await TryUseRecoveryCodeAsync(member, request.RecoveryCode, cancellationToken)
+            : await TryConsumeTotpAsync(member, request.Code, cancellationToken) is not null;
 
         if (!passed)
         {
             // Sai 2FA cũng tính vào khóa tài khoản (docs/srs/10 §4.2)
             await staff.RegisterFailedLoginAsync(member.Id, clock.UtcNow + AuthPolicy.LockoutDuration, cancellationToken);
+            await securityEvents.StaffLoginFailedAsync(member.Id, member.Email, usesRecoveryCode ? "wrong_recovery_code" : "wrong_totp", cancellationToken);
             return Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+        }
+
+        if (usesRecoveryCode)
+        {
+            // Mã khôi phục giảm dần: ghi lại để chủ tài khoản/quản trị biết thiết bị 2FA có thể đã mất
+            await securityEvents.StaffRecoveryCodeUsedAsync(member, cancellationToken);
         }
 
         await staff.ResetFailedLoginsAsync(member.Id, cancellationToken);
@@ -73,14 +82,15 @@ public sealed class StaffTwoFactorService(
             || await staff.FindForUpdateAsync(member.Id, cancellationToken) is not { } tracked)
         {
             await staff.RegisterFailedLoginAsync(member.Id, clock.UtcNow + AuthPolicy.LockoutDuration, cancellationToken);
+            await securityEvents.StaffLoginFailedAsync(member.Id, member.Email, "wrong_totp_setup", cancellationToken);
             return Result.Failure<StaffTotpEnabled>(ErrorCodes.InvalidCredentials);
         }
 
         var codes = RecoveryCodes.Generate();
         await staff.ReplaceRecoveryCodesAsync(member.Id, codes.Select(c => secureTokens.Hash(RecoveryCodes.Normalize(c))), cancellationToken);
         tracked.TotpEnabled = true;
+        securityEvents.RecordStaffTwoFactorEnabled(tracked);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        await staff.ResetFailedLoginsAsync(member.Id, cancellationToken);
 
         var session = await flow.StartSessionAsync(tracked, client, cancellationToken);
         return Result.Success(new StaffTotpEnabled(session, codes));
