@@ -7,6 +7,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Security\Resources\common-passwords.txt" LogicalName="ObentoTensho.Infrastructure.Security.Resources.common-passwords.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ObentoTensho.UnitTests" />
+    <InternalsVisibleTo Include="ObentoTensho.IntegrationTests" />
   </ItemGroup>
 
   <ItemGroup>

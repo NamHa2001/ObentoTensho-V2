@@ -13,6 +13,12 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Xác thực – đăng ký, đăng nhập, phiên của khách (06/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Tạo `appsettings.Development.json` cho Api nhưng `git status` không thấy file; máy khác chạy `dotnet run` sẽ thiếu `Web:CustomerOrigins` và API dừng khi khởi động | `.gitignore` chặn `appsettings.Development.json` (cố ý, tránh lọt cấu hình dev) | Bỏ file, đặt `Web:CustomerOrigins:0` bằng `dotnet user-secrets` và ghi vào README cùng các khóa khác | Cấu hình riêng máy dev luôn để ở User Secrets; kiểm `git check-ignore -v <file>` khi file mới không hiện trong `git status` |
+
 ## Xác thực – nền tảng: giờ VN, băm mật khẩu, token an toàn (06/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

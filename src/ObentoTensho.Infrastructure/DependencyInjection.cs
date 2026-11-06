@@ -1,9 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Auth.Abstractions;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence;
+using ObentoTensho.Infrastructure.Persistence.Repositories;
 using ObentoTensho.Infrastructure.Security;
 using ObentoTensho.Infrastructure.Time;
 
@@ -27,6 +31,12 @@ public static class DependencyInjection
             connectionString,
             sql => sql.EnableRetryOnFailure().CommandTimeout(CommandTimeoutSeconds)));
 
+        services.AddMemoryCache();
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IAccountEmailOutbox, AccountEmailOutbox>();
+
         return services;
     }
 
@@ -45,6 +55,12 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<ISecureTokenService, SecureTokenService>();
+        services.AddSingleton<ICommonPasswordList, EmbeddedCommonPasswordList>();
+
+        // SEC-16: thiếu hoặc yếu khóa ký JWT thì dừng ngay khi khởi động
+        services.AddOptions<JwtOptions>().Bind(configuration.GetSection(JwtOptions.SectionName)).ValidateOnStart();
+        services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
+        services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
 
         return services;
     }

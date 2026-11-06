@@ -137,7 +137,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         {
                             t.HasCheckConstraint("CK_RefreshTokens_Owner", "(CASE WHEN [UserId] IS NULL THEN 0 ELSE 1 END) + (CASE WHEN [StaffId] IS NULL THEN 0 ELSE 1 END) = 1");
 
-                            t.HasCheckConstraint("CK_RefreshTokens_RevokedReason", "[RevokedReason] IS NULL OR [RevokedReason] IN ('rotated', 'logout', 'reuse_detected', 'password_changed', 'account_locked')");
+                            t.HasCheckConstraint("CK_RefreshTokens_RevokedReason", "[RevokedReason] IS NULL OR [RevokedReason] IN ('rotated', 'logout', 'reuse_detected', 'password_changed', 'account_locked', 'session_limit')");
                         });
                 });
 
@@ -345,6 +345,53 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("CK_Users_MemberTier", "[MemberTier] BETWEEN 0 AND 3");
 
                             t.HasCheckConstraint("CK_Users_Points", "[CurrentPoints] >= 0 AND [PointsDebt] >= 0 AND [AccumulatedPoints] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Infrastructure.Messaging.OutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("LastError")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PayloadJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProcessedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .HasDatabaseName("IX_OutboxMessages_Pending")
+                        .HasFilter("[ProcessedAtUtc] IS NULL");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.ToTable("OutboxMessages", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OutboxMessages_Attempts", "[Attempts] >= 0");
                         });
                 });
 

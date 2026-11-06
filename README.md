@@ -48,3 +48,16 @@ dotnet tool run dotnet-ef database update --project src/ObentoTensho.Infrastruct
 ## Cấu hình và bí mật
 
 Không đưa mật khẩu, khóa API hay chuỗi kết nối thật vào repo. Giá trị thật đặt trong User Secrets (máy phát triển) hoặc biến môi trường (máy chủ).
+
+API không khởi động nếu thiếu cấu hình bắt buộc hoặc khóa ký JWT yếu (dưới 256 bit, khóa mẫu). Thiết lập máy phát triển:
+
+```
+cd src/ObentoTensho.Api
+dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Database=ObentoTensho_V2_Dev;Integrated Security=True;TrustServerCertificate=True"
+dotnet user-secrets set "Jwt:ActiveKeyId" "dev-1"
+dotnet user-secrets set "Jwt:SigningKeys:dev-1" "<khóa Base64 ngẫu nhiên 32 byte, ví dụ: openssl rand -base64 32>"
+dotnet user-secrets set "Web:CustomerOrigins:0" "http://localhost:4200"
+dotnet run
+```
+
+Máy chủ dùng biến môi trường tương ứng (`ConnectionStrings__Default`, `Jwt__ActiveKeyId`, `Jwt__SigningKeys__<kid>`, `Web__CustomerOrigins__0`). Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.

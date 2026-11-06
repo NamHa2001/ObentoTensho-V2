@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
 
 namespace ObentoTensho.Infrastructure.Persistence;
@@ -14,6 +15,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

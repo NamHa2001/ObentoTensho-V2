@@ -1,5 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <PropertyGroup>
+    <!-- Máy dev: chuỗi kết nối và khóa ký JWT nằm trong User Secrets, không nằm trong repo (SEC-16) -->
+    <UserSecretsId>obento-tensho-api</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\ObentoTensho.Contracts\ObentoTensho.Contracts.csproj" />
     <ProjectReference Include="..\ObentoTensho.Core\ObentoTensho.Core.csproj" />

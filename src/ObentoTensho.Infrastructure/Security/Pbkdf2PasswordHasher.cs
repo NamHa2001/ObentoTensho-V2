@@ -5,15 +5,24 @@ using ObentoTensho.Core.Auth.Abstractions;
 namespace ObentoTensho.Infrastructure.Security;
 
 // D-02: dùng bộ băm PBKDF2-HMAC-SHA512 của ASP.NET Core Identity (định dạng V3, muối 128 bit)
-public sealed class Pbkdf2PasswordHasher(IOptions<PasswordHashingOptions> options) : Core.Auth.Abstractions.IPasswordHasher
+public sealed class Pbkdf2PasswordHasher : Core.Auth.Abstractions.IPasswordHasher
 {
     private static readonly object Owner = new();
 
-    private readonly PasswordHasher<object> _hasher = new(Options.Create(new PasswordHasherOptions
+    private readonly PasswordHasher<object> _hasher;
+
+    // Bản băm giả cùng số vòng, dùng khi không có tài khoản để thời gian phản hồi như nhau
+    private readonly Lazy<string> _dummyHash;
+
+    public Pbkdf2PasswordHasher(IOptions<PasswordHashingOptions> options)
     {
-        CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3,
-        IterationCount = options.Value.Iterations,
-    }));
+        _hasher = new PasswordHasher<object>(Options.Create(new PasswordHasherOptions
+        {
+            CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3,
+            IterationCount = options.Value.Iterations,
+        }));
+        _dummyHash = new Lazy<string>(() => _hasher.HashPassword(Owner, Guid.NewGuid().ToString("N")));
+    }
 
     public string Hash(string password)
     {
@@ -46,4 +55,6 @@ public sealed class Pbkdf2PasswordHasher(IOptions<PasswordHashingOptions> option
             _ => PasswordCheckResult.Failed,
         };
     }
+
+    public void SimulateVerify(string password) => Verify(_dummyHash.Value, password);
 }

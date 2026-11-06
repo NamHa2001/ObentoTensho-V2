@@ -6,5 +6,8 @@ public enum RefreshTokenRevokedReason
     Logout,
     ReuseDetected,
     PasswordChanged,
-    AccountLocked
+    AccountLocked,
+
+    // SEC-52: vượt số phiên tối đa, phiên cũ nhất bị thu hồi
+    SessionLimit
 }

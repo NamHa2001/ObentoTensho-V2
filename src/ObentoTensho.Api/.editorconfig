@@ -1,0 +1,3 @@
+[*.cs]
+# Api là ứng dụng, không phải thư viện cho ngôn ngữ khác dùng; thư mục Controllers/Public theo docs/srs/95 §3
+dotnet_diagnostic.CA1716.severity = none
