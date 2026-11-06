@@ -11,4 +11,7 @@ public interface IUnitOfWork
 
     // Nhiều lần lưu trong một transaction (vd: tạo bản ghi lấy Id rồi ghi audit — BR-STF-12)
     Task<T> InTransactionAsync<T>(Func<CancellationToken, Task<T>> work, CancellationToken cancellationToken);
+
+    // Như trên nhưng chỉ commit khi kết quả thành công; thất bại nghiệp vụ ⇒ hoàn tác mọi lệnh đã chạy
+    Task<Result<T>> TryInTransactionAsync<T>(Func<CancellationToken, Task<Result<T>>> work, CancellationToken cancellationToken);
 }

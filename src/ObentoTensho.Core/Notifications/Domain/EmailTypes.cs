@@ -9,6 +9,10 @@ public static class EmailTypes
         EmailKind.DuplicateRegistration => "duplicate_registration",
         EmailKind.PasswordReset => "password_reset",
         EmailKind.PasswordChanged => "password_changed",
+        EmailKind.ReservationReceived => "reservation_received",
+        EmailKind.ReservationConfirmed => "reservation_confirmed",
+        EmailKind.ReservationRejected => "reservation_rejected",
+        EmailKind.ReservationCancelled => "reservation_cancelled",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

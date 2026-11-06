@@ -1,0 +1,21 @@
+subject: Đặt bàn {{code}} đã được hủy
+===
+Xin chào {{fullName}},
+
+Đặt bàn sau của bạn tại Obento Tensho đã được hủy:
+
+Mã đặt bàn: {{code}}
+Ngày: {{date}}
+Giờ: {{time}} (giờ Việt Nam)
+Số khách: {{guests}}
+
+Nếu bạn không yêu cầu hủy hoặc muốn đặt lại, vui lòng đặt bàn mới tại: {{bookingLink}} hoặc liên hệ nhà hàng.
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Đặt bàn sau của bạn tại Obento Tensho đã được hủy:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đặt bàn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ngày</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ</td><td style="padding:4px 0">{{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số khách</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<p>Nếu bạn không yêu cầu hủy hoặc muốn đặt lại, vui lòng đặt bàn mới hoặc liên hệ nhà hàng.</p><p><a class="button" href="{{bookingLink}}">Đặt bàn mới</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

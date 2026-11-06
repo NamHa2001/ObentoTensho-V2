@@ -6,6 +6,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Tables.Domain;
 
@@ -16,6 +17,7 @@ public sealed class TableService(
     ITableLayoutRepository layout,
     IUnitOfWork unitOfWork,
     IAuditTrail audit,
+    IReservationRepository reservations,
     IValidator<TableRequest> validator)
 {
     private const string Entity = "table";
@@ -92,7 +94,7 @@ public sealed class TableService(
         return await unitOfWork.TrySaveAsync(table.ToDto, ErrorCodes.DuplicateName, cancellationToken);
     }
 
-    // BR-TBL-06: khi có bảng đặt bàn sẽ chặn xóa bàn có đặt bàn tương lai (phần đặt bàn)
+    // BR-TBL-06: bàn còn đặt bàn chưa kết thúc thì không xóa (tắt bàn thay vì xóa)
     public async Task<Result> DeleteAsync(int id, string? ifMatch, CancellationToken cancellationToken)
     {
         if (RowVersions.Decode(ifMatch) is not { } version)
@@ -103,6 +105,11 @@ public sealed class TableService(
         if (await layout.FindTableAsync(id, cancellationToken) is not { } table)
         {
             return Result.Failure(ErrorCodes.NotFound);
+        }
+
+        if (await reservations.HasActiveForTableAsync(id, cancellationToken))
+        {
+            return Result.Failure(ErrorCodes.TableHasReservations);
         }
 
         unitOfWork.ExpectRowVersion(table, version);

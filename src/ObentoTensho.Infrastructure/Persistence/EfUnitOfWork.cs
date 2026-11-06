@@ -44,4 +44,23 @@ internal sealed class EfUnitOfWork(AppDbContext db) : IUnitOfWork
             await transaction.CommitAsync(ct);
             return result;
         }, cancellationToken);
+
+    public Task<Result<T>> TryInTransactionAsync<T>(Func<CancellationToken, Task<Result<T>>> work, CancellationToken cancellationToken) =>
+        db.Database.CreateExecutionStrategy().ExecuteAsync(async ct =>
+        {
+            db.ChangeTracker.Clear();
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            var result = await work(ct);
+            if (result.IsSuccess)
+            {
+                await transaction.CommitAsync(ct);
+            }
+            else
+            {
+                await transaction.RollbackAsync(ct);
+                db.ChangeTracker.Clear();
+            }
+
+            return result;
+        }, cancellationToken);
 }

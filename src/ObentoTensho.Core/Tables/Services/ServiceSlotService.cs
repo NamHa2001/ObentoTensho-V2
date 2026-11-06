@@ -5,6 +5,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Tables.Domain;
 
@@ -15,6 +16,7 @@ public sealed class ServiceSlotService(
     IScheduleRepository schedule,
     IUnitOfWork unitOfWork,
     IAuditTrail audit,
+    IReservationRepository reservations,
     IPublicScheduleCache publicCache,
     IValidator<ServiceSlotRequest> validator)
 {
@@ -77,7 +79,7 @@ public sealed class ServiceSlotService(
         return result;
     }
 
-    // BR-TBL-06: khi có bảng đặt bàn sẽ chặn xóa ca còn đặt bàn tương lai (phần đặt bàn)
+    // BR-TBL-06: ca đã có đặt bàn thì chỉ được tắt, không xóa (lịch sử đặt bàn tham chiếu ca)
     public async Task<Result> DeleteAsync(int id, string? ifMatch, CancellationToken cancellationToken)
     {
         if (RowVersions.Decode(ifMatch) is not { } version)
@@ -88,6 +90,11 @@ public sealed class ServiceSlotService(
         if (await schedule.FindSlotAsync(id, cancellationToken) is not { } slot)
         {
             return Result.Failure(ErrorCodes.NotFound);
+        }
+
+        if (await reservations.HasAnyForSlotAsync(id, cancellationToken))
+        {
+            return Result.Failure(ErrorCodes.SlotHasReservations);
         }
 
         unitOfWork.ExpectRowVersion(slot, version);

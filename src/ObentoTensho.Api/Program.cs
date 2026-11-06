@@ -21,6 +21,7 @@ builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
 builder.Services.AddApiRateLimiting(builder.Configuration);
 builder.Services.AddAuthServices();
 builder.Services.AddTablesServices();
+builder.Services.AddReservationServices();
 
 var app = builder.Build();
 

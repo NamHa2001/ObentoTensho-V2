@@ -13,6 +13,13 @@ public sealed class EmailTemplateTests
         ["loginLink"] = "https://www.obento.test/auth/login",
         ["forgotLink"] = "https://www.obento.test/auth/forgot-password",
         ["changedAt"] = "09:30 07/11/2026",
+        ["code"] = "OBT-8K4Q-7ZM2",
+        ["date"] = "08/11/2026",
+        ["time"] = "18:30",
+        ["guests"] = "4",
+        ["manageLink"] = "https://www.obento.test/reservations/manage?code=OBT-8K4Q-7ZM2#token=abc",
+        ["bookingLink"] = "https://www.obento.test/reservations",
+        ["reason"] = "Ca đã kín chỗ",
     };
 
     public static TheoryData<EmailKind, string> Cases()

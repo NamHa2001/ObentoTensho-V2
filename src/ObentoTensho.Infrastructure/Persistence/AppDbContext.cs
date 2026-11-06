@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Notifications.Domain;
+using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
@@ -35,6 +36,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<ServiceSlot> ServiceSlots => Set<ServiceSlot>();
 
     public DbSet<BlockedDate> BlockedDates => Set<BlockedDate>();
+
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+
+    public DbSet<ReservationStatusHistory> ReservationStatusHistory => Set<ReservationStatusHistory>();
+
+    public DbSet<SlotDayCapacity> SlotDayCapacity => Set<SlotDayCapacity>();
+
+    public DbSet<DailyCounter> DailyCounters => Set<DailyCounter>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

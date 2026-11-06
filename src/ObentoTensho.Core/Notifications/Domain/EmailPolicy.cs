@@ -16,6 +16,7 @@ public static class EmailPolicy
     public static int Priority(EmailKind kind) => kind switch
     {
         EmailKind.VerifyEmail or EmailKind.PasswordReset => 1,
+        EmailKind.ReservationReceived or EmailKind.ReservationConfirmed or EmailKind.ReservationRejected or EmailKind.ReservationCancelled => 2,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
         _ => 5,
     };

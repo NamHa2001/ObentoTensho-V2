@@ -70,7 +70,7 @@ public sealed class TablesApiTests : IDisposable
     [Fact]
     public async Task Gio_mo_cua_ca_phuc_vu_va_trang_cong_khai()
     {
-        await ResetScheduleAsync();
+        await TestSchedule.ResetToSeedAsync(_fixture);
         var superAdmin = await _api.SignInAsync(StaffRole.SuperAdmin);
         var manager = await _api.SignInAsync(StaffRole.Manager);
 
@@ -143,18 +143,6 @@ public sealed class TablesApiTests : IDisposable
             ranges = ranges.Select(r => new { open = r.Open, close = r.Close, crossesMidnight = false }).ToArray(),
         }).ToArray(),
     };
-
-    // Lịch là dữ liệu dùng chung của cả CSDL test: đưa về trạng thái seed trước khi kiểm
-    private async Task ResetScheduleAsync()
-    {
-        await using var db = _fixture.CreateContext();
-        await db.ServiceSlots.ExecuteDeleteAsync();
-        await db.SpecialHours.ExecuteDeleteAsync();
-        await db.OpeningHours.ExecuteDeleteAsync();
-        await db.Database.ExecuteSqlRawAsync(
-            "INSERT INTO [OpeningHours] ([DayOfWeek], [OpenTime], [CloseTime], [CrossesMidnight], [IsClosed]) " +
-            "SELECT d, '00:00', '00:00', 0, 1 FROM (VALUES (0),(1),(2),(3),(4),(5),(6)) AS v(d)");
-    }
 
     private static async Task<string?> ErrorOf(Task<HttpResponseMessage> request) =>
         await AuthApiClient.ReadErrorCodeAsync(await request);

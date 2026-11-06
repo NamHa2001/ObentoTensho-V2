@@ -39,6 +39,8 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         // Các test chức năng gọi đăng nhập nhiều lần từ cùng "IP"; test giới hạn tần suất tự hạ lại
         builder.UseSetting("RateLimiting:LoginPerMinute", "1000");
         builder.UseSetting("RateLimiting:GeneralPerMinute", "10000");
+        builder.UseSetting("RateLimiting:ReservationPerHour", "1000");
+        builder.UseSetting("RateLimiting:LookupPerMinute", "1000");
 
         foreach (var (key, value) in settings ?? new Dictionary<string, string>(StringComparer.Ordinal))
         {

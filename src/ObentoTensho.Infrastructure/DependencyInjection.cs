@@ -6,12 +6,14 @@ using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Infrastructure.Caching;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
+using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
 using ObentoTensho.Infrastructure.Time;
 
@@ -45,6 +47,15 @@ public static class DependencyInjection
         services.AddScoped<ITableLayoutRepository, TableLayoutRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddSingleton<IPublicScheduleCache, MemoryPublicScheduleCache>();
+        services.AddSingleton<IActionThrottle, MemoryActionThrottle>();
+        services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IReservationEmailOutbox, ReservationEmailOutbox>();
+
+        services.AddOptions<ReservationOptions>()
+            .Bind(configuration.GetSection(ReservationOptions.SectionName))
+            .Validate(o => o.IsValid(), "Cấu hình Reservation không hợp lệ (xem docs/srs/19 §3).")
+            .ValidateOnStart();
+        services.AddSingleton<IReservationSettings>(sp => sp.GetRequiredService<IOptions<ReservationOptions>>().Value);
 
         return services;
     }

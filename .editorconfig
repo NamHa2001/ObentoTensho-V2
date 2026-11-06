@@ -17,3 +17,6 @@ dotnet_sort_system_directives_first = true
 
 # ASP.NET Core không có SynchronizationContext nên không cần ConfigureAwait(false)
 dotnet_diagnostic.MA0004.severity = none
+
+# Ứng dụng nội bộ, không có thư viện cho VB/F# dùng: tên tham số/namespace trùng từ khóa VB (date, to, Public…) không gây hại
+dotnet_diagnostic.CA1716.severity = none

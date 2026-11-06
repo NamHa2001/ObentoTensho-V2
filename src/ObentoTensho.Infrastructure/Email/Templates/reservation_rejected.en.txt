@@ -1,0 +1,23 @@
+subject: Sorry, we are unable to accept reservation {{code}}
+===
+Hello {{fullName}},
+
+We are sorry, but Obento Tensho is unable to accept your reservation:
+
+Reservation code: {{code}}
+Date: {{date}}
+Time: {{time}} (Vietnam time)
+Guests: {{guests}}
+
+Reason: {{reason}}
+
+We apologize for any inconvenience. You can choose another date or time at: {{bookingLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>We are sorry, but Obento Tensho is unable to accept your reservation:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Reservation code</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Date</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Time</td><td style="padding:4px 0">{{time}} (Vietnam time)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Guests</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<p>Reason: {{reason}}</p><p>We apologize for any inconvenience. You can choose another date or time here:</p><p><a class="button" href="{{bookingLink}}">Choose another time</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

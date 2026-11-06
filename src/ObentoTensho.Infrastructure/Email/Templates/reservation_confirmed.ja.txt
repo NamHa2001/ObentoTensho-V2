@@ -1,0 +1,20 @@
+subject: ご予約 {{code}} が確定しました
+===
+{{fullName}} 様
+
+Obento Tensho のご予約が確定しました。
+
+予約番号：{{code}}
+日付：{{date}}
+時間：{{time}}（ベトナム時間）
+人数：{{guests}}名
+
+ご来店を心よりお待ちしております。ご予定が変わった場合は、こちらからご予約の確認・キャンセルができます：{{manageLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>Obento Tensho のご予約が確定しました。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">予約番号</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">日付</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">時間</td><td style="padding:4px 0">{{time}}（ベトナム時間）</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">人数</td><td style="padding:4px 0">{{guests}}名</td></tr></table>
+<p>ご来店を心よりお待ちしております。ご予定が変わった場合は、こちらからご予約の確認・キャンセルができます。</p><p><a class="button" href="{{manageLink}}">予約を確認・キャンセルする</a></p>
+<p>Obento Tensho</p>

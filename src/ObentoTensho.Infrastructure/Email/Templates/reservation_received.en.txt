@@ -1,0 +1,23 @@
+subject: Obento Tensho has received your reservation request {{code}}
+===
+Hello {{fullName}},
+
+Thank you for booking a table at Obento Tensho. We have received your request:
+
+Reservation code: {{code}}
+Date: {{date}}
+Time: {{time}} (Vietnam time)
+Guests: {{guests}}
+
+Our staff will call you to confirm. Your reservation is only guaranteed once you receive a confirmation email.
+
+View or cancel your reservation (free of charge, at any time before your booking time): {{manageLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Thank you for booking a table at Obento Tensho. We have received your request:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Reservation code</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Date</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Time</td><td style="padding:4px 0">{{time}} (Vietnam time)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Guests</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<p>Our staff will call you to confirm. Your reservation is only guaranteed once you receive a confirmation email.</p><p>You can view or cancel your reservation free of charge, at any time before your booking time:</p><p><a class="button" href="{{manageLink}}">View or cancel reservation</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

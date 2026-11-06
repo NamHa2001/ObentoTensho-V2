@@ -25,5 +25,21 @@ public static class ErrorCodes
     public const string AreaInactive = "AREA_INACTIVE";
     public const string SlotOverlap = "SLOT_OVERLAP";
     public const string SlotOutsideOpeningHours = "SLOT_OUTSIDE_OPENING_HOURS";
+    public const string TableHasReservations = "TABLE_HAS_RESERVATIONS";
+    public const string SlotHasReservations = "SLOT_HAS_RESERVATIONS";
+
+    // Đặt bàn (docs/srs/11)
+    public const string SlotFull = "SLOT_FULL";
+    public const string DateOutOfRange = "DATE_OUT_OF_RANGE";
+    public const string OutsideOpeningHours = "OUTSIDE_OPENING_HOURS";
+    public const string OutsideServiceSlot = "OUTSIDE_SERVICE_SLOT";
+    public const string DateBlocked = "DATE_BLOCKED";
+    public const string ReservationLimit = "RSV_LIMIT";
+    public const string OtpRequired = "OTP_REQUIRED";
+    public const string InvalidTransition = "INVALID_TRANSITION";
+    public const string ContactNotConfirmed = "CONTACT_NOT_CONFIRMED";
+    public const string CallAttemptsExceeded = "CALL_ATTEMPTS_EXCEEDED";
+    public const string TableConflict = "TABLE_CONFLICT";
+    public const string TableUnsuitable = "TABLE_UNSUITABLE";
     public const string InternalError = "INTERNAL_ERROR";
 }

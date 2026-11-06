@@ -1,0 +1,23 @@
+subject: Obento Tensho đã nhận yêu cầu đặt bàn {{code}}
+===
+Xin chào {{fullName}},
+
+Cảm ơn bạn đã đặt bàn tại Obento Tensho. Chúng tôi đã nhận yêu cầu của bạn:
+
+Mã đặt bàn: {{code}}
+Ngày: {{date}}
+Giờ: {{time}} (giờ Việt Nam)
+Số khách: {{guests}}
+
+Nhân viên nhà hàng sẽ gọi điện cho bạn để xác nhận. Đặt bàn chỉ chắc chắn sau khi bạn nhận được email xác nhận.
+
+Xem hoặc hủy đặt bàn (miễn phí, bất cứ lúc nào trước giờ hẹn): {{manageLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Cảm ơn bạn đã đặt bàn tại Obento Tensho. Chúng tôi đã nhận yêu cầu của bạn:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đặt bàn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ngày</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ</td><td style="padding:4px 0">{{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số khách</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<p>Nhân viên nhà hàng sẽ gọi điện cho bạn để xác nhận. Đặt bàn chỉ chắc chắn sau khi bạn nhận được email xác nhận.</p><p>Bạn có thể xem hoặc hủy đặt bàn miễn phí, bất cứ lúc nào trước giờ hẹn:</p><p><a class="button" href="{{manageLink}}">Xem hoặc hủy đặt bàn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

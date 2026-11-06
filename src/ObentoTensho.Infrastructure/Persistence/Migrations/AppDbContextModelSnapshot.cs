@@ -457,6 +457,218 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccessTokenHash")
+                        .HasColumnType("char(64)");
+
+                    b.Property<int>("AdultCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("CallAttempts")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("CancelReason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("CancelledById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CancelledByType")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<int>("ChildCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConfirmNote")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("ConfirmedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ContactConfirmedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ContactVerifiedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("DailySeq")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GuestEmail")
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("GuestName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GuestPhone")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<string>("InternalNote")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Lang")
+                        .IsRequired()
+                        .HasColumnType("char(2)");
+
+                    b.Property<bool>("OtpRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PointsEarned")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReminderSentAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("ReservationCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<DateTime>("ReservedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly>("ReservedDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("ReservedTime")
+                        .HasColumnType("time(0)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SlotId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Source")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("SpecialRequest")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<int?>("TableId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationCode")
+                        .IsUnique();
+
+                    b.HasIndex("SlotId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("ReservedDate", "Status");
+
+                    b.HasIndex("TableId", "ReservedDate");
+
+                    b.HasIndex("GuestPhone", "Status", "ReservedDate");
+
+                    b.ToTable("Reservations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Reservations_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('guest', 'staff', 'system')");
+
+                            t.HasCheckConstraint("CK_Reservations_Guests", "[AdultCount] >= 1 AND [ChildCount] >= 0");
+
+                            t.HasCheckConstraint("CK_Reservations_Source", "[Source] BETWEEN 0 AND 2");
+
+                            t.HasCheckConstraint("CK_Reservations_Status", "[Status] BETWEEN 0 AND 5");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.ReservationStatusHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ChangedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ChangedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangedByType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<byte?>("FromStatus")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("ReservationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("ToStatus")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("ReservationStatusHistory", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ReservationStatusHistory_ChangedByType", "[ChangedByType] IN ('guest', 'staff', 'system')");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.SlotDayCapacity", b =>
+                {
+                    b.Property<int>("SlotId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("BookedCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BookedGuests")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("SlotId", "Date");
+
+                    b.ToTable("SlotDayCapacity", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SlotDayCapacity_Counts", "[BookedCount] >= 0 AND [BookedGuests] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Tables.Domain.BlockedDate", b =>
                 {
                     b.Property<int>("Id")
@@ -781,6 +993,25 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Infrastructure.Persistence.DailyCounter", b =>
+                {
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("LastValue")
+                        .HasColumnType("int");
+
+                    b.HasKey("Date", "Kind");
+
+                    b.ToTable("DailyCounters", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_DailyCounters_LastValue", "[LastValue] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Auth.Domain.RefreshToken", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
@@ -799,6 +1030,43 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()
                         .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Tables.Domain.ServiceSlot", null)
+                        .WithMany()
+                        .HasForeignKey("SlotId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Tables.Domain.DiningTable", null)
+                        .WithMany()
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.ReservationStatusHistory", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Reservations.Domain.Reservation", null)
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.SlotDayCapacity", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Tables.Domain.ServiceSlot", null)
+                        .WithMany()
+                        .HasForeignKey("SlotId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

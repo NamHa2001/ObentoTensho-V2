@@ -14,6 +14,8 @@ namespace ObentoTensho.Api.Configuration;
 public static class RateLimitConfiguration
 {
     public const string LoginPolicy = "login";
+    public const string ReservationPolicy = "reservation";
+    public const string LookupPolicy = "lookup";
 
     private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
     private const int SegmentsPerWindow = 6;
@@ -22,7 +24,7 @@ public static class RateLimitConfiguration
     {
         services.AddOptions<RateLimitSettings>()
             .Bind(configuration.GetSection(RateLimitSettings.SectionName))
-            .Validate(s => s.LoginPerMinute > 0 && s.GeneralPerMinute > 0, "RateLimiting: giới hạn phải lớn hơn 0.")
+            .Validate(s => s.LoginPerMinute > 0 && s.GeneralPerMinute > 0 && s.ReservationPerHour > 0 && s.LookupPerMinute > 0, "RateLimiting: giới hạn phải lớn hơn 0.")
             .ValidateOnStart();
 
         services.AddRateLimiter(_ => { });
@@ -35,6 +37,8 @@ public static class RateLimitConfiguration
                     ? RateLimitPartition.GetNoLimiter("health")
                     : SlidingWindow("general:" + ClientKey(http), limits.GeneralPerMinute));
             options.AddPolicy(LoginPolicy, http => SlidingWindow(ClientKey(http), limits.LoginPerMinute));
+            options.AddPolicy(ReservationPolicy, http => SlidingWindow(ClientKey(http), limits.ReservationPerHour, TimeSpan.FromHours(1)));
+            options.AddPolicy(LookupPolicy, http => SlidingWindow(ClientKey(http), limits.LookupPerMinute));
         });
 
         return services;
@@ -65,11 +69,11 @@ public static class RateLimitConfiguration
         return new IPAddress(bytes) + "/64";
     }
 
-    private static RateLimitPartition<string> SlidingWindow(string key, int permitsPerMinute) =>
+    private static RateLimitPartition<string> SlidingWindow(string key, int permits, TimeSpan? window = null) =>
         RateLimitPartition.GetSlidingWindowLimiter(key, _ => new SlidingWindowRateLimiterOptions
         {
-            PermitLimit = permitsPerMinute,
-            Window = Window,
+            PermitLimit = permits,
+            Window = window ?? Window,
             SegmentsPerWindow = SegmentsPerWindow,
             QueueLimit = 0,
         });

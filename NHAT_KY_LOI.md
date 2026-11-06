@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Đặt bàn – lõi (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Build lỗi `CA1716` lần thứ tư (tham số `date`, `to`, namespace `Public`) | Luật dành cho thư viện dùng chung với VB/F#; dự án là ứng dụng nội bộ | Tắt `CA1716` ở `.editorconfig` gốc kèm lý do, bỏ `.editorconfig` riêng của Api | Khi một luật analyzer bị tắt cục bộ nhiều lần với cùng lý do, cân nhắc tắt toàn repo có ghi chú |
+| Thiết kế: transaction qua `InTransactionAsync` luôn commit, kể cả khi nghiệp vụ trả thất bại (vd giữ chỗ được nhưng bước sau lỗi) | Hàm cũ không biết kết quả nghiệp vụ | Thêm `TryInTransactionAsync<T>` chỉ commit khi `Result.IsSuccess`, ngược lại rollback và xóa theo dõi | Thao tác nhiều bước có thể thất bại nghiệp vụ giữa chừng luôn dùng `TryInTransactionAsync` |
+| Thiết kế: `TestSchedule` cũ xóa `ServiceSlots` sẽ lỗi khóa ngoại khi đã có đặt bàn | `Reservations.SlotId` không xóa dây chuyền (giữ lịch sử) | Helper `TestSchedule` xóa đặt bàn → sức chứa → ca → giờ; dịch vụ xóa ca trả `409 SLOT_HAS_RESERVATIONS` (chỉ được tắt ca) | Dữ liệu dùng chung giữa các lớp test đặt lại qua một helper duy nhất |
+
 ## Email và hộp thư đi (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

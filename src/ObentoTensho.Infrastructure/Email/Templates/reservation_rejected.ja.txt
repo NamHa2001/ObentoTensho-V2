@@ -1,0 +1,22 @@
+subject: 申し訳ございません。ご予約 {{code}} をお受けできませんでした
+===
+{{fullName}} 様
+
+誠に申し訳ございませんが、以下のご予約をお受けすることができませんでした。
+
+予約番号：{{code}}
+日付：{{date}}
+時間：{{time}}（ベトナム時間）
+人数：{{guests}}名
+
+理由：{{reason}}
+
+ご理解のほどよろしくお願いいたします。別の日時はこちらからお選びいただけます：{{bookingLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>誠に申し訳ございませんが、以下のご予約をお受けすることができませんでした。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">予約番号</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">日付</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">時間</td><td style="padding:4px 0">{{time}}（ベトナム時間）</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">人数</td><td style="padding:4px 0">{{guests}}名</td></tr></table>
+<p>理由：{{reason}}</p><p>ご理解のほどよろしくお願いいたします。別の日時はこちらからお選びいただけます。</p><p><a class="button" href="{{bookingLink}}">別の日時を選ぶ</a></p>
+<p>Obento Tensho</p>
