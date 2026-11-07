@@ -64,13 +64,13 @@ internal sealed class LoyaltyRepository(AppDbContext db) : ILoyaltyRepository
     public async Task<IReadOnlyList<Guid>> UsersWithExpiredLotsAsync(DateTime nowUtc, int limit, CancellationToken cancellationToken) =>
         await db.LoyaltyLots.AsNoTracking()
             .Where(l => l.RemainingPoints > 0 && l.ExpiresAtUtc <= nowUtc)
-            .Select(l => l.UserId).Distinct().Take(limit)
+            .Select(l => l.UserId).Distinct().OrderBy(id => id).Take(limit)
             .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<Guid>> UsersToNotifyExpiryAsync(DateTime nowUtc, DateTime untilUtc, int limit, CancellationToken cancellationToken) =>
         await db.LoyaltyLots.AsNoTracking()
             .Where(l => l.RemainingPoints > 0 && l.ExpiresAtUtc > nowUtc && l.ExpiresAtUtc <= untilUtc && l.ExpiryNoticeSentAtUtc == null)
-            .Select(l => l.UserId).Distinct().Take(limit)
+            .Select(l => l.UserId).Distinct().OrderBy(id => id).Take(limit)
             .ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<LoyaltyLot>> ListLotsToNotifyAsync(Guid userId, DateTime nowUtc, DateTime untilUtc, CancellationToken cancellationToken) =>
