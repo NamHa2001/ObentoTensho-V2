@@ -16,6 +16,9 @@ public interface ICustomerRepository
 
     Task<IReadOnlyList<CustomerVoucherDto>> VouchersAsync(Guid userId, int limit, CancellationToken cancellationToken);
 
+    // BR-CUS-05: thay PII trên đặt bàn, đơn, liên hệ, bản tin và bằng chứng đồng ý; giữ số liệu
+    Task AnonymizeRelatedAsync(Guid userId, string email, string anonymousEmail, string anonymousName, CancellationToken cancellationToken);
+
     // Bản được theo dõi; bỏ qua tài khoản đã xóa
     Task<User?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken);
 }

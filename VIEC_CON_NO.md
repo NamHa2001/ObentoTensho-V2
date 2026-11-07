@@ -10,10 +10,7 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Khách đổi mật khẩu khi đang đăng nhập | `FR-AUTH-06` | Cần mật khẩu hiện tại, thu hồi phiên khác |
-| Hồ sơ khách: xem/sửa tên, SĐT, ngày sinh, ảnh đại diện | `FR-AUTH-08`, `BR-LOY-20` | Ảnh qua pipeline ảnh (`04`) |
-| Đổi email (xác minh email mới, báo email cũ) | `BR-AUTH-15` | |
-| Trang "Thiết bị đăng nhập", "Đăng xuất mọi thiết bị" | `FR-AUTH-09`, `SEC-52` | Đã giới hạn 5 phiên; chưa có API liệt kê/thu hồi |
+| Ảnh đại diện khách qua pipeline ảnh | `FR-AUTH-08` | Đã có hồ sơ; còn cột `AvatarImageId` và `POST /account/avatar` |
 | Chặn email dùng một lần khi nhận ưu đãi | `BR-AUTH-16` | Làm cùng phần voucher |
 | Gắn đơn/đặt bàn vãng lai vào tài khoản | `BR-AUTH-17` | |
 | Client native: refresh token trong body (`X-Client: native`) | `BR-AUTH-12` | Phase 3, API nên sẵn |
@@ -77,7 +74,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 |---|---|---|
 | Nhắc nhân viên khi `Pending` quá 30 phút, báo Manager | `BR-RSV-25` | Phần thông báo nội bộ/realtime |
 | Chỗ trống cập nhật real-time; báo lễ tân `reservation.created` | `RT-01` | Phần realtime |
-| Khách xem "Đặt bàn của tôi" trong tài khoản | `FR-RSV-03` | Hủy từ tài khoản đã có; còn API danh sách |
 | Núm `reservation.cancellationHours` | `BR-RSV-06` | Mặc định 0 (hủy tự do) nên chưa cần |
 
 ## Thực đơn
@@ -101,7 +97,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Bản dịch en/ja của khuyến mãi | `D-36`, `docs/srs/22` | Phần đa ngôn ngữ |
 | Tắt tự động khuyến mãi hết hạn | `docs/srs/14` §3 | Không cần: hiệu lực tính khi truy vấn, job chỉ là dọn dẹp tùy chọn |
 | Voucher sinh nhật có thể bị lợi dụng bằng cách đăng ký mới với ngày sinh là hôm nay | `BR-LOY-20` | SRS chỉ khóa việc sửa ngày sinh; cần chủ dự án quyết có yêu cầu tài khoản đủ cũ không. Hiện chỉ yêu cầu email đã xác thực |
-| Sửa ngày sinh một lần, khóa 60 ngày quanh sinh nhật | `BR-LOY-20` | Làm cùng hồ sơ khách; hiện ngày sinh chỉ nhập lúc đăng ký |
 | Voucher giới hạn theo SĐT/email cho khách vãng lai | `D-16` | Đã chốt bắt buộc đăng nhập; không làm |
 
 ## Điểm & hạng
@@ -111,7 +106,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Đối soát hằng đêm `CurrentPoints = Σ sổ cái = Σ lô` và cảnh báo khi lệch | `BR-LOY-04` | Bất biến đã giữ trong mọi thao tác; còn thiếu việc định kỳ kiểm lại |
 | Cảnh báo nhân viên khi khách có nợ điểm | `BR-LOY-08` | Số nợ đã hiện ở `GET /admin/customers/{id}/loyalty-points`; màn hình ở giao diện quản trị |
 | Đọc ngưỡng hạng/thang điểm từ bảng cài đặt (hiện từ cấu hình `Loyalty:*`) | `BR-LOY-03`, `BR-RPT-21` | Phần cài đặt |
-| Ẩn danh hóa khách giữ nguyên sổ cái | `BR-CUS-05` | Phần quản lý khách |
 | Điểm/vé chơi game dùng chung sổ cái | `BR-LOY-13` | Phase 2 |
 
 ## Đặt món mang về
@@ -135,9 +129,9 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Đưa nội dung `docs/legal/` vào trang tĩnh sau khi chủ quán duyệt | `FR-CNT-04` | Trang chưa có nội dung trả 404 |
 | Bản dịch en/ja tin tức, trang tĩnh | `docs/srs/22` | Phần đa ngôn ngữ |
 | Tự ngừng gửi cho địa chỉ bounce cứng, theo dõi tỷ lệ báo spam | `BR-CNT-26` | Cần webhook của nhà cung cấp email (`D-33`) |
-| Thành viên bật/tắt nhận bản tin trong tài khoản | `FR-CNT-07`, `BR-CNT-26` | Làm ở phần Khách hàng |
 | Header one-click dùng `PublicBaseUrl/api/...`: cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Làm ở phần triển khai |
 | Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |
+| Cập nhật tài liệu dữ liệu: thêm bảng `DataExports`, cột `Users.DeletionScheduledAtUtc` | `docs/srs/08` | Phát sinh khi làm; `Orders.CustomerPhone` để trống sau ẩn danh hóa |
 | Cập nhật tài liệu dữ liệu: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` | Cột phát sinh khi làm; người đăng ký có thể chưa có tài khoản |
 | `POST /newsletter/subscribe` trả `already_subscribed` cho biết email đã đăng ký | `BR-CNT-20` | Làm đúng SRS; chủ dự án cân nhắc đổi sang phản hồi giống nhau |
 | Báo real-time `contact.created` cho quản lý | `FR-CNT-06` | Làm ở phần realtime; hiện đã có email nội bộ và danh sách chưa đọc |

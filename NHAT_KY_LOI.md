@@ -13,6 +13,13 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Tài khoản khách (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Script sinh mã dừng giữa chừng ở lệnh `assert`, chạy lại sẽ báo tệp đã tồn tại | Mẫu tìm sai (`public Task` chứ không phải `public async Task`) trong khi các bước trước đã ghi tệp | Tách phần còn lại ra script mới | Kiểm mẫu bằng grep trước khi viết script dài |
+| Sửa test xong cả loạt đột biến báo `BUILD-ERR` | Test quá 40 câu lệnh vi phạm `MA0051`, build test hỏng nên đột biến không chạy | Tách hàm dữ liệu mẫu và hàm kiểm tra | Chạy test xanh trước rồi mới chạy đột biến |
+
 ## Quản lý khách hàng (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

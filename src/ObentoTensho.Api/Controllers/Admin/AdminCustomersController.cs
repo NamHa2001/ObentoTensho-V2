@@ -14,7 +14,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireCapability(StaffCapability.Customers)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AdminCustomersController(CustomerAdminService customers, DataExportService exports) : ControllerBase
+public sealed class AdminCustomersController(CustomerAdminService customers, DataExportService exports, AccountDeletionService deletion) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(
@@ -35,6 +35,12 @@ public sealed class AdminCustomersController(CustomerAdminService customers, Dat
     [HttpPatch("{id:guid}/status")]
     public async Task<IActionResult> Status(Guid id, CustomerStatusRequest request, CancellationToken cancellationToken) =>
         this.NoContentOrProblem(await customers.SetStatusAsync(id, request, cancellationToken));
+
+    // BR-CUS-05: khách yêu cầu qua nhân viên; cùng 7 ngày chờ như tự xóa
+    [HttpPost("{id:guid}/deletion")]
+    [ServiceFilter<StepUpFilter>]
+    public async Task<IActionResult> ScheduleDeletion(Guid id, CustomerDeletionRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await deletion.RequestByStaffAsync(id, request, cancellationToken));
 
     // BR-CUS-07: chỉ xếp việc; tệp do job tạo
     [HttpPost("export")]

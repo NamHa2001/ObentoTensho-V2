@@ -18,6 +18,7 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
     private const string VerifyEmailPath = "/auth/verify-email#token=";
     private const string ResetPasswordPath = "/auth/reset-password#token=";
     private const string StaffInvitePath = "/auth/accept-invite#token=";
+    private const string ConfirmEmailPath = "/account/confirm-email#token=";
 
     public void EnqueueEmailVerification(User user, string verificationToken) =>
         Enqueue(new EmailRequest(
@@ -65,6 +66,33 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
                 ("changedAt", clock.ToLocal(changedAtUtc).ToString("HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture)),
                 ("forgotLink", BaseUrl(recipient) + "/auth/forgot-password")),
             $"password_changed:{recipient.Id:N}:{changedAtUtc.Ticks}",
+            recipient.Id.ToString()));
+
+    public void EnqueueEmailChangeVerify(AccountRecipient recipient, string newEmail, string token) =>
+        Enqueue(new EmailRequest(
+            EmailKind.EmailChangeVerify,
+            newEmail,
+            recipient.Language,
+            Values(recipient.FullName, ("link", Link(links.Value.PublicBaseUrl, ConfirmEmailPath, token))),
+            $"email_change_verify:{recipient.Id:N}:{Guid.CreateVersion7():N}",
+            recipient.Id.ToString()));
+
+    public void EnqueueEmailChangeNotice(AccountRecipient recipient, DateTime atUtc) =>
+        Enqueue(new EmailRequest(
+            EmailKind.EmailChangeNotice,
+            recipient.Email,
+            recipient.Language,
+            Values(recipient.FullName, ("changedAt", clock.ToLocal(atUtc).ToString("HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture))),
+            $"email_change_notice:{recipient.Id:N}:{atUtc.Ticks}",
+            recipient.Id.ToString()));
+
+    public void EnqueueAccountDeletionScheduled(AccountRecipient recipient, DateTime scheduledAtUtc) =>
+        Enqueue(new EmailRequest(
+            EmailKind.AccountDeletionScheduled,
+            recipient.Email,
+            recipient.Language,
+            Values(recipient.FullName, ("date", clock.ToLocal(scheduledAtUtc).ToString("dd/MM/yyyy", CultureInfo.InvariantCulture))),
+            $"account_deletion_scheduled:{recipient.Id:N}:{scheduledAtUtc.Ticks}",
             recipient.Id.ToString()));
 
     public void EnqueueAccountLocked(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.AccountLocked, recipient, atUtc);

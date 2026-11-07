@@ -42,6 +42,12 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
     public Task<User?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken) =>
         db.Users.SingleOrDefaultAsync(u => u.ResetPasswordTokenHash == tokenHash, cancellationToken);
 
+    public Task<User?> FindByPendingEmailHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken) =>
+        db.Users.SingleOrDefaultAsync(u => u.PendingEmailTokenHash == tokenHash, cancellationToken);
+
+    public async Task<IReadOnlyList<User>> ListDueForDeletionAsync(DateTime nowUtc, int limit, CancellationToken cancellationToken) =>
+        await db.Users.Where(u => !u.IsDeleted && u.DeletionScheduledAtUtc <= nowUtc).OrderBy(u => u.DeletionScheduledAtUtc).Take(limit).ToListAsync(cancellationToken);
+
     public void Add(User user) => db.Users.Add(user);
 
     public Task RegisterFailedLoginAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken)

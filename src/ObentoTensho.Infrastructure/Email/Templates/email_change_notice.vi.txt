@@ -1,0 +1,11 @@
+subject: Có yêu cầu đổi email tài khoản Obento Tensho
+===
+Xin chào {{fullName}},
+
+Lúc {{changedAt}} có yêu cầu đổi email của tài khoản này. Nếu không phải bạn, hãy đổi mật khẩu ngay và liên hệ quán.
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Lúc {{changedAt}} có yêu cầu đổi email của tài khoản này. Nếu không phải bạn, hãy đổi mật khẩu ngay và liên hệ quán.</p>
+<p>Obento Tensho</p>

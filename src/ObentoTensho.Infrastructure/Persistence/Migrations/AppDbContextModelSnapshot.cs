@@ -284,6 +284,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DeletedAtUtc")
                         .HasColumnType("datetime2(3)");
 
+                    b.Property<DateTime?>("DeletionScheduledAtUtc")
+                        .HasColumnType("datetime2(3)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("varchar(150)");
@@ -371,6 +374,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2(3)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeletionScheduledAtUtc")
+                        .HasFilter("[DeletionScheduledAtUtc] IS NOT NULL");
 
                     b.HasIndex("Email")
                         .IsUnique();

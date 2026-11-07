@@ -1,0 +1,14 @@
+subject: Confirm your new Obento Tensho email
+===
+Hello {{fullName}},
+
+Use the link below to switch your account to this address. The link is valid for 24 hours.
+
+Confirm new email: {{link}}
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Use the link below to switch your account to this address. The link is valid for 24 hours.</p>
+<p><a class="button" href="{{link}}">Confirm new email</a></p>
+<p>Obento Tensho</p>

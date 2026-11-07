@@ -72,6 +72,10 @@ public static class ErrorCodes
     public const string VoucherExhausted = "VOUCHER_EXHAUSTED";
     public const string VoucherLoginRequired = "VOUCHER_LOGIN_REQUIRED";
     public const string VoucherInUse = "VOUCHER_IN_USE";
+    // Tài khoản khách (docs/srs/10 §4.8, BR-LOY-20)
+    public const string DateOfBirthLocked = "DATE_OF_BIRTH_LOCKED";
+    public const string EmailNotVerified = "EMAIL_NOT_VERIFIED";
+
     // Nhân viên (docs/srs/18 §2)
     public const string StepUpRequired = "STEP_UP_REQUIRED";
     public const string EmailTaken = "EMAIL_TAKEN";

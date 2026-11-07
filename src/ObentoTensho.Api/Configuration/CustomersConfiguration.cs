@@ -1,4 +1,5 @@
 using FluentValidation;
+using ObentoTensho.Contracts.Dtos.Account;
 using ObentoTensho.Contracts.Dtos.Customers;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Services;
@@ -15,6 +16,12 @@ public static class CustomersConfiguration
     {
         services.AddSingleton<IValidator<CustomerStatusRequest>, CustomerStatusRequestValidator>();
         services.AddSingleton<IValidator<DataExportRequest>, DataExportRequestValidator>();
+        services.AddSingleton<IValidator<CustomerDeletionRequest>, CustomerDeletionRequestValidator>();
+        services.AddSingleton<IValidator<UpdateProfileRequest>, UpdateProfileRequestValidator>();
+        services.AddSingleton<IValidator<ChangeEmailRequest>, ChangeEmailRequestValidator>();
+        services.AddScoped<AccountService>();
+        services.AddScoped<AccountDeletionService>();
+        services.AddScoped<IRecurringJob, AccountDeletionJob>();
         services.AddScoped<CustomerAdminService>();
         services.AddScoped<DataExportService>();
         services.AddScoped<IDataExportSource, CustomerExportSource>();

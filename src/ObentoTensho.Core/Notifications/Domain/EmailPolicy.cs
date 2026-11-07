@@ -15,20 +15,20 @@ public static class EmailPolicy
     // 1 = xác thực/đặt lại mật khẩu/lời mời … 5 = bản tin
     public static int Priority(EmailKind kind) => kind switch
     {
-        EmailKind.VerifyEmail or EmailKind.PasswordReset or EmailKind.VerificationCode or EmailKind.StaffInvite => 1,
+        EmailKind.VerifyEmail or EmailKind.PasswordReset or EmailKind.VerificationCode or EmailKind.StaffInvite or EmailKind.EmailChangeVerify => 1,
         EmailKind.ReservationReceived or EmailKind.ReservationConfirmed or EmailKind.ReservationRejected
             or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled
             or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
         EmailKind.ReservationReminder or EmailKind.OrderAttention or EmailKind.ContactReceived or EmailKind.ContactInternal or EmailKind.NewsletterConfirm
             or EmailKind.AccountLocked or EmailKind.AccountUnlocked or EmailKind.AdminAlert or EmailKind.DataExportReady => 3,
-        EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
+        EmailKind.DuplicateRegistration or EmailKind.PasswordChanged or EmailKind.EmailChangeNotice or EmailKind.AccountDeletionScheduled => 3,
         EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed or EmailKind.VoucherBirthday => 4,
         _ => 5,
     };
 
     public static bool IsSecurityNotice(EmailKind kind) =>
-        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration;
+        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice;
 
     public static bool ExceedsRecipientLimit(EmailKind kind, int sameKindLastHour, int allKindsToday, int securityNoticesToday) =>
         IsSecurityNotice(kind)

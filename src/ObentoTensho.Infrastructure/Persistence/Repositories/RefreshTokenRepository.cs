@@ -37,6 +37,12 @@ internal sealed class RefreshTokenRepository(AppDbContext db) : IRefreshTokenRep
     public Task<IReadOnlyList<Guid>> GetActiveUserFamiliesAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken) =>
         ActiveFamilies(db.RefreshTokens.Where(t => t.UserId == userId), nowUtc, cancellationToken);
 
+    public async Task<IReadOnlyList<RefreshToken>> ListActiveForUserAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken) =>
+        await db.RefreshTokens.AsNoTracking()
+            .Where(t => t.UserId == userId && t.RevokedAtUtc == null && t.ExpiresAtUtc > nowUtc)
+            .OrderByDescending(t => t.CreatedAtUtc)
+            .ToListAsync(cancellationToken);
+
     public Task<IReadOnlyList<Guid>> GetActiveStaffFamiliesAsync(Guid staffId, DateTime nowUtc, CancellationToken cancellationToken) =>
         ActiveFamilies(db.RefreshTokens.Where(t => t.StaffId == staffId), nowUtc, cancellationToken);
 

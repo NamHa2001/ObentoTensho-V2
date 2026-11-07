@@ -50,6 +50,37 @@ internal sealed class CustomerRepository(AppDbContext db) : ICustomerRepository
             .Select(v => new CustomerVoucherDto(v.Id, v.Code, v.Source, v.IsActive, v.EndUtc))
             .ToListAsync(cancellationToken);
 
+    public async Task AnonymizeRelatedAsync(Guid userId, string email, string anonymousEmail, string anonymousName, CancellationToken cancellationToken)
+    {
+        await db.Orders.Where(o => o.UserId == userId).ExecuteUpdateAsync(
+            s => s.SetProperty(o => o.CustomerName, anonymousName)
+                .SetProperty(o => o.CustomerPhone, string.Empty)
+                .SetProperty(o => o.CustomerEmail, anonymousEmail)
+                .SetProperty(o => o.Note, (string?)null),
+            cancellationToken);
+        await db.Reservations.Where(r => r.UserId == userId).ExecuteUpdateAsync(
+            s => s.SetProperty(r => r.GuestName, anonymousName)
+                .SetProperty(r => r.GuestPhone, string.Empty)
+                .SetProperty(r => r.GuestEmail, anonymousEmail)
+                .SetProperty(r => r.SpecialRequest, (string?)null),
+            cancellationToken);
+        await db.ContactMessages.Where(m => m.Email == email).ExecuteUpdateAsync(
+            s => s.SetProperty(m => m.FullName, anonymousName)
+                .SetProperty(m => m.Email, anonymousEmail)
+                .SetProperty(m => m.PhoneNumber, (string?)null)
+                .SetProperty(m => m.IpAddress, (string?)null),
+            cancellationToken);
+        await db.NewsletterSubscribers.Where(s => s.Email == email).ExecuteUpdateAsync(
+            s => s.SetProperty(x => x.Email, anonymousEmail)
+                .SetProperty(x => x.IsActive, false)
+                .SetProperty(x => x.ConfirmTokenHash, (string?)null)
+                .SetProperty(x => x.ConfirmExpiryUtc, (DateTime?)null),
+            cancellationToken);
+        await db.ConsentRecords.Where(c => c.Email == email || c.UserId == userId).ExecuteUpdateAsync(
+            s => s.SetProperty(c => c.Email, anonymousEmail).SetProperty(c => c.Ip, (string?)null),
+            cancellationToken);
+    }
+
     public Task<User?> FindForUpdateAsync(Guid id, CancellationToken cancellationToken) =>
         db.Users.SingleOrDefaultAsync(u => u.Id == id && !u.IsDeleted, cancellationToken);
 }

@@ -1,4 +1,5 @@
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Auth.Domain;
 
 namespace ObentoTensho.Core.Content.Domain;
 
@@ -44,6 +45,11 @@ public sealed class Review
     public static string ShortAuthorName(string fullName)
     {
         ArgumentNullException.ThrowIfNull(fullName);
+        if (string.Equals(fullName, AuthPolicy.DeletedAccountName, StringComparison.Ordinal))
+        {
+            return fullName;
+        }
+
         var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return parts.Length < 2 ? string.Concat(parts) : $"{parts[0]} {char.ToUpperInvariant(parts[^1][0])}.";
     }

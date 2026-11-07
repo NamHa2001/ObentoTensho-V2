@@ -33,5 +33,8 @@ public enum EmailKind
     AccountLocked,
     AccountUnlocked,
     AdminAlert,
-    DataExportReady
+    DataExportReady,
+    EmailChangeVerify,
+    EmailChangeNotice,
+    AccountDeletionScheduled
 }

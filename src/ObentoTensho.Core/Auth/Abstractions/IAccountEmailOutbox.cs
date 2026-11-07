@@ -12,6 +12,14 @@ public interface IAccountEmailOutbox
 
     void EnqueuePasswordReset(AccountRecipient recipient, string resetToken);
 
+    // BR-AUTH-15: liên kết xác minh gửi tới email mới, thông báo gửi tới email cũ
+    void EnqueueEmailChangeVerify(AccountRecipient recipient, string newEmail, string token);
+
+    void EnqueueEmailChangeNotice(AccountRecipient recipient, DateTime atUtc);
+
+    // BR-CUS-05
+    void EnqueueAccountDeletionScheduled(AccountRecipient recipient, DateTime scheduledAtUtc);
+
     // BR-CUS-08
     void EnqueueAccountLocked(AccountRecipient recipient, DateTime atUtc);
 

@@ -21,6 +21,9 @@ public interface IRefreshTokenRepository
     // Các phiên còn hiệu lực của khách, mới nhất trước
     Task<IReadOnlyList<Guid>> GetActiveUserFamiliesAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken);
 
+    // FR-AUTH-09: mỗi gia đình có đúng một token còn hiệu lực, token đó tạo lúc làm mới gần nhất
+    Task<IReadOnlyList<RefreshToken>> ListActiveForUserAsync(Guid userId, DateTime nowUtc, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<Guid>> GetActiveStaffFamiliesAsync(Guid staffId, DateTime nowUtc, CancellationToken cancellationToken);
 
     // Thời điểm đăng nhập của gia đình token (token đầu tiên) — mốc hạn tuyệt đối của phiên nhân viên

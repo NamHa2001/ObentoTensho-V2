@@ -18,6 +18,10 @@ public interface IUserRepository
 
     Task<User?> FindByResetTokenHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken);
 
+    Task<User?> FindByPendingEmailHashForUpdateAsync(string tokenHash, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<User>> ListDueForDeletionAsync(DateTime nowUtc, int limit, CancellationToken cancellationToken);
+
     void Add(User user);
 
     // Tăng bộ đếm sai trong SQL (không đọc-sửa-ghi) để các yêu cầu song song không vượt được ngưỡng khóa

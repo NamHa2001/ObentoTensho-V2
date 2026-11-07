@@ -1,0 +1,11 @@
+subject: Obento Tensho アカウントの削除予定
+===
+{{fullName}} 様
+
+アカウントは {{date}} に削除されます。それまではログインして取り消すことができます。
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>アカウントは {{date}} に削除されます。それまではログインして取り消すことができます。</p>
+<p>Obento Tensho</p>

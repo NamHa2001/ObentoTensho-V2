@@ -62,6 +62,9 @@ public sealed class User
 
     public DateTime? DeletedAtUtc { get; set; }
 
+    // BR-CUS-05: tới mốc này job ẩn danh hóa; trước đó khách hủy được
+    public DateTime? DeletionScheduledAtUtc { get; set; }
+
     public string PreferredLang { get; set; } = "vi";
 
     public required DateTime CreatedAtUtc { get; init; }

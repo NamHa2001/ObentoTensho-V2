@@ -1,0 +1,11 @@
+subject: Tài khoản Obento Tensho sẽ bị xóa
+===
+Xin chào {{fullName}},
+
+Tài khoản của bạn sẽ bị xóa vào ngày {{date}}. Trước ngày đó bạn có thể đăng nhập và hủy yêu cầu.
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Tài khoản của bạn sẽ bị xóa vào ngày {{date}}. Trước ngày đó bạn có thể đăng nhập và hủy yêu cầu.</p>
+<p>Obento Tensho</p>

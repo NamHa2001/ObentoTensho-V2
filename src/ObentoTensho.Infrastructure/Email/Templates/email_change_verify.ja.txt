@@ -1,0 +1,14 @@
+subject: Obento Tensho の新しいメールアドレスの確認
+===
+{{fullName}} 様
+
+下のリンクからこのアドレスをアカウントに設定してください。リンクの有効期限は24時間です。
+
+新しいメールを確認: {{link}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>下のリンクからこのアドレスをアカウントに設定してください。リンクの有効期限は24時間です。</p>
+<p><a class="button" href="{{link}}">新しいメールを確認</a></p>
+<p>Obento Tensho</p>

@@ -41,6 +41,14 @@ public static class AuthPolicy
     // Mã tạm giữa bước mật khẩu và bước 2FA (docs/srs/10 §4.2)
     public static readonly TimeSpan StaffChallengeLifetime = TimeSpan.FromMinutes(5);
 
+    // BR-CUS-05
+    public static readonly TimeSpan AccountDeletionGrace = TimeSpan.FromDays(7);
+
+    public const string DeletedAccountName = "Khách đã xóa tài khoản";
+
+    // BR-LOY-20: "60 ngày quanh ngày sinh" = 30 ngày mỗi phía
+    public const int DateOfBirthLockDays = 30;
+
     // SEC-61
     public static readonly TimeSpan StepUpLifetime = TimeSpan.FromMinutes(5);
 

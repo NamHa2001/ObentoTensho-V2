@@ -126,6 +126,69 @@ public sealed class NewsletterService(
         return Result.Success();
     }
 
+    public async Task<bool> IsSubscribedAsync(string email, CancellationToken cancellationToken) =>
+        await newsletter.FindByEmailAsync(EmailAddress.Normalize(email), cancellationToken) is { IsSubscribed: true };
+
+    // Bật trong tài khoản: email đã xác thực nên bản thân thao tác là xác nhận đăng ký, không cần thư thứ hai
+    public async Task<Result> SetForAccountAsync(User user, bool subscribed, string? ipAddress, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        if (subscribed && !user.IsEmailVerified)
+        {
+            return Result.Failure(ErrorCodes.EmailNotVerified);
+        }
+
+        var now = clock.UtcNow;
+        var subscriber = await newsletter.FindByEmailAsync(user.Email, cancellationToken);
+        if (!subscribed)
+        {
+            if (subscriber is { IsActive: true })
+            {
+                subscriber.IsActive = false;
+                subscriber.UnsubscribedAtUtc = now;
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
+            return Result.Success();
+        }
+
+        if (subscriber is { IsSubscribed: true })
+        {
+            return Result.Success();
+        }
+
+        if (subscriber is null)
+        {
+            var unsubscribe = tokens.Create();
+            subscriber = new NewsletterSubscriber
+            {
+                Email = user.Email,
+                Lang = user.PreferredLang,
+                UnsubscribeTokenHash = unsubscribe.Hash,
+                UnsubscribeTokenProtected = protector.Protect(unsubscribe.Value),
+                SubscribedAtUtc = now,
+            };
+            newsletter.Add(subscriber);
+        }
+
+        subscriber.IsActive = true;
+        subscriber.ConfirmedAtUtc = now;
+        subscriber.UnsubscribedAtUtc = null;
+        subscriber.ConfirmTokenHash = null;
+        subscriber.ConfirmExpiryUtc = null;
+        newsletter.Add(new ConsentRecord
+        {
+            UserId = user.Id,
+            Email = user.Email,
+            DocType = ConsentRecord.Marketing,
+            Version = ConsentRecord.MarketingVersion,
+            AcceptedAtUtc = now,
+            Ip = ipAddress,
+        });
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
     public async Task<PagedResponse<NewsletterSubscriberDto>> ListSubscribersAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         page = Math.Max(1, page);

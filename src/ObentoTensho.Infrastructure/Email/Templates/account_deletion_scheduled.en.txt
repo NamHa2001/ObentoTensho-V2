@@ -1,0 +1,11 @@
+subject: Your Obento Tensho account will be deleted
+===
+Hello {{fullName}},
+
+Your account will be deleted on {{date}}. Until then you can sign in and cancel the request.
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Your account will be deleted on {{date}}. Until then you can sign in and cancel the request.</p>
+<p>Obento Tensho</p>

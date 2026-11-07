@@ -1,0 +1,11 @@
+subject: Email change requested for your Obento Tensho account
+===
+Hello {{fullName}},
+
+At {{changedAt}} someone requested an email change for this account. If this was not you, change your password now and contact the restaurant.
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>At {{changedAt}} someone requested an email change for this account. If this was not you, change your password now and contact the restaurant.</p>
+<p>Obento Tensho</p>

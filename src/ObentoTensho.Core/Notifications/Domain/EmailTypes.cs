@@ -36,6 +36,9 @@ public static class EmailTypes
         EmailKind.AccountUnlocked => "account_unlocked",
         EmailKind.AdminAlert => "admin_alert",
         EmailKind.DataExportReady => "data_export_ready",
+        EmailKind.EmailChangeVerify => "email_change_verify",
+        EmailKind.EmailChangeNotice => "email_change_notice",
+        EmailKind.AccountDeletionScheduled => "account_deletion_scheduled",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

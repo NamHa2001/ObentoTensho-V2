@@ -12,6 +12,7 @@ public sealed class ReviewTests
     [InlineData("Nguyễn Văn An", "Nguyễn A.")]
     [InlineData("  Trần   bình ", "Trần B.")]
     [InlineData("An", "An")]
+    [InlineData("Khách đã xóa tài khoản", "Khách đã xóa tài khoản")]
     [InlineData("", "")]
     public void Ten_rut_gon(string fullName, string expected) =>
         Assert.Equal(expected, Review.ShortAuthorName(fullName));
