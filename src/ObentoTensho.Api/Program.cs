@@ -27,6 +27,7 @@ builder.Services.AddMenuServices();
 builder.Services.AddOrderServices();
 builder.Services.AddLoyaltyServices();
 builder.Services.AddVoucherServices();
+builder.Services.AddContentServices();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddOpenApi();
@@ -41,6 +42,11 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
+}
+
+if (app.Configuration.GetValue("Media:ServeFromApi", app.Environment.IsDevelopment()))
+{
+    app.UseMediaFiles();
 }
 
 app.UseRouting();

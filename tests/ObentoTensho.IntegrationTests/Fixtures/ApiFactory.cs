@@ -37,6 +37,10 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         builder.UseSetting("Outbox:Enabled", "false");
         builder.UseSetting("Jobs:Enabled", "false");
 
+        // Ảnh test ghi vào thư mục tạm, API tự phục vụ /uploads như ở máy dev
+        builder.UseSetting("Media:RootPath", Path.Combine(Path.GetTempPath(), "obento-test-media"));
+        builder.UseSetting("Media:ServeFromApi", "true");
+
         // Số vòng tối thiểu cho phép để test chạy nhanh hơn
         builder.UseSetting("Security:PasswordHashing:Iterations", "210000");
 

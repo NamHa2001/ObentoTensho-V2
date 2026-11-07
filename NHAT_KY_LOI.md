@@ -13,6 +13,15 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Nội dung – bước 1: ảnh, banner, gallery (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Ảnh dọc yêu cầu bề rộng 320 nhưng nhận 160 | `Image.ThumbnailBuffer` khi không truyền `height` co ảnh vào khung vuông `width × width`, cạnh dài bị giới hạn | Truyền `height` rất lớn để chỉ bề rộng quyết định | Test ảnh dọc và ảnh có EXIF xoay, không chỉ ảnh ngang |
+| `dotnet restore` báo `NU1301 No such host is known (api.nuget.org:443)` | Mạng máy dev mất phân giải tên miền trong chốc lát | Kiểm bằng `curl` rồi chạy lại | Lỗi này không liên quan tới mã, đừng sửa cấu hình NuGet |
+| Gói `NetVips.Native` kéo về đủ mọi nền tảng | Đây là gói gộp phụ thuộc tất cả bản native | Tham chiếu trực tiếp `NetVips.Native.win-x64` và `.linux-x64` | Với gói có mã gốc, chỉ cài nền tảng thật sự chạy |
+| Ghi nhớ cũ ghi dùng ImageSharp | SRS `D-04` đã chốt NetVips vì giấy phép | Theo SRS, sửa lại ghi chú | SRS là nguồn yêu cầu duy nhất; đọc trước khi chọn thư viện |
+
 ## Điểm & hạng thành viên (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

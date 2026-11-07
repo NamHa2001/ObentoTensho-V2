@@ -1,0 +1,38 @@
+using ObentoTensho.Contracts.Enums;
+
+namespace ObentoTensho.Core.Media.Domain;
+
+// docs/srs/08 §1 Images. OriginalPath là ảnh gốc không công khai; Version nằm trong đường dẫn biến thể (FR-IMG-04)
+public sealed class StoredImage
+{
+    public Guid Id { get; init; } = Guid.CreateVersion7();
+
+    public required string OriginalPath { get; init; }
+
+    public int Width { get; set; }
+
+    public int Height { get; set; }
+
+    public string? BlurHash { get; set; }
+
+    public ImageStatus Status { get; set; } = ImageStatus.Processing;
+
+    public string? VariantWidths { get; set; }
+
+    public string Format { get; init; } = MediaRules.VariantFormat;
+
+    public int Version { get; init; } = 1;
+
+    public required string AltText { get; set; }
+
+    public required string ContentHash { get; init; }
+
+    public required Guid CreatedByStaffId { get; init; }
+
+    public required DateTime CreatedAtUtc { get; init; }
+
+    public IReadOnlyList<int> Widths =>
+        string.IsNullOrEmpty(VariantWidths)
+            ? []
+            : VariantWidths.Split(',').Select(w => int.Parse(w, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+}

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Loyalty.Abstractions;
+using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Promotions.Abstractions;
@@ -15,7 +17,9 @@ using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Core.Vouchers.Abstractions;
 using ObentoTensho.Infrastructure.Caching;
+using ObentoTensho.Infrastructure.Content;
 using ObentoTensho.Infrastructure.Loyalty;
+using ObentoTensho.Infrastructure.Media;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Orders;
 using ObentoTensho.Infrastructure.Persistence;
@@ -67,6 +71,11 @@ public static class DependencyInjection
         services.AddScoped<IVoucherEmailOutbox, VoucherEmailOutbox>();
         services.AddSingleton<IVoucherSpreadsheet, ClosedXmlVoucherSpreadsheet>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IContentRepository, ContentRepository>();
+        services.AddSingleton<IPublicContentCache, MemoryPublicContentCache>();
+        services.AddSingleton<IImageProcessor, NetVipsImageProcessor>();
+        services.AddSingleton<IImageFileStore, LocalImageFileStore>();
         services.AddSingleton<IPromotionCache, MemoryPromotionCache>();
         services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
@@ -98,6 +107,10 @@ public static class DependencyInjection
             .Validate(o => o.IsValid(), "Cấu hình Voucher không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
         services.AddSingleton<IVoucherSettings>(sp => sp.GetRequiredService<IOptions<VoucherOptions>>().Value);
+
+        services.AddOptions<MediaOptions>().Bind(configuration.GetSection(MediaOptions.SectionName));
+        services.AddOptions<ContentOptions>().Bind(configuration.GetSection(ContentOptions.SectionName));
+        services.AddSingleton<IContentSettings>(sp => sp.GetRequiredService<IOptions<ContentOptions>>().Value);
 
         services.AddOptions<OrderOptions>()
             .Bind(configuration.GetSection(OrderOptions.SectionName))

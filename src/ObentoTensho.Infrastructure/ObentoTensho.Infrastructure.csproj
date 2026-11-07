@@ -11,6 +11,9 @@
     <PackageReference Include="ClosedXML" />
     <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="NetVips" />
+    <PackageReference Include="NetVips.Native.linux-x64" />
+    <PackageReference Include="NetVips.Native.win-x64" />
   </ItemGroup>
 
   <ItemGroup>

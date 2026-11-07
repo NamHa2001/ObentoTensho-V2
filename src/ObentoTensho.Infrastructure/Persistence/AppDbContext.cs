@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Content.Domain;
 using ObentoTensho.Core.Loyalty.Domain;
+using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Notifications.Domain;
 using ObentoTensho.Core.Orders.Domain;
@@ -76,6 +78,12 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<LoyaltyLot> LoyaltyLots => Set<LoyaltyLot>();
 
     public DbSet<LoyaltyAdjustment> LoyaltyAdjustments => Set<LoyaltyAdjustment>();
+
+    public DbSet<StoredImage> Images => Set<StoredImage>();
+
+    public DbSet<Banner> Banners => Set<Banner>();
+
+    public DbSet<GalleryItem> Gallery => Set<GalleryItem>();
 
     public DbSet<Promotion> Promotions => Set<Promotion>();
 

@@ -399,6 +399,120 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.Banner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CtaLink")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("CtaText")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ImageMobileId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateOnly?>("ShowFromDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ShowToDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Subtitle")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("ImageMobileId");
+
+                    b.HasIndex("IsActive", "DisplayOrder");
+
+                    b.ToTable("Banners", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Banners_Dates", "[ShowFromDate] IS NULL OR [ShowToDate] IS NULL OR [ShowToDate] >= [ShowFromDate]");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.GalleryItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MediaType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("VideoUrl")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("IsActive", "Category", "DisplayOrder");
+
+                    b.ToTable("Gallery", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Gallery_Category", "[Category] IN ('interior', 'exterior', 'private', 'food', 'event')");
+
+                            t.HasCheckConstraint("CK_Gallery_Media", "([MediaType] = 'image' AND [ImageId] IS NOT NULL) OR ([MediaType] = 'video' AND [VideoUrl] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_Gallery_MediaType", "[MediaType] IN ('image', 'video')");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -529,6 +643,66 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.ToTable("LoyaltyLots", null, t =>
                         {
                             t.HasCheckConstraint("CK_LoyaltyLots_RemainingPoints", "[RemainingPoints] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Media.Domain.StoredImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AltText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BlurHash")
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Format")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("VariantWidths")
+                        .HasColumnType("varchar(60)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContentHash");
+
+                    b.HasIndex("CreatedByStaffId");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("Images", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Images_Status", "[Status] BETWEEN 0 AND 2");
                         });
                 });
 
@@ -2168,6 +2342,28 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.Banner", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("ImageMobileId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.GalleryItem", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
@@ -2212,6 +2408,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Entry");
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Media.Domain.StoredImage", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategoryTranslation", b =>

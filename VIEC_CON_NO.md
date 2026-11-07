@@ -4,7 +4,7 @@ Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu c�
 
 Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
 
-Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
+Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 ## Xác thực & tài khoản
 
@@ -90,7 +90,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
 |---|---|---|
 | Nhập/xuất Excel: thêm cột nhóm tùy chọn, mô tả đầy đủ; nhập danh mục | `BR-MNU-14` | Bản hiện tại chỉ món (giữ nguyên các phần đó khi cập nhật) |
 | Chống zip bomb khai sai kích thước giải nén trong header | `SEC-11`, `BR-MNU-14` | Hiện kiểm tổng `Length` khai trong zip (≤ 30 MB) + tệp ≤ 2 MB + chỉ Manager/SuperAdmin; có thể thêm đọc thử từng entry có giới hạn |
-| Ảnh món, ảnh danh mục (`MainImageId`, nhiều ảnh/món) | `BR-MNU-06`, `BR-MNU-12` | Cần pipeline ảnh (bảng `Images`, xử lý ImageSharp, WebP) |
+| Ảnh món, ảnh danh mục (`MainImageId`, nhiều ảnh/món) | `BR-MNU-06`, `BR-MNU-12` | Pipeline ảnh đã có (`Images`); còn gắn cột `MainImageId`, `MenuItemImages`, `MenuCategories.ImageId` và DTO |
 | `GET /menu/items/{slug}/reviews` | `docs/srs/15` §4 | Làm cùng phần đánh giá sau đơn hàng |
 | Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Hiện vẫn xóa thẳng (đơn cũ giữ bản chụp nhờ `OptionId` SET NULL). Bảng `OrderItemOptions` đã có nên làm được rồi |
 | Màn hình tiến độ dịch (bao nhiêu mục thiếu/lỗi thời theo ngôn ngữ) | `docs/srs/22` | Phần đa ngôn ngữ |
@@ -101,7 +101,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Banner khuyến mãi (`BannerImageId`) | `docs/srs/08` §6 | Cần pipeline ảnh |
+| Banner khuyến mãi (`BannerImageId`) | `docs/srs/08` §6 | Pipeline ảnh đã có; còn gắn cột và DTO |
 | Bản dịch en/ja của khuyến mãi | `D-36`, `docs/srs/22` | Phần đa ngôn ngữ |
 | Tắt tự động khuyến mãi hết hạn | `docs/srs/14` §3 | Không cần: hiệu lực tính khi truy vấn, job chỉ là dọn dẹp tùy chọn |
 | Voucher sinh nhật có thể bị lợi dụng bằng cách đăng ký mới với ngày sinh là hôm nay | `BR-LOY-20` | SRS chỉ khóa việc sửa ngày sinh; cần chủ dự án quyết có yêu cầu tài khoản đủ cũ không. Hiện chỉ yêu cầu email đã xác thực |
@@ -130,11 +130,26 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
 | Đánh giá món sau khi nhận đơn (`POST /reviews`) | `BR-CNT-11` | Phần nội dung/đánh giá |
 | Gộp giỏ `localStorage` khi đăng nhập, kiểm lại giá khi mở giỏ | `FR-ORD-01` | Giao diện khách (API `POST /orders/quote` đã có) |
 
+## Nội dung (CMS)
+
+| Việc | Mã | Ghi chú |
+|---|---|---|
+| Tin tức, danh mục tin, hẹn giờ, slug cũ 301, thùng rác; Trang tĩnh có phiên bản | `FR-CNT-03/04`, `BR-CNT-40..44` | Bước 2 |
+| Đánh giá, Liên hệ, Newsletter | `FR-CNT-05/06/07` | Bước 3 |
+| Dọn ảnh mồ côi sau 30 ngày, xóa gốc + biến thể | `BR-CNT-32`, `FR-IMG-10` | Hiện xóa banner/gallery thì ảnh ở lại |
+| Sinh lại biến thể khi đổi cấu hình (tăng `Version`), AVIF | `FR-IMG-03/04` | `Version` đã có; chưa có lệnh sinh lại |
+| Ảnh nền bị `Failed` thì chưa có cách thử lại hay cảnh báo | `FR-IMG-08` | Ảnh gốc vẫn còn |
+| Làm nét nhẹ khi thu nhỏ ảnh món | `FR-IMG-07` | Tùy chọn |
+| Giới hạn tốc độ tải dữ liệu chậm | `SEC-76` | Làm ở phần triển khai |
+| Bản dịch en/ja banner, gallery | `docs/srs/22` | Phần đa ngôn ngữ |
+| CSP `frame-src` cho YouTube/TikTok | `BR-CNT-35`, `SEC-09` | Làm ở giao diện khách |
+| Kiểm giấy phép `SixLabors.Fonts` (gói phụ thuộc gián tiếp của ClosedXML) | `D-04` | `D-04` tránh ImageSharp vì giấy phép Six Labors; gói này cùng hãng, chưa kiểm điều khoản |
+
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
 Làm hết backend rồi mới làm giao diện (chủ dự án đã chốt).
 
-Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Nội dung (CMS, bước 2, 3) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 
