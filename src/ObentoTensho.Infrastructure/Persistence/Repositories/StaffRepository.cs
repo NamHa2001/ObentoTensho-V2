@@ -32,6 +32,13 @@ internal sealed class StaffRepository(AppDbContext db, IMemoryCache cache) : ISt
     public Task<bool> AnyWithRoleAsync(StaffRole role, CancellationToken cancellationToken) =>
         db.StaffMembers.AnyAsync(s => s.Role == role, cancellationToken);
 
+    public async Task<IReadOnlyList<string>> ListActiveEmailsAsync(IReadOnlyCollection<StaffRole> roles, CancellationToken cancellationToken) =>
+        await db.StaffMembers.AsNoTracking()
+            .Where(s => s.IsActive && roles.Contains(s.Role))
+            .Select(s => s.Email)
+            .OrderBy(e => e)
+            .ToListAsync(cancellationToken);
+
     public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken)
     {
         var key = $"auth:staff-session:{id:N}";

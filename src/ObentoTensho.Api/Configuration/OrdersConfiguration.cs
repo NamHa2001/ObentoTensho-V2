@@ -1,5 +1,6 @@
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Orders;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Orders.Services;
 using ObentoTensho.Core.Orders.Validators;
 
@@ -18,6 +19,10 @@ public static class OrdersConfiguration
         services.AddScoped<OrderTransitions>();
         services.AddScoped<PublicOrderService>();
         services.AddScoped<OrderDeskService>();
+
+        // Việc định kỳ (docs/srs/20 §4)
+        services.AddScoped<OrderJobs>();
+        services.AddScoped<IRecurringJob, OrderAttentionJob>();
         return services;
     }
 }

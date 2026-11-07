@@ -1,0 +1,23 @@
+subject: Obento Tensho: orders need attention
+===
+Some takeaway orders need a manager’s attention:
+
+Awaiting confirmation too long or close to pickup ({{pendingCount}}):
+{{pendingList}}
+
+Ready but not picked up ({{notPickedUpCount}}):
+{{notPickedUpList}}
+
+Paid then cancelled, refund not recorded ({{refundCount}}):
+{{refundList}}
+
+Open the attention list: {{adminLink}}
+
+Automatic email from the Obento Tensho system.
+===
+<p>Some takeaway orders need a manager’s attention:</p>
+<p><strong>Awaiting confirmation too long or close to pickup ({{pendingCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{pendingList}}</div>
+<p><strong>Ready but not picked up ({{notPickedUpCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{notPickedUpList}}</div>
+<p><strong>Paid then cancelled, refund not recorded ({{refundCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{refundList}}</div>
+<p><a class="button" href="{{adminLink}}">Open the attention list</a></p>
+<p>Automatic email from the Obento Tensho system.</p>

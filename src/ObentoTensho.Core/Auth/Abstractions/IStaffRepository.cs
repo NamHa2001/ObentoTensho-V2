@@ -21,6 +21,9 @@ public interface IStaffRepository
 
     Task<bool> AnyWithRoleAsync(StaffRole role, CancellationToken cancellationToken);
 
+    // Email nhân viên đang hoạt động thuộc các vai trò (nhận thư vận hành)
+    Task<IReadOnlyList<string>> ListActiveEmailsAsync(IReadOnlyCollection<StaffRole> roles, CancellationToken cancellationToken);
+
     Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);
 
     void Add(Staff staff);

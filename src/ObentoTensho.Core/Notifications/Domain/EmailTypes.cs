@@ -21,6 +21,7 @@ public static class EmailTypes
         EmailKind.OrderCancelled => "order_cancelled",
         EmailKind.OrderCancelledByCustomer => "order_cancelled_by_customer",
         EmailKind.OrderRefunded => "order_refunded",
+        EmailKind.OrderAttention => "order_attention",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

@@ -33,6 +33,7 @@ public sealed class PublicOrderService(
 
     // SEC-01 e: sai 5 lần với một mã ⇒ khóa tra cứu mã đó 15 phút (giới hạn theo IP nằm ở rate limit "lookup")
     private const int MaxLookupFailures = 5;
+    private static readonly TimeSpan NoPickupWindow = TimeSpan.FromDays(90);
     private static readonly TimeSpan LookupLockout = TimeSpan.FromMinutes(15);
 
     // Mở giỏ ⇒ kiểm lại giá/tình trạng (docs/srs/12 §4.1 bước 1); không tạo gì
@@ -94,9 +95,10 @@ public sealed class PublicOrderService(
 
         var totals = OrderPricing.Compute(priced.SubTotal, memberRate: 0, voucherDiscount: 0);
 
-        // BR-ORD-21: khách lần đầu hoặc đơn tiền mặt lớn phải gọi xác nhận trước khi bếp làm
+        // BR-ORD-21: khách lần đầu, đơn tiền mặt lớn, hoặc SĐT nhiều lần không đến lấy (BR-ORD-18) phải gọi xác nhận trước khi bếp làm
         var needsCall = !await orders.HasCompletedForPhoneAsync(phone, cancellationToken)
-            || (request.PaymentMethod == PaymentMethod.Cash && totals.TotalAmount >= settings.CallConfirmThreshold);
+            || (request.PaymentMethod == PaymentMethod.Cash && totals.TotalAmount >= settings.CallConfirmThreshold)
+            || (await orders.FlaggedPhonesAsync([phone], clock.UtcNow - NoPickupWindow, settings.NoPickupFlagCount, cancellationToken)).Count > 0;
 
         var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, needsCall, userId);
         return await unitOfWork.TryInTransactionAsync(async ct =>

@@ -33,7 +33,7 @@ public static class OrderMappings
             o.CreatedAtUtc);
     }
 
-    public static AdminOrderDto ToAdmin(this Order o, IClock clock)
+    public static AdminOrderDto ToAdmin(this Order o, IClock clock, bool noPickupFlag = false)
     {
         ArgumentNullException.ThrowIfNull(clock);
         var pickup = clock.ToLocal(o.PickupAtUtc);
@@ -53,13 +53,14 @@ public static class OrderMappings
             o.NeedsContactConfirm,
             o.ContactConfirmedAtUtc is not null,
             o.RefundPending,
+            noPickupFlag,
             o.CreatedAtUtc,
             RowVersions.Encode(o.RowVersion));
     }
 
-    public static AdminOrderDetailDto ToDetail(this Order o, IClock clock, IReadOnlyList<OrderStatusHistory> history) =>
+    public static AdminOrderDetailDto ToDetail(this Order o, IClock clock, bool noPickupFlag, IReadOnlyList<OrderStatusHistory> history) =>
         new(
-            o.ToAdmin(clock),
+            o.ToAdmin(clock, noPickupFlag),
             o.Items.Select(i => i.ToLineDto(localized: false)).ToArray(),
             o.SubTotal,
             o.MemberDiscount,

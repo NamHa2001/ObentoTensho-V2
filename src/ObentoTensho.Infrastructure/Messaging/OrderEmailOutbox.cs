@@ -30,6 +30,28 @@ internal sealed class OrderEmailOutbox(AppDbContext db, IClock clock, IOptions<P
     public void EnqueueRefunded(Order order) =>
         Enqueue(EmailKind.OrderRefunded, order, ("refundNote", order.RefundNote ?? string.Empty));
 
+    public void EnqueueAttentionDigest(string staffEmail, OrderAttentionDigest digest, string batchKey)
+    {
+        ArgumentNullException.ThrowIfNull(digest);
+        var values = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["pendingCount"] = digest.PendingOverdue.Count.ToString(CultureInfo.InvariantCulture),
+            ["notPickedUpCount"] = digest.NotPickedUp.Count.ToString(CultureInfo.InvariantCulture),
+            ["refundCount"] = digest.RefundPending.Count.ToString(CultureInfo.InvariantCulture),
+            ["pendingList"] = Summary(digest.PendingOverdue),
+            ["notPickedUpList"] = Summary(digest.NotPickedUp),
+            ["refundList"] = Summary(digest.RefundPending),
+            ["adminLink"] = links.Value.AdminBaseUrl.TrimEnd('/') + "/orders/attention",
+        };
+        Add(new EmailRequest(EmailKind.OrderAttention, staffEmail, "vi", values, $"{EmailTypes.Of(EmailKind.OrderAttention)}:{batchKey}:{staffEmail}", RelatedEntityId: null, Attachments: null));
+    }
+
+    // Mỗi đơn một dòng: mã, giờ lấy (giờ VN), tên khách, tổng tiền — không có SĐT/email (BR-NTF-04)
+    private string Summary(IReadOnlyList<Order> list) =>
+        list.Count == 0
+            ? "—"
+            : string.Join('\n', list.Select(o => $"{o.OrderCode} — {clock.ToLocal(o.PickupAtUtc).ToString("HH:mm dd/MM", CultureInfo.InvariantCulture)} — {o.CustomerName} — {Money(o.TotalAmount)}"));
+
     private string MenuLink() => links.Value.PublicBaseUrl.TrimEnd('/') + "/menu";
 
     // Có token: mở thẳng trang theo dõi; không có (thư sau): trang tra cứu bằng mã + 4 số cuối SĐT
@@ -60,8 +82,12 @@ internal sealed class OrderEmailOutbox(AppDbContext db, IClock clock, IOptions<P
             values[key] = value;
         }
 
+        Add(new EmailRequest(kind, order.CustomerEmail, order.Lang, values, $"{EmailTypes.Of(kind)}:{order.Id:N}", order.Id.ToString(), Attachments: null));
+    }
+
+    private void Add(EmailRequest request)
+    {
         var now = clock.UtcNow;
-        var request = new EmailRequest(kind, order.CustomerEmail, order.Lang, values, $"{EmailTypes.Of(kind)}:{order.Id:N}", order.Id.ToString(), Attachments: null);
         db.OutboxMessages.Add(new OutboxMessage
         {
             Type = AccountEmailOutbox.EmailType,

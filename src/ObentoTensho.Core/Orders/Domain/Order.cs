@@ -70,6 +70,12 @@ public sealed class Order
 
     public Guid? RefundedByStaffId { get; set; }
 
+    // BR-ORD-18: hủy vì khách không đến lấy — đếm theo SĐT để bật bước gọi xác nhận cho đơn sau
+    public bool NoPickup { get; set; }
+
+    // Lần đầu đơn được đưa vào thư "cần xử lý" gửi quản lý (mỗi đơn chỉ báo một lần)
+    public DateTime? AttentionNotifiedAtUtc { get; set; }
+
     public int PointsEarned { get; set; }
 
     public required DateTime CreatedAtUtc { get; init; }

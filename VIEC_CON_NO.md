@@ -94,8 +94,8 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Không đến lấy: nhắc nhân viên khi `Ready` quá `order.noPickupMinutes`, hủy "không đến lấy" tăng cờ theo SĐT, SĐT có cờ ⇒ luôn phải gọi xác nhận | `BR-ORD-18`, `BR-ORD-21` | Bước 2 của phần đặt món |
-| Danh sách/thư "cần xử lý": `Pending` quá hạn, đơn hủy chưa hoàn tiền, `Ready` không ai lấy | `docs/srs/20` #30, `BR-ORD-16` | Bước 2 (danh sách hoàn tiền đã có qua `?refundPending=true`) |
+| Nhắc "cần xử lý" real-time cho thu ngân (hiện qua thư gộp cho quản lý mỗi 10 phút + `GET /admin/orders/attention`) | `BR-ORD-18`, `docs/srs/20` #30 | Phần realtime |
+| Ngôn ngữ thư cho nhân viên (hiện luôn tiếng Việt vì bảng Staff chưa có cột ngôn ngữ) | `docs/srs/22` | Phần đa ngôn ngữ |
 | Áp voucher khi đặt (giữ lượt nguyên tử), hoàn voucher khi hủy | `BR-ORD-03/04/07`, `DB-21` | Phần voucher; cột `VoucherId`/`VoucherDiscount` đã có |
 | Giảm giá theo hạng thành viên | `BR-ORD-03` | Phần điểm/hạng; `OrderPricing.Compute` đã nhận tỷ lệ hạng |
 | Cộng điểm khi hoàn thành + đã thanh toán, thu hồi khi hủy sau đó; sự kiện `OrderCompleted`/`OrderCancelled` qua outbox | `BR-ORD-08/13/15` | Phần điểm/hạng |
@@ -107,7 +107,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
-Đặt món mang về (bước 2) → Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 

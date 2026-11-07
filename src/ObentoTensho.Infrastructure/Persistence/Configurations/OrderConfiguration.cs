@@ -72,6 +72,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 
         // BR-ORD-20/21: đếm theo SĐT chuẩn hóa
         builder.HasIndex(o => new { o.CustomerPhone, o.Status });
+        builder.HasIndex(o => new { o.CustomerPhone, o.NoPickup });
         builder.HasIndex(o => o.UserId);
     }
 }

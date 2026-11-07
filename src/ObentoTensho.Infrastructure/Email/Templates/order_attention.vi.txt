@@ -1,0 +1,23 @@
+subject: Obento Tensho: có đơn cần xử lý
+===
+Có đơn mang về cần quản lý để ý:
+
+Chờ xác nhận quá lâu hoặc sắp tới giờ lấy ({{pendingCount}}):
+{{pendingList}}
+
+Đã sẵn sàng nhưng khách chưa đến lấy ({{notPickedUpCount}}):
+{{notPickedUpList}}
+
+Đã thu tiền rồi hủy, chưa ghi hoàn tiền ({{refundCount}}):
+{{refundList}}
+
+Mở danh sách cần xử lý: {{adminLink}}
+
+Thư tự động từ hệ thống Obento Tensho.
+===
+<p>Có đơn mang về cần quản lý để ý:</p>
+<p><strong>Chờ xác nhận quá lâu hoặc sắp tới giờ lấy ({{pendingCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{pendingList}}</div>
+<p><strong>Đã sẵn sàng nhưng khách chưa đến lấy ({{notPickedUpCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{notPickedUpList}}</div>
+<p><strong>Đã thu tiền rồi hủy, chưa ghi hoàn tiền ({{refundCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{refundList}}</div>
+<p><a class="button" href="{{adminLink}}">Mở danh sách cần xử lý</a></p>
+<p>Thư tự động từ hệ thống Obento Tensho.</p>

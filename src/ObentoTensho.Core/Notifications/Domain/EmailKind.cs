@@ -18,5 +18,6 @@ public enum EmailKind
     OrderReady,
     OrderCancelled,
     OrderCancelledByCustomer,
-    OrderRefunded
+    OrderRefunded,
+    OrderAttention
 }

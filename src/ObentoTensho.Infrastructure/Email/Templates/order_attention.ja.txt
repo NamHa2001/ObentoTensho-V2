@@ -1,0 +1,23 @@
+subject: Obento Tensho：対応が必要な注文があります
+===
+対応が必要なテイクアウト注文があります。
+
+確認待ちが長い、または受け取り時刻が近い ({{pendingCount}}):
+{{pendingList}}
+
+準備済みだが未受け取り ({{notPickedUpCount}}):
+{{notPickedUpList}}
+
+支払い後にキャンセル、返金未記録 ({{refundCount}}):
+{{refundList}}
+
+対応リストを開く: {{adminLink}}
+
+Obento Tensho システムからの自動メールです。
+===
+<p>対応が必要なテイクアウト注文があります。</p>
+<p><strong>確認待ちが長い、または受け取り時刻が近い ({{pendingCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{pendingList}}</div>
+<p><strong>準備済みだが未受け取り ({{notPickedUpCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{notPickedUpList}}</div>
+<p><strong>支払い後にキャンセル、返金未記録 ({{refundCount}})</strong></p><div style="white-space:pre-line;margin:0 0 16px">{{refundList}}</div>
+<p><a class="button" href="{{adminLink}}">対応リストを開く</a></p>
+<p>Obento Tensho システムからの自動メールです。</p>

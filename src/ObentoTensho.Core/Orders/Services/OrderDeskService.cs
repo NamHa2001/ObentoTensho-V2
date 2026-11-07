@@ -18,6 +18,7 @@ public sealed class OrderDeskService(
     IOrderRepository orders,
     OrderTransitions transitions,
     IOrderEmailOutbox emails,
+    IOrderSettings settings,
     IActionThrottle throttle,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
@@ -32,6 +33,8 @@ public sealed class OrderDeskService(
     private const int RevealLimitPerHour = 100;
     private const string Entity = "order";
     private const int RefundNoteMaxLength = 300;
+    private const string NoPickupReason = "Khách không đến lấy";
+    private static readonly TimeSpan NoPickupWindow = TimeSpan.FromDays(90);
 
     public async Task<PagedResponse<AdminOrderDto>> ListAsync(OrderQuery query, CancellationToken cancellationToken)
     {
@@ -41,7 +44,34 @@ public sealed class OrderDeskService(
         DateTime? fromUtc = query.From is { } from ? clock.ToUtc(from, TimeOnly.MinValue) : null;
         DateTime? toUtc = query.To is { } to ? clock.ToUtc(to.AddDays(1), TimeOnly.MinValue) : null;
         var (items, total) = await orders.ListAsync(query with { Page = page, PageSize = pageSize }, fromUtc, toUtc, cancellationToken);
-        return new PagedResponse<AdminOrderDto>(items.Select(o => o.ToAdmin(clock)).ToArray(), new PageMeta(page, pageSize, total));
+        return new PagedResponse<AdminOrderDto>(await ToAdminAsync(items, cancellationToken), new PageMeta(page, pageSize, total));
+    }
+
+    // docs/srs/20 #30: ba nhóm đơn cần để ý, cùng tiêu chí với thư gửi quản lý
+    public async Task<OrderAttentionDto> AttentionAsync(CancellationToken cancellationToken)
+    {
+        var groups = (await ListAttentionAsync(cancellationToken)).ToLookup(x => x.Kind, x => x.Order);
+        var all = await ToAdminAsync(groups.SelectMany(g => g).ToArray(), cancellationToken);
+        var byId = all.ToDictionary(o => o.Id);
+        AdminOrderDto[] Of(OrderAttention.Kind kind) => groups[kind].Select(o => byId[o.Id]).ToArray();
+        return new OrderAttentionDto(Of(OrderAttention.Kind.PendingOverdue), Of(OrderAttention.Kind.NotPickedUp), Of(OrderAttention.Kind.RefundPending));
+    }
+
+    public async Task<IReadOnlyList<(Order Order, OrderAttention.Kind Kind)>> ListAttentionAsync(CancellationToken cancellationToken)
+    {
+        var now = clock.UtcNow;
+        var candidates = await orders.ListAttentionAsync(
+            now.AddMinutes(-settings.PendingAlertMinutes),
+            now.AddMinutes(settings.PendingAlertMinutes),
+            now.AddMinutes(-settings.NoPickupMinutes),
+            KitchenLimit,
+            cancellationToken);
+        return candidates
+            .Select(o => (Order: o, Kind: OrderAttention.Classify(o, now, settings.PendingAlertMinutes, settings.NoPickupMinutes)))
+            .Where(x => x.Kind is not null)
+            .Select(x => (x.Order, x.Kind!.Value))
+            .OrderBy(x => x.Order.PickupAtUtc)
+            .ToArray();
     }
 
     // FR-ORD-05, BR-ORD-21: đơn chờ chỉ hiện khi đã gọi xác nhận hoặc không phải gọi
@@ -58,7 +88,8 @@ public sealed class OrderDeskService(
             return Result.Failure<AdminOrderDetailDto>(ErrorCodes.NotFound);
         }
 
-        return Result.Success(order.ToDetail(clock, await orders.GetHistoryAsync(id, cancellationToken)));
+        var flagged = await FlaggedAsync([order.CustomerPhone], cancellationToken);
+        return Result.Success(order.ToDetail(clock, flagged.Count > 0, await orders.GetHistoryAsync(id, cancellationToken)));
     }
 
     // BR-ORD-21, BR-CUS-09: xem liên hệ đầy đủ để gọi — mỗi lần đều ghi audit, có giới hạn theo nhân viên
@@ -105,9 +136,30 @@ public sealed class OrderDeskService(
             return Task.FromResult(Result.Failure<AdminOrderDto>(Enum.IsDefined(request.Status) ? ErrorCodes.Forbidden : ErrorCodes.ValidationFailed));
         }
 
-        return UpdateAsync(id, order => order.Status != request.ExpectedStatus
-            ? Result.Failure(ErrorCodes.InvalidTransition)
-            : transitions.Apply(order, request.Status, OrderActor.Staff, staffId, request.Reason), cancellationToken);
+        return UpdateAsync(id, order =>
+        {
+            if (order.Status != request.ExpectedStatus)
+            {
+                return Result.Failure(ErrorCodes.InvalidTransition);
+            }
+
+            // BR-ORD-18: chỉ đơn đã sẵn sàng mới hủy vì "không đến lấy"
+            if (request.NoPickup)
+            {
+                if (order.Status != OrderStatus.Ready || request.Status != OrderStatus.Cancelled)
+                {
+                    return Result.Failure(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
+                    {
+                        ["noPickup"] = [FieldErrorCodes.OutOfRange],
+                    });
+                }
+
+                order.NoPickup = true;
+            }
+
+            var reason = request.NoPickup && string.IsNullOrWhiteSpace(request.Reason) ? NoPickupReason : request.Reason;
+            return transitions.Apply(order, request.Status, OrderActor.Staff, staffId, reason);
+        }, cancellationToken);
     }
 
     // FR-ORD-03, BR-ORD-09: Unpaid → Paid đúng một lần; bấm lại trả kết quả cũ; đơn đã hủy không nhận thanh toán
@@ -123,13 +175,13 @@ public sealed class OrderDeskService(
         if (!marked)
         {
             return order.PaymentStatus == PaymentStatus.Paid
-                ? Result.Success(order.ToAdmin(clock))
+                ? Result.Success(await ToAdminAsync(order, cancellationToken))
                 : Result.Failure<AdminOrderDto>(ErrorCodes.InvalidTransition);
         }
 
         audit.Record(new AuditEntry("orders.order.paid", Entity, Id(order), After: new { order.TotalAmount, order.PaymentMethod }));
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success(order.ToAdmin(clock));
+        return Result.Success(await ToAdminAsync(order, cancellationToken));
     }
 
     // BR-ORD-16: đơn đã thu tiền rồi hủy ⇒ ghi lại việc đã hoàn tiền (chuyển khoản lại/trả tiền mặt), báo khách
@@ -176,8 +228,20 @@ public sealed class OrderDeskService(
 
             order.UpdatedAtUtc = clock.UtcNow;
             await unitOfWork.SaveChangesAsync(ct);
-            return Result.Success(order.ToAdmin(clock));
+            return Result.Success(await ToAdminAsync(order, ct));
         }, cancellationToken);
+
+    private async Task<AdminOrderDto> ToAdminAsync(Order order, CancellationToken cancellationToken) =>
+        (await ToAdminAsync([order], cancellationToken))[0];
+
+    private async Task<AdminOrderDto[]> ToAdminAsync(IReadOnlyList<Order> list, CancellationToken cancellationToken)
+    {
+        var flagged = await FlaggedAsync(list.Select(o => o.CustomerPhone).Distinct(StringComparer.Ordinal).ToArray(), cancellationToken);
+        return list.Select(o => o.ToAdmin(clock, flagged.Contains(o.CustomerPhone))).ToArray();
+    }
+
+    private Task<IReadOnlySet<string>> FlaggedAsync(IReadOnlyCollection<string> phones, CancellationToken cancellationToken) =>
+        orders.FlaggedPhonesAsync(phones, clock.UtcNow - NoPickupWindow, settings.NoPickupFlagCount, cancellationToken);
 
     private static string Id(Order order) => order.Id.ToString("D", CultureInfo.InvariantCulture);
 

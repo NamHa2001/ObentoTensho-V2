@@ -15,4 +15,7 @@ public interface IOrderEmailOutbox
     void EnqueueCancelledByCustomer(Order order);
 
     void EnqueueRefunded(Order order);
+
+    // docs/srs/20 #30: thư cho quản lý; batchKey phân biệt các lượt gửi
+    void EnqueueAttentionDigest(string staffEmail, OrderAttentionDigest digest, string batchKey);
 }

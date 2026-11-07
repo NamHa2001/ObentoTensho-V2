@@ -101,6 +101,36 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
         return values.Single();
     }
 
+    public async Task<IReadOnlySet<string>> FlaggedPhonesAsync(IReadOnlyCollection<string> phones, DateTime sinceUtc, int threshold, CancellationToken cancellationToken)
+    {
+        if (phones.Count == 0)
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        var flagged = await db.Orders.AsNoTracking()
+            .Where(o => phones.Contains(o.CustomerPhone) && o.NoPickup && o.CancelledAtUtc >= sinceUtc)
+            .GroupBy(o => o.CustomerPhone)
+            .Where(g => g.Count() >= threshold)
+            .Select(g => g.Key)
+            .ToListAsync(cancellationToken);
+        return flagged.ToHashSet(StringComparer.Ordinal);
+    }
+
+    public async Task<IReadOnlyList<Order>> ListAttentionAsync(DateTime pendingCreatedBeforeUtc, DateTime pendingPickupBeforeUtc, DateTime readyPickupBeforeUtc, int limit, CancellationToken cancellationToken) =>
+        await Source(withItems: true, tracking: false)
+            .Where(o => (o.Status == OrderStatus.Pending && (o.CreatedAtUtc <= pendingCreatedBeforeUtc || o.PickupAtUtc <= pendingPickupBeforeUtc))
+                || (o.Status == OrderStatus.Ready && o.PickupAtUtc <= readyPickupBeforeUtc)
+                || (o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.RefundedAtUtc == null))
+            .OrderBy(o => o.PickupAtUtc)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+    public Task MarkAttentionNotifiedAsync(IReadOnlyCollection<Guid> ids, DateTime nowUtc, CancellationToken cancellationToken) =>
+        db.Orders
+            .Where(o => ids.Contains(o.Id) && o.AttentionNotifiedAtUtc == null)
+            .ExecuteUpdateAsync(set => set.SetProperty(o => o.AttentionNotifiedAtUtc, nowUtc), cancellationToken);
+
     public async Task<bool> TryMarkPaidAsync(Guid id, Guid staffId, DateTime nowUtc, CancellationToken cancellationToken) =>
         await db.Orders
             .Where(o => o.Id == id && o.PaymentStatus == PaymentStatus.Unpaid && o.Status != OrderStatus.Cancelled)

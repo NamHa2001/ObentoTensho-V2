@@ -20,7 +20,7 @@ public static class EmailPolicy
             or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled
             or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
-        EmailKind.ReservationReminder => 3,
+        EmailKind.ReservationReminder or EmailKind.OrderAttention => 3,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
         _ => 5,
     };

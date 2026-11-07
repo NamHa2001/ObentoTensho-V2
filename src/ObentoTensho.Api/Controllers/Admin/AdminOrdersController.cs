@@ -35,6 +35,12 @@ public sealed class AdminOrdersController(OrderDeskService desk) : ControllerBas
     public async Task<IActionResult> Kitchen(CancellationToken cancellationToken) =>
         this.Data(await desk.KitchenAsync(cancellationToken));
 
+    // docs/srs/20 #30: đơn chờ quá lâu, không ai đến lấy, chờ hoàn tiền
+    [HttpGet("attention")]
+    [RequireCapability(StaffCapability.OrdersCashier)]
+    public async Task<IActionResult> Attention(CancellationToken cancellationToken) =>
+        this.Data(await desk.AttentionAsync(cancellationToken));
+
     [HttpGet("{id:guid}")]
     [RequireCapability(StaffCapability.OrdersCashier)]
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken) =>

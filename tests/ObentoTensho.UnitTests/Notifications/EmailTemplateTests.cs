@@ -27,6 +27,13 @@ public sealed class EmailTemplateTests
         ["trackLink"] = "https://www.obento.test/orders/track?code=OBT-TK-8K4Q-7ZM2#token=abc",
         ["menuLink"] = "https://www.obento.test/menu",
         ["refundNote"] = "Đã chuyển khoản lại",
+        ["pendingCount"] = "1",
+        ["notPickedUpCount"] = "0",
+        ["refundCount"] = "0",
+        ["pendingList"] = "OBT-TK-8K4Q-7ZM2 — 12:00 08/11 — Nguyễn Văn An — 165.000 ₫",
+        ["notPickedUpList"] = "—",
+        ["refundList"] = "—",
+        ["adminLink"] = "https://admin.obento.test/orders/attention",
     };
 
     public static TheoryData<EmailKind, string> Cases()

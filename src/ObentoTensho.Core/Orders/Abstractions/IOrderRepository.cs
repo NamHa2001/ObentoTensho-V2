@@ -32,6 +32,14 @@ public interface IOrderRepository
     // DB-16: số thứ tự trong ngày VN, tăng nguyên tử
     Task<int> NextDailySeqAsync(DateOnly date, CancellationToken cancellationToken);
 
+    // BR-ORD-18: SĐT nào trong danh sách có ≥ threshold đơn hủy vì không đến lấy kể từ sinceUtc
+    Task<IReadOnlySet<string>> FlaggedPhonesAsync(IReadOnlyCollection<string> phones, DateTime sinceUtc, int threshold, CancellationToken cancellationToken);
+
+    // docs/srs/20 #30: đơn có thể cần xử lý (lọc thô ở CSDL, phân loại ở OrderAttention), kèm dòng món
+    Task<IReadOnlyList<Order>> ListAttentionAsync(DateTime pendingCreatedBeforeUtc, DateTime pendingPickupBeforeUtc, DateTime readyPickupBeforeUtc, int limit, CancellationToken cancellationToken);
+
+    Task MarkAttentionNotifiedAsync(IReadOnlyCollection<Guid> ids, DateTime nowUtc, CancellationToken cancellationToken);
+
     // BR-ORD-09: Unpaid → Paid có điều kiện trong một lệnh UPDATE (hai thu ngân bấm cùng lúc chỉ một lần ghi)
     Task<bool> TryMarkPaidAsync(Guid id, Guid staffId, DateTime nowUtc, CancellationToken cancellationToken);
 }

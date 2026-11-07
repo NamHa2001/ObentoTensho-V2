@@ -6,6 +6,7 @@ namespace ObentoTensho.Contracts.Dtos.Orders;
 /// Đơn cho thu ngân/quản lý. SĐT/email luôn che; xem đầy đủ qua "Hiện liên hệ" (có audit).
 /// <c>NeedsContactConfirm</c>: phải gọi xác nhận trước khi bếp làm (BR-ORD-21).
 /// <c>RefundPending</c>: đơn đã thanh toán bị hủy mà chưa ghi hoàn tiền (BR-ORD-16).
+/// <c>NoPickupFlag</c>: SĐT từng không đến lấy nhiều lần trong 90 ngày (BR-ORD-18).
 /// </summary>
 public sealed record AdminOrderDto(
     Guid Id,
@@ -23,5 +24,6 @@ public sealed record AdminOrderDto(
     bool NeedsContactConfirm,
     bool ContactConfirmed,
     bool RefundPending,
+    bool NoPickupFlag,
     DateTime CreatedAtUtc,
     string Version);

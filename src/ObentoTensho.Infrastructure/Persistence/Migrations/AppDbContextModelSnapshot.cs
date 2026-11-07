@@ -898,6 +898,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("char(64)");
 
+                    b.Property<DateTime?>("AttentionNotifiedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
                     b.Property<string>("CancelReason")
                         .HasColumnType("nvarchar(300)");
 
@@ -943,6 +946,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(0m);
 
                     b.Property<bool>("NeedsContactConfirm")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("NoPickup")
                         .HasColumnType("bit");
 
                     b.Property<string>("Note")
@@ -1016,6 +1022,8 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("CustomerPhone", "NoPickup");
 
                     b.HasIndex("CustomerPhone", "Status");
 
