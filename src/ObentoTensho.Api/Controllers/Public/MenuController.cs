@@ -1,0 +1,41 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ObentoTensho.Api.Http;
+using ObentoTensho.Core.Menu.Domain;
+using ObentoTensho.Core.Menu.Services;
+
+namespace ObentoTensho.Api.Controllers.Public;
+
+// docs/srs/15 §4. Dữ liệu đọc từ ảnh chụp trong bộ nhớ nên tham số lạ không tạo thêm mục cache (ATK-14)
+[ApiController]
+[Route("api/v1/menu")]
+[AllowAnonymous]
+public sealed class MenuController(PublicMenuService menu) : ControllerBase
+{
+    [HttpGet("categories")]
+    public async Task<IActionResult> Categories([FromQuery] string? lang, CancellationToken cancellationToken) =>
+        this.Data(await menu.CategoriesAsync(lang, cancellationToken));
+
+    [HttpGet("items")]
+    public async Task<IActionResult> Items(
+        [FromQuery] string? category,
+        [FromQuery] string? q,
+        [FromQuery] string? excludeAllergens,
+        [FromQuery] bool? takeaway,
+        [FromQuery] string? sort,
+        [FromQuery] string? lang,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default) =>
+        Ok(await menu.ItemsAsync(
+            new PublicMenuQuery(category, q, MenuRules.ParseAllergens(excludeAllergens), takeaway, sort, page, pageSize, lang ?? string.Empty),
+            cancellationToken));
+
+    [HttpGet("items/featured")]
+    public async Task<IActionResult> Featured([FromQuery] string? lang, CancellationToken cancellationToken) =>
+        this.Data(await menu.FeaturedAsync(lang, cancellationToken));
+
+    [HttpGet("items/{slug}")]
+    public async Task<IActionResult> Detail(string slug, [FromQuery] string? lang, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await menu.DetailAsync(slug, lang, cancellationToken));
+}

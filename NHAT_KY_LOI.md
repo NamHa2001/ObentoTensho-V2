@@ -13,6 +13,15 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Thực đơn – bước 1: danh mục, món, tùy chọn, bản dịch (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Log API có `InvalidOperationException: StatusCode cannot be set because the response has already started` mỗi lần gọi endpoint quản trị không kèm token (khách vẫn nhận 401 đúng) | Endpoint chấp nhận cả hai scheme JWT nên cả hai cùng chạy `OnChallenge`; scheme đầu đã ghi ProblemDetails, scheme sau đặt lại `StatusCode` | Trong `OnChallenge`/`OnForbidden` của `AuthConfiguration`, nếu `Response.HasStarted` thì bỏ qua | Sau mỗi lần chạy thật, đọc log tìm `fail:`/`Exception` chứ không chỉ nhìn mã HTTP |
+| `GET /menu/items?excludeAllergens=abc` có thể trả 500 | `MenuRules.ParseAllergens` dùng `First(...)` cho mọi mã, mã lạ ném `InvalidOperationException` | Đổi thành lọc các mã hợp lệ, bỏ qua mã lạ, không phân biệt hoa thường | Hàm đọc dữ liệu có thể đến từ tham số khách phải chịu được đầu vào rác; viết test cho giá trị lạ |
+| Build lỗi `CS0104: 'IHtmlSanitizer' is an ambiguous reference between 'ObentoTensho.Core.Common.IHtmlSanitizer' and 'Ganss.Xss.IHtmlSanitizer'` | Gói HtmlSanitizer có interface cùng tên | Dùng bí danh `using IHtmlSanitizer = ObentoTensho.Core.Common.IHtmlSanitizer;` | Khi thêm gói ngoài, kiểm trùng tên với interface của dự án |
+| Test sửa món sau khi duyệt bản dịch nhận `412` thay vì `200` | Duyệt bản dịch cập nhật `NameSearch` của món nên RowVersion (ETag) đổi — hành vi đúng | Test lấy ETag mới bằng `GET` trước khi `PUT` | Thao tác phụ nào ghi vào bảng chính cũng làm ETag cũ hết hiệu lực; giao diện quản trị phải tải lại món sau khi lưu bản dịch |
+
 ## Đặt bàn – lõi (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

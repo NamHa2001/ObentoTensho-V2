@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Notifications.Domain;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
@@ -47,6 +48,24 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<DailyCounter> DailyCounters => Set<DailyCounter>();
 
     public DbSet<OtpChallenge> OtpChallenges => Set<OtpChallenge>();
+
+    public DbSet<MenuCategory> MenuCategories => Set<MenuCategory>();
+
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+
+    public DbSet<OptionGroup> OptionGroups => Set<OptionGroup>();
+
+    public DbSet<MenuOption> Options => Set<MenuOption>();
+
+    public DbSet<MenuItemOptionGroup> MenuItemOptionGroups => Set<MenuItemOptionGroup>();
+
+    public DbSet<MenuItemTranslation> MenuItemTranslations => Set<MenuItemTranslation>();
+
+    public DbSet<MenuCategoryTranslation> MenuCategoryTranslations => Set<MenuCategoryTranslation>();
+
+    public DbSet<OptionGroupTranslation> OptionGroupTranslations => Set<OptionGroupTranslation>();
+
+    public DbSet<OptionTranslation> OptionTranslations => Set<OptionTranslation>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

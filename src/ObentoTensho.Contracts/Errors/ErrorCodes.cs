@@ -47,5 +47,12 @@ public static class ErrorCodes
     public const string CallAttemptsExceeded = "CALL_ATTEMPTS_EXCEEDED";
     public const string TableConflict = "TABLE_CONFLICT";
     public const string TableUnsuitable = "TABLE_UNSUITABLE";
+
+    // Thực đơn (docs/srs/15)
+    public const string CategoryHasItems = "CATEGORY_HAS_ITEMS";
+    public const string CategoryInactive = "CATEGORY_INACTIVE";
+    public const string OptionGroupInUse = "OPTION_GROUP_IN_USE";
+    public const string OptionInvalid = "OPTION_INVALID";
+    public const string OptionUnavailable = "OPTION_UNAVAILABLE";
     public const string InternalError = "INTERNAL_ERROR";
 }

@@ -22,6 +22,7 @@ builder.Services.AddApiRateLimiting(builder.Configuration);
 builder.Services.AddAuthServices();
 builder.Services.AddTablesServices();
 builder.Services.AddReservationServices();
+builder.Services.AddMenuServices();
 
 var app = builder.Build();
 

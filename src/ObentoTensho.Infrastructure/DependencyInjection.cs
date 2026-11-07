@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
@@ -50,6 +51,9 @@ public static class DependencyInjection
         services.AddSingleton<IActionThrottle, MemoryActionThrottle>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationEmailOutbox, ReservationEmailOutbox>();
+        services.AddScoped<IMenuRepository, MenuRepository>();
+        services.AddSingleton<IMenuCache, MemoryMenuCache>();
+        services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
 
         services.AddOptions<ReservationOptions>()
             .Bind(configuration.GetSection(ReservationOptions.SectionName))

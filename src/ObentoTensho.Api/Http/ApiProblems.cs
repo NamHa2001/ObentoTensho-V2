@@ -43,6 +43,11 @@ public static class ApiProblems
         [ErrorCodes.CallAttemptsExceeded] = (StatusCodes.Status409Conflict, "Đã gọi đủ số lần cho phép"),
         [ErrorCodes.TableConflict] = (StatusCodes.Status409Conflict, "Bàn đã có đặt bàn khác cùng ca"),
         [ErrorCodes.TableUnsuitable] = (StatusCodes.Status400BadRequest, "Bàn không phù hợp số khách hoặc đang tắt"),
+        [ErrorCodes.CategoryHasItems] = (StatusCodes.Status409Conflict, "Danh mục còn món"),
+        [ErrorCodes.CategoryInactive] = (StatusCodes.Status400BadRequest, "Danh mục không tồn tại hoặc đang ẩn"),
+        [ErrorCodes.OptionGroupInUse] = (StatusCodes.Status409Conflict, "Nhóm tùy chọn đang được món sử dụng"),
+        [ErrorCodes.OptionInvalid] = (StatusCodes.Status400BadRequest, "Lựa chọn tùy chọn không hợp lệ"),
+        [ErrorCodes.OptionUnavailable] = (StatusCodes.Status400BadRequest, "Tùy chọn đã hết"),
         [ErrorCodes.RateLimited] = (StatusCodes.Status429TooManyRequests, "Quá nhiều yêu cầu, vui lòng thử lại sau"),
         [ErrorCodes.InternalError] = (StatusCodes.Status500InternalServerError, "Lỗi hệ thống"),
     };

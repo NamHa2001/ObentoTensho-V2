@@ -399,6 +399,438 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("MenuCategories", (string)null);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategoryTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("CategoryId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("MenuCategoryTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MenuCategoryTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_MenuCategoryTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Allergens")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<bool>("AllowTakeaway")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FullDescHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsBestseller")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFeatured")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsNew")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSpicy")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVegetarian")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NameSearch")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("NameVi")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal?>("OriginalPrice")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("ShortDesc")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("SoldOutUntilUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NameSearch");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("CategoryId", "Status", "DisplayOrder");
+
+                    b.ToTable("MenuItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MenuItems_Price", "[Price] > 0 AND ([OriginalPrice] IS NULL OR [OriginalPrice] > [Price])");
+
+                            t.HasCheckConstraint("CK_MenuItems_Status", "[Status] BETWEEN 0 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemOptionGroup", b =>
+                {
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("MenuItemId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("MenuItemOptionGroups", (string)null);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("MenuItemId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("FullDescHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ShortDesc")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("MenuItemTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_MenuItemTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_MenuItemTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Allergens")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GroupId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PriceDelta")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("Options", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Options_PriceDelta", "[PriceDelta] >= 0 AND [PriceDelta] <= 10000000");
+
+                            t.HasCheckConstraint("CK_Options_Status", "[Status] BETWEEN 0 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.OptionGroup", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("MaxSelect")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("MinSelect")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("SelectionType")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OptionGroups", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OptionGroups_Selection", "[MinSelect] <= [MaxSelect] AND [MaxSelect] >= 1 AND ([SelectionType] = 1 OR [MaxSelect] = 1) AND ([IsRequired] = 0 OR [MinSelect] >= 1)");
+
+                            t.HasCheckConstraint("CK_OptionGroups_SelectionType", "[SelectionType] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.OptionGroupTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("GroupId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("OptionGroupTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OptionGroupTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_OptionGroupTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.OptionTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("OptionId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("OptionTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OptionTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_OptionTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Notifications.Domain.EmailLog", b =>
                 {
                     b.Property<long>("Id")
@@ -1083,6 +1515,75 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()
                         .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategoryTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuCategory", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItem", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemOptionGroup", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.OptionGroup", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuOption", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.OptionGroup", null)
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.OptionGroupTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.OptionGroup", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.OptionTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuOption", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

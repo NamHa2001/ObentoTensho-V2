@@ -103,13 +103,19 @@ public static class AuthConfiguration
         bearer.Events = new JwtBearerEvents
         {
             OnTokenValidated = context => ValidateSessionAsync(context, isStaff),
+            // Endpoint nhận cả hai loại token ⇒ cả hai scheme cùng challenge; scheme sau không ghi đè phản hồi đã gửi
             OnChallenge = context =>
             {
                 context.HandleResponse();
+                if (context.Response.HasStarted)
+                {
+                    return Task.CompletedTask;
+                }
+
                 var code = context.AuthenticateFailure is SecurityTokenExpiredException ? ErrorCodes.TokenExpired : ErrorCodes.Unauthenticated;
                 return ApiProblems.WriteAsync(context.HttpContext, code);
             },
-            OnForbidden = context => ApiProblems.WriteAsync(context.HttpContext, ErrorCodes.Forbidden),
+            OnForbidden = context => context.Response.HasStarted ? Task.CompletedTask : ApiProblems.WriteAsync(context.HttpContext, ErrorCodes.Forbidden),
         };
     }
 
