@@ -80,7 +80,7 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | Đặt món | `2e76616`, `63a7973` | Giá do server tính, giờ lấy, theo dõi, tự hủy, màn hình bếp và thu ngân, hoàn tiền, cờ không đến lấy, danh sách và thư "cần xử lý" |
 | Điểm & hạng | `8ee787e` | Sổ cái chỉ thêm, lô FIFO, hạng, giảm theo hạng, nợ điểm, hết hạn, điều chỉnh bốn mắt |
 | Voucher bước 1 | `0539d34` | Kiểm mã, giữ lượt nguyên tử, hoàn lượt, đổi điểm, sinh hàng loạt, duyệt bốn mắt |
-| Voucher bước 2 | commit sau `4010e09` | Khuyến mãi công khai và quản trị, voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản |
+| Voucher bước 2 | `9da24b1` | Khuyến mãi công khai và quản trị, voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
