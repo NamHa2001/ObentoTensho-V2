@@ -92,6 +92,22 @@ public sealed class AdminAuthApiClient(ApiFactory factory, SqlServerFixture fixt
         return _http.SendAsync(request);
     }
 
+    // Gửi tệp dạng multipart/form-data, trường "file"
+    // chunked: không gửi Content-Length (server chỉ biết tệp quá lớn khi đang đọc)
+    public Task<HttpResponseMessage> UploadAsync(string path, string accessToken, string fileName, byte[] content, bool chunked = false)
+    {
+        var form = new MultipartFormDataContent();
+        HttpContent file = chunked ? new UnknownLengthContent(content) : new ByteArrayContent(content);
+        file.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        form.Add(file, "file", fileName);
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        // Server từ chối tệp quá lớn trước khi client gửi thân (Kestrel đóng kết nối nếu thân đang được gửi dở)
+        request.Headers.ExpectContinue = true;
+        return _http.SendAsync(request);
+    }
+
     public Task<HttpResponseMessage> RefreshAsync(string? refreshToken, string origin = ApiFactory.AdminOrigin)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/auth/refresh-token");
@@ -136,5 +152,17 @@ public sealed class AdminAuthApiClient(ApiFactory factory, SqlServerFixture fixt
             : null;
         var value = header?[prefix.Length..].Split(';')[0];
         return string.IsNullOrEmpty(value) ? null : value;
+    }
+
+    private sealed class UnknownLengthContent(byte[] bytes) : HttpContent
+    {
+        protected override Task SerializeToStreamAsync(Stream stream, System.Net.TransportContext? context) =>
+            stream.WriteAsync(bytes).AsTask();
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
     }
 }

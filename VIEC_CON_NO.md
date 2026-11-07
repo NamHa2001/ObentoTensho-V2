@@ -81,7 +81,8 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Nhập/xuất Excel món (xem trước, tất cả hoặc không, ≤ 1000 dòng / 2 MB, chặn công thức) | `BR-MNU-10`, `BR-MNU-14` | Bước 2 của phần thực đơn — làm ngay sau commit này |
+| Nhập/xuất Excel: thêm cột nhóm tùy chọn, mô tả đầy đủ; nhập danh mục | `BR-MNU-14` | Bản hiện tại chỉ món (giữ nguyên các phần đó khi cập nhật) |
+| Chống zip bomb khai sai kích thước giải nén trong header | `SEC-11`, `BR-MNU-14` | Hiện kiểm tổng `Length` khai trong zip (≤ 30 MB) + tệp ≤ 2 MB + chỉ Manager/SuperAdmin; có thể thêm đọc thử từng entry có giới hạn |
 | Ảnh món, ảnh danh mục (`MainImageId`, nhiều ảnh/món) | `BR-MNU-06`, `BR-MNU-12` | Cần pipeline ảnh (bảng `Images`, xử lý ImageSharp, WebP) |
 | `GET /menu/items/{slug}/reviews` | `docs/srs/15` §4 | Làm cùng phần đánh giá sau đơn hàng |
 | Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Hiện xóa thẳng; thêm kiểm khi có bảng `OrderItemOptions` |
@@ -91,7 +92,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
-Import thực đơn (bước 2) → Đặt món mang về → Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Đặt món mang về → Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 

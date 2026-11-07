@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" />
+    <PackageReference Include="ClosedXML" />
     <PackageReference Include="HtmlSanitizer" />
     <PackageReference Include="MailKit" />
   </ItemGroup>

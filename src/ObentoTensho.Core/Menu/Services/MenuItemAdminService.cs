@@ -56,11 +56,12 @@ public sealed class MenuItemAdminService(
         var result = await unitOfWork.TryCreateAsync(async ct =>
         {
             var item = new MenuItem { CategoryId = request.CategoryId, NameVi = string.Empty, Slug = slug, NameSearch = string.Empty, Price = request.Price, CreatedAtUtc = clock.UtcNow };
-            Apply(item, request);
+            MenuItemMapping.Apply(item, request, sanitizer, clock.UtcNow);
+            item.NameSearch = MenuItemMapping.SearchText(item, []);
             menu.AddItem(item);
             await unitOfWork.SaveChangesAsync(ct);
             await menu.ReplaceItemGroupsAsync(item.Id, request.OptionGroupIds ?? [], ct);
-            audit.Record(new AuditEntry($"menu.{Entity}.created", Entity, Id(item.Id), After: Snapshot(item)));
+            audit.Record(new AuditEntry($"menu.{Entity}.created", Entity, Id(item.Id), After: MenuItemMapping.Snapshot(item)));
             await unitOfWork.SaveChangesAsync(ct);
             return item.ToAdmin(request.OptionGroupIds ?? []);
         }, ErrorCodes.DuplicateName, cancellationToken);
@@ -92,12 +93,13 @@ public sealed class MenuItemAdminService(
                 return Result.Failure<AdminMenuItemDto>(ErrorCodes.NotFound);
             }
 
-            var before = Snapshot(item);
+            var before = MenuItemMapping.Snapshot(item);
             unitOfWork.ExpectRowVersion(item, version);
             item.Slug = request.Slug ?? item.Slug;
-            Apply(item, request);
+            MenuItemMapping.Apply(item, request, sanitizer, clock.UtcNow);
+            item.NameSearch = MenuItemMapping.SearchText(item, await menu.ListTranslationsAsync<MenuItemTranslation>(id, ct));
             await menu.ReplaceItemGroupsAsync(id, request.OptionGroupIds ?? [], ct);
-            audit.Record(new AuditEntry($"menu.{Entity}.updated", Entity, Id(id), before, Snapshot(item)));
+            audit.Record(new AuditEntry($"menu.{Entity}.updated", Entity, Id(id), before, MenuItemMapping.Snapshot(item)));
             return await unitOfWork.TrySaveAsync(() => item.ToAdmin(request.OptionGroupIds ?? []), ErrorCodes.DuplicateName, ct);
         }, cancellationToken);
         cache.Invalidate();
@@ -146,7 +148,7 @@ public sealed class MenuItemAdminService(
         unitOfWork.ExpectRowVersion(item, version);
         item.IsDeleted = true;
         item.DeletedAtUtc = clock.UtcNow;
-        audit.Record(new AuditEntry($"menu.{Entity}.deleted", Entity, Id(id), Before: Snapshot(item)));
+        audit.Record(new AuditEntry($"menu.{Entity}.deleted", Entity, Id(id), Before: MenuItemMapping.Snapshot(item)));
         var result = await unitOfWork.TrySaveAsync(ErrorCodes.DuplicateName, cancellationToken);
         cache.Invalidate();
         return result;
@@ -189,30 +191,6 @@ public sealed class MenuItemAdminService(
             ? Result.Failure(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal) { ["optionGroupIds"] = [FieldErrorCodes.InvalidFormat] })
             : null;
     }
-
-    private void Apply(MenuItem item, MenuItemRequest request)
-    {
-        item.CategoryId = request.CategoryId;
-        item.NameVi = request.NameVi.Trim();
-        item.NameSearch = TextNormalizer.Search(item.NameVi);
-        item.ShortDesc = string.IsNullOrWhiteSpace(request.ShortDesc) ? null : request.ShortDesc.Trim();
-        item.FullDescHtml = string.IsNullOrWhiteSpace(request.FullDescHtml) ? null : sanitizer.Sanitize(request.FullDescHtml);
-        item.Price = request.Price;
-        item.OriginalPrice = request.OriginalPrice;
-        item.IsNew = request.Labels.IsNew;
-        item.IsBestseller = request.Labels.IsBestseller;
-        item.IsFeatured = request.Labels.IsFeatured;
-        item.IsVegetarian = request.Labels.IsVegetarian;
-        item.IsSpicy = request.Labels.IsSpicy;
-        item.AllowTakeaway = request.AllowTakeaway;
-        item.Status = request.Status;
-        item.SoldOutUntilUtc = request.Status == SaleStatus.SoldOut ? item.SoldOutUntilUtc : null;
-        item.Allergens = MenuRules.JoinAllergens(request.Allergens);
-        item.UpdatedAtUtc = clock.UtcNow;
-    }
-
-    private static object Snapshot(MenuItem i) =>
-        new { i.NameVi, i.Slug, i.CategoryId, i.Price, i.OriginalPrice, i.Status, i.AllowTakeaway, i.Allergens };
 
     private static string Id(int id) => id.ToString(CultureInfo.InvariantCulture);
 }

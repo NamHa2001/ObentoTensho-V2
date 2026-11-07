@@ -21,7 +21,7 @@ internal sealed class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.HasKey(i => i.Id);
         builder.Property(i => i.NameVi).HasColumnType("nvarchar(150)").IsRequired();
         builder.Property(i => i.Slug).HasColumnType("varchar(200)").IsRequired();
-        builder.Property(i => i.NameSearch).HasColumnType("nvarchar(300)").IsRequired();
+        builder.Property(i => i.NameSearch).HasColumnType($"nvarchar({MenuRules.NameSearchMaxLength})").IsRequired();
         builder.Property(i => i.ShortDesc).HasColumnType("nvarchar(200)");
         builder.Property(i => i.FullDescHtml).HasColumnType("nvarchar(max)");
         builder.Property(i => i.Price).HasColumnType("decimal(18,0)");

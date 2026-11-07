@@ -13,6 +13,9 @@ public static class MenuRules
     public const int MaxGroupsPerItem = 10;
     public const int MaxOptionsPerGroup = 20;
 
+    // Tên Việt + en + ja (mỗi tên ≤ 150) vừa đủ; dư thì cắt
+    public const int NameSearchMaxLength = 500;
+
     // BR-MNU-16: hết hàng có hạn ⇒ sau mốc đó tự coi là đang bán
     public static SaleStatus Effective(SaleStatus status, DateTime? soldOutUntilUtc, DateTime nowUtc) =>
         status == SaleStatus.SoldOut && soldOutUntilUtc is { } until && until <= nowUtc ? SaleStatus.Available : status;

@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageVersion Include="FluentValidation" Version="12.2.0" />
+    <PackageVersion Include="ClosedXML" Version="0.105.1" />
     <PackageVersion Include="HtmlSanitizer" Version="11.0.16" />
     <PackageVersion Include="MailKit" Version="4.18.2" />
     <PackageVersion Include="Meziantou.Analyzer" Version="3.0.321" />

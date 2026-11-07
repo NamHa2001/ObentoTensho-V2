@@ -54,5 +54,9 @@ public static class ErrorCodes
     public const string OptionGroupInUse = "OPTION_GROUP_IN_USE";
     public const string OptionInvalid = "OPTION_INVALID";
     public const string OptionUnavailable = "OPTION_UNAVAILABLE";
+
+    // Tệp tải lên (BR-MNU-14): sai định dạng/mẫu, hoặc vượt giới hạn dung lượng/số dòng
+    public const string FileInvalid = "FILE_INVALID";
+    public const string FileTooLarge = "FILE_TOO_LARGE";
     public const string InternalError = "INTERNAL_ERROR";
 }

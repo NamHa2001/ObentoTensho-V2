@@ -38,6 +38,12 @@ public static class ApiConfiguration
     public static IApplicationBuilder UseApiExceptionHandler(this IApplicationBuilder app) =>
         app.UseExceptionHandler(new ExceptionHandlerOptions
         {
-            ExceptionHandler = context => ApiProblems.WriteAsync(context, ErrorCodes.InternalError),
+            // Lỗi do request (thân quá lớn, multipart hỏng…) giữ đúng 4xx thay vì thành 500
+            ExceptionHandler = context => ApiProblems.WriteAsync(context, context.Features.Get<IExceptionHandlerFeature>()?.Error switch
+            {
+                BadHttpRequestException { StatusCode: StatusCodes.Status413PayloadTooLarge } => ErrorCodes.FileTooLarge,
+                BadHttpRequestException => ErrorCodes.ValidationFailed,
+                _ => ErrorCodes.InternalError,
+            }),
         });
 }

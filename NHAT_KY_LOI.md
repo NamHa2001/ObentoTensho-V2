@@ -13,6 +13,20 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Thực đơn – bước 2: nhập/xuất Excel (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Nhập Excel báo `committed: true` nhưng giá món không đổi trong CSDL | `EfUnitOfWork.InTransactionAsync` gọi `ChangeTracker.Clear()` đầu mỗi lần thử (để chạy lại được khi lỗi tạm thời); món nạp lúc lập kế hoạch bị tách khỏi context nên sửa vào không được lưu | Nạp lại món **bên trong** transaction (`ApplyAsync` gọi `FindItemsBySlugAsync`); món biến mất giữa lúc xem trước và lúc ghi ⇒ 412 | Mọi thực thể sửa trong `InTransactionAsync`/`TryInTransactionAsync` phải nạp trong chính hàm `work`; đã rà các dịch vụ khác, không còn chỗ nào |
+| Tệp quá lớn gửi qua Kestrel thật trả `400 VALIDATION_FAILED` (`errors: {"": ["INVALID_FORMAT"]}`) thay vì 413 | Action có tham số ⇒ `FormValueProviderFactory` của MVC đọc form ngay lúc binding, bắt `BadHttpRequestException` và đổi thành lỗi ModelState | Action nhập không có tham số: tự đọc `commit` từ query, kiểm `Content-Length` rồi `Request.ReadFormAsync` | Endpoint tải tệp có giới hạn dung lượng: không bind `IFormFile`/tham số; test bằng Kestrel thật (`ApiFactory.UseRealServer()`), TestServer không áp giới hạn body |
+| Gửi thân không có `Content-Length` (chunked) vượt giới hạn ⇒ 500 `INTERNAL_ERROR` và log lỗi | Bộ xử lý ngoại lệ đổi mọi ngoại lệ thành 500, kể cả `BadHttpRequestException` (413/400) của Kestrel | `UseApiExceptionHandler`: `BadHttpRequestException` 413 ⇒ `FILE_TOO_LARGE`, loại khác ⇒ `VALIDATION_FAILED` | Lỗi do request luôn giữ mã 4xx |
+| Test chạy trên Kestrel nhận trang HTML "Bad Request - Invalid Hostname" | `AllowedHosts` = `localhost`; gọi bằng `http://127.0.0.1:port` bị middleware lọc host chặn (trang lỗi giống HTTP.sys nên dễ tưởng nhầm) | Đổi host của địa chỉ server thành `localhost` | Gặp trang "Invalid Hostname" thì kiểm `AllowedHosts` trước |
+| Client test nhận `connection forcibly closed` khi gửi tệp quá lớn lên Kestrel | Kestrel trả 413 rồi đóng kết nối trong lúc client còn gửi thân | Gửi kèm `Expect: 100-continue` (trình duyệt/Nginx xử lý tương tự) | — |
+| Test mong ô xuất là `'=1+1` nhưng nhận `=1+1` | ClosedXML hiểu dấu `'` đầu chuỗi là cờ quotePrefix của Excel và bỏ dấu đó | Đặt rõ `Style.IncludeQuotePrefix = true` cho ô bắt đầu bằng `= + - @`; test kiểm cờ và kiểu ô là Text | Kiểm hành vi thư viện bằng test trước khi dựa vào |
+| Test xuất Excel mất 8–15 giây | `AdjustToContents()` nạp font hệ thống để đo chữ | Đặt độ rộng cột cố định | Tránh API phụ thuộc font của máy chủ |
+| `NameSearch nvarchar(300)` có thể tràn: tên Việt + en + ja mỗi tên ≤ 150 | Tính thiếu khi thiết kế cột | Migration `MenuNameSearchLength` nới lên 500, cắt an toàn ở `MenuItemMapping.SearchText` | Cột ghép từ nhiều trường: cộng độ dài tối đa từng phần |
+| Sửa món (đổi giá) làm mất tên bản dịch khỏi `NameSearch` | Hàm gán dữ liệu cũ chỉ đặt `NameSearch` = tên Việt | Dùng chung `MenuItemMapping.SearchText` (tên Việt + bản dịch đã duyệt còn khớp) cho form, bản dịch và nhập Excel | Logic tính trường dẫn xuất chỉ để một chỗ |
+
 ## Thực đơn – bước 1: danh mục, món, tùy chọn, bản dịch (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

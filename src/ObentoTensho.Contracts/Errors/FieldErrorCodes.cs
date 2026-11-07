@@ -12,4 +12,6 @@ public static class FieldErrorCodes
     public const string PasswordContainsEmail = "PASSWORD_CONTAINS_EMAIL";
     public const string SameAsCurrent = "SAME_AS_CURRENT";
     public const string Overlap = "OVERLAP";
+    public const string NotFound = "NOT_FOUND";
+    public const string Duplicate = "DUPLICATE";
 }

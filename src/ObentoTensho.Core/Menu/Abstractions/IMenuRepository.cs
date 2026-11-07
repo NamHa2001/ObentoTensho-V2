@@ -37,6 +37,16 @@ public interface IMenuRepository
 
     void AddItem(MenuItem item);
 
+    // Nhập/xuất Excel (BR-MNU-14)
+    Task<IReadOnlyList<MenuItem>> ListAllItemsAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<MenuItem>> FindItemsBySlugAsync(IReadOnlyCollection<string> slugs, CancellationToken cancellationToken);
+
+    // Slug đã dùng, kể cả món đã xóa mềm
+    Task<IReadOnlySet<string>> TakenItemSlugsAsync(IReadOnlyCollection<string> slugs, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<MenuItemTranslation>> ListItemTranslationsAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken);
+
     Task<IReadOnlyList<OptionGroup>> ListGroupsAsync(CancellationToken cancellationToken);
 
     Task<IReadOnlyList<MenuOption>> ListOptionsAsync(IReadOnlyCollection<int>? groupIds, CancellationToken cancellationToken);

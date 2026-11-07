@@ -101,12 +101,9 @@ public sealed class MenuTranslationService(
             return;
         }
 
-        var hash = MenuSnapshot.ItemHash(item);
-        var names = (await menu.ListTranslationsAsync<MenuItemTranslation>(itemId, cancellationToken))
-            .Where(t => !string.Equals(t.Lang, current.Lang, StringComparison.Ordinal) && t.IsDisplayable(hash))
-            .Select(t => t.Name)
-            .Append(current.IsDisplayable(hash) ? current.Name : null);
-        item.NameSearch = TextNormalizer.Search([item.NameVi, .. names]);
+        var others = (await menu.ListTranslationsAsync<MenuItemTranslation>(itemId, cancellationToken))
+            .Where(t => !string.Equals(t.Lang, current.Lang, StringComparison.Ordinal));
+        item.NameSearch = MenuItemMapping.SearchText(item, current is MenuItemTranslation mine ? [.. others, mine] : others);
     }
 
     private async Task<string?> SourceHashAsync(MenuTranslationKind kind, int id, CancellationToken cancellationToken) => kind switch

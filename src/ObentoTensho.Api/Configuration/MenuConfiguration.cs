@@ -21,6 +21,7 @@ public static class MenuConfiguration
         services.AddScoped<MenuItemAdminService>();
         services.AddScoped<OptionGroupAdminService>();
         services.AddScoped<MenuTranslationService>();
+        services.AddScoped<MenuSpreadsheetService>();
         return services;
     }
 }

@@ -88,6 +88,22 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
 
     public void AddItem(MenuItem item) => db.MenuItems.Add(item);
 
+    public async Task<IReadOnlyList<MenuItem>> ListAllItemsAsync(CancellationToken cancellationToken) =>
+        await db.MenuItems.AsNoTracking()
+            .Where(i => !i.IsDeleted)
+            .OrderBy(i => i.CategoryId).ThenBy(i => i.DisplayOrder).ThenBy(i => i.Id)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<MenuItem>> FindItemsBySlugAsync(IReadOnlyCollection<string> slugs, CancellationToken cancellationToken) =>
+        await db.MenuItems.Where(i => slugs.Contains(i.Slug) && !i.IsDeleted).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlySet<string>> TakenItemSlugsAsync(IReadOnlyCollection<string> slugs, CancellationToken cancellationToken) =>
+        (await db.MenuItems.Where(i => slugs.Contains(i.Slug)).Select(i => i.Slug).ToListAsync(cancellationToken))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    public async Task<IReadOnlyList<MenuItemTranslation>> ListItemTranslationsAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken) =>
+        await db.MenuItemTranslations.AsNoTracking().Where(t => itemIds.Contains(t.EntityId)).ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<OptionGroup>> ListGroupsAsync(CancellationToken cancellationToken) =>
         await db.OptionGroups.AsNoTracking().OrderBy(g => g.DisplayOrder).ThenBy(g => g.Id).ToListAsync(cancellationToken);
 

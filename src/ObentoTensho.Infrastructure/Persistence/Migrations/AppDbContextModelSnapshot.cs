@@ -532,7 +532,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("NameSearch")
                         .IsRequired()
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("NameVi")
                         .IsRequired()

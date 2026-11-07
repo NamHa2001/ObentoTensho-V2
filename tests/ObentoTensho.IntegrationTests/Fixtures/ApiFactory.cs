@@ -1,5 +1,8 @@
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,11 +68,26 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         }
     }
 
+    private Uri? _serverAddress;
+
+    // Chạy trên Kestrel thật (cổng ngẫu nhiên) thay vì TestServer — cho các giới hạn chỉ Kestrel áp dụng (kích thước body…)
+    public void UseRealServer()
+    {
+        UseKestrel(0);
+        StartServer();
+        var addresses = Services.GetRequiredService<IServer>().Features.GetRequiredFeature<IServerAddressesFeature>().Addresses;
+        // AllowedHosts chỉ nhận "localhost" nên không gọi bằng 127.0.0.1
+        _serverAddress = new UriBuilder(addresses.First()) { Host = "localhost" }.Uri;
+    }
+
     public HttpClient CreateApiClient() =>
-        CreateClient(new WebApplicationFactoryClientOptions
-        {
-            BaseAddress = new Uri("https://localhost"),
-            HandleCookies = false,
-            AllowAutoRedirect = false,
-        });
+        _serverAddress is not null
+            ? new HttpClient(new SocketsHttpHandler { UseCookies = false, AllowAutoRedirect = false, UseProxy = false }) { BaseAddress = _serverAddress }
+            : CreateClient(new WebApplicationFactoryClientOptions
+            {
+                BaseAddress = new Uri("https://localhost"),
+                HandleCookies = false,
+                AllowAutoRedirect = false,
+            });
+
 }

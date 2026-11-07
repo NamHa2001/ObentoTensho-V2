@@ -16,6 +16,7 @@ using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
 using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
+using ObentoTensho.Infrastructure.Spreadsheets;
 using ObentoTensho.Infrastructure.Time;
 
 namespace ObentoTensho.Infrastructure;
@@ -54,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
+        services.AddSingleton<IMenuSpreadsheet, ClosedXmlMenuSpreadsheet>();
 
         services.AddOptions<ReservationOptions>()
             .Bind(configuration.GetSection(ReservationOptions.SectionName))

@@ -48,6 +48,8 @@ public static class ApiProblems
         [ErrorCodes.OptionGroupInUse] = (StatusCodes.Status409Conflict, "Nhóm tùy chọn đang được món sử dụng"),
         [ErrorCodes.OptionInvalid] = (StatusCodes.Status400BadRequest, "Lựa chọn tùy chọn không hợp lệ"),
         [ErrorCodes.OptionUnavailable] = (StatusCodes.Status400BadRequest, "Tùy chọn đã hết"),
+        [ErrorCodes.FileInvalid] = (StatusCodes.Status400BadRequest, "Tệp không đúng định dạng hoặc mẫu"),
+        [ErrorCodes.FileTooLarge] = (StatusCodes.Status413PayloadTooLarge, "Tệp quá lớn hoặc quá nhiều dòng"),
         [ErrorCodes.RateLimited] = (StatusCodes.Status429TooManyRequests, "Quá nhiều yêu cầu, vui lòng thử lại sau"),
         [ErrorCodes.InternalError] = (StatusCodes.Status500InternalServerError, "Lỗi hệ thống"),
     };
