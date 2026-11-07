@@ -2,7 +2,9 @@
 
 Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu cầu trong SRS). Xong việc nào thì gạch khỏi đây trong cùng commit.
 
-Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
+Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
+
+Cập nhật lần cuối: 07/11/2026 — sau commit `1e20913`.
 
 ## Xác thực & tài khoản
 
@@ -59,6 +61,12 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 | Thư nội bộ: đặt bàn mới cho lễ tân (#3), khách hủy (#7), liên hệ mới (#19), cảnh báo quản trị (#29), tóm tắt việc cần xử lý (#30) | `20` §2, `BR-NTF-09` | |
 | Các thư còn lại theo danh mục | `20` §2 | Đơn hàng, điểm, voucher, newsletter… làm cùng phần tương ứng |
 
+## Rủi ro thư bị bỏ
+
+| Việc | Mã | Ghi chú |
+|---|---|---|
+| Thư vượt giới hạn theo người nhận bị bỏ hẳn: thư gộp "cần xử lý" (`order_attention`) đã đánh dấu đơn "đã báo" nên đơn có thể không bao giờ được báo qua thư; khách đặt nhiều đơn trong giờ có thể mất thư xác nhận | `BR-NTF-08`, `docs/srs/20` #30 | Phát hiện khi tổng hợp tài liệu, chưa có test. Cần quyết định: miễn giới hạn cho thư giao dịch/vận hành, hoặc đổi sang hoãn. Danh sách `GET /admin/orders/attention` không bị ảnh hưởng |
+
 ## Bàn & giờ mở cửa
 
 | Việc | Mã | Ghi chú |
@@ -84,7 +92,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 | Chống zip bomb khai sai kích thước giải nén trong header | `SEC-11`, `BR-MNU-14` | Hiện kiểm tổng `Length` khai trong zip (≤ 30 MB) + tệp ≤ 2 MB + chỉ Manager/SuperAdmin; có thể thêm đọc thử từng entry có giới hạn |
 | Ảnh món, ảnh danh mục (`MainImageId`, nhiều ảnh/món) | `BR-MNU-06`, `BR-MNU-12` | Cần pipeline ảnh (bảng `Images`, xử lý ImageSharp, WebP) |
 | `GET /menu/items/{slug}/reviews` | `docs/srs/15` §4 | Làm cùng phần đánh giá sau đơn hàng |
-| Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Hiện xóa thẳng; thêm kiểm khi có bảng `OrderItemOptions` |
+| Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Hiện vẫn xóa thẳng (đơn cũ giữ bản chụp nhờ `OptionId` SET NULL). Bảng `OrderItemOptions` đã có nên làm được rồi |
 | Màn hình tiến độ dịch (bao nhiêu mục thiếu/lỗi thời theo ngôn ngữ) | `docs/srs/22` | Phần đa ngôn ngữ |
 | Cache thực đơn nhiều instance (HybridCache + Redis, xóa cache phát tán) | `PERF-10` | Hiện `IMemoryCache` một tiến trình; phần triển khai |
 | Test đếm truy vấn `GET /menu/items` ≤ 2 | `PERF-51`, `TST-28` | Thêm interceptor đếm truy vấn ở phần kiểm thử cuối |
@@ -123,10 +131,13 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
-Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Làm hết backend rồi mới làm giao diện (chủ dự án đã chốt).
+
+Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 
-- Nhập giờ mở cửa và ca phục vụ thật (CSDL đang để "đóng cửa" cả 7 ngày).
+- Nhập giờ mở cửa và ca phục vụ thật. CSDL mới mặc định "đóng cửa" cả 7 ngày; CSDL dev đang có giờ mẫu, không phải giờ thật.
+- Xem lại thang điểm và hạng (`D-34`): các con số hiện là mặc định tạm.
 - Điền chỗ trống trong các trang pháp lý; quyết định D-23, D-30; người dịch.
 - Khi triển khai: tài khoản gửi email (SPF/DKIM/DMARC), khóa Cloudflare Turnstile, tên miền.

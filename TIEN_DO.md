@@ -1,0 +1,127 @@
+# Tiến độ dự án Obento Tensho
+
+Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
+
+Cập nhật lần cuối: 07/11/2026 — sau commit `1e20913`.
+
+- **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
+- **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
+- **Cài đặt, chạy, cấu hình:** `README.md`
+- **Yêu cầu gốc:** `docs/srs/` (chỉ có trên máy, không nằm trong repo)
+
+---
+
+## 1. Tổng quan
+
+Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang về (khách tự đến lấy, không giao hàng), thành viên tích điểm, voucher, trang quản trị. Thanh toán tiền mặt hoặc chuyển khoản do thu ngân xác nhận; không có cổng thanh toán online.
+
+- **Repo:** `NamHa2001/ObentoTensho-V2`, thư mục `E:\Obento Tensho`, nhánh làm việc `Nam`, nhánh chính `master`
+- **Backend:** .NET 10, ASP.NET Core, EF Core 10, SQL Server, FluentValidation, xunit
+- **Frontend:** Angular 21 (`web/`, hai ứng dụng `customer` và `admin`) — mới là khung rỗng
+- **CI:** GitHub Actions gồm backend, frontend, quét bí mật
+
+## 2. Tiến độ theo bảng trọng số
+
+**Toàn dự án: 54/100. Riêng backend: 54/71 (khoảng 76%). Giao diện: 0/22.**
+
+| Phần | Trọng số | Đã xong | Trạng thái |
+|---|---:|---:|---|
+| Khung dự án + CI | 3 | 3 | Xong |
+| Nền CSDL | 3 | 3 | Xong |
+| Xác thực khách | 4 | 4 | Xong |
+| Xác thực nhân viên + 2FA | 3 | 3 | Xong |
+| Phân quyền, audit, giới hạn tần suất, header bảo mật | 4 | 4 | Xong |
+| Email + hộp thư đi | 4 | 4 | Xong |
+| Bàn, ca, giờ mở cửa | 4 | 4 | Xong |
+| Đặt bàn | 7 | 7 | Xong |
+| Thực đơn + nhập/xuất Excel | 6 | 6 | Xong |
+| Đặt món mang về | 8 | 8 | Xong |
+| Điểm & hạng | 5 | 4,5 | Còn voucher sinh nhật |
+| Voucher & khuyến mãi | 5 | 3,5 | **Đang làm** — còn bước 2 |
+| Nội dung (CMS) | 4 | 0 | Chưa làm |
+| Quản lý khách & nhân viên | 3 | 0 | Chưa làm |
+| Báo cáo, dashboard, cài đặt | 4 | 0 | Chưa làm |
+| Realtime (SignalR) | 2 | 0 | Chưa làm |
+| Đa ngôn ngữ | 2 | 0 | Chưa làm |
+| Giao diện khách | 12 | 0 | Chưa làm |
+| Giao diện quản trị | 8 | 0 | Chưa làm |
+| PWA | 2 | 0 | Chưa làm |
+| Triển khai (Docker, Nginx, sao lưu) | 4 | 0 | Chưa làm |
+| Kiểm thử cuối (E2E, hiệu năng, bảo mật) | 3 | 0 | Chưa làm |
+
+Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) không tính.
+
+## 3. Thứ tự làm tiếp
+
+Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
+
+1. **Voucher bước 2 (việc kế tiếp):** khuyến mãi công khai (`/promotions`), voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản
+2. Nội dung (CMS)
+3. Quản lý khách & nhân viên
+4. Báo cáo, dashboard, cài đặt
+5. Realtime (SignalR)
+6. Đa ngôn ngữ
+7. Giao diện khách → Giao diện quản trị → PWA
+8. Triển khai → Kiểm thử cuối
+
+## 4. Đã làm theo từng phần
+
+| Phần | Commit | Nội dung chính |
+|---|---|---|
+| Khung, CI | `b3fda45` → `b3d118a` | Solution 4 lớp, khung Angular, CI, ArchTests |
+| Nền CSDL | `5431b1c` | EF Core, migration, `Users`, `Staff`, `RefreshTokens`, `AuditLogs`, vai trò `ot_app_runtime` |
+| Xác thực | `201776c`, `fec81ab`, `ffeca06`, `7512afb` | PBKDF2, JWT hai scheme, xoay refresh token, 2FA TOTP, mã khôi phục, lời mời nhân viên |
+| Phân quyền | `0b7159b` | Ma trận `StaffCapability`, audit, giới hạn tần suất theo IP thật, header bảo mật |
+| Bàn và giờ | `ba39150` | Khu vực, bàn, sơ đồ, ca phục vụ, khóa ngày, giờ mở cửa |
+| Email | `7f7c546` | Hộp thư đi có thử lại, SMTP/pickup, mẫu vi/en/ja, xác thực email, đặt lại mật khẩu |
+| Đặt bàn | `ee0f79d`, `15532f0` | Giữ chỗ nguyên tử, tra cứu/hủy, máy trạng thái, màn hình lễ tân, OTP chọn lọc, Turnstile, việc định kỳ, tệp `.ics` |
+| Thực đơn | `59d3c85`, `5d107c9` | Danh mục, món, tùy chọn, bản dịch en/ja, cache công khai, nhập/xuất Excel có xem trước |
+| Đặt món | `2e76616`, `63a7973` | Giá do server tính, giờ lấy, theo dõi, tự hủy, màn hình bếp và thu ngân, hoàn tiền, cờ không đến lấy, danh sách và thư "cần xử lý" |
+| Điểm & hạng | `8ee787e` | Sổ cái chỉ thêm, lô FIFO, hạng, giảm theo hạng, nợ điểm, hết hạn, điều chỉnh bốn mắt |
+| Voucher bước 1 | `0539d34` | Kiểm mã, giữ lượt nguyên tử, hoàn lượt, đổi điểm, sinh hàng loạt, duyệt bốn mắt |
+| Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
+
+## 5. Backend hiện có
+
+**Cấu trúc:** `Contracts` ← `Core` ← `Infrastructure` ← `Api`.
+
+- `Contracts`: DTO, enum, mã lỗi
+- `Core`: nghiệp vụ, chia thư mục `Audit`, `Auth`, `Common`, `Loyalty`, `Menu`, `Notifications`, `Orders`, `Reservations`, `Tables`, `Time`, `Verification`, `Vouchers`
+- `Infrastructure`: EF, repository, email, job, ClosedXML
+- `Api`: controller mỏng
+
+**API công khai và khách** (tiền tố `/api/v1`): `auth`, `otp`, `menu`, `public/opening-hours`, `reservations`, `orders`, `vouchers/validate`, `account/orders`, `account/loyalty-points`, `account/vouchers`, `account/redeem-points`.
+
+**API quản trị** (`/api/v1/admin`): `auth`, `table-areas`, `tables`, `opening-hours`, `service-slots`, `blocked-dates`, `reservations`, `menu/*`, `orders`, `customers/{id}/loyalty-points`, `loyalty/adjustments`, `vouchers`.
+
+**Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`.
+
+**Kiểm thử ở commit `1e20913`:** 705 test (250 kiến trúc, 342 đơn vị, 113 tích hợp trên SQL Server thật).
+
+## 6. Quyết định và hành vi cần nhớ
+
+Những điểm không thấy ngay khi đọc yêu cầu:
+
+- **Tiền:** mọi giá do server đọc từ CSDL lúc đặt; thân request có trường lạ thì bị từ chối 400.
+- **Giảm giá:** voucher và giảm theo hạng loại trừ nhau; có mã thì dùng voucher.
+- **Sổ cái điểm:** chỉ thêm, tài khoản ứng dụng bị `DENY UPDATE, DELETE`. Mọi thay đổi điểm đi qua `LoyaltyLedger`, trong transaction của bên gọi.
+- **Điểm tích lũy:** không giảm khi thu hồi hoặc hết hạn. Hạng không bao giờ hạ.
+- **Thu hồi điểm đơn:** có mã nhưng hiện không chạy tới được, vì máy trạng thái không cho hủy đơn đã hoàn thành.
+- **Sự kiện đơn hoàn thành:** cộng điểm gọi trực tiếp trong transaction, chưa dùng sự kiện outbox `OrderCompleted` như `BR-ORD-15`.
+- **Tên món trong đơn:** chụp cả tiếng Việt (cho bếp) và tên theo ngôn ngữ khách, nên `OrderItems`/`OrderItemOptions` có thêm cột `*Localized` so với từ điển dữ liệu.
+- **Cột thêm so với từ điển dữ liệu:** `Orders.NeedsContactConfirm`, `NoPickup`, `AttentionNotifiedAtUtc`, `CancelledByType`; `Vouchers.ApprovalStatus`, `BatchId`; bảng `LoyaltyAdjustments`.
+- **Quyền voucher:** dùng chung `StaffCapability.Customers` theo dòng "Khách hàng, khuyến mãi, voucher" của ma trận.
+- **Giới hạn thư:** mỗi địa chỉ nhận tối đa 3 thư cùng loại mỗi giờ và 10 thư mỗi ngày; thư vượt giới hạn bị bỏ hẳn, không hoãn (xem mục "Rủi ro thư bị bỏ" của `VIEC_CON_NO.md`).
+- **Định dạng liên hệ:** SĐT lưu dạng `+84…`; email lưu chữ thường.
+- **Đường dẫn lạ:** trả 401 (chính sách từ chối mặc định), không phải 404.
+
+## 7. Môi trường dev
+
+- **CSDL:** `ObentoTensho_V2_Dev` (chạy thử), `ObentoTensho_V2_Test` (test tích hợp). Không đụng `ObentoTensho_Dev` của dự án cũ.
+- **Cấu hình:** User Secrets của `src/ObentoTensho.Api`, danh sách khóa trong `README.md`.
+- **Chạy API:** `dotnet run --project src/ObentoTensho.Api --launch-profile http`, cổng 5212.
+- **Thử API:** `http://localhost:5212/scalar/`. Trang đã kiểm bằng lệnh, chưa mở thử trong trình duyệt.
+- **Email dev:** ghi tệp `.eml` vào `src/ObentoTensho.Api/mail-pickup/`.
+- **Tạo migration:** đặt `ConnectionStrings__Default` rồi chạy `dotnet ef` với `-p` và `-s` là `src/ObentoTensho.Infrastructure`.
+- **Dữ liệu mẫu trong CSDL dev (không nằm trong mã nguồn, không phải dữ liệu thật):** 4 món, 2 danh mục, nhóm Size, giờ mở 10:30–21:00 mỗi ngày, 2 ca, voucher `GIAM10`.
+- **Chưa có:** tài khoản nhân viên nào trong CSDL dev, nên chưa thử được API quản trị bằng tay. Tạo SuperAdmin bằng các khóa `Seed:SuperAdmin:*`, xem `README.md`.
