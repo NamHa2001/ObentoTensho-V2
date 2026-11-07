@@ -13,6 +13,13 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Dashboard và báo cáo (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| `SqlServerRetryingExecutionStrategy does not support user-initiated transactions` | Mở transaction tay trong repository khi đang bật tự thử lại | Dùng `IUnitOfWork.InTransactionAsync` ở tầng dịch vụ | Không gọi `BeginTransaction` trực tiếp |
+| Test doanh thu dashboard xanh khi chạy riêng, đỏ khi chạy cả bộ | Test giả định doanh thu hôm nay > 0, trong khi test khác hoàn tiền cùng ngày nên số ròng có thể bằng 0 hoặc âm | Đối chiếu với tổng tính trực tiếp từ bảng gốc | Không khẳng định con số tuyệt đối trên dữ liệu dùng chung |
+
 ## Cài đặt (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

@@ -27,6 +27,7 @@ public static class CustomersConfiguration
         services.AddScoped<BusinessCalendar>();
         services.AddScoped<StatsRollupService>();
         services.AddScoped<DashboardService>();
+        services.AddScoped<ReportService>();
         services.AddScoped<IRecurringJob, StatsRollupJob>();
         services.AddScoped<IRecurringJob, StatsReconcileJob>();
         services.AddScoped<SettingsSeeder>();

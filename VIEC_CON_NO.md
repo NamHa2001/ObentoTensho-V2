@@ -131,6 +131,8 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |
 | Khóa đã có trong danh mục nhưng chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `i18n.*`, `otp.channel` khác email | `19` §3.1 | Mỗi khóa có tác dụng khi làm tính năng tương ứng |
 | Ghi vào `docs/srs/18`: `STEP_UP_REQUIRED` trả 401 theo nghiệm thu `19` §5 | `SEC-61` | Frontend phân biệt với hết phiên bằng `errorCode` |
+| Xuất báo cáo PDF | `BR-RPT-13`, `D-04` | Chờ chủ dự án chọn: QuestPDF (giấy phép có điều kiện doanh thu) hoặc Playwright (phải cài trình duyệt lên máy chủ) |
+| Báo cáo năm dài: dữ liệu trước khi chạy job rollup không có trong `DailyStats` (job chỉ tính 2 ngày gần nhất, đối soát 7 ngày) | `PERF-55` | Cần lệnh tính lại toàn bộ khi nhập dữ liệu cũ |
 | Cập nhật tài liệu dữ liệu: thêm bảng `DataExports`, cột `Users.DeletionScheduledAtUtc` | `docs/srs/08` | Phát sinh khi làm; `Orders.CustomerPhone` để trống sau ẩn danh hóa |
 | Cập nhật tài liệu dữ liệu: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` | Cột phát sinh khi làm; người đăng ký có thể chưa có tài khoản |
 | `POST /newsletter/subscribe` trả `already_subscribed` cho biết email đã đăng ký | `BR-CNT-20` | Làm đúng SRS; chủ dự án cân nhắc đổi sang phản hồi giống nhau |

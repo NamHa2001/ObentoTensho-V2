@@ -6,6 +6,7 @@ public static class StatMetrics
     public const string RevenuePaid = "revenue_paid";
     public const string RefundsAmount = "refunds_amount";
     public const string OrdersCreated = "orders_created";
+    public const string OrdersPaid = "orders_paid";
     public const string OrdersCompleted = "orders_completed";
     public const string OrdersCancelled = "orders_cancelled";
     public const string ItemQuantity = "item_quantity";

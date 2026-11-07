@@ -1,5 +1,7 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
+using ObentoTensho.Contracts.Dtos.Reports;
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Reports.Abstractions;
 using ObentoTensho.Core.Reports.Domain;
 
@@ -8,6 +10,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Repositories;
 internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
 {
     private const string Vietnam = "SE Asia Standard Time";
+
+    // BR-RPT-30
+    private const int QueryTimeoutSeconds = 15;
 
     // BR-RPT-10, BR-RPT-31: gom nhóm trong SQL, giờ VN bằng AT TIME ZONE; đơn lấy theo mốc riêng của từng số liệu; đặt bàn theo ReservedDate
     public async Task<IReadOnlyList<StatRow>> ComputeDayAsync(DateOnly day, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
@@ -38,6 +43,8 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
             SELECT 'orders_created', CONCAT('hour:', h.Hour), COUNT(*)
             FROM Orders o CROSS APPLY (SELECT DATEPART(hour, o.CreatedAtUtc AT TIME ZONE 'UTC' AT TIME ZONE {Vietnam}) AS Hour) h
             WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} GROUP BY h.Hour
+            UNION ALL
+            SELECT 'orders_paid', '', COUNT(*) FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} HAVING COUNT(*) > 0
             UNION ALL
             SELECT 'orders_completed', '', COUNT(*) FROM Orders o WHERE o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} HAVING COUNT(*) > 0
             UNION ALL
@@ -73,6 +80,39 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
 
     public async Task<IReadOnlyList<DailyStat>> ReadAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken) =>
         await db.DailyStats.AsNoTracking().Where(s => s.Date >= from && s.Date <= to).ToListAsync(cancellationToken);
+
+    public async Task<ReportNames> LoadNamesAsync(CancellationToken cancellationToken)
+    {
+        var categories = await db.MenuCategories.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Name, cancellationToken);
+        var items = await db.MenuItems.AsNoTracking().ToDictionaryAsync(m => m.Id, m => m.NameVi, cancellationToken);
+        var areas = await db.TableAreas.AsNoTracking().ToDictionaryAsync(a => a.Id, a => a.Name, cancellationToken);
+        return new ReportNames(categories, items, areas);
+    }
+
+    public async Task<CustomerStats> LoadCustomerStatsAsync(DateTime fromUtc, DateTime toUtc, DateTime retentionFromUtc, int topLimit, CancellationToken cancellationToken)
+    {
+        db.Database.SetCommandTimeout(QueryTimeoutSeconds);
+        var tiers = await db.Users.AsNoTracking()
+            .Where(u => !u.IsDeleted)
+            .GroupBy(u => u.MemberTier)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+        var perCustomer = db.Orders.AsNoTracking()
+            .Where(o => o.UserId != null && o.Status != OrderStatus.Cancelled && o.CreatedAtUtc >= retentionFromUtc && o.CreatedAtUtc < toUtc)
+            .GroupBy(o => o.UserId)
+            .Select(g => g.Count());
+        var active = await perCustomer.CountAsync(cancellationToken);
+        var returning = await perCustomer.CountAsync(c => c >= 2, cancellationToken);
+        var top = await db.Orders.AsNoTracking()
+            .Where(o => o.UserId != null && o.Status != OrderStatus.Cancelled && o.PaidAtUtc >= fromUtc && o.PaidAtUtc < toUtc)
+            .GroupBy(o => o.UserId)
+            .Select(g => new { UserId = g.Key, Orders = g.Count(), Spent = g.Sum(o => o.TotalAmount) })
+            .OrderByDescending(x => x.Spent)
+            .Take(topLimit)
+            .Join(db.Users, x => x.UserId, u => u.Id, (x, u) => new TopCustomerDto(u.Id, u.FullName, x.Orders, x.Spent))
+            .ToListAsync(cancellationToken);
+        return new CustomerStats(tiers.Select(t => new TierCountDto(t.Key.ToString(), t.Count)).ToArray(), active, returning, top.OrderByDescending(t => t.Spent).ToArray());
+    }
 
     // Một truy vấn cho mọi phần phụ của bảng tin (BR-RPT-32)
     public async Task<DashboardExtras> LoadDashboardExtrasAsync(DateOnly today, DateTime nowUtc, CancellationToken cancellationToken)

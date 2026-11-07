@@ -12,5 +12,10 @@ public interface IStatsRepository
 
     Task<IReadOnlyList<DailyStat>> ReadAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken);
 
+    Task<ReportNames> LoadNamesAsync(CancellationToken cancellationToken);
+
+    // BR-RPT-14: đếm khách có đơn hợp lệ trong [retentionFromUtc, toUtc); top khách theo tiền đã thu trong [fromUtc, toUtc)
+    Task<CustomerStats> LoadCustomerStatsAsync(DateTime fromUtc, DateTime toUtc, DateTime retentionFromUtc, int topLimit, CancellationToken cancellationToken);
+
     Task<DashboardExtras> LoadDashboardExtrasAsync(DateOnly today, DateTime nowUtc, CancellationToken cancellationToken);
 }

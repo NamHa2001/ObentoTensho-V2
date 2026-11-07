@@ -2,7 +2,7 @@
 
 Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
 
-Cập nhật lần cuối: 07/11/2026 — sau đợt Dashboard của phần Báo cáo, dashboard, cài đặt.
+Cập nhật lần cuối: 07/11/2026 — sau khi xong phần Báo cáo, dashboard, cài đặt (còn xuất PDF chờ chọn thư viện).
 
 - **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
 - **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
@@ -22,7 +22,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 
 ## 2. Tiến độ theo bảng trọng số
 
-**Toàn dự án: khoảng 65,6/100. Riêng backend: khoảng 65,6/71 (92%). Giao diện: 0/22.**
+**Toàn dự án: khoảng 66,8/100. Riêng backend: khoảng 66,8/71 (94%). Giao diện: 0/22.**
 
 | Phần | Trọng số | Đã xong | Trạng thái |
 |---|---:|---:|---|
@@ -40,7 +40,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Voucher & khuyến mãi | 5 | 5 | Xong |
 | Nội dung (CMS) | 4 | 4 | Xong — ảnh, banner, gallery, tin tức, trang tĩnh, đánh giá, liên hệ, newsletter |
 | Quản lý khách & nhân viên | 3 | 3 | Xong — nhân viên, step-up, xem audit, quản lý khách, xuất dữ liệu, tài khoản khách, xóa tài khoản |
-| Báo cáo, dashboard, cài đặt | 4 | 2,6 | **Đang làm** — xong cài đặt, dashboard + `DailyStats`; còn báo cáo |
+| Báo cáo, dashboard, cài đặt | 4 | 3,8 | Xong cài đặt, dashboard, báo cáo, xuất Excel; còn xuất PDF chờ chốt thư viện |
 | Realtime (SignalR) | 2 | 0 | Chưa làm |
 | Đa ngôn ngữ | 2 | 0 | Chưa làm |
 | Giao diện khách | 12 | 0 | Chưa làm |
@@ -55,7 +55,6 @@ Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) kh
 
 Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 
-3. **Báo cáo, dashboard, cài đặt — đang làm:** còn báo cáo + xuất Excel/PDF
 4. Realtime (SignalR)
 5. Đa ngôn ngữ
 6. Giao diện khách → Giao diện quản trị → PWA
@@ -87,7 +86,8 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | Quản lý khách | `804e5ae` | Danh sách che liên hệ, chi tiết có audit, khóa có lý do, xuất Excel bằng job nền cho khách và newsletter |
 | Tài khoản khách | `31bde01` | Hồ sơ, đổi mật khẩu, đổi email, thiết bị, bật/tắt bản tin, xóa tài khoản sau 7 ngày bằng ẩn danh hóa |
 | Cài đặt | `e28ef97` | Bảng `SystemSettings`, danh mục 61 khóa, kiểm giá trị, khóa thanh toán có step-up, các module đọc từ bảng |
-| Dashboard | commit ngay sau `e28ef97` | `DailyStats` tính lại từ bảng gốc, đối soát hằng ngày, bảng tin theo vai trò |
+| Dashboard | `57be1c2` | `DailyStats` tính lại từ bảng gốc, đối soát hằng ngày, bảng tin theo vai trò |
+| Báo cáo | commit ngay sau `57be1c2` | Doanh thu, đặt bàn, đơn, khách, món bán chạy, xuất Excel |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -105,7 +105,7 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 
 **Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`, `media.process-images`.
 
-**Kiểm thử:** 1.073 test (456 kiến trúc, 439 đơn vị, 178 tích hợp trên SQL Server thật).
+**Kiểm thử:** 1.091 test (468 kiến trúc, 439 đơn vị, 184 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 
