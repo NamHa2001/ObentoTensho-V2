@@ -44,7 +44,7 @@ public sealed class OtpService(
             Purpose = purpose,
             TargetHash = targetHash,
             CodeHash = CodeHash(targetHash, code),
-            ExpiresAtUtc = now + OtpPolicy.Lifetime,
+            ExpiresAtUtc = now.AddSeconds(settings.TtlSeconds),
             IpHash = ipHash,
             CreatedAtUtc = now,
         });
@@ -68,7 +68,7 @@ public sealed class OtpService(
         if (!secureTokens.HashEquals(challenge.CodeHash, CodeHash(targetHash, code)))
         {
             challenge.Attempts++;
-            if (challenge.Attempts >= OtpPolicy.MaxAttempts)
+            if (challenge.Attempts >= settings.MaxAttempts)
             {
                 challenge.ExpiresAtUtc = now;
             }
@@ -86,7 +86,7 @@ public sealed class OtpService(
     private async Task<bool> IsThrottledAsync(OtpPurpose purpose, string targetHash, string? ipHash, CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        if (await challenges.LastSentAtAsync(purpose, targetHash, cancellationToken) is { } last && now - last < OtpPolicy.ResendInterval)
+        if (await challenges.LastSentAtAsync(purpose, targetHash, cancellationToken) is { } last && now - last < TimeSpan.FromSeconds(settings.ResendSeconds))
         {
             return true;
         }

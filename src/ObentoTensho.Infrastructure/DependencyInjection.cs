@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Customers.Abstractions;
+using ObentoTensho.Core.Settings.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
@@ -27,6 +28,7 @@ using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
 using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
+using ObentoTensho.Infrastructure.Settings;
 using ObentoTensho.Infrastructure.Spreadsheets;
 using ObentoTensho.Infrastructure.Time;
 using ObentoTensho.Infrastructure.Vouchers;
@@ -97,19 +99,19 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(ReservationOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Reservation không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
-        services.AddSingleton<IReservationSettings>(sp => sp.GetRequiredService<IOptions<ReservationOptions>>().Value);
+        services.AddSingleton<IReservationSettings, StoreReservationSettings>();
 
         services.AddOptions<LoyaltyOptions>()
             .Bind(configuration.GetSection(LoyaltyOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Loyalty không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
-        services.AddSingleton<ILoyaltySettings>(sp => sp.GetRequiredService<IOptions<LoyaltyOptions>>().Value);
+        services.AddSingleton<ILoyaltySettings, StoreLoyaltySettings>();
 
         services.AddOptions<VoucherOptions>()
             .Bind(configuration.GetSection(VoucherOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Voucher không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
-        services.AddSingleton<IVoucherSettings>(sp => sp.GetRequiredService<IOptions<VoucherOptions>>().Value);
+        services.AddSingleton<IVoucherSettings, StoreVoucherSettings>();
 
         services.AddOptions<MediaOptions>().Bind(configuration.GetSection(MediaOptions.SectionName));
         services.AddOptions<ContentOptions>().Bind(configuration.GetSection(ContentOptions.SectionName));
@@ -119,7 +121,13 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(OrderOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Order không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
-        services.AddSingleton<IOrderSettings>(sp => sp.GetRequiredService<IOptions<OrderOptions>>().Value);
+        services.AddSingleton<IOrderSettings, StoreOrderSettings>();
+
+        services.AddSingleton<SettingsStore>();
+        services.AddSingleton<ISettingsReader>(sp => sp.GetRequiredService<SettingsStore>());
+        services.AddSingleton<ISettingsSnapshot>(sp => sp.GetRequiredService<SettingsStore>());
+        services.AddScoped<ISettingsRepository, SettingsRepository>();
+        services.AddHostedService<SettingsRefreshWorker>();
     }
 
     public static IServiceCollection AddSecurityFoundation(this IServiceCollection services, IConfiguration configuration)

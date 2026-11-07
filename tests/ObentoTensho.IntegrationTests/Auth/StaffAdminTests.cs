@@ -100,7 +100,7 @@ public sealed class StaffAdminTests : IDisposable
 
         var missing = await RiskyAsync(HttpMethod.Post, Staff, superAdmin, null, body);
         Assert.Equal(ErrorCodes.StepUpRequired, await AuthApiClient.ReadErrorCodeAsync(missing));
-        Assert.Equal(HttpStatusCode.Forbidden, missing.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, missing.StatusCode);
 
         var wrong = await _admin.SendAsync(HttpMethod.Post, StepUp, superAdmin, new { password = "sai-mat-khau", code = (string?)null });
         Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
@@ -108,10 +108,10 @@ public sealed class StaffAdminTests : IDisposable
 
         // Mã của người khác, hoặc mã tạm đăng nhập, không dùng được
         var foreign = await StepUpTokenAsync(other);
-        Assert.Equal(HttpStatusCode.Forbidden, (await RiskyAsync(HttpMethod.Post, Staff, superAdmin, foreign, body)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await RiskyAsync(HttpMethod.Post, Staff, superAdmin, foreign, body)).StatusCode);
         var myEmail = (await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Staff}/me", superAdmin))).GetProperty("email").GetString()!;
         var challenge = (await AdminAuthApiClient.ReadDataAsync(await _admin.LoginAsync(myEmail))).GetProperty("challenge").GetProperty("challengeToken").GetString();
-        Assert.Equal(HttpStatusCode.Forbidden, (await RiskyAsync(HttpMethod.Post, Staff, superAdmin, challenge, body)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await RiskyAsync(HttpMethod.Post, Staff, superAdmin, challenge, body)).StatusCode);
 
         Assert.Equal(HttpStatusCode.Created, (await RiskyAsync(HttpMethod.Post, Staff, superAdmin, await StepUpTokenAsync(superAdmin), body)).StatusCode);
 

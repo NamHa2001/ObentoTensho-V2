@@ -10,6 +10,7 @@ using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
 using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
+using ObentoTensho.Infrastructure.Settings;
 
 namespace ObentoTensho.Infrastructure;
 
@@ -32,7 +33,7 @@ public static class MessagingRegistration
             .ValidateOnStart();
 
         services.AddSingleton<IEmailTemplateRenderer, EmbeddedEmailTemplateRenderer>();
-        services.AddSingleton<INotificationSettings, OptionsNotificationSettings>();
+        services.AddSingleton<INotificationSettings, StoreNotificationSettings>();
         services.AddSingleton<SmtpEmailSender>();
         services.AddSingleton<PickupDirectoryEmailSender>();
         services.AddSingleton<IEmailSender>(sp =>
@@ -47,11 +48,7 @@ public static class MessagingRegistration
         services.AddHostedService<OutboxWorker>();
 
         // OTP (BR-AUTH-18)
-        services.AddOptions<OtpOptions>()
-            .Bind(configuration.GetSection(OtpOptions.SectionName))
-            .Validate(o => o.DailyQuota is >= 10 and <= 100_000, "Otp:DailyQuota phải từ 10 đến 100000.")
-            .ValidateOnStart();
-        services.AddSingleton<IOtpSettings>(sp => sp.GetRequiredService<IOptions<OtpOptions>>().Value);
+        services.AddSingleton<IOtpSettings, StoreOtpSettings>();
         services.AddScoped<IOtpRepository, OtpRepository>();
         services.AddScoped<IOtpEmailOutbox, OtpEmailOutbox>();
 

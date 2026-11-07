@@ -1,5 +1,7 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Settings.Domain;
 using ObentoTensho.Infrastructure.Persistence;
 
 namespace ObentoTensho.IntegrationTests.Fixtures;
@@ -44,6 +46,16 @@ public sealed class SqlServerFixture : IAsyncLifetime
 
         await using var context = CreateContext();
         await context.Database.MigrateAsync();
+
+        // Các test dùng chung EmailLogs trong ngày: hạn mức thật sẽ hoãn thư của test chạy sau
+        context.SystemSettings.Add(new SystemSetting
+        {
+            Key = SettingKeys.EmailDailyQuota,
+            Value = "100000",
+            ValueType = SettingType.Number,
+            Description = "Hạn mức test",
+        });
+        await context.SaveChangesAsync();
     }
 
     public AppDbContext CreateContext() =>

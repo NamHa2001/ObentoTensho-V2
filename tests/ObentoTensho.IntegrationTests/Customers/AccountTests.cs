@@ -307,7 +307,7 @@ public sealed class AccountTests : IDisposable
         var manager = await _admin.SignInAsync(StaffRole.Manager);
         var path = $"/api/v1/admin/customers/{id}/deletion";
 
-        Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Post, path, manager, new { reason = "Khách gọi điện" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _admin.SendAsync(HttpMethod.Post, path, manager, new { reason = "Khách gọi điện" })).StatusCode);
 
         var stepUp = (await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Post, "/api/v1/admin/auth/step-up", manager, new { password = AdminAuthApiClient.Password, code = (string?)null }))).GetProperty("token").GetString();
         using var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(new { reason = "Khách gọi điện" }) };

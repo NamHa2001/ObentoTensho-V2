@@ -1,6 +1,6 @@
 namespace ObentoTensho.Core.Loyalty.Abstractions;
 
-// Núm vặn `loyalty.*` (docs/srs/19 §3, D-34); khi có bảng cài đặt sẽ đọc từ đó thay cho cấu hình
+// Núm vặn `loyalty.*` (docs/srs/19 §3, D-34)
 public interface ILoyaltySettings
 {
     // BR-LOY-01: số đồng cho 1 điểm (≥ 1)

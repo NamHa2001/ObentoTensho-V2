@@ -4,12 +4,8 @@ namespace ObentoTensho.Core.Verification.Domain;
 public static class OtpPolicy
 {
     public const int CodeLength = 6;
-    public const int MaxAttempts = 5;
     public const int MaxPerHourPerTarget = 3;
 
     // Một IP (vd bot) không gửi được mã tới hàng loạt địa chỉ khác nhau
     public const int MaxPerHourPerIp = 10;
-
-    public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(5);
-    public static readonly TimeSpan ResendInterval = TimeSpan.FromSeconds(60);
 }

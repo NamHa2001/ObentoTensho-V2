@@ -9,14 +9,14 @@ using ObentoTensho.Infrastructure.Persistence;
 namespace ObentoTensho.Infrastructure.Messaging;
 
 // Mã rõ chỉ nằm trong hộp thư đi tới khi gửi xong (payload bị xóa sau đó)
-internal sealed class OtpEmailOutbox(AppDbContext db, IClock clock) : IOtpEmailOutbox
+internal sealed class OtpEmailOutbox(AppDbContext db, IClock clock, IOtpSettings settings) : IOtpEmailOutbox
 {
     public void EnqueueCode(string email, string language, string code, Guid challengeKey)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["code"] = code,
-            ["minutes"] = ((int)OtpPolicy.Lifetime.TotalMinutes).ToString(CultureInfo.InvariantCulture),
+            ["minutes"] = (settings.TtlSeconds / 60).ToString(CultureInfo.InvariantCulture),
         };
         var request = new EmailRequest(EmailKind.VerificationCode, email, language, values, $"verification_code:{challengeKey:N}", RelatedEntityId: null);
         var now = clock.UtcNow;

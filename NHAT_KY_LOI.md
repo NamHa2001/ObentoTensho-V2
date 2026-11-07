@@ -13,6 +13,12 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Cài đặt (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Build lỗi `CA1720` ở enum `SettingType` | Tên thành viên `Int`, `Decimal`, `String` trùng tên kiểu | Đổi thành `Number`, `Text`, bỏ `Decimal` không dùng | Đặt tên theo ý nghĩa, không theo kiểu ngôn ngữ |
+
 ## Tài khoản khách (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

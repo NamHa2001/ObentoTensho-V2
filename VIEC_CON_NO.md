@@ -23,7 +23,7 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Áp step-up cho các thao tác rủi ro còn lại: đổi `payment.*`, điều chỉnh điểm lớn | `SEC-61` | Đã áp cho thao tác nhân viên và xuất dữ liệu |
+| Áp step-up cho điều chỉnh điểm lớn | `SEC-61` | Đã áp cho nhân viên, xuất dữ liệu, `payment.*` |
 | Bật 2FA tự nguyện cho vai trò không bắt buộc; tạo lại mã khôi phục | `2fa/recovery` | |
 | "Màn hình ca" bằng PIN cho bếp/thu ngân | `SEC-74` | |
 
@@ -38,7 +38,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | `/.well-known/security.txt`, runbook sự cố | `SEC-60` | |
 | Dọn dữ liệu theo vòng đời: outbox đã xử lý 7 ngày, `OtpChallenges` 1 ngày, `EmailLogs` 90 ngày, tài khoản chưa xác thực 30 ngày, refresh token hết hạn > 30 ngày | `DB-13` | Thêm `IRecurringJob` |
 | Việc định kỳ chạy theo giờ VN cố định (08:00, 01:00…) | `20` §4 | Bộ chạy hiện chỉ theo chu kỳ; cần cho sinh nhật, hết hạn điểm |
-| Bảng cài đặt `SystemSettings` + trang Cài đặt | `19` §3 | Hiện `reservation.*`, `email.dailyQuota`, `otp.*` đọc từ cấu hình |
 | Turnstile khi Cloudflare lỗi: đang từ chối hẳn; SRS gợi ý "chặt hơn bằng rate limit" | `SEC-57` | Cân nhắc lại khi triển khai |
 | Tách migration bật RCSI thành migration riêng | `DB-09` | Tùy chọn |
 | Lưu khóa Data Protection bền + mã hóa bằng chứng chỉ ở máy chủ | `SEC-16` | Bắt buộc khi triển khai (mất khóa ⇒ mất 2FA) |
@@ -105,7 +104,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 |---|---|---|
 | Đối soát hằng đêm `CurrentPoints = Σ sổ cái = Σ lô` và cảnh báo khi lệch | `BR-LOY-04` | Bất biến đã giữ trong mọi thao tác; còn thiếu việc định kỳ kiểm lại |
 | Cảnh báo nhân viên khi khách có nợ điểm | `BR-LOY-08` | Số nợ đã hiện ở `GET /admin/customers/{id}/loyalty-points`; màn hình ở giao diện quản trị |
-| Đọc ngưỡng hạng/thang điểm từ bảng cài đặt (hiện từ cấu hình `Loyalty:*`) | `BR-LOY-03`, `BR-RPT-21` | Phần cài đặt |
 | Điểm/vé chơi game dùng chung sổ cái | `BR-LOY-13` | Phase 2 |
 
 ## Đặt món mang về
@@ -114,7 +112,7 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 |---|---|---|
 | Nhắc "cần xử lý" real-time cho thu ngân (hiện qua thư gộp cho quản lý mỗi 10 phút + `GET /admin/orders/attention`) | `BR-ORD-18`, `docs/srs/20` #30 | Phần realtime |
 | Ngôn ngữ thư cho nhân viên (hiện luôn tiếng Việt vì bảng Staff chưa có cột ngôn ngữ) | `docs/srs/22` | Phần đa ngôn ngữ |
-| STK + QR chuyển khoản lấy từ cài đặt `payment.*` | `FR-ORD-03` | Phần cài đặt |
+| Trang đặt món hiện STK + QR từ `GET /public/settings` | `FR-ORD-03` | Bảng cài đặt và API đã có; làm ở giao diện khách |
 | Đơn mới/đổi trạng thái real-time cho bếp, thu ngân, trang theo dõi của khách | `RT-03`, `FR-ORD-05` | Phần realtime |
 | Turnstile chỉ bắt buộc với khách vãng lai | `BR-ORD-20` | Hiện bộ lọc Turnstile áp cho mọi lượt đặt khi bật |
 | Đánh giá món sau khi nhận đơn (`POST /reviews`) | `BR-CNT-11` | Phần nội dung/đánh giá |
@@ -131,6 +129,8 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Tự ngừng gửi cho địa chỉ bounce cứng, theo dõi tỷ lệ báo spam | `BR-CNT-26` | Cần webhook của nhà cung cấp email (`D-33`) |
 | Header one-click dùng `PublicBaseUrl/api/...`: cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Làm ở phần triển khai |
 | Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |
+| Khóa đã có trong danh mục nhưng chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `report.dayCutoffLocal`, `i18n.*`, `otp.channel` khác email | `19` §3.1 | Mỗi khóa có tác dụng khi làm tính năng tương ứng |
+| Ghi vào `docs/srs/18`: `STEP_UP_REQUIRED` trả 401 theo nghiệm thu `19` §5 | `SEC-61` | Frontend phân biệt với hết phiên bằng `errorCode` |
 | Cập nhật tài liệu dữ liệu: thêm bảng `DataExports`, cột `Users.DeletionScheduledAtUtc` | `docs/srs/08` | Phát sinh khi làm; `Orders.CustomerPhone` để trống sau ẩn danh hóa |
 | Cập nhật tài liệu dữ liệu: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` | Cột phát sinh khi làm; người đăng ký có thể chưa có tài khoản |
 | `POST /newsletter/subscribe` trả `already_subscribed` cho biết email đã đăng ký | `BR-CNT-20` | Làm đúng SRS; chủ dự án cân nhắc đổi sang phản hồi giống nhau |

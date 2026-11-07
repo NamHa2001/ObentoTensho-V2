@@ -4,4 +4,10 @@ namespace ObentoTensho.Core.Verification.Abstractions;
 public interface IOtpSettings
 {
     int DailyQuota { get; }
+
+    int TtlSeconds { get; }
+
+    int ResendSeconds { get; }
+
+    int MaxAttempts { get; }
 }

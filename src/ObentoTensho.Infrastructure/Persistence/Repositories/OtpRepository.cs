@@ -5,7 +5,7 @@ using ObentoTensho.Core.Verification.Domain;
 
 namespace ObentoTensho.Infrastructure.Persistence.Repositories;
 
-internal sealed class OtpRepository(AppDbContext db) : IOtpRepository
+internal sealed class OtpRepository(AppDbContext db, IOtpSettings settings) : IOtpRepository
 {
     public void Add(OtpChallenge challenge) => db.OtpChallenges.Add(challenge);
 
@@ -24,7 +24,7 @@ internal sealed class OtpRepository(AppDbContext db) : IOtpRepository
 
     public Task<OtpChallenge?> FindUsableForUpdateAsync(OtpPurpose purpose, string targetHash, DateTime nowUtc, CancellationToken cancellationToken) =>
         db.OtpChallenges
-            .Where(c => c.Purpose == purpose && c.TargetHash == targetHash && c.VerifiedAtUtc == null && c.ExpiresAtUtc > nowUtc && c.Attempts < OtpPolicy.MaxAttempts)
+            .Where(c => c.Purpose == purpose && c.TargetHash == targetHash && c.VerifiedAtUtc == null && c.ExpiresAtUtc > nowUtc && c.Attempts < settings.MaxAttempts)
             .OrderByDescending(c => c.Id)
             .FirstOrDefaultAsync(cancellationToken);
 }

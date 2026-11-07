@@ -141,6 +141,11 @@ public sealed class PublicReservationService(
                 return Result.Failure<PublicReservationDto>(ErrorCodes.NotFound);
             }
 
+            if (settings.CancellationHours > 0 && clock.UtcNow > reservation.ReservedAtUtc.AddHours(-settings.CancellationHours))
+            {
+                return Result.Failure<PublicReservationDto>(ErrorCodes.InvalidTransition);
+            }
+
             var applied = await transitions.ApplyAsync(reservation, ReservationStatus.Cancelled, ReservationActor.Guest, userId, Clean(request.Reason), ct);
             if (!applied.IsSuccess)
             {

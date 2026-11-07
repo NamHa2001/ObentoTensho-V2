@@ -1,6 +1,6 @@
 namespace ObentoTensho.Core.Orders.Abstractions;
 
-// Núm vặn `order.*` (docs/srs/19 §3); khi có bảng cài đặt sẽ đọc từ đó thay cho cấu hình
+// Núm vặn `order.*` (docs/srs/19 §3)
 public interface IOrderSettings
 {
     // BR-ORD-05: giờ lấy sớm nhất sau bây giờ, và phải trước giờ đóng cửa bấy nhiêu phút

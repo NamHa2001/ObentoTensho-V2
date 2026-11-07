@@ -1,6 +1,6 @@
 namespace ObentoTensho.Core.Reservations.Abstractions;
 
-// Núm vặn `reservation.*` (docs/srs/19 §3); khi có bảng cài đặt sẽ đọc từ đó thay cho cấu hình
+// Núm vặn `reservation.*` (docs/srs/19 §3)
 public interface IReservationSettings
 {
     int MaxGuestsPerBooking { get; }
@@ -8,6 +8,9 @@ public interface IReservationSettings
     int MaxAdvanceDays { get; }
 
     int MaxActivePerPhone { get; }
+
+    // BR-RSV-06: 0 = hủy tự do; > 0 = chỉ hủy được trước giờ hẹn bấy nhiêu giờ
+    int CancellationHours { get; }
 
     bool RequireContactVerify { get; }
 

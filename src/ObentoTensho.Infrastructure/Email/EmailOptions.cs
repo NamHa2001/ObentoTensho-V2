@@ -20,9 +20,6 @@ public sealed class EmailOptions
 
     public string PickupDirectory { get; set; } = "mail-pickup";
 
-    // BR-NTF-12 (`email.dailyQuota`): đặt bằng hạn mức thật của gói gửi thư
-    public int DailyQuota { get; set; } = 300;
-
     public string? SmtpHost { get; set; }
 
     public int SmtpPort { get; set; } = 587;
@@ -37,11 +34,6 @@ public sealed class EmailOptions
         if (!IsEmail(FromAddress) || (ReplyTo is not null && !IsEmail(ReplyTo)))
         {
             return "Email:FromAddress / Email:ReplyTo không hợp lệ.";
-        }
-
-        if (DailyQuota is < 10 or > 100_000)
-        {
-            return "Email:DailyQuota phải từ 10 đến 100000.";
         }
 
         if (string.Equals(Mode, PickupMode, StringComparison.Ordinal))
