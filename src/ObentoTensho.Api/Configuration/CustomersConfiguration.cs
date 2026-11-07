@@ -6,6 +6,7 @@ using ObentoTensho.Core.Content.Services;
 using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Customers.Validators;
+using ObentoTensho.Core.Reports.Services;
 using ObentoTensho.Core.Settings.Services;
 
 namespace ObentoTensho.Api.Configuration;
@@ -23,6 +24,11 @@ public static class CustomersConfiguration
         services.AddScoped<AccountService>();
         services.AddScoped<AccountDeletionService>();
         services.AddScoped<IRecurringJob, AccountDeletionJob>();
+        services.AddScoped<BusinessCalendar>();
+        services.AddScoped<StatsRollupService>();
+        services.AddScoped<DashboardService>();
+        services.AddScoped<IRecurringJob, StatsRollupJob>();
+        services.AddScoped<IRecurringJob, StatsReconcileJob>();
         services.AddScoped<SettingsSeeder>();
         services.AddScoped<SettingsService>();
         services.AddScoped<CustomerAdminService>();

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Customers.Domain;
+using ObentoTensho.Core.Reports.Domain;
 using ObentoTensho.Core.Settings.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Content.Domain;
@@ -86,6 +87,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<DataExport> DataExports => Set<DataExport>();
 
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
+
+    public DbSet<DailyStat> DailyStats => Set<DailyStat>();
 
     public DbSet<NewsletterSubscriber> NewsletterSubscribers => Set<NewsletterSubscriber>();
 

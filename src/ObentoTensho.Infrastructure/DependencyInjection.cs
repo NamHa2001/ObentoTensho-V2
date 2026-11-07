@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Customers.Abstractions;
+using ObentoTensho.Core.Reports.Abstractions;
 using ObentoTensho.Core.Settings.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
@@ -127,6 +128,8 @@ public static class DependencyInjection
         services.AddSingleton<ISettingsReader>(sp => sp.GetRequiredService<SettingsStore>());
         services.AddSingleton<ISettingsSnapshot>(sp => sp.GetRequiredService<SettingsStore>());
         services.AddScoped<ISettingsRepository, SettingsRepository>();
+        services.AddScoped<IStatsRepository, StatsRepository>();
+        services.AddSingleton<IDashboardCache, MemoryDashboardCache>();
         services.AddHostedService<SettingsRefreshWorker>();
     }
 

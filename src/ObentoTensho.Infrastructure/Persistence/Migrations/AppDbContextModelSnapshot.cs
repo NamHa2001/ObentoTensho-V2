@@ -2149,6 +2149,29 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Reports.Domain.DailyStat", b =>
+                {
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Metric")
+                        .HasColumnType("varchar(40)");
+
+                    b.Property<string>("Dimension")
+                        .HasColumnType("varchar(40)")
+                        .HasDefaultValue("");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<decimal>("Value")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Date", "Metric", "Dimension");
+
+                    b.ToTable("DailyStats", (string)null);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
                 {
                     b.Property<Guid>("Id")

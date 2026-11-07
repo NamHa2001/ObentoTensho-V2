@@ -129,7 +129,7 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Tự ngừng gửi cho địa chỉ bounce cứng, theo dõi tỷ lệ báo spam | `BR-CNT-26` | Cần webhook của nhà cung cấp email (`D-33`) |
 | Header one-click dùng `PublicBaseUrl/api/...`: cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Làm ở phần triển khai |
 | Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |
-| Khóa đã có trong danh mục nhưng chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `report.dayCutoffLocal`, `i18n.*`, `otp.channel` khác email | `19` §3.1 | Mỗi khóa có tác dụng khi làm tính năng tương ứng |
+| Khóa đã có trong danh mục nhưng chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `i18n.*`, `otp.channel` khác email | `19` §3.1 | Mỗi khóa có tác dụng khi làm tính năng tương ứng |
 | Ghi vào `docs/srs/18`: `STEP_UP_REQUIRED` trả 401 theo nghiệm thu `19` §5 | `SEC-61` | Frontend phân biệt với hết phiên bằng `errorCode` |
 | Cập nhật tài liệu dữ liệu: thêm bảng `DataExports`, cột `Users.DeletionScheduledAtUtc` | `docs/srs/08` | Phát sinh khi làm; `Orders.CustomerPhone` để trống sau ẩn danh hóa |
 | Cập nhật tài liệu dữ liệu: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` | Cột phát sinh khi làm; người đăng ký có thể chưa có tài khoản |
