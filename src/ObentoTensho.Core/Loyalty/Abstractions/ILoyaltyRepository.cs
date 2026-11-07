@@ -41,5 +41,5 @@ public interface ILoyaltyRepository
 
     Task<LoyaltyAdjustment?> FindAdjustmentAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<LoyaltyAdjustment>> ListAdjustmentsAsync(AdjustmentStatus? status, int limit, CancellationToken cancellationToken);
+    Task<IReadOnlyList<LoyaltyAdjustment>> ListAdjustmentsAsync(ApprovalStatus? status, int limit, CancellationToken cancellationToken);
 }

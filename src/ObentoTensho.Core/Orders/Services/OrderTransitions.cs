@@ -7,16 +7,18 @@ using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Core.Vouchers.Services;
 
 namespace ObentoTensho.Core.Orders.Services;
 
 // Áp một chuyển trạng thái lên đơn đang được theo dõi, trong transaction của bên gọi:
 // máy trạng thái (BR-ORD-06), gọi xác nhận trước khi làm (BR-ORD-21), chỉ giao món khi đã thanh toán (BR-ORD-10),
-// lịch sử, thư cho khách, cộng/thu hồi điểm cùng transaction (BR-ORD-08, BR-LOY-10). Hoàn voucher (BR-ORD-07) nối vào ở phần voucher.
+// lịch sử, thư cho khách, cộng/thu hồi điểm (BR-ORD-08, BR-LOY-10) và hoàn voucher (BR-ORD-07) cùng transaction.
 public sealed class OrderTransitions(
     IOrderRepository orders,
     IOrderEmailOutbox emails,
     LoyaltyLedger ledger,
+    VoucherEvaluator vouchers,
     ILoyaltySettings loyaltySettings,
     IClock clock)
 {
@@ -57,6 +59,12 @@ public sealed class OrderTransitions(
         });
         Notify(order, to, actor, cleanReason);
         await SettleLoyaltyAsync(order, to, cancellationToken);
+
+        // BR-ORD-07: hủy đơn ⇒ hoàn đúng một lượt voucher (máy trạng thái chỉ cho hủy một lần)
+        if (to == OrderStatus.Cancelled && order.VoucherId is { } voucherId)
+        {
+            await vouchers.ReleaseAsync(voucherId, order.UserId, cancellationToken);
+        }
         return Result.Success();
     }
 

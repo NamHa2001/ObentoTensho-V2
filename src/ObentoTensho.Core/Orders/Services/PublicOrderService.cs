@@ -12,6 +12,8 @@ using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Core.Vouchers.Domain;
+using ObentoTensho.Core.Vouchers.Services;
 
 namespace ObentoTensho.Core.Orders.Services;
 
@@ -26,6 +28,7 @@ public sealed class PublicOrderService(
     IActionThrottle throttle,
     IOrderSettings settings,
     LoyaltyService loyalty,
+    VoucherEvaluator vouchers,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<CreateOrderRequest> validator,
@@ -95,17 +98,27 @@ public sealed class PublicOrderService(
             return Result.Failure<CreatedOrderDto>(ErrorCodes.OrderLimit);
         }
 
-        // BR-ORD-03: thành viên được giảm theo hạng (khi có voucher thì hai loại giảm loại trừ nhau — phần voucher)
-        var totals = OrderPricing.Compute(priced.SubTotal, await loyalty.MemberDiscountRateAsync(userId, cancellationToken), voucherDiscount: 0);
-
-        // BR-ORD-21: khách lần đầu, đơn tiền mặt lớn, hoặc SĐT nhiều lần không đến lấy (BR-ORD-18) phải gọi xác nhận trước khi bếp làm
-        var needsCall = !await orders.HasCompletedForPhoneAsync(phone, cancellationToken)
-            || (request.PaymentMethod == PaymentMethod.Cash && totals.TotalAmount >= settings.CallConfirmThreshold)
-            || (await orders.FlaggedPhonesAsync([phone], clock.UtcNow - NoPickupWindow, settings.NoPickupFlagCount, cancellationToken)).Count > 0;
-
-        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, needsCall, userId);
-        return await unitOfWork.TryInTransactionAsync(async ct =>
+        var pricing = await TotalsAsync(request.VoucherCode, priced.SubTotal, userId, cancellationToken);
+        if (!pricing.IsSuccess)
         {
+            return Result.Failure<CreatedOrderDto>(pricing.ErrorCode ?? ErrorCodes.VoucherInvalid);
+        }
+
+        var (totals, voucher) = pricing.Value;
+        var needsCall = await NeedsCallAsync(phone, request.PaymentMethod, totals.TotalAmount, cancellationToken);
+        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, voucher, needsCall, userId);
+        return await PersistAsync(draft, cancellationToken);
+    }
+
+    private Task<Result<CreatedOrderDto>> PersistAsync(OrderDraft draft, CancellationToken cancellationToken) =>
+        unitOfWork.TryInTransactionAsync(async ct =>
+        {
+            // BR-VCH-07: giữ lượt voucher cùng transaction với đơn — tạo đơn lỗi thì lượt không bị trừ
+            if (draft.Voucher is { } voucher && !await vouchers.ReserveAsync(voucher, draft.UserId, ct))
+            {
+                return Result.Failure<CreatedOrderDto>(ErrorCodes.VoucherExhausted);
+            }
+
             var token = secureTokens.Create();
             var order = NewOrder(draft, await orders.NextDailySeqAsync(clock.TodayLocal, ct), token.Hash);
             orders.Add(order);
@@ -114,14 +127,34 @@ public sealed class PublicOrderService(
                 OrderId = order.Id,
                 ToStatus = OrderStatus.Pending,
                 ChangedByType = OrderActor.Customer,
-                ChangedById = userId,
+                ChangedById = draft.UserId,
                 ChangedAtUtc = order.CreatedAtUtc,
             });
             emails.EnqueueReceived(order, token.Value);
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(new CreatedOrderDto(order.ToPublic(clock), token.Value));
         }, cancellationToken);
+
+    // BR-ORD-03, BR-VCH-04: có mã ⇒ giảm theo voucher (không giảm theo hạng); không mã ⇒ thành viên giảm theo hạng
+    private async Task<Result<(OrderPricing.Totals Totals, Voucher? Voucher)>> TotalsAsync(string? voucherCode, decimal subTotal, Guid? userId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(voucherCode))
+        {
+            var rate = await loyalty.MemberDiscountRateAsync(userId, cancellationToken);
+            return Result.Success<(OrderPricing.Totals, Voucher?)>((OrderPricing.Compute(subTotal, rate, voucherDiscount: 0), null));
+        }
+
+        var evaluated = await vouchers.EvaluateAsync(voucherCode, subTotal, userId, cancellationToken);
+        return evaluated.IsSuccess
+            ? Result.Success<(OrderPricing.Totals, Voucher?)>((OrderPricing.Compute(subTotal, memberRate: 0, evaluated.Value.Discount), evaluated.Value.Voucher))
+            : Result.Failure<(OrderPricing.Totals, Voucher?)>(evaluated.ErrorCode ?? ErrorCodes.VoucherInvalid);
     }
+
+    // BR-ORD-21: khách lần đầu, đơn tiền mặt lớn, hoặc SĐT nhiều lần không đến lấy (BR-ORD-18) phải gọi xác nhận trước khi bếp làm
+    private async Task<bool> NeedsCallAsync(string phone, PaymentMethod method, decimal total, CancellationToken cancellationToken) =>
+        !await orders.HasCompletedForPhoneAsync(phone, cancellationToken)
+        || (method == PaymentMethod.Cash && total >= settings.CallConfirmThreshold)
+        || (await orders.FlaggedPhonesAsync([phone], clock.UtcNow - NoPickupWindow, settings.NoPickupFlagCount, cancellationToken)).Count > 0;
 
     private Order NewOrder(OrderDraft draft, int dailySeq, string tokenHash) =>
         new()
@@ -140,6 +173,8 @@ public sealed class PublicOrderService(
             MemberDiscount = draft.Totals.MemberDiscount,
             VoucherDiscount = draft.Totals.VoucherDiscount,
             TotalAmount = draft.Totals.TotalAmount,
+            VoucherId = draft.Voucher?.Id,
+            VoucherCodeSnapshot = draft.Voucher?.Code,
             PaymentMethod = draft.Request.PaymentMethod,
             NeedsContactConfirm = draft.NeedsContactConfirm,
             CreatedAtUtc = clock.UtcNow,
@@ -229,6 +264,7 @@ public sealed class PublicOrderService(
         DateTime PickupAtUtc,
         IReadOnlyList<OrderItem> Items,
         OrderPricing.Totals Totals,
+        Voucher? Voucher,
         bool NeedsContactConfirm,
         Guid? UserId);
 }

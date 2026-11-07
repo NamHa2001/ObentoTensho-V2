@@ -57,6 +57,10 @@ public sealed class LoyaltyRulesTests
 
         public int AdjustApprovalThreshold => 1000;
 
+        public int RedeemRequiredPoints => 100;
+
+        public decimal RedeemVoucherValue => 30_000m;
+
         public int SilverPoints => 300;
 
         public int GoldPoints => 1000;

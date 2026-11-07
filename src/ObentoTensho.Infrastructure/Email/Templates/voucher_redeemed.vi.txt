@@ -1,0 +1,22 @@
+subject: Mã voucher {{value}} của bạn
+===
+Xin chào {{fullName}},
+
+Bạn đã đổi {{points}} điểm lấy voucher:
+
+Mã: {{voucherCode}}
+Giá trị: {{value}}
+Hạn dùng: hết ngày {{expiryDate}}
+
+Voucher chỉ dùng được khi bạn đăng nhập tài khoản này, một lần, cho đơn mang về. Không dùng cùng ưu đãi hạng thành viên.
+
+Xem voucher của bạn: {{accountLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Bạn đã đổi {{points}} điểm lấy voucher:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã</td><td style="padding:4px 0"><strong>{{voucherCode}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giá trị</td><td style="padding:4px 0">{{value}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Hạn dùng</td><td style="padding:4px 0">hết ngày {{expiryDate}}</td></tr></table>
+<p>Voucher chỉ dùng được khi bạn đăng nhập tài khoản này, một lần, cho đơn mang về. Không dùng cùng ưu đãi hạng thành viên.</p><p><a class="button" href="{{accountLink}}">Xem voucher của bạn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

@@ -8,6 +8,7 @@ using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Core.Verification.Domain;
+using ObentoTensho.Core.Vouchers.Domain;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
 
@@ -74,6 +75,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<LoyaltyLot> LoyaltyLots => Set<LoyaltyLot>();
 
     public DbSet<LoyaltyAdjustment> LoyaltyAdjustments => Set<LoyaltyAdjustment>();
+
+    public DbSet<Voucher> Vouchers => Set<Voucher>();
+
+    public DbSet<UserVoucher> UserVouchers => Set<UserVoucher>();
 
     public DbSet<Order> Orders => Set<Order>();
 

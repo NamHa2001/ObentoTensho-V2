@@ -14,6 +14,9 @@ public sealed class RateLimitSettings
     // BR-ORD-20 `order`: mỗi IP tối đa 10 đơn/giờ (giới hạn chính là theo SĐT)
     public int OrderPerHour { get; set; } = 10;
 
+    // BR-VCH-12 `voucher`: kiểm mã voucher, chống dò mã
+    public int VoucherValidatePerMinute { get; set; } = 10;
+
     // `lookup`: tra cứu/hủy đặt bàn và đơn theo mã
     public int LookupPerMinute { get; set; } = 10;
 

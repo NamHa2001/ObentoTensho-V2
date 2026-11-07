@@ -65,5 +65,12 @@ public static class ErrorCodes
     // Điểm thưởng (docs/srs/13)
     public const string PointsInsufficient = "POINTS_INSUFFICIENT";
     public const string FourEyesRequired = "FOUR_EYES_REQUIRED";
+    // Voucher (docs/srs/14). VOUCHER_INVALID gộp mọi trường hợp không tồn tại/tắt/hết hạn/không phải chủ (BR-VCH-12)
+    public const string VoucherInvalid = "VOUCHER_INVALID";
+    public const string VoucherMinOrder = "VOUCHER_MIN_ORDER";
+    public const string VoucherTierMismatch = "VOUCHER_TIER_MISMATCH";
+    public const string VoucherExhausted = "VOUCHER_EXHAUSTED";
+    public const string VoucherLoginRequired = "VOUCHER_LOGIN_REQUIRED";
+    public const string VoucherInUse = "VOUCHER_IN_USE";
     public const string InternalError = "INTERNAL_ERROR";
 }

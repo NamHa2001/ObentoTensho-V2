@@ -41,6 +41,8 @@ public sealed class EmailTemplateTests
         ["tierName"] = "Bạc",
         ["discount"] = "3",
         ["expiryDate"] = "08/12/2026",
+        ["voucherCode"] = "DIEM-8K4Q7ZM2AB",
+        ["value"] = "30.000 ₫",
     };
 
     public static TheoryData<EmailKind, string> Cases()

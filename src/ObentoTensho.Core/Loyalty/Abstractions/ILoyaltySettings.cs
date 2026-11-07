@@ -20,6 +20,11 @@ public interface ILoyaltySettings
     // BR-LOY-21
     int AdjustApprovalThreshold { get; }
 
+    // BR-LOY-05/07: số điểm đổi một voucher và giá trị voucher (₫)
+    int RedeemRequiredPoints { get; }
+
+    decimal RedeemVoucherValue { get; }
+
     // BR-LOY-03: ngưỡng điểm tích lũy và % giảm của từng hạng
     int SilverPoints { get; }
 

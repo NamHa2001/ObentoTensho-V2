@@ -19,6 +19,10 @@ public sealed class LoyaltyOptions : ILoyaltySettings
 
     public int AdjustApprovalThreshold { get; set; } = 1000;
 
+    public int RedeemRequiredPoints { get; set; } = 100;
+
+    public decimal RedeemVoucherValue { get; set; } = 30_000m;
+
     public int SilverPoints { get; set; } = 300;
 
     public int GoldPoints { get; set; } = 1000;
@@ -34,7 +38,7 @@ public sealed class LoyaltyOptions : ILoyaltySettings
     // BR-LOY-01, BR-RPT-21: chặn cấu hình làm hỏng công thức (vd 0 đồng/điểm)
     public bool IsValid() =>
         VndPerPoint >= 1 && ReservationPoints is >= 0 and <= 1000 && ReservationPointsPerMonth is >= 0 and <= 5000
-        && PointExpiryMonths is >= 1 and <= 60 && ExpiryNoticeDays is >= 1 and <= 90 && AdjustApprovalThreshold is >= 1 and <= 100_000
+        && RedeemRequiredPoints >= 1 && RedeemVoucherValue >= 1 && PointExpiryMonths is >= 1 and <= 60 && ExpiryNoticeDays is >= 1 and <= 90 && AdjustApprovalThreshold is >= 1 and <= 100_000
         && SilverPoints >= 1 && GoldPoints > SilverPoints && DiamondPoints > GoldPoints
         && SilverDiscountPercent is >= 0 and <= 50 && GoldDiscountPercent is >= 0 and <= 50 && DiamondDiscountPercent is >= 0 and <= 50;
 }

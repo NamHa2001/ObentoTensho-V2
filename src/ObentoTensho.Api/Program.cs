@@ -25,6 +25,7 @@ builder.Services.AddReservationServices();
 builder.Services.AddMenuServices();
 builder.Services.AddOrderServices();
 builder.Services.AddLoyaltyServices();
+builder.Services.AddVoucherServices();
 
 var app = builder.Build();
 

@@ -83,7 +83,7 @@ internal sealed class LoyaltyRepository(AppDbContext db) : ILoyaltyRepository
     public Task<LoyaltyAdjustment?> FindAdjustmentAsync(Guid id, CancellationToken cancellationToken) =>
         db.LoyaltyAdjustments.SingleOrDefaultAsync(a => a.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<LoyaltyAdjustment>> ListAdjustmentsAsync(AdjustmentStatus? status, int limit, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<LoyaltyAdjustment>> ListAdjustmentsAsync(ApprovalStatus? status, int limit, CancellationToken cancellationToken) =>
         await db.LoyaltyAdjustments.AsNoTracking()
             .Where(a => status == null || a.Status == status)
             .OrderByDescending(a => a.RequestedAtUtc)

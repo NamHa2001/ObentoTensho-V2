@@ -10,7 +10,7 @@ internal sealed class LoyaltyAdjustmentConfiguration : IEntityTypeConfiguration<
 {
     public void Configure(EntityTypeBuilder<LoyaltyAdjustment> builder)
     {
-        var maxStatus = (byte)Enum.GetValues<AdjustmentStatus>().Max();
+        var maxStatus = (byte)Enum.GetValues<ApprovalStatus>().Max();
         builder.ToTable("LoyaltyAdjustments", table =>
         {
             table.HasCheckConstraint("CK_LoyaltyAdjustments_Points", "[Points] <> 0");

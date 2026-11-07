@@ -13,7 +13,7 @@ public sealed class LoyaltyAdjustment
 
     public required string Reason { get; init; }
 
-    public AdjustmentStatus Status { get; set; } = AdjustmentStatus.Pending;
+    public ApprovalStatus Status { get; set; } = ApprovalStatus.Pending;
 
     public required Guid RequestedByStaffId { get; init; }
 

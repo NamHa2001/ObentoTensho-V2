@@ -8,7 +8,7 @@ public sealed record LoyaltyAdjustmentDto(
     Guid UserId,
     int Points,
     string Reason,
-    AdjustmentStatus Status,
+    ApprovalStatus Status,
     Guid RequestedByStaffId,
     DateTime RequestedAtUtc,
     Guid? ReviewedByStaffId,

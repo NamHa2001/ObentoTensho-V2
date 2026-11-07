@@ -12,6 +12,7 @@ using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
+using ObentoTensho.Core.Vouchers.Abstractions;
 using ObentoTensho.Infrastructure.Caching;
 using ObentoTensho.Infrastructure.Loyalty;
 using ObentoTensho.Infrastructure.Messaging;
@@ -22,6 +23,7 @@ using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
 using ObentoTensho.Infrastructure.Spreadsheets;
 using ObentoTensho.Infrastructure.Time;
+using ObentoTensho.Infrastructure.Vouchers;
 
 namespace ObentoTensho.Infrastructure;
 
@@ -60,11 +62,21 @@ public static class DependencyInjection
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ILoyaltyRepository, LoyaltyRepository>();
         services.AddScoped<ILoyaltyEmailOutbox, LoyaltyEmailOutbox>();
+        services.AddScoped<IVoucherRepository, VoucherRepository>();
+        services.AddScoped<IVoucherEmailOutbox, VoucherEmailOutbox>();
         services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
         services.AddSingleton<IMenuSpreadsheet, ClosedXmlMenuSpreadsheet>();
 
+        AddBusinessSettings(services, configuration);
+
+        return services;
+    }
+
+    // Núm vặn nghiệp vụ (docs/srs/19 §3): sai giá trị thì dừng ngay khi khởi động
+    private static void AddBusinessSettings(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddOptions<ReservationOptions>()
             .Bind(configuration.GetSection(ReservationOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Reservation không hợp lệ (xem docs/srs/19 §3).")
@@ -77,13 +89,17 @@ public static class DependencyInjection
             .ValidateOnStart();
         services.AddSingleton<ILoyaltySettings>(sp => sp.GetRequiredService<IOptions<LoyaltyOptions>>().Value);
 
+        services.AddOptions<VoucherOptions>()
+            .Bind(configuration.GetSection(VoucherOptions.SectionName))
+            .Validate(o => o.IsValid(), "Cấu hình Voucher không hợp lệ (xem docs/srs/19 §3).")
+            .ValidateOnStart();
+        services.AddSingleton<IVoucherSettings>(sp => sp.GetRequiredService<IOptions<VoucherOptions>>().Value);
+
         services.AddOptions<OrderOptions>()
             .Bind(configuration.GetSection(OrderOptions.SectionName))
             .Validate(o => o.IsValid(), "Cấu hình Order không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
         services.AddSingleton<IOrderSettings>(sp => sp.GetRequiredService<IOptions<OrderOptions>>().Value);
-
-        return services;
     }
 
     public static IServiceCollection AddSecurityFoundation(this IServiceCollection services, IConfiguration configuration)

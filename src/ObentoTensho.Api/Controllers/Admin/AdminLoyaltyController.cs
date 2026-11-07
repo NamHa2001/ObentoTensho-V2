@@ -29,7 +29,7 @@ public sealed class AdminLoyaltyController(LoyaltyService loyalty) : ControllerB
         this.DataOrProblem(await loyalty.AdjustAsync(userId, request, User.StaffId(), cancellationToken));
 
     [HttpGet("loyalty/adjustments")]
-    public async Task<IActionResult> Adjustments([FromQuery] AdjustmentStatus? status, CancellationToken cancellationToken) =>
+    public async Task<IActionResult> Adjustments([FromQuery] ApprovalStatus? status, CancellationToken cancellationToken) =>
         this.Data(await loyalty.ListAdjustmentsAsync(status, cancellationToken));
 
     [HttpPost("loyalty/adjustments/{id:guid}/approve")]

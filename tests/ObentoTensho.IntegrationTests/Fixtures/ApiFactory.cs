@@ -46,6 +46,7 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         builder.UseSetting("RateLimiting:ReservationPerHour", "1000");
         builder.UseSetting("RateLimiting:LookupPerMinute", "1000");
         builder.UseSetting("RateLimiting:OrderPerHour", "1000");
+        builder.UseSetting("RateLimiting:VoucherValidatePerMinute", "1000");
 
         foreach (var (key, value) in settings ?? new Dictionary<string, string>(StringComparer.Ordinal))
         {

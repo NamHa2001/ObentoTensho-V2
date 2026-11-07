@@ -1156,6 +1156,8 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("VoucherId");
+
                     b.HasIndex("CustomerPhone", "NoPickup");
 
                     b.HasIndex("CustomerPhone", "Status");
@@ -1844,6 +1846,157 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Vouchers.Domain.UserVoucher", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("LastUsedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("VoucherId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserVouchers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_UserVouchers_UsedCount", "[UsedCount] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Vouchers.Domain.Voucher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte?>("ApplicableTier")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("ApprovalStatus")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid?>("BatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("DiscountType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("EndUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal?>("MaxDiscountAmount")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<int>("MaxUsagePerUser")
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int?>("MaxUsageTotal")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MinOrderValue")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<Guid?>("OwnerUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("PromotionId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("RequireLogin")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Source")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime?>("StartUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedByStaffId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("ReviewedByStaffId");
+
+                    b.HasIndex("ApprovalStatus", "CreatedAtUtc");
+
+                    b.ToTable("Vouchers", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Vouchers_ApprovalStatus", "[ApprovalStatus] BETWEEN 0 AND 2");
+
+                            t.HasCheckConstraint("CK_Vouchers_Discount", "[DiscountValue] > 0 AND ([DiscountType] <> 0 OR [DiscountValue] BETWEEN 1 AND 100) AND [DiscountType] BETWEEN 0 AND 1");
+
+                            t.HasCheckConstraint("CK_Vouchers_Source", "[Source] BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_Vouchers_Usage", "[UsedCount] >= 0 AND [MaxUsagePerUser] >= 1 AND ([MaxUsageTotal] IS NULL OR [MaxUsageTotal] >= 1)");
+
+                            t.HasCheckConstraint("CK_Vouchers_Window", "[StartUtc] IS NULL OR [EndUtc] IS NULL OR [EndUtc] > [StartUtc]");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Infrastructure.Messaging.OutboxMessage", b =>
                 {
                     b.Property<long>("Id")
@@ -2062,6 +2215,11 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ObentoTensho.Core.Vouchers.Domain.Voucher", null)
+                        .WithMany()
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItem", b =>
@@ -2163,6 +2321,39 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CreatedByStaffId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Vouchers.Domain.UserVoucher", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Vouchers.Domain.Voucher", null)
+                        .WithMany()
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Vouchers.Domain.Voucher", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.Order", b =>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Orders.Domain;
+using ObentoTensho.Core.Vouchers.Domain;
 using ObentoTensho.Infrastructure.Persistence.Conversions;
 
 namespace ObentoTensho.Infrastructure.Persistence.Configurations;
@@ -57,6 +58,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Ignore(o => o.RefundPending);
 
         builder.HasOne<User>().WithMany().HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne<Voucher>().WithMany().HasForeignKey(o => o.VoucherId).OnDelete(DeleteBehavior.SetNull);
         builder.HasMany(o => o.Items).WithOne().HasForeignKey(i => i.OrderId).OnDelete(DeleteBehavior.Cascade);
 
         ConfigureIndexes(builder);

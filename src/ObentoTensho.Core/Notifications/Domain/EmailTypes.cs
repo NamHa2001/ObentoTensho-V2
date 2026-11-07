@@ -25,6 +25,7 @@ public static class EmailTypes
         EmailKind.LoyaltyPointsEarned => "loyalty_points_earned",
         EmailKind.LoyaltyTierUp => "loyalty_tier_up",
         EmailKind.LoyaltyPointsExpiring => "loyalty_points_expiring",
+        EmailKind.VoucherRedeemed => "voucher_redeemed",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

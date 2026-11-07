@@ -107,6 +107,16 @@ public sealed class LoyaltyLedger(
         return Result.Success();
     }
 
+    // BR-LOY-05: trừ điểm đổi voucher (FIFO); bên gọi đã khóa khách qua LockUserAsync và kiểm đủ điểm
+    public async Task RedeemAsync(User user, int points, string referenceId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        await ConsumeAsync(user.Id, points, cancellationToken);
+        user.CurrentPoints -= points;
+        user.UpdatedAtUtc = clock.UtcNow;
+        Add(user, -points, LoyaltyTransactionType.Redeem, referenceId, "Đổi voucher", clock.UtcNow);
+    }
+
     // BR-LOY-06: hết hạn phần còn lại của các lô quá hạn (không đổi điểm tích lũy). Trả số điểm đã hết hạn.
     public async Task<int> ExpireAsync(Guid userId, CancellationToken cancellationToken)
     {

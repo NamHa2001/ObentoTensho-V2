@@ -89,7 +89,7 @@ public sealed class LoyaltyService(
         }, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<LoyaltyAdjustmentDto>> ListAdjustmentsAsync(AdjustmentStatus? status, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<LoyaltyAdjustmentDto>> ListAdjustmentsAsync(ApprovalStatus? status, CancellationToken cancellationToken) =>
         (await loyalty.ListAdjustmentsAsync(status, AdjustmentListLimit, cancellationToken)).Select(a => a.ToDto()).ToArray();
 
     // Người duyệt phải khác người đề nghị (nguyên tắc bốn mắt)
@@ -99,7 +99,7 @@ public sealed class LoyaltyService(
     public Task<Result<LoyaltyAdjustmentDto>> RejectAsync(Guid id, Guid staffId, string? note, CancellationToken cancellationToken) =>
         ReviewAsync(id, staffId, async (adjustment, ct) =>
         {
-            adjustment.Status = AdjustmentStatus.Rejected;
+            adjustment.Status = ApprovalStatus.Rejected;
             adjustment.ReviewedByStaffId = staffId;
             adjustment.ReviewedAtUtc = clock.UtcNow;
             adjustment.ReviewNote = Clean(note);
@@ -120,7 +120,7 @@ public sealed class LoyaltyService(
                 return Result.Failure<LoyaltyAdjustmentDto>(ErrorCodes.NotFound);
             }
 
-            if (adjustment.Status != AdjustmentStatus.Pending)
+            if (adjustment.Status != ApprovalStatus.Pending)
             {
                 return Result.Failure<LoyaltyAdjustmentDto>(ErrorCodes.InvalidTransition);
             }
@@ -140,7 +140,7 @@ public sealed class LoyaltyService(
             return Result.Failure<LoyaltyAdjustmentDto>(applied.ErrorCode ?? ErrorCodes.PointsInsufficient);
         }
 
-        adjustment.Status = AdjustmentStatus.Approved;
+        adjustment.Status = ApprovalStatus.Approved;
         adjustment.ReviewedByStaffId = reviewerId;
         adjustment.ReviewedAtUtc = clock.UtcNow;
         adjustment.ReviewNote = Clean(note);
