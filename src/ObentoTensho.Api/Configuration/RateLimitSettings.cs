@@ -17,6 +17,9 @@ public sealed class RateLimitSettings
     // BR-VCH-12 `voucher`: kiểm mã voucher, chống dò mã
     public int VoucherValidatePerMinute { get; set; } = 10;
 
+    // docs/srs/03 §2 `contact`: liên hệ, newsletter (giới hạn 3/giờ/email nằm ở tầng nghiệp vụ)
+    public int ContactPerHour { get; set; } = 5;
+
     // `lookup`: tra cứu/hủy đặt bàn và đơn theo mã
     public int LookupPerMinute { get; set; } = 10;
 

@@ -1,0 +1,16 @@
+subject: Có tin liên hệ mới
+===
+Có tin liên hệ mới từ trang web:
+
+Người gửi: {{fullName}}
+Email: {{contactEmail}}
+Điện thoại: {{contactPhone}}
+Chủ đề: {{subject}}
+Nội dung: {{message}}
+
+Mở danh sách liên hệ: {{adminLink}}
+===
+<p>Có tin liên hệ mới từ trang web:</p>
+<p>Người gửi: {{fullName}}<br>Email: {{contactEmail}}<br>Điện thoại: {{contactPhone}}<br>Chủ đề: {{subject}}</p>
+<p style="white-space:pre-line">{{message}}</p>
+<p><a class="button" href="{{adminLink}}">Mở danh sách liên hệ</a></p>

@@ -81,6 +81,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<StoredImage> Images => Set<StoredImage>();
 
+    public DbSet<Review> Reviews => Set<Review>();
+
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
+
     public DbSet<NewsCategory> NewsCategories => Set<NewsCategory>();
 
     public DbSet<NewsArticle> News => Set<NewsArticle>();

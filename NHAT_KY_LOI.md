@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Nội dung – đánh giá và liên hệ (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Hàng loạt test Auth đỏ sau khi thêm mã mới | Project test tích hợp không build được (lỗi analyzer), `dotnet test --no-build` chạy trên bản cũ không khớp DB đã đổi | Sửa lỗi build rồi chạy lại | Chỉ đọc kết quả test khi build báo thành công |
+| Tạo đơn hoàn thành trong test báo vi phạm `CK_Orders_CompletedPaid` | Đơn hoàn thành bắt buộc đã thanh toán | Đặt thêm `PaymentStatus` và `PaidAtUtc` | Chỉnh trực tiếp DB trong test thì đặt đủ các cột liên quan |
+| `Assert.Contains` không thấy chuỗi tiếng Việt trong `PayloadJson` | JSON hộp thư đi mã hóa ký tự ngoài ASCII thành `\\uXXXX` | Dùng chuỗi ASCII trong test | So khớp payload bằng khóa hoặc chuỗi ASCII |
+
 ## Nội dung – tin tức và trang tĩnh (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

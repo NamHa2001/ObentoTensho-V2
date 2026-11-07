@@ -29,6 +29,13 @@ public static class ContentConfiguration
         services.AddSingleton<IValidator<NewsCategoryRequest>, NewsCategoryRequestValidator>();
         services.AddSingleton<IValidator<NewsRequest>, NewsRequestValidator>();
         services.AddSingleton<IValidator<StaticPageRequest>, StaticPageRequestValidator>();
+        services.AddSingleton<IValidator<CreateReviewRequest>, CreateReviewRequestValidator>();
+        services.AddSingleton<IValidator<UpdateReviewRequest>, UpdateReviewRequestValidator>();
+        services.AddSingleton<IValidator<ReviewReplyRequest>, ReviewReplyRequestValidator>();
+        services.AddSingleton<IValidator<ContactRequest>, ContactRequestValidator>();
+        services.AddScoped<ReviewService>();
+        services.AddScoped<ReviewAdminService>();
+        services.AddScoped<ContactService>();
         services.AddScoped<NewsCategoryService>();
         services.AddScoped<NewsAdminService>();
         services.AddScoped<PublicNewsService>();

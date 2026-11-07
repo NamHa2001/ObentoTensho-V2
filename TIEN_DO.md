@@ -2,7 +2,7 @@
 
 Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
 
-Cập nhật lần cuối: 07/11/2026 — sau bước 2 phần Nội dung (CMS).
+Cập nhật lần cuối: 07/11/2026 — sau phần Đánh giá + Liên hệ của Nội dung (CMS).
 
 - **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
 - **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
@@ -22,7 +22,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 
 ## 2. Tiến độ theo bảng trọng số
 
-**Toàn dự án: khoảng 58,75/100. Riêng backend: khoảng 58,75/71 (83%). Giao diện: 0/22.**
+**Toàn dự án: khoảng 59,4/100. Riêng backend: khoảng 59,4/71 (84%). Giao diện: 0/22.**
 
 | Phần | Trọng số | Đã xong | Trạng thái |
 |---|---:|---:|---|
@@ -38,7 +38,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Đặt món mang về | 8 | 8 | Xong |
 | Điểm & hạng | 5 | 5 | Xong |
 | Voucher & khuyến mãi | 5 | 5 | Xong |
-| Nội dung (CMS) | 4 | 2,75 | **Đang làm** — xong ảnh, banner, gallery, tin tức, trang tĩnh |
+| Nội dung (CMS) | 4 | 3,4 | **Đang làm** — xong ảnh, banner, gallery, tin tức, trang tĩnh, đánh giá, liên hệ; còn newsletter |
 | Quản lý khách & nhân viên | 3 | 0 | Chưa làm |
 | Báo cáo, dashboard, cài đặt | 4 | 0 | Chưa làm |
 | Realtime (SignalR) | 2 | 0 | Chưa làm |
@@ -55,7 +55,7 @@ Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) kh
 
 Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 
-1. **Nội dung (CMS) — đang làm:** bước 3 Đánh giá + Liên hệ + Newsletter
+1. **Nội dung (CMS) — đang làm:** còn Newsletter
 2. Quản lý khách & nhân viên
 3. Báo cáo, dashboard, cài đặt
 4. Realtime (SignalR)
@@ -82,7 +82,8 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | Voucher bước 1 | `0539d34` | Kiểm mã, giữ lượt nguyên tử, hoàn lượt, đổi điểm, sinh hàng loạt, duyệt bốn mắt |
 | Voucher bước 2 | `9da24b1` | Khuyến mãi công khai và quản trị, voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản |
 | CMS bước 1 | `4954ed3` | Pipeline ảnh NetVips (bản gốc, biến thể WebP, BlurHash, xử lý nền), banner hẹn ngày, gallery |
-| CMS bước 2 | commit ngay sau `4954ed3` | Tin tức, danh mục tin, hẹn giờ, slug cũ 301, thùng rác 30 ngày; trang tĩnh có phiên bản |
+| CMS bước 2 | `18dc779` | Tin tức, danh mục tin, hẹn giờ, slug cũ 301, thùng rác 30 ngày; trang tĩnh có phiên bản |
+| CMS bước 3a | commit ngay sau `18dc779` | Đánh giá sau đơn hoàn thành, duyệt và trả lời; form liên hệ qua hộp thư đi |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -100,7 +101,7 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 
 **Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`, `media.process-images`.
 
-**Kiểm thử:** 848 test (332 kiến trúc, 390 đơn vị, 126 tích hợp trên SQL Server thật).
+**Kiểm thử:** 895 test (358 kiến trúc, 404 đơn vị, 133 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 

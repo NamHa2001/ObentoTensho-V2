@@ -72,5 +72,9 @@ public static class ErrorCodes
     public const string VoucherExhausted = "VOUCHER_EXHAUSTED";
     public const string VoucherLoginRequired = "VOUCHER_LOGIN_REQUIRED";
     public const string VoucherInUse = "VOUCHER_IN_USE";
+    // Đánh giá (docs/srs/17 §3.4)
+    public const string ReviewNotAllowed = "REVIEW_NOT_ALLOWED";
+    public const string ReviewExists = "REVIEW_EXISTS";
+    public const string ReviewLocked = "REVIEW_LOCKED";
     public const string InternalError = "INTERNAL_ERROR";
 }

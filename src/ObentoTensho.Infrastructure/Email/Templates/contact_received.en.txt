@@ -1,0 +1,15 @@
+subject: Obento Tensho received your message
+===
+Hello,
+
+We have received your message and will reply as soon as we can.
+
+View the menu: {{menuLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello,</p>
+<p>We have received your message and will reply as soon as we can.</p>
+<p><a class="button" href="{{menuLink}}">View the menu</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

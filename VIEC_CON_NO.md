@@ -138,7 +138,10 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Đổi `Location` 301 từ đường dẫn API sang đường dẫn trang khi làm SSR | `BR-CNT-41` | Làm ở giao diện khách |
 | Đưa nội dung `docs/legal/` vào trang tĩnh sau khi chủ quán duyệt | `FR-CNT-04` | Trang chưa có nội dung trả 404 |
 | Bản dịch en/ja tin tức, trang tĩnh | `docs/srs/22` | Phần đa ngôn ngữ |
-| Đánh giá, Liên hệ, Newsletter | `FR-CNT-05/06/07` | Bước 3 |
+| Newsletter | `FR-CNT-07` | Đang làm tiếp |
+| Báo real-time `contact.created` cho quản lý | `FR-CNT-06` | Làm ở phần realtime; hiện đã có email nội bộ và danh sách chưa đọc |
+| Thư báo tin liên hệ nội bộ cũng chịu giới hạn 3 thư cùng loại/giờ theo địa chỉ nhận, thư vượt bị bỏ | `BR-CNT-33`, `BR-NTF-08` | Tin vẫn nằm trong danh sách chưa đọc; gộp chung quyết định về thư bị bỏ |
+| Cache danh sách đánh giá công khai | `PERF-11/12` | Hiện đọc thẳng DB, có phân trang và chỉ mục |
 | Dọn ảnh mồ côi sau 30 ngày, xóa gốc + biến thể | `BR-CNT-32`, `FR-IMG-10` | Hiện xóa banner/gallery thì ảnh ở lại |
 | Sinh lại biến thể khi đổi cấu hình (tăng `Version`), AVIF | `FR-IMG-03/04` | `Version` đã có; chưa có lệnh sinh lại |
 | Ảnh nền bị `Failed` thì chưa có cách thử lại hay cảnh báo | `FR-IMG-08` | Ảnh gốc vẫn còn |

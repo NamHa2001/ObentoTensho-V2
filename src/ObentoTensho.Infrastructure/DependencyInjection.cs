@@ -72,8 +72,7 @@ public static class DependencyInjection
         services.AddSingleton<IVoucherSpreadsheet, ClosedXmlVoucherSpreadsheet>();
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
-        services.AddScoped<IContentRepository, ContentRepository>();
-        services.AddScoped<INewsRepository, NewsRepository>();
+        AddContent(services);
         services.AddScoped<IStaticPageRepository, StaticPageRepository>();
         services.AddSingleton<IPublicContentCache, MemoryPublicContentCache>();
         services.AddSingleton<IImageProcessor, NetVipsImageProcessor>();
@@ -155,5 +154,14 @@ public static class DependencyInjection
         services.AddSingleton<ITotpSecretProtector, DataProtectionTotpSecretProtector>();
 
         return services;
+    }
+
+    private static void AddContent(IServiceCollection services)
+    {
+        services.AddScoped<IContentRepository, ContentRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<IContactRepository, ContactRepository>();
+        services.AddScoped<IContactEmailOutbox, ContactEmailOutbox>();
     }
 }

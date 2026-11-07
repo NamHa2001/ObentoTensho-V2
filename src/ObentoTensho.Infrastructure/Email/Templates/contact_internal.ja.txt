@@ -1,0 +1,16 @@
+subject: 新しいお問い合わせ
+===
+ウェブサイトから新しいお問い合わせがありました。
+
+送信者: {{fullName}}
+メール: {{contactEmail}}
+電話番号: {{contactPhone}}
+件名: {{subject}}
+内容: {{message}}
+
+お問い合わせ一覧を開く: {{adminLink}}
+===
+<p>ウェブサイトから新しいお問い合わせがありました。</p>
+<p>送信者: {{fullName}}<br>メール: {{contactEmail}}<br>電話番号: {{contactPhone}}<br>件名: {{subject}}</p>
+<p style="white-space:pre-line">{{message}}</p>
+<p><a class="button" href="{{adminLink}}">お問い合わせ一覧を開く</a></p>

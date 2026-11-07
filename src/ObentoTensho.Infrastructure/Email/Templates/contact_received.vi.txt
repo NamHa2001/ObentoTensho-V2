@@ -1,0 +1,15 @@
+subject: Obento Tensho đã nhận tin liên hệ của bạn
+===
+Xin chào,
+
+Chúng tôi đã nhận được tin liên hệ của bạn và sẽ phản hồi sớm nhất có thể.
+
+Xem thực đơn: {{menuLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào,</p>
+<p>Chúng tôi đã nhận được tin liên hệ của bạn và sẽ phản hồi sớm nhất có thể.</p>
+<p><a class="button" href="{{menuLink}}">Xem thực đơn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

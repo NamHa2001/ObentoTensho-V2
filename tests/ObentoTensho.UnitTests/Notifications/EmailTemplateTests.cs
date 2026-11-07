@@ -43,6 +43,10 @@ public sealed class EmailTemplateTests
         ["expiryDate"] = "08/12/2026",
         ["voucherCode"] = "DIEM-8K4Q7ZM2AB",
         ["value"] = "30.000 ₫",
+        ["contactEmail"] = "khach@example.com",
+        ["contactPhone"] = "0901234567",
+        ["subject"] = "Đặt tiệc",
+        ["message"] = "Quán có phòng riêng không?",
     };
 
     public static TheoryData<EmailKind, string> Cases()

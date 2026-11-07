@@ -1,0 +1,16 @@
+subject: New contact message
+===
+A new message arrived from the website:
+
+From: {{fullName}}
+Email: {{contactEmail}}
+Phone: {{contactPhone}}
+Subject: {{subject}}
+Message: {{message}}
+
+Open contact messages: {{adminLink}}
+===
+<p>A new message arrived from the website:</p>
+<p>From: {{fullName}}<br>Email: {{contactEmail}}<br>Phone: {{contactPhone}}<br>Subject: {{subject}}</p>
+<p style="white-space:pre-line">{{message}}</p>
+<p><a class="button" href="{{adminLink}}">Open contact messages</a></p>
