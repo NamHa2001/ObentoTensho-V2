@@ -15,6 +15,7 @@ using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Promotions.Abstractions;
+using ObentoTensho.Core.Realtime.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
@@ -27,6 +28,7 @@ using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Orders;
 using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
+using ObentoTensho.Infrastructure.Realtime;
 using ObentoTensho.Infrastructure.Reservations;
 using ObentoTensho.Infrastructure.Security;
 using ObentoTensho.Infrastructure.Settings;
@@ -56,6 +58,7 @@ public static class DependencyInjection
 
         services.AddMemoryCache();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        AddRealtime(services);
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
@@ -167,6 +170,14 @@ public static class DependencyInjection
         services.AddSingleton<ITotpSecretProtector, DataProtectionTotpSecretProtector>();
 
         return services;
+    }
+
+    // Sự kiện realtime gom theo phạm vi, phát sau commit (docs/srs/06 §B.2)
+    private static void AddRealtime(IServiceCollection services)
+    {
+        services.AddSingleton<RealtimeFeed>();
+        services.AddScoped<PendingRealtimeEvents>();
+        services.AddScoped<IRealtimeEvents>(sp => sp.GetRequiredService<PendingRealtimeEvents>());
     }
 
     private static void AddContent(IServiceCollection services)

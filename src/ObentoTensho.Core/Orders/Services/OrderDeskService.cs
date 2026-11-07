@@ -9,6 +9,8 @@ using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Orders.Services;
@@ -22,6 +24,7 @@ public sealed class OrderDeskService(
     IActionThrottle throttle,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IClock clock)
 {
     public const int MaxPageSize = 100;
@@ -231,6 +234,7 @@ public sealed class OrderDeskService(
 
             order.UpdatedAtUtc = clock.UtcNow;
             await unitOfWork.SaveChangesAsync(ct);
+            realtime.Stage(RealtimeMessages.OrderChanged(order));
             return Result.Success(await ToAdminAsync(order, ct));
         }, cancellationToken);
 

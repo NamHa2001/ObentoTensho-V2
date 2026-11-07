@@ -1,5 +1,6 @@
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Api.Realtime;
 using ObentoTensho.Infrastructure;
 using Scalar.AspNetCore;
 
@@ -29,6 +30,7 @@ builder.Services.AddLoyaltyServices();
 builder.Services.AddVoucherServices();
 builder.Services.AddContentServices();
 builder.Services.AddCustomerServices();
+builder.Services.AddRealtime();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddOpenApi();
@@ -51,12 +53,14 @@ if (app.Configuration.GetValue("Media:ServeFromApi", app.Environment.IsDevelopme
 }
 
 app.UseRouting();
+app.UseMiddleware<HubOriginMiddleware>();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapRealtimeHubs();
 app.MapHealthChecks("/health/live").AllowAnonymous();
 
 // Trang tài liệu + thử API chỉ có ở máy dev, không bao giờ mở ở môi trường chạy thật

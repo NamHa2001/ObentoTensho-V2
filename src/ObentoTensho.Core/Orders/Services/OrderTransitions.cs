@@ -6,6 +6,8 @@ using ObentoTensho.Core.Loyalty.Domain;
 using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Core.Vouchers.Services;
 
@@ -20,6 +22,7 @@ public sealed class OrderTransitions(
     LoyaltyLedger ledger,
     VoucherEvaluator vouchers,
     ILoyaltySettings loyaltySettings,
+    IRealtimeEvents realtime,
     IClock clock)
 {
     public async Task<Result> ApplyAsync(Order order, OrderStatus to, OrderActor actor, Guid? actorId, string? reason, CancellationToken cancellationToken)
@@ -58,6 +61,7 @@ public sealed class OrderTransitions(
             ChangedAtUtc = now,
         });
         Notify(order, to, actor, cleanReason);
+        realtime.Stage(RealtimeMessages.OrderChanged(order));
         await SettleLoyaltyAsync(order, to, cancellationToken);
 
         // BR-ORD-07: hủy đơn ⇒ hoàn đúng một lượt voucher (máy trạng thái chỉ cho hủy một lần)

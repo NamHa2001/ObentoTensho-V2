@@ -6,6 +6,8 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Abstractions;
@@ -22,6 +24,7 @@ public sealed class ReservationDeskService(
     IActionThrottle throttle,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IClock clock)
 {
     public const int MaxPageSize = 100;
@@ -188,6 +191,7 @@ public sealed class ReservationDeskService(
     private async Task<Result<AdminReservationDto>> SaveAsync(Reservation reservation, CancellationToken cancellationToken)
     {
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        realtime.Stage(RealtimeMessages.ReservationChanged(reservation));
         var flagged = await FlaggedAsync([reservation.GuestPhone], cancellationToken);
         return Result.Success(reservation.ToAdmin(flagged.Count > 0, settings.LargePartySize));
     }

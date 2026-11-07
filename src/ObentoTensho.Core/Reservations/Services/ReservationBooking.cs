@@ -2,6 +2,8 @@ using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Time;
@@ -14,6 +16,7 @@ public sealed class ReservationBooking(
     IReservationEmailOutbox emails,
     ISecureTokenService secureTokens,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IClock clock)
 {
     public Task<Result<Reservation>> BookAsync(BookingDraft draft, CancellationToken cancellationToken) =>
@@ -32,6 +35,8 @@ public sealed class ReservationBooking(
             reservations.Add(reservation);
             AddCreatedHistory(reservation, draft, now);
             Notify(reservation, token.Value);
+            realtime.Stage(RealtimeMessages.ReservationCreated(reservation));
+            realtime.Stage(RealtimeMessages.Availability(reservation));
 
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(reservation);

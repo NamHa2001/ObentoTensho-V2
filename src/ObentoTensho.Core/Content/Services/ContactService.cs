@@ -8,6 +8,8 @@ using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Content.Services;
@@ -19,6 +21,7 @@ public sealed class ContactService(
     IStaffRepository staff,
     IActionThrottle throttle,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IClock clock,
     IValidator<ContactRequest> validator)
 {
@@ -68,6 +71,7 @@ public sealed class ContactService(
             contacts.Add(message);
             await unitOfWork.SaveChangesAsync(ct);
             emails.EnqueueReceived(message, request.Lang ?? DefaultLanguage);
+            realtime.Stage(RealtimeMessages.ContactCreated(message));
             foreach (var address in recipients)
             {
                 emails.EnqueueInternal(message, address);

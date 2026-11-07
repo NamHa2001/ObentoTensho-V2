@@ -3,6 +3,8 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Loyalty.Abstractions;
 using ObentoTensho.Core.Loyalty.Services;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Abstractions;
@@ -19,6 +21,7 @@ public sealed class ReservationTransitions(
     ILoyaltyRepository loyaltyRepository,
     ILoyaltySettings loyaltySettings,
     IReservationEmailOutbox emails,
+    IRealtimeEvents realtime,
     IClock clock)
 {
     public async Task<Result> ApplyAsync(Reservation reservation, ReservationStatus to, ReservationActor actor, Guid? actorId, string? reason, CancellationToken cancellationToken)
@@ -43,6 +46,7 @@ public sealed class ReservationTransitions(
         if (ReservationStateMachine.ReleasesCapacity(to))
         {
             await reservations.ReleaseCapacityAsync(reservation.SlotId, reservation.ReservedDate, reservation.GuestCount, cancellationToken);
+            realtime.Stage(RealtimeMessages.Availability(reservation));
         }
 
         await SyncTableAsync(reservation, cancellationToken);
@@ -62,6 +66,7 @@ public sealed class ReservationTransitions(
             ChangedAtUtc = now,
         });
         Notify(reservation, from, to, actor, reason);
+        realtime.Stage(RealtimeMessages.ReservationChanged(reservation));
         return Result.Success();
     }
 

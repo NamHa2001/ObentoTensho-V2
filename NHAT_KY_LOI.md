@@ -13,6 +13,16 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Realtime (08/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Test "đổi mật khẩu thì kết nối bị ngắt" đỏ: bộ quét báo 0 kết nối bị đóng | Trạng thái phiên nhân viên được nhớ 5 giây (`SEC-50`); xin vé ngay trước đó đã nạp trạng thái cũ vào bộ nhớ đệm | Test quét lại mỗi 0,5 giây tới khi hết hạn bộ nhớ đệm (thật thì bộ quét chạy 30 giây một lần) | Test thu hồi phiên phải tính tới bộ nhớ đệm phiên |
+| `'HubOptions' does not contain a definition for 'AddFilter'` | Thiếu `using Microsoft.AspNetCore.SignalR;` nên trình biên dịch tìm nhầm `AddFilter` của logging | Thêm `using` rồi gọi `o.AddFilter<HubInvocationLimitFilter>()` | Lỗi "không có overload" của extension method thường là thiếu `using` |
+| Client SignalR trong test: không có `AddJsonProtocol` | Extension nằm ở namespace `Microsoft.Extensions.DependencyInjection` | Thêm `using Microsoft.Extensions.DependencyInjection;` | |
+| `dotnet restore --force-evaluate` làm đổi 4 tệp `packages.lock.json` không liên quan | Chỉ đổi kiểu xuống dòng (CRLF), nội dung giữ nguyên | `git checkout --` các tệp đó, chỉ giữ tệp lock của project có thêm gói | Xem `git diff` tệp lock trước khi commit |
+| Thiết kế: sự kiện của transaction ném lỗi có thể bị phát ở lần lưu sau trong cùng request | Bộ gom sự kiện chỉ xóa khi bắt đầu transaction mới, không xóa khi transaction ném exception | `EfUnitOfWork` bỏ sự kiện trong `finally` và khi lưu ngoài transaction bị lỗi | Có test gây lỗi giữa transaction rồi lưu tiếp |
+
 ## Dashboard và báo cáo (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

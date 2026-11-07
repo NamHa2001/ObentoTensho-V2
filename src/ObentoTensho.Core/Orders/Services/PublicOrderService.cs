@@ -11,6 +11,8 @@ using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Core.Vouchers.Domain;
 using ObentoTensho.Core.Vouchers.Services;
@@ -30,6 +32,7 @@ public sealed class PublicOrderService(
     LoyaltyService loyalty,
     VoucherEvaluator vouchers,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IClock clock,
     IValidator<CreateOrderRequest> validator,
     IValidator<QuoteOrderRequest> quoteValidator)
@@ -131,6 +134,7 @@ public sealed class PublicOrderService(
                 ChangedAtUtc = order.CreatedAtUtc,
             });
             emails.EnqueueReceived(order, token.Value);
+            realtime.Stage(RealtimeMessages.OrderCreated(order));
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(new CreatedOrderDto(order.ToPublic(clock), token.Value));
         }, cancellationToken);
@@ -185,14 +189,27 @@ public sealed class PublicOrderService(
     public async Task<Result<PublicOrderDto>> LookupAsync(LookupOrderRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return await FindWithSecretAsync(request.Code, o => SameSecret(PiiMask.Last4(o.CustomerPhone), request.PhoneLast4 ?? string.Empty), cancellationToken);
+        return Public(await FindWithSecretAsync(request.Code, o => SameSecret(PiiMask.Last4(o.CustomerPhone), request.PhoneLast4 ?? string.Empty), cancellationToken));
     }
 
     public async Task<Result<PublicOrderDto>> TrackAsync(TrackOrderRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-        return await FindWithSecretAsync(request.Code, o => HasToken(o, request.Token), cancellationToken);
+        return Public(await FindWithSecretAsync(request.Code, o => HasToken(o, request.Token), cancellationToken));
     }
+
+    // Kênh realtime (RT-03): cùng điều kiện và cùng giới hạn sai với TrackAsync, chỉ trả Id để vào nhóm order:{id}
+    public async Task<Result<Guid>> FindTrackedIdAsync(TrackOrderRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var found = await FindWithSecretAsync(request.Code, o => HasToken(o, request.Token), cancellationToken);
+        return found.IsSuccess ? Result.Success(found.Value.Id) : Result.Failure<Guid>(found.ErrorCode ?? ErrorCodes.NotFound);
+    }
+
+    public async Task<Result<Guid>> FindMineIdAsync(Guid userId, string code, CancellationToken cancellationToken) =>
+        await orders.FindByCodeAsync(OrderCodes.Normalize(code), withItems: false, cancellationToken) is { } order && order.UserId == userId
+            ? Result.Success(order.Id)
+            : Result.Failure<Guid>(ErrorCodes.NotFound);
 
     public Task<Result<PublicOrderDto>> CancelAsync(string code, CancelOrderRequest request, Guid? userId, CancellationToken cancellationToken) =>
         unitOfWork.TryInTransactionAsync(async ct =>
@@ -227,24 +244,27 @@ public sealed class PublicOrderService(
             ? Result.Success(order.ToPublic(clock))
             : Result.Failure<PublicOrderDto>(ErrorCodes.NotFound);
 
-    private async Task<Result<PublicOrderDto>> FindWithSecretAsync(string? rawCode, Func<Order, bool> matches, CancellationToken cancellationToken)
+    private async Task<Result<Order>> FindWithSecretAsync(string? rawCode, Func<Order, bool> matches, CancellationToken cancellationToken)
     {
         var code = OrderCodes.Normalize(rawCode);
         var key = $"order-lookup:{code}";
         if (code.Length == 0 || throttle.Count(key) >= MaxLookupFailures)
         {
-            return Result.Failure<PublicOrderDto>(code.Length == 0 ? ErrorCodes.NotFound : ErrorCodes.RateLimited);
+            return Result.Failure<Order>(code.Length == 0 ? ErrorCodes.NotFound : ErrorCodes.RateLimited);
         }
 
         var order = await orders.FindByCodeAsync(code, withItems: true, cancellationToken);
         if (order is null || !matches(order))
         {
             throttle.Increment(key, LookupLockout);
-            return Result.Failure<PublicOrderDto>(ErrorCodes.NotFound);
+            return Result.Failure<Order>(ErrorCodes.NotFound);
         }
 
-        return Result.Success(order.ToPublic(clock));
+        return Result.Success(order);
     }
+
+    private Result<PublicOrderDto> Public(Result<Order> found) =>
+        found.IsSuccess ? Result.Success(found.Value.ToPublic(clock)) : Result.Failure<PublicOrderDto>(found.ErrorCode ?? ErrorCodes.NotFound);
 
     private bool HasToken(Order order, string? token) =>
         !string.IsNullOrEmpty(token) && secureTokens.HashEquals(order.AccessTokenHash, secureTokens.Hash(token));

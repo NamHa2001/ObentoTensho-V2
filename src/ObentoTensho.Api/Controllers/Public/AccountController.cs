@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Api.Realtime;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Account;
 using ObentoTensho.Contracts.Dtos.Auth;
@@ -23,9 +24,15 @@ public sealed class AccountController(
     AccountDeletionService deletion,
     NewsletterService newsletter,
     IUserRepository users,
-    ICustomerRepository customers) : ControllerBase
+    ICustomerRepository customers,
+    HubTicketIssuer tickets) : ControllerBase
 {
     private const int ReservationLimit = 50;
+
+    // RT-09: vé một lần để nối /hubs/v1/public với danh tính khách (theo dõi đơn của mình)
+    [HttpPost("realtime-ticket")]
+    public IActionResult RealtimeTicket() =>
+        this.DataOrProblem(tickets.Issue(User, AuthSchemes.Customer, HubIdentity.CustomerKind));
 
     [HttpGet("profile")]
     public async Task<IActionResult> Profile(CancellationToken cancellationToken) =>

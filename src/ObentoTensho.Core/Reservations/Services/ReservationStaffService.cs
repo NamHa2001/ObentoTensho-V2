@@ -7,6 +7,8 @@ using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
@@ -23,6 +25,7 @@ public sealed class ReservationStaffService(
     IReservationSettings settings,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
+    IRealtimeEvents realtime,
     IValidator<StaffCreateReservationRequest> validator)
 {
     private const string Entity = "reservation";
@@ -107,6 +110,7 @@ public sealed class ReservationStaffService(
             await transitions.SyncTableAsync(reservation, ct);
             audit.Record(new AuditEntry("reservations.reservation.table_assigned", Entity, Id(reservation.Id), new { tableId = before }, new { tableId }));
             await unitOfWork.SaveChangesAsync(ct);
+            realtime.Stage(RealtimeMessages.ReservationChanged(reservation));
             return Result.Success(reservation.ToAdmin(noShowFlag: false, settings.LargePartySize));
         }, cancellationToken);
 
