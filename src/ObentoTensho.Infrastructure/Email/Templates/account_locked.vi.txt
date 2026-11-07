@@ -1,0 +1,11 @@
+subject: Tài khoản Obento Tensho của bạn đã bị khóa
+===
+Xin chào {{fullName}},
+
+Tài khoản của bạn đã bị khóa và mọi phiên đăng nhập đã kết thúc. Nếu cần hỗ trợ, vui lòng liên hệ quán.
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Tài khoản của bạn đã bị khóa và mọi phiên đăng nhập đã kết thúc. Nếu cần hỗ trợ, vui lòng liên hệ quán.</p>
+<p>Obento Tensho</p>

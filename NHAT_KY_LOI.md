@@ -13,6 +13,12 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Quản lý khách hàng (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Hai test voucher đỏ khi chạy cả bộ nhưng xanh khi chạy riêng | Test newsletter gửi nhiều thư, `EmailLogs` trong ngày vượt 80% hạn mức 300 nên thư ưu tiên thấp của test sau bị hoãn | Đặt `Email:DailyQuota` lớn trong `ApiFactory` | Test đỏ chỉ khi chạy chung: tìm trạng thái dùng chung trong CSDL, đừng chạy lại cho qua |
+
 ## Nhân viên và audit (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

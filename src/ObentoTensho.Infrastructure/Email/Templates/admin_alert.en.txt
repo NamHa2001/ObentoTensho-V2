@@ -1,0 +1,11 @@
+subject: Obento Tensho admin alert
+===
+The system recorded:
+
+{{message}}
+
+Open audit log: {{adminLink}}
+===
+<p>The system recorded:</p>
+<p>{{message}}</p>
+<p><a class="button" href="{{adminLink}}">Open audit log</a></p>

@@ -1,0 +1,8 @@
+subject: Tệp xuất dữ liệu đã sẵn sàng
+===
+Tệp bạn yêu cầu đã sẵn sàng. Liên kết hết hạn sau 24 giờ và chỉ tài khoản của bạn tải được.
+
+Tải tệp: {{link}}
+===
+<p>Tệp bạn yêu cầu đã sẵn sàng. Liên kết hết hạn sau 24 giờ và chỉ tài khoản của bạn tải được.</p>
+<p><a class="button" href="{{link}}">Tải tệp</a></p>

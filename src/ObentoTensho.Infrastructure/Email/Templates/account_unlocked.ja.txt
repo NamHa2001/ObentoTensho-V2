@@ -1,0 +1,11 @@
+subject: Obento Tensho のアカウントのロックが解除されました
+===
+{{fullName}} 様
+
+アカウントのロックが解除されました。再度ログインできます。
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>アカウントのロックが解除されました。再度ログインできます。</p>
+<p>Obento Tensho</p>

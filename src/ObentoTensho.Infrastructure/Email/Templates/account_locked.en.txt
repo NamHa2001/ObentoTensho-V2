@@ -1,0 +1,11 @@
+subject: Your Obento Tensho account has been locked
+===
+Hello {{fullName}},
+
+Your account has been locked and all sessions have ended. Please contact the restaurant if you need help.
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Your account has been locked and all sessions have ended. Please contact the restaurant if you need help.</p>
+<p>Obento Tensho</p>

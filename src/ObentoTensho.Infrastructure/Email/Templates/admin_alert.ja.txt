@@ -1,0 +1,11 @@
+subject: Obento Tensho 管理者アラート
+===
+システムが次の事象を記録しました。
+
+{{message}}
+
+監査ログを開く: {{adminLink}}
+===
+<p>システムが次の事象を記録しました。</p>
+<p>{{message}}</p>
+<p><a class="button" href="{{adminLink}}">監査ログを開く</a></p>

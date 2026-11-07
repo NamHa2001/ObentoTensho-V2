@@ -1,0 +1,11 @@
+subject: Tài khoản Obento Tensho của bạn đã được mở khóa
+===
+Xin chào {{fullName}},
+
+Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập lại.
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập lại.</p>
+<p>Obento Tensho</p>

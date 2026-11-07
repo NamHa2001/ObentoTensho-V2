@@ -29,5 +29,9 @@ public enum EmailKind
     ContactReceived,
     ContactInternal,
     NewsletterConfirm,
-    Newsletter
+    Newsletter,
+    AccountLocked,
+    AccountUnlocked,
+    AdminAlert,
+    DataExportReady
 }

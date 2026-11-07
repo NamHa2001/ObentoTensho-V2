@@ -34,6 +34,9 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         builder.UseSetting("Web:AdminBaseUrl", AdminOrigin);
         builder.UseSetting("Email:FromAddress", "no-reply@mail.obento.test");
         builder.UseSetting("Email:ReplyTo", "lienhe@obento.test");
+
+        // Các test dùng chung EmailLogs trong ngày: hạn mức thật sẽ hoãn thư của test chạy sau
+        builder.UseSetting("Email:DailyQuota", "100000");
         builder.UseSetting("Outbox:Enabled", "false");
         builder.UseSetting("Jobs:Enabled", "false");
 

@@ -26,7 +26,7 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Áp step-up cho các thao tác rủi ro còn lại: đổi `payment.*`, xuất khách, điều chỉnh điểm lớn | `SEC-61` | Đã có bộ lọc `StepUpFilter`; thao tác nhân viên đã áp |
+| Áp step-up cho các thao tác rủi ro còn lại: đổi `payment.*`, điều chỉnh điểm lớn | `SEC-61` | Đã áp cho thao tác nhân viên và xuất dữ liệu |
 | Bật 2FA tự nguyện cho vai trò không bắt buộc; tạo lại mã khôi phục | `2fa/recovery` | |
 | "Màn hình ca" bằng PIN cho bếp/thu ngân | `SEC-74` | |
 
@@ -135,7 +135,6 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Đưa nội dung `docs/legal/` vào trang tĩnh sau khi chủ quán duyệt | `FR-CNT-04` | Trang chưa có nội dung trả 404 |
 | Bản dịch en/ja tin tức, trang tĩnh | `docs/srs/22` | Phần đa ngôn ngữ |
 | Tự ngừng gửi cho địa chỉ bounce cứng, theo dõi tỷ lệ báo spam | `BR-CNT-26` | Cần webhook của nhà cung cấp email (`D-33`) |
-| Xuất danh sách bản tin bằng job nền, bắt buộc lý do, 1 lần/ngày, liên kết ký số | `BR-CNT-25`, `BR-CUS-07` | Hiện xuất trực tiếp, đã có audit; làm cùng phần Khách hàng |
 | Thành viên bật/tắt nhận bản tin trong tài khoản | `FR-CNT-07`, `BR-CNT-26` | Làm ở phần Khách hàng |
 | Header one-click dùng `PublicBaseUrl/api/...`: cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Làm ở phần triển khai |
 | Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |

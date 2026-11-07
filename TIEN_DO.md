@@ -2,7 +2,7 @@
 
 Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
 
-Cập nhật lần cuối: 07/11/2026 — sau đợt Nhân viên + Audit của phần Quản lý khách & nhân viên.
+Cập nhật lần cuối: 07/11/2026 — sau đợt Quản lý khách hàng của phần Quản lý khách & nhân viên.
 
 - **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
 - **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
@@ -22,7 +22,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 
 ## 2. Tiến độ theo bảng trọng số
 
-**Toàn dự án: khoảng 61,1/100. Riêng backend: khoảng 61,1/71 (86%). Giao diện: 0/22.**
+**Toàn dự án: khoảng 62/100. Riêng backend: khoảng 62/71 (87%). Giao diện: 0/22.**
 
 | Phần | Trọng số | Đã xong | Trạng thái |
 |---|---:|---:|---|
@@ -39,7 +39,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Điểm & hạng | 5 | 5 | Xong |
 | Voucher & khuyến mãi | 5 | 5 | Xong |
 | Nội dung (CMS) | 4 | 4 | Xong — ảnh, banner, gallery, tin tức, trang tĩnh, đánh giá, liên hệ, newsletter |
-| Quản lý khách & nhân viên | 3 | 1,1 | **Đang làm** — xong nhân viên, step-up, xem audit; còn khách hàng, tài khoản khách |
+| Quản lý khách & nhân viên | 3 | 2 | **Đang làm** — xong nhân viên, step-up, xem audit, quản lý khách, xuất dữ liệu; còn tài khoản khách |
 | Báo cáo, dashboard, cài đặt | 4 | 0 | Chưa làm |
 | Realtime (SignalR) | 2 | 0 | Chưa làm |
 | Đa ngôn ngữ | 2 | 0 | Chưa làm |
@@ -55,7 +55,7 @@ Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) kh
 
 Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 
-1. **Quản lý khách & nhân viên — đang làm:** còn quản lý khách hàng, tài khoản khách
+1. **Quản lý khách & nhân viên — đang làm:** còn tài khoản khách (hồ sơ, đổi mật khẩu, đổi email, thiết bị, xóa tài khoản)
 3. Báo cáo, dashboard, cài đặt
 4. Realtime (SignalR)
 5. Đa ngôn ngữ
@@ -84,7 +84,8 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | CMS bước 2 | `18dc779` | Tin tức, danh mục tin, hẹn giờ, slug cũ 301, thùng rác 30 ngày; trang tĩnh có phiên bản |
 | CMS bước 3a | `da28564` | Đánh giá sau đơn hoàn thành, duyệt và trả lời; form liên hệ qua hộp thư đi |
 | CMS bước 3b | `64dc087` | Newsletter: đăng ký hai bước, hủy bằng POST và one-click, gửi theo lô, xuất danh sách |
-| Nhân viên + Audit | commit ngay sau `64dc087` | Mời nhân viên, khóa/đổi vai trò, thu hồi phiên, đặt lại 2FA, step-up, đổi mật khẩu, xem nhật ký |
+| Nhân viên + Audit | `ca68cd7` | Mời nhân viên, khóa/đổi vai trò, thu hồi phiên, đặt lại 2FA, step-up, đổi mật khẩu, xem nhật ký |
+| Quản lý khách | commit ngay sau `ca68cd7` | Danh sách che liên hệ, chi tiết có audit, khóa có lý do, xuất Excel bằng job nền cho khách và newsletter |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -102,7 +103,7 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 
 **Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`, `media.process-images`.
 
-**Kiểm thử:** 969 test (406 kiến trúc, 417 đơn vị, 146 tích hợp trên SQL Server thật).
+**Kiểm thử:** 996 test (418 kiến trúc, 429 đơn vị, 149 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 

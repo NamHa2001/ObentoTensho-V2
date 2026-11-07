@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
+using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
@@ -167,6 +168,9 @@ public static class DependencyInjection
         services.AddScoped<INewsletterRepository, NewsletterRepository>();
         services.AddScoped<INewsletterEmails, NewsletterEmails>();
         services.AddSingleton<INewsletterTokenProtector, DataProtectionNewsletterTokenProtector>();
-        services.AddSingleton<INewsletterSpreadsheet, ClosedXmlNewsletterSpreadsheet>();
+        services.AddSingleton<ITableSpreadsheet, ClosedXmlTableSpreadsheet>();
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IDataExportRepository, DataExportRepository>();
+        services.AddScoped<IAdminEmailOutbox, AdminEmailOutbox>();
     }
 }

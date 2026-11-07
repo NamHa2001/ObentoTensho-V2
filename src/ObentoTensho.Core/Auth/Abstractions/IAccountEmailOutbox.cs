@@ -12,6 +12,11 @@ public interface IAccountEmailOutbox
 
     void EnqueuePasswordReset(AccountRecipient recipient, string resetToken);
 
+    // BR-CUS-08
+    void EnqueueAccountLocked(AccountRecipient recipient, DateTime atUtc);
+
+    void EnqueueAccountUnlocked(AccountRecipient recipient, DateTime atUtc);
+
     // BR-STF-06: liên kết mời một lần, không chứa mật khẩu
     void EnqueueStaffInvite(AccountRecipient recipient, string inviteToken);
 

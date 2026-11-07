@@ -1,0 +1,8 @@
+subject: Your data export is ready
+===
+The file you requested is ready. The link expires in 24 hours and only works for your account.
+
+Download file: {{link}}
+===
+<p>The file you requested is ready. The link expires in 24 hours and only works for your account.</p>
+<p><a class="button" href="{{link}}">Download file</a></p>

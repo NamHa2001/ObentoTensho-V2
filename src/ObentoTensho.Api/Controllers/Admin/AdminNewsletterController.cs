@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos.Content;
+using ObentoTensho.Contracts.Dtos.Customers;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Content.Services;
+using ObentoTensho.Core.Customers.Services;
 
 namespace ObentoTensho.Api.Controllers.Admin;
 
@@ -12,7 +14,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [Route("api/v1/admin/newsletter")]
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireCapability(StaffCapability.Feedback)]
-public sealed class AdminNewsletterController(NewsletterService newsletter, NewsletterCampaignService campaigns) : ControllerBase
+public sealed class AdminNewsletterController(NewsletterService newsletter, NewsletterCampaignService campaigns, DataExportService exports) : ControllerBase
 {
     [HttpGet("subscribers")]
     public async Task<IActionResult> Subscribers(
@@ -21,10 +23,12 @@ public sealed class AdminNewsletterController(NewsletterService newsletter, News
         CancellationToken cancellationToken = default) =>
         Ok(await newsletter.ListSubscribersAsync(page, pageSize, cancellationToken));
 
-    [HttpGet("subscribers/export")]
+    // BR-CNT-25: cùng luồng xuất có kiểm soát với danh sách khách
+    [HttpPost("subscribers/export")]
     [RequireCapability(StaffCapability.CustomerExport)]
-    public async Task<IActionResult> Export(CancellationToken cancellationToken) =>
-        File(await newsletter.ExportAsync(cancellationToken), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", newsletter.ExportFileName());
+    [ServiceFilter<StepUpFilter>]
+    public async Task<IActionResult> Export(DataExportRequest request, CancellationToken cancellationToken) =>
+        this.CreatedOrProblem(await exports.RequestAsync(DataExportKind.NewsletterSubscribers, request, User.StaffId(), cancellationToken));
 
     [HttpGet("campaigns")]
     public async Task<IActionResult> Campaigns(

@@ -3,8 +3,6 @@ using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Content;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
-using ObentoTensho.Core.Audit.Abstractions;
-using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
@@ -19,16 +17,13 @@ public sealed class NewsletterService(
     INewsletterRepository newsletter,
     INewsletterEmails emails,
     INewsletterTokenProtector protector,
-    INewsletterSpreadsheet spreadsheet,
     ISecureTokenService tokens,
     IActionThrottle throttle,
-    IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<NewsletterSubscribeRequest> validator)
 {
     public const int MaxPageSize = 50;
-    public const int ExportLimit = 50_000;
     private const string DefaultLanguage = "vi";
 
     public async Task<Result<NewsletterSubscribeResultDto>> SubscribeAsync(NewsletterSubscribeRequest request, CancellationToken cancellationToken)
@@ -140,16 +135,4 @@ public sealed class NewsletterService(
             items.Select(s => new NewsletterSubscriberDto(s.Id, s.Email, s.Lang, s.IsActive, s.ConfirmedAtUtc, s.SubscribedAtUtc, s.UnsubscribedAtUtc)).ToArray(),
             new PageMeta(page, pageSize, total));
     }
-
-    // BR-CNT-25, BR-CUS-07: mỗi lần xuất đều ghi audit
-    public async Task<byte[]> ExportAsync(CancellationToken cancellationToken)
-    {
-        var items = await newsletter.ListForExportAsync(ExportLimit, cancellationToken);
-        audit.Record(new AuditEntry("content.newsletter_subscriber.exported", "newsletter_subscriber", "export", After: new { items.Count }));
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return spreadsheet.Write(items);
-    }
-
-    public string ExportFileName() =>
-        string.Create(System.Globalization.CultureInfo.InvariantCulture, $"newsletter-{clock.TodayLocal:yyyy-MM-dd}.xlsx");
 }

@@ -1,0 +1,11 @@
+subject: Your Obento Tensho account has been unlocked
+===
+Hello {{fullName}},
+
+Your account has been unlocked. You can sign in again.
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Your account has been unlocked. You can sign in again.</p>
+<p>Obento Tensho</p>

@@ -28,6 +28,7 @@ builder.Services.AddOrderServices();
 builder.Services.AddLoyaltyServices();
 builder.Services.AddVoucherServices();
 builder.Services.AddContentServices();
+builder.Services.AddCustomerServices();
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddOpenApi();

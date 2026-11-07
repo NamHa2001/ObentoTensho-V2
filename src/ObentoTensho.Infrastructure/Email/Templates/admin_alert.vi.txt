@@ -1,0 +1,11 @@
+subject: Cảnh báo quản trị Obento Tensho
+===
+Hệ thống ghi nhận:
+
+{{message}}
+
+Mở nhật ký: {{adminLink}}
+===
+<p>Hệ thống ghi nhận:</p>
+<p>{{message}}</p>
+<p><a class="button" href="{{adminLink}}">Mở nhật ký</a></p>

@@ -1059,6 +1059,51 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.ToTable("StaticPageVersions", (string)null);
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Customers.Domain.DataExport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("DownloadTokenHash")
+                        .HasColumnType("char(64)");
+
+                    b.Property<DateTime?>("ExpiresAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<byte>("Kind")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("RequestedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("RowCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DownloadTokenHash");
+
+                    b.HasIndex("Status", "CreatedAtUtc");
+
+                    b.HasIndex("RequestedByStaffId", "Kind", "CreatedAtUtc");
+
+                    b.ToTable("DataExports", (string)null);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3027,6 +3072,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()
                         .HasForeignKey("UpdatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Customers.Domain.DataExport", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByStaffId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

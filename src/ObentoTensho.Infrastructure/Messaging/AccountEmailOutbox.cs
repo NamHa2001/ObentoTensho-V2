@@ -67,6 +67,19 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
             $"password_changed:{recipient.Id:N}:{changedAtUtc.Ticks}",
             recipient.Id.ToString()));
 
+    public void EnqueueAccountLocked(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.AccountLocked, recipient, atUtc);
+
+    public void EnqueueAccountUnlocked(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.AccountUnlocked, recipient, atUtc);
+
+    private void EnqueueStatus(EmailKind kind, AccountRecipient recipient, DateTime atUtc) =>
+        Enqueue(new EmailRequest(
+            kind,
+            recipient.Email,
+            recipient.Language,
+            Values(recipient.FullName),
+            $"{EmailTypes.Of(kind)}:{recipient.Id:N}:{atUtc.Ticks}",
+            recipient.Id.ToString()));
+
     private string BaseUrl(AccountRecipient recipient) => recipient.IsStaff ? links.Value.AdminBaseUrl : links.Value.PublicBaseUrl;
 
     private static string Link(string baseUrl, string path, string token) => baseUrl.TrimEnd('/') + path + Uri.EscapeDataString(token);

@@ -28,7 +28,7 @@ public sealed class NewsletterTests : IDisposable
     public NewsletterTests(SqlServerFixture fixture)
     {
         _fixture = fixture;
-        _factory = new ApiFactory(fixture.ConnectionString, new Dictionary<string, string>(StringComparer.Ordinal) { ["Email:DailyQuota"] = "100000" });
+        _factory = new ApiFactory(fixture.ConnectionString);
         _http = _factory.CreateApiClient();
         _admin = new AdminAuthApiClient(_factory, fixture);
     }
@@ -270,13 +270,13 @@ public sealed class NewsletterTests : IDisposable
     }
 
     [Fact]
-    public async Task Hen_gio_chi_ban_nhap_moi_sua_duoc_va_xuat_danh_sach_co_quyen()
+    public async Task Hen_gio_chi_ban_nhap_moi_sua_duoc()
     {
         var manager = await _admin.SignInAsync(StaffRole.Manager);
         var editor = await _admin.SignInAsync(StaffRole.ContentEditor);
 
         Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Get, $"{Admin}/campaigns", editor)).StatusCode);
-        Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Get, $"{Admin}/subscribers/export", editor)).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Post, $"{Admin}/subscribers/export", editor, new { reason = "x" })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Post, $"{Admin}/campaigns", manager, new { subject = new string('x', 151), contentHtml = "x", scheduledAtUtc = (DateTime?)null })).StatusCode);
 
         var later = await CreateCampaignAsync(manager, "Tuần sau", scheduledAtUtc: DateTime.UtcNow.AddDays(7));
@@ -295,10 +295,5 @@ public sealed class NewsletterTests : IDisposable
         var draft = await CreateCampaignAsync(manager, "Nháp");
         Assert.Equal(HttpStatusCode.NoContent, (await _admin.SendAsync(HttpMethod.Delete, $"{Admin}/campaigns/{draft.GetProperty("id").GetInt32()}", manager, null, $"\"{draft.GetProperty("version").GetString()}\"")).StatusCode);
 
-        var export = await _admin.SendAsync(HttpMethod.Get, $"{Admin}/subscribers/export", manager);
-        Assert.Equal(HttpStatusCode.OK, export.StatusCode);
-        Assert.Equal("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", export.Content.Headers.ContentType?.MediaType);
-        await using var db = _fixture.CreateContext();
-        Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "content.newsletter_subscriber.exported"));
     }
 }
