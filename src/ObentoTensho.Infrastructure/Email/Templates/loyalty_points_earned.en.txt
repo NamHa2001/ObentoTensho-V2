@@ -1,0 +1,22 @@
+subject: You have earned {{points}} points
+===
+Hello {{fullName}},
+
+Thank you for choosing Obento Tensho. You have earned reward points:
+
+Points earned: +{{points}}
+From: {{reference}}
+Current balance: {{balance}} points
+
+Collect enough points to exchange them for a discount voucher.
+
+View your points: {{accountLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Thank you for choosing Obento Tensho. You have earned reward points:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Points earned</td><td style="padding:4px 0"><strong>+{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">From</td><td style="padding:4px 0">{{reference}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Current balance</td><td style="padding:4px 0">{{balance}} points</td></tr></table>
+<p>Collect enough points to exchange them for a discount voucher.</p><p><a class="button" href="{{accountLink}}">View your points</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

@@ -1,0 +1,21 @@
+subject: {{points}} ポイントを獲得しました
+===
+{{fullName}} 様
+
+Obento Tensho をご利用いただきありがとうございます。ポイントが加算されました。
+
+獲得ポイント: +{{points}}
+対象: {{reference}}
+現在の残高: {{balance}} ポイント
+
+ポイントが貯まると割引クーポンと交換できます。
+
+ポイントを確認する: {{accountLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>Obento Tensho をご利用いただきありがとうございます。ポイントが加算されました。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">獲得ポイント</td><td style="padding:4px 0"><strong>+{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">対象</td><td style="padding:4px 0">{{reference}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">現在の残高</td><td style="padding:4px 0">{{balance}} ポイント</td></tr></table>
+<p>ポイントが貯まると割引クーポンと交換できます。</p><p><a class="button" href="{{accountLink}}">ポイントを確認する</a></p>
+<p>Obento Tensho</p>

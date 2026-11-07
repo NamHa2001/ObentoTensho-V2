@@ -19,5 +19,8 @@ public enum EmailKind
     OrderCancelled,
     OrderCancelledByCustomer,
     OrderRefunded,
-    OrderAttention
+    OrderAttention,
+    LoyaltyPointsEarned,
+    LoyaltyTierUp,
+    LoyaltyPointsExpiring
 }

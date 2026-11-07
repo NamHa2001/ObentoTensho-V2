@@ -8,6 +8,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Time;
@@ -24,6 +25,7 @@ public sealed class PublicOrderService(
     ISecureTokenService secureTokens,
     IActionThrottle throttle,
     IOrderSettings settings,
+    LoyaltyService loyalty,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<CreateOrderRequest> validator,
@@ -37,7 +39,7 @@ public sealed class PublicOrderService(
     private static readonly TimeSpan LookupLockout = TimeSpan.FromMinutes(15);
 
     // Mở giỏ ⇒ kiểm lại giá/tình trạng (docs/srs/12 §4.1 bước 1); không tạo gì
-    public async Task<Result<OrderQuoteDto>> QuoteAsync(QuoteOrderRequest request, CancellationToken cancellationToken)
+    public async Task<Result<OrderQuoteDto>> QuoteAsync(QuoteOrderRequest request, Guid? userId, CancellationToken cancellationToken)
     {
         var validation = await quoteValidator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
@@ -46,7 +48,7 @@ public sealed class PublicOrderService(
         }
 
         var priced = await cart.PriceAsync(request.Items, Language(request.Lang), cancellationToken);
-        var totals = OrderPricing.Compute(priced.SubTotal, memberRate: 0, voucherDiscount: 0);
+        var totals = OrderPricing.Compute(priced.SubTotal, await loyalty.MemberDiscountRateAsync(userId, cancellationToken), voucherDiscount: 0);
         return Result.Success(new OrderQuoteDto(
             priced.IsValid,
             priced.Lines.Select(l => new QuoteLineDto(l.Index, l.Item is { } item ? Preview(item) : null, l.ErrorCode)).ToArray(),
@@ -93,7 +95,8 @@ public sealed class PublicOrderService(
             return Result.Failure<CreatedOrderDto>(ErrorCodes.OrderLimit);
         }
 
-        var totals = OrderPricing.Compute(priced.SubTotal, memberRate: 0, voucherDiscount: 0);
+        // BR-ORD-03: thành viên được giảm theo hạng (khi có voucher thì hai loại giảm loại trừ nhau — phần voucher)
+        var totals = OrderPricing.Compute(priced.SubTotal, await loyalty.MemberDiscountRateAsync(userId, cancellationToken), voucherDiscount: 0);
 
         // BR-ORD-21: khách lần đầu, đơn tiền mặt lớn, hoặc SĐT nhiều lần không đến lấy (BR-ORD-18) phải gọi xác nhận trước khi bếp làm
         var needsCall = !await orders.HasCompletedForPhoneAsync(phone, cancellationToken)
@@ -165,7 +168,7 @@ public sealed class PublicOrderService(
                 return Result.Failure<PublicOrderDto>(ErrorCodes.NotFound);
             }
 
-            var applied = transitions.Apply(order, OrderStatus.Cancelled, OrderActor.Customer, userId, request.Reason);
+            var applied = await transitions.ApplyAsync(order, OrderStatus.Cancelled, OrderActor.Customer, userId, request.Reason, ct);
             if (!applied.IsSuccess)
             {
                 return Result.Failure<PublicOrderDto>(applied.ErrorCode ?? ErrorCodes.InvalidTransition, applied.FieldErrors);

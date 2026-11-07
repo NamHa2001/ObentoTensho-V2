@@ -51,6 +51,8 @@ public static class ApiProblems
         [ErrorCodes.ItemUnavailable] = (StatusCodes.Status400BadRequest, "Có món không đặt được"),
         [ErrorCodes.OrderLimit] = (StatusCodes.Status409Conflict, "Số điện thoại đã có đủ đơn đang xử lý"),
         [ErrorCodes.PaymentRequired] = (StatusCodes.Status409Conflict, "Đơn chưa thanh toán"),
+        [ErrorCodes.PointsInsufficient] = (StatusCodes.Status409Conflict, "Không đủ điểm"),
+        [ErrorCodes.FourEyesRequired] = (StatusCodes.Status409Conflict, "Cần người khác duyệt"),
         [ErrorCodes.FileInvalid] = (StatusCodes.Status400BadRequest, "Tệp không đúng định dạng hoặc mẫu"),
         [ErrorCodes.FileTooLarge] = (StatusCodes.Status413PayloadTooLarge, "Tệp quá lớn hoặc quá nhiều dòng"),
         [ErrorCodes.RateLimited] = (StatusCodes.Status429TooManyRequests, "Quá nhiều yêu cầu, vui lòng thử lại sau"),

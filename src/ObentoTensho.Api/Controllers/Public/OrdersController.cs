@@ -23,7 +23,7 @@ public sealed class OrdersController(PublicOrderService orders) : ControllerBase
     [HttpPost("quote")]
     [AllowAnonymous]
     public async Task<IActionResult> Quote(QuoteOrderRequest request, CancellationToken cancellationToken) =>
-        this.DataOrProblem(await orders.QuoteAsync(request, cancellationToken));
+        this.DataOrProblem(await orders.QuoteAsync(request, User.CustomerId(), cancellationToken));
 
     [HttpPost]
     [AllowAnonymous]

@@ -62,5 +62,8 @@ public static class ErrorCodes
     public const string ItemUnavailable = "ITEM_UNAVAILABLE";
     public const string OrderLimit = "ORD_LIMIT";
     public const string PaymentRequired = "PAYMENT_REQUIRED";
+    // Điểm thưởng (docs/srs/13)
+    public const string PointsInsufficient = "POINTS_INSUFFICIENT";
+    public const string FourEyesRequired = "FOUR_EYES_REQUIRED";
     public const string InternalError = "INTERNAL_ERROR";
 }

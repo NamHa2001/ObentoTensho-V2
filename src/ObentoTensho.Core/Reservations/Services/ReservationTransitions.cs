@@ -1,6 +1,8 @@
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Loyalty.Abstractions;
+using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Abstractions;
@@ -13,6 +15,9 @@ namespace ObentoTensho.Core.Reservations.Services;
 public sealed class ReservationTransitions(
     IReservationRepository reservations,
     ITableLayoutRepository tables,
+    LoyaltyLedger ledger,
+    ILoyaltyRepository loyaltyRepository,
+    ILoyaltySettings loyaltySettings,
     IReservationEmailOutbox emails,
     IClock clock)
 {
@@ -41,6 +46,11 @@ public sealed class ReservationTransitions(
         }
 
         await SyncTableAsync(reservation, cancellationToken);
+        if (to == ReservationStatus.CheckedIn)
+        {
+            await EarnCheckInPointsAsync(reservation, cancellationToken);
+        }
+
         reservations.AddHistory(new ReservationStatusHistory
         {
             ReservationId = reservation.Id,
@@ -72,6 +82,22 @@ public sealed class ReservationTransitions(
             _ when table.CurrentStatus is TableStatus.Reserved or TableStatus.Occupied => TableStatus.Available,
             _ => table.CurrentStatus,
         };
+    }
+
+    // BR-RSV-07, BR-LOY-22: thành viên check-in được cộng điểm một lần cho mỗi đặt bàn, tối đa trần mỗi tháng (giờ VN);
+    // hết trần vẫn check-in bình thường
+    private async Task EarnCheckInPointsAsync(Reservation reservation, CancellationToken cancellationToken)
+    {
+        if (reservation.UserId is not { } userId || reservation.PointsEarned > 0)
+        {
+            return;
+        }
+
+        var today = clock.TodayLocal;
+        var monthStart = clock.ToUtc(new DateOnly(today.Year, today.Month, 1), TimeOnly.MinValue);
+        var used = await loyaltyRepository.SumPointsAsync(userId, LoyaltyTransactionType.ReservationEarn, monthStart, cancellationToken);
+        var points = Math.Min(loyaltySettings.ReservationPoints, loyaltySettings.ReservationPointsPerMonth - used);
+        reservation.PointsEarned = await ledger.EarnAsync(userId, LoyaltyTransactionType.ReservationEarn, reservation.ReservationCode, points, note: null, cancellationToken);
     }
 
     private Result? CheckAllowed(Reservation reservation, ReservationStatus to, ReservationActor actor, string? reason)

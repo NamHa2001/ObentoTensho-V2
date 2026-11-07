@@ -1,0 +1,21 @@
+subject: {{points}} điểm của bạn sắp hết hạn
+===
+Xin chào {{fullName}},
+
+Một phần điểm thưởng của bạn sắp hết hạn:
+
+Số điểm: {{points}}
+Hết hạn ngày: {{expiryDate}}
+
+Hãy dùng điểm để đổi voucher trước ngày này.
+
+Xem điểm của bạn: {{accountLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Một phần điểm thưởng của bạn sắp hết hạn:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số điểm</td><td style="padding:4px 0"><strong>{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Hết hạn ngày</td><td style="padding:4px 0">{{expiryDate}}</td></tr></table>
+<p>Hãy dùng điểm để đổi voucher trước ngày này.</p><p><a class="button" href="{{accountLink}}">Xem điểm của bạn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

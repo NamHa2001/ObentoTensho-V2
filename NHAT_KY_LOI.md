@@ -13,6 +13,13 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Điểm & hạng thành viên (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Script Python ghi file xong rồi báo `UnicodeEncodeError: 'charmap' codec can't encode character` ở lệnh `print` | Console của Python trên Windows dùng bảng mã cp1252, không in được tiếng Việt/Nhật; file đã ghi đúng trước khi lỗi | Kiểm file bằng `grep` thay vì `print` nội dung | Script sinh file chỉ in số lượng/đường dẫn ASCII; hoặc đặt `PYTHONIOENCODING=utf-8` |
+| (Phát hiện khi đọc lại) khóa hàng khách rồi `Reload` có thể xóa thay đổi chưa lưu của chính transaction | `ReloadAsync` ghi đè giá trị trong context bằng giá trị CSDL | Chỉ nạp lại khi bản ghi đang `Unchanged` | Mọi thao tác điểm đi qua `LoyaltyLedger`, khóa trước khi sửa |
+
 ## Đặt món mang về – bước 1 (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

@@ -71,7 +71,6 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Cộng điểm khi check-in (một lần, theo `ReferenceId`) + sự kiện `ReservationCheckedIn` | `BR-RSV-07`, `BR-RSV-14` | Phần điểm/hạng |
 | Nhắc nhân viên khi `Pending` quá 30 phút, báo Manager | `BR-RSV-25` | Phần thông báo nội bộ/realtime |
 | Chỗ trống cập nhật real-time; báo lễ tân `reservation.created` | `RT-01` | Phần realtime |
 | Khách xem "Đặt bàn của tôi" trong tài khoản | `FR-RSV-03` | Hủy từ tài khoản đã có; còn API danh sách |
@@ -90,6 +89,17 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 | Cache thực đơn nhiều instance (HybridCache + Redis, xóa cache phát tán) | `PERF-10` | Hiện `IMemoryCache` một tiến trình; phần triển khai |
 | Test đếm truy vấn `GET /menu/items` ≤ 2 | `PERF-51`, `TST-28` | Thêm interceptor đếm truy vấn ở phần kiểm thử cuối |
 
+## Điểm & hạng
+
+| Việc | Mã | Ghi chú |
+|---|---|---|
+| Đổi điểm lấy voucher (nguyên tử), voucher sinh nhật mỗi năm một lần, `GET /account/vouchers` | `BR-LOY-05/07/09/20` | Phần voucher (cần bảng `Vouchers`) |
+| Đối soát hằng đêm `CurrentPoints = Σ sổ cái = Σ lô` và cảnh báo khi lệch | `BR-LOY-04` | Bất biến đã giữ trong mọi thao tác; còn thiếu việc định kỳ kiểm lại |
+| Cảnh báo nhân viên khi khách có nợ điểm | `BR-LOY-08` | Số nợ đã hiện ở `GET /admin/customers/{id}/loyalty-points`; màn hình ở giao diện quản trị |
+| Đọc ngưỡng hạng/thang điểm từ bảng cài đặt (hiện từ cấu hình `Loyalty:*`) | `BR-LOY-03`, `BR-RPT-21` | Phần cài đặt |
+| Ẩn danh hóa khách giữ nguyên sổ cái | `BR-CUS-05` | Phần quản lý khách |
+| Điểm/vé chơi game dùng chung sổ cái | `BR-LOY-13` | Phase 2 |
+
 ## Đặt món mang về
 
 | Việc | Mã | Ghi chú |
@@ -97,8 +107,6 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 | Nhắc "cần xử lý" real-time cho thu ngân (hiện qua thư gộp cho quản lý mỗi 10 phút + `GET /admin/orders/attention`) | `BR-ORD-18`, `docs/srs/20` #30 | Phần realtime |
 | Ngôn ngữ thư cho nhân viên (hiện luôn tiếng Việt vì bảng Staff chưa có cột ngôn ngữ) | `docs/srs/22` | Phần đa ngôn ngữ |
 | Áp voucher khi đặt (giữ lượt nguyên tử), hoàn voucher khi hủy | `BR-ORD-03/04/07`, `DB-21` | Phần voucher; cột `VoucherId`/`VoucherDiscount` đã có |
-| Giảm giá theo hạng thành viên | `BR-ORD-03` | Phần điểm/hạng; `OrderPricing.Compute` đã nhận tỷ lệ hạng |
-| Cộng điểm khi hoàn thành + đã thanh toán, thu hồi khi hủy sau đó; sự kiện `OrderCompleted`/`OrderCancelled` qua outbox | `BR-ORD-08/13/15` | Phần điểm/hạng |
 | STK + QR chuyển khoản lấy từ cài đặt `payment.*` | `FR-ORD-03` | Phần cài đặt |
 | Đơn mới/đổi trạng thái real-time cho bếp, thu ngân, trang theo dõi của khách | `RT-03`, `FR-ORD-05` | Phần realtime |
 | Turnstile chỉ bắt buộc với khách vãng lai | `BR-ORD-20` | Hiện bộ lọc Turnstile áp cho mọi lượt đặt khi bật |
@@ -107,7 +115,7 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
-Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 

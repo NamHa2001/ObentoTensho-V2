@@ -1,6 +1,9 @@
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Loyalty.Abstractions;
+using ObentoTensho.Core.Loyalty.Domain;
+using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Time;
@@ -9,10 +12,15 @@ namespace ObentoTensho.Core.Orders.Services;
 
 // Áp một chuyển trạng thái lên đơn đang được theo dõi, trong transaction của bên gọi:
 // máy trạng thái (BR-ORD-06), gọi xác nhận trước khi làm (BR-ORD-21), chỉ giao món khi đã thanh toán (BR-ORD-10),
-// lịch sử, thư cho khách. Hoàn voucher (BR-ORD-07) và cộng/thu hồi điểm (BR-ORD-08, BR-ORD-15) nối vào ở các phần sau.
-public sealed class OrderTransitions(IOrderRepository orders, IOrderEmailOutbox emails, IClock clock)
+// lịch sử, thư cho khách, cộng/thu hồi điểm cùng transaction (BR-ORD-08, BR-LOY-10). Hoàn voucher (BR-ORD-07) nối vào ở phần voucher.
+public sealed class OrderTransitions(
+    IOrderRepository orders,
+    IOrderEmailOutbox emails,
+    LoyaltyLedger ledger,
+    ILoyaltySettings loyaltySettings,
+    IClock clock)
 {
-    public Result Apply(Order order, OrderStatus to, OrderActor actor, Guid? actorId, string? reason)
+    public async Task<Result> ApplyAsync(Order order, OrderStatus to, OrderActor actor, Guid? actorId, string? reason, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(order);
         if (CheckAllowed(order, to, actor, reason) is { } failure)
@@ -48,7 +56,28 @@ public sealed class OrderTransitions(IOrderRepository orders, IOrderEmailOutbox 
             ChangedAtUtc = now,
         });
         Notify(order, to, actor, cleanReason);
+        await SettleLoyaltyAsync(order, to, cancellationToken);
         return Result.Success();
+    }
+
+    // BR-ORD-08/13: điểm cộng đúng một lần khi đơn của thành viên hoàn thành (đã thanh toán — BR-ORD-10), tính trên tổng sau giảm;
+    // đơn đã cộng mà bị hủy thì thu hồi (máy trạng thái hiện không cho hủy đơn đã hoàn thành — giữ cho an toàn)
+    private async Task SettleLoyaltyAsync(Order order, OrderStatus to, CancellationToken cancellationToken)
+    {
+        if (order.UserId is not { } userId)
+        {
+            return;
+        }
+
+        if (to == OrderStatus.Completed)
+        {
+            var points = LoyaltyRules.OrderPoints(order.TotalAmount, loyaltySettings.VndPerPoint);
+            order.PointsEarned = await ledger.EarnAsync(userId, LoyaltyTransactionType.OrderEarn, order.OrderCode, points, note: null, cancellationToken);
+        }
+        else if (to == OrderStatus.Cancelled && order.PointsEarned > 0)
+        {
+            await ledger.RevokeAsync(userId, LoyaltyTransactionType.OrderEarn, order.OrderCode, cancellationToken);
+        }
     }
 
     private static Result? CheckAllowed(Order order, OrderStatus to, OrderActor actor, string? reason)

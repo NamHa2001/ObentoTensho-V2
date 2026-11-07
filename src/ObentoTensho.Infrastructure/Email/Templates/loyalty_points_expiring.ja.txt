@@ -1,0 +1,20 @@
+subject: {{points}} ポイントの有効期限が近づいています
+===
+{{fullName}} 様
+
+ポイントの一部の有効期限が近づいています。
+
+ポイント: {{points}}
+有効期限: {{expiryDate}}
+
+期限までにクーポンと交換してください。
+
+ポイントを確認する: {{accountLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>ポイントの一部の有効期限が近づいています。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">ポイント</td><td style="padding:4px 0"><strong>{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">有効期限</td><td style="padding:4px 0">{{expiryDate}}</td></tr></table>
+<p>期限までにクーポンと交換してください。</p><p><a class="button" href="{{accountLink}}">ポイントを確認する</a></p>
+<p>Obento Tensho</p>

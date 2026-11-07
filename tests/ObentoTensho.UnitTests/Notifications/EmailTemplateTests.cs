@@ -34,6 +34,13 @@ public sealed class EmailTemplateTests
         ["notPickedUpList"] = "—",
         ["refundList"] = "—",
         ["adminLink"] = "https://admin.obento.test/orders/attention",
+        ["points"] = "16",
+        ["balance"] = "316",
+        ["reference"] = "OBT-TK-8K4Q-7ZM2",
+        ["accountLink"] = "https://www.obento.test/account/points",
+        ["tierName"] = "Bạc",
+        ["discount"] = "3",
+        ["expiryDate"] = "08/12/2026",
     };
 
     public static TheoryData<EmailKind, string> Cases()

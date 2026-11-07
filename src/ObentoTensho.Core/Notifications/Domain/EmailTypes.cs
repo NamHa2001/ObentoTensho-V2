@@ -22,6 +22,9 @@ public static class EmailTypes
         EmailKind.OrderCancelledByCustomer => "order_cancelled_by_customer",
         EmailKind.OrderRefunded => "order_refunded",
         EmailKind.OrderAttention => "order_attention",
+        EmailKind.LoyaltyPointsEarned => "loyalty_points_earned",
+        EmailKind.LoyaltyTierUp => "loyalty_tier_up",
+        EmailKind.LoyaltyPointsExpiring => "loyalty_points_expiring",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

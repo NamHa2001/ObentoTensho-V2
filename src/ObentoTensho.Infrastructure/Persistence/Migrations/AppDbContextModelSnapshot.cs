@@ -399,6 +399,139 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid>("RequestedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByStaffId");
+
+                    b.HasIndex("ReviewedByStaffId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Status", "RequestedAtUtc");
+
+                    b.ToTable("LoyaltyAdjustments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LoyaltyAdjustments_Points", "[Points] <> 0");
+
+                            t.HasCheckConstraint("CK_LoyaltyAdjustments_Status", "[Status] BETWEEN 0 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("BalanceAfter")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceId")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("TransactionType");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Id");
+
+                    b.HasIndex("UserId", "Type", "ReferenceId")
+                        .IsUnique()
+                        .HasFilter("[ReferenceId] IS NOT NULL");
+
+                    b.ToTable("LoyaltyPoints", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LoyaltyPoints_BalanceAfter", "[BalanceAfter] >= 0");
+
+                            t.HasCheckConstraint("CK_LoyaltyPoints_Type", "[TransactionType] BETWEEN 0 AND 6");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyLot", b =>
+                {
+                    b.Property<long>("LedgerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ExpiryNoticeSentAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("RemainingPoints")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("LedgerId");
+
+                    b.HasIndex("ExpiresAtUtc")
+                        .HasFilter("[RemainingPoints] > 0");
+
+                    b.HasIndex("UserId", "ExpiresAtUtc");
+
+                    b.ToTable("LoyaltyLots", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_LoyaltyLots_RemainingPoints", "[RemainingPoints] >= 0");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategory", b =>
                 {
                     b.Property<int>("Id")
@@ -1806,6 +1939,52 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("RequestedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyEntry", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyLot", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Loyalty.Domain.LoyaltyEntry", "Entry")
+                        .WithOne()
+                        .HasForeignKey("ObentoTensho.Core.Loyalty.Domain.LoyaltyLot", "LedgerId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Entry");
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategoryTranslation", b =>

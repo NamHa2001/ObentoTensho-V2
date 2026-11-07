@@ -3,7 +3,7 @@ using ObentoTensho.IntegrationTests.Fixtures;
 
 namespace ObentoTensho.IntegrationTests.Persistence;
 
-// docs/srs/05 DB-10, docs/srs/07 TST-31: tài khoản chạy ứng dụng không có DDL và không sửa/xóa được nhật ký.
+// docs/srs/05 DB-10, docs/srs/07 TST-31: tài khoản chạy ứng dụng không có DDL và không sửa/xóa được nhật ký, sổ cái điểm.
 [Collection(SqlServerFixture.CollectionName)]
 public sealed class DatabasePermissionTests(SqlServerFixture fixture)
 {
@@ -38,6 +38,10 @@ public sealed class DatabasePermissionTests(SqlServerFixture fixture)
     [Theory]
     [InlineData("UPDATE AuditLogs SET Action = N'sửa trộm'")]
     [InlineData("DELETE FROM AuditLogs")]
+
+    // Sổ cái điểm cũng chỉ thêm (BR-LOY-04)
+    [InlineData("UPDATE LoyaltyPoints SET Points = 0")]
+    [InlineData("DELETE FROM LoyaltyPoints")]
     public async Task TST_31_Chay_ung_dung_khong_sua_hay_xoa_duoc_nhat_ky(string sql)
     {
         await using var connection = await OpenAsRuntimeUserAsync();

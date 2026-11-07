@@ -6,12 +6,14 @@ using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Loyalty.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Infrastructure.Caching;
+using ObentoTensho.Infrastructure.Loyalty;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Orders;
 using ObentoTensho.Infrastructure.Persistence;
@@ -56,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped<IReservationEmailOutbox, ReservationEmailOutbox>();
         services.AddScoped<IMenuRepository, MenuRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<ILoyaltyRepository, LoyaltyRepository>();
+        services.AddScoped<ILoyaltyEmailOutbox, LoyaltyEmailOutbox>();
         services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
@@ -66,6 +70,12 @@ public static class DependencyInjection
             .Validate(o => o.IsValid(), "Cấu hình Reservation không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
         services.AddSingleton<IReservationSettings>(sp => sp.GetRequiredService<IOptions<ReservationOptions>>().Value);
+
+        services.AddOptions<LoyaltyOptions>()
+            .Bind(configuration.GetSection(LoyaltyOptions.SectionName))
+            .Validate(o => o.IsValid(), "Cấu hình Loyalty không hợp lệ (xem docs/srs/19 §3).")
+            .ValidateOnStart();
+        services.AddSingleton<ILoyaltySettings>(sp => sp.GetRequiredService<IOptions<LoyaltyOptions>>().Value);
 
         services.AddOptions<OrderOptions>()
             .Bind(configuration.GetSection(OrderOptions.SectionName))

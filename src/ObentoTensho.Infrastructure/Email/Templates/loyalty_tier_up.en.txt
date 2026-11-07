@@ -1,0 +1,21 @@
+subject: Congratulations! You are now {{tierName}}
+===
+Hello {{fullName}},
+
+Congratulations on reaching a new membership tier at Obento Tensho:
+
+New tier: {{tierName}}
+Benefit: {{discount}}% off takeaway orders
+
+The discount applies automatically when you sign in and order (it cannot be combined with a voucher).
+
+View your benefits: {{accountLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Congratulations on reaching a new membership tier at Obento Tensho:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">New tier</td><td style="padding:4px 0"><strong>{{tierName}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Benefit</td><td style="padding:4px 0">{{discount}}% off takeaway orders</td></tr></table>
+<p>The discount applies automatically when you sign in and order (it cannot be combined with a voucher).</p><p><a class="button" href="{{accountLink}}">View your benefits</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

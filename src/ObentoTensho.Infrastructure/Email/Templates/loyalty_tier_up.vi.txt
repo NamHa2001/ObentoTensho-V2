@@ -1,0 +1,21 @@
+subject: Chúc mừng! Bạn đã lên hạng {{tierName}}
+===
+Xin chào {{fullName}},
+
+Chúc mừng bạn đã lên hạng thành viên mới tại Obento Tensho:
+
+Hạng mới: {{tierName}}
+Ưu đãi: Giảm {{discount}}% cho đơn mang về
+
+Ưu đãi được tự áp dụng khi bạn đăng nhập và đặt món (không dùng cùng voucher).
+
+Xem quyền lợi: {{accountLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Chúc mừng bạn đã lên hạng thành viên mới tại Obento Tensho:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Hạng mới</td><td style="padding:4px 0"><strong>{{tierName}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ưu đãi</td><td style="padding:4px 0">Giảm {{discount}}% cho đơn mang về</td></tr></table>
+<p>Ưu đãi được tự áp dụng khi bạn đăng nhập và đặt món (không dùng cùng voucher).</p><p><a class="button" href="{{accountLink}}">Xem quyền lợi</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

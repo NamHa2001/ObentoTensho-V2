@@ -136,11 +136,11 @@ public sealed class OrderDeskService(
             return Task.FromResult(Result.Failure<AdminOrderDto>(Enum.IsDefined(request.Status) ? ErrorCodes.Forbidden : ErrorCodes.ValidationFailed));
         }
 
-        return UpdateAsync(id, order =>
+        return UpdateAsync(id, (order, ct) =>
         {
             if (order.Status != request.ExpectedStatus)
             {
-                return Result.Failure(ErrorCodes.InvalidTransition);
+                return Task.FromResult(Result.Failure(ErrorCodes.InvalidTransition));
             }
 
             // BR-ORD-18: chỉ đơn đã sẵn sàng mới hủy vì "không đến lấy"
@@ -148,17 +148,17 @@ public sealed class OrderDeskService(
             {
                 if (order.Status != OrderStatus.Ready || request.Status != OrderStatus.Cancelled)
                 {
-                    return Result.Failure(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
+                    return Task.FromResult(Result.Failure(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
                     {
                         ["noPickup"] = [FieldErrorCodes.OutOfRange],
-                    });
+                    }));
                 }
 
                 order.NoPickup = true;
             }
 
             var reason = request.NoPickup && string.IsNullOrWhiteSpace(request.Reason) ? NoPickupReason : request.Reason;
-            return transitions.Apply(order, request.Status, OrderActor.Staff, staffId, reason);
+            return transitions.ApplyAsync(order, request.Status, OrderActor.Staff, staffId, reason, ct);
         }, cancellationToken);
     }
 
@@ -213,6 +213,9 @@ public sealed class OrderDeskService(
     }
 
     private Task<Result<AdminOrderDto>> UpdateAsync(Guid id, Func<Order, Result> change, CancellationToken cancellationToken) =>
+        UpdateAsync(id, (order, _) => Task.FromResult(change(order)), cancellationToken);
+
+    private Task<Result<AdminOrderDto>> UpdateAsync(Guid id, Func<Order, CancellationToken, Task<Result>> change, CancellationToken cancellationToken) =>
         unitOfWork.TryInTransactionAsync(async ct =>
         {
             if (await orders.FindForUpdateAsync(id, withItems: true, ct) is not { } order)
@@ -220,7 +223,7 @@ public sealed class OrderDeskService(
                 return Result.Failure<AdminOrderDto>(ErrorCodes.NotFound);
             }
 
-            var changed = change(order);
+            var changed = await change(order, ct);
             if (!changed.IsSuccess)
             {
                 return Result.Failure<AdminOrderDto>(changed.ErrorCode ?? ErrorCodes.ValidationFailed, changed.FieldErrors);
