@@ -32,7 +32,7 @@ internal sealed partial class EmbeddedEmailTemplateRenderer : IEmailTemplateRend
         var subject = Fill(template.Subject, request.Values, encode: false).ReplaceLineEndings(" ");
         var text = Fill(template.Text, request.Values, encode: false);
         var html = EmailLayout.Wrap(language, subject, Fill(template.Html, request.Values, encode: true));
-        return new EmailMessage(request.To, subject, html, text, request.Attachments);
+        return new EmailMessage(request.To, subject, html, text, request.Attachments, request.Headers);
     }
 
     private static string Fill(string template, IReadOnlyDictionary<string, string> values, bool encode) =>
@@ -44,7 +44,7 @@ internal sealed partial class EmbeddedEmailTemplateRenderer : IEmailTemplateRend
                 throw new InvalidOperationException($"Thiếu biến {{{{{name}}}}} cho mẫu email.");
             }
 
-            return encode ? WebUtility.HtmlEncode(value) : value;
+            return encode && !string.Equals(name, EmailRequest.TrustedHtmlValue, StringComparison.Ordinal) ? WebUtility.HtmlEncode(value) : value;
         });
 
     private static FrozenDictionary<string, EmailTemplate> Load()

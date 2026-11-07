@@ -459,6 +459,43 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.ConsentRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("AcceptedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("DocType")
+                        .IsRequired()
+                        .HasColumnType("varchar(30)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("Ip")
+                        .HasColumnType("varchar(45)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email", "DocType");
+
+                    b.HasIndex("UserId", "DocType");
+
+                    b.ToTable("ConsentRecords", (string)null);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Content.Domain.ContactMessage", b =>
                 {
                     b.Property<int>("Id")
@@ -706,6 +743,149 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("NewsCategories", (string)null);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.NewsletterCampaign", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentHtml")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("FinishedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTime?>("ScheduledAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("SentByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("StartedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SentByStaffId");
+
+                    b.HasIndex("Status", "ScheduledAtUtc");
+
+                    b.ToTable("NewsletterCampaigns", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NewsletterCampaigns_Status", "[Status] BETWEEN 0 AND 3");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.NewsletterRecipient", b =>
+                {
+                    b.Property<int>("CampaignId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubscriberId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Attempts")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("CampaignId", "SubscriberId");
+
+                    b.HasIndex("SubscriberId");
+
+                    b.HasIndex("CampaignId", "Status");
+
+                    b.ToTable("NewsletterRecipients", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NewsletterRecipients_Status", "[Status] BETWEEN 0 AND 2");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.NewsletterSubscriber", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ConfirmExpiryUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("ConfirmTokenHash")
+                        .HasColumnType("char(64)");
+
+                    b.Property<DateTime?>("ConfirmedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Lang")
+                        .IsRequired()
+                        .HasColumnType("char(2)")
+                        .HasDefaultValue("vi");
+
+                    b.Property<DateTime>("SubscribedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("UnsubscribeTokenHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<byte[]>("UnsubscribeTokenProtected")
+                        .IsRequired()
+                        .HasColumnType("varbinary(512)");
+
+                    b.Property<DateTime?>("UnsubscribedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConfirmTokenHash");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("UnsubscribeTokenHash")
+                        .IsUnique();
+
+                    b.ToTable("NewsletterSubscribers", (string)null);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Content.Domain.Review", b =>
@@ -2722,6 +2902,14 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.ConsentRecord", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Content.Domain.ContactMessage", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
@@ -2764,6 +2952,29 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ThumbnailImageId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.NewsletterCampaign", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("SentByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Content.Domain.NewsletterRecipient", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Content.Domain.NewsletterCampaign", null)
+                        .WithMany()
+                        .HasForeignKey("CampaignId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Content.Domain.NewsletterSubscriber", null)
+                        .WithMany()
+                        .HasForeignKey("SubscriberId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Content.Domain.Review", b =>

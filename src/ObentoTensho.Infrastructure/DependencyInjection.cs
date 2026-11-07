@@ -163,5 +163,9 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<IContactEmailOutbox, ContactEmailOutbox>();
+        services.AddScoped<INewsletterRepository, NewsletterRepository>();
+        services.AddScoped<INewsletterEmails, NewsletterEmails>();
+        services.AddSingleton<INewsletterTokenProtector, DataProtectionNewsletterTokenProtector>();
+        services.AddSingleton<INewsletterSpreadsheet, ClosedXmlNewsletterSpreadsheet>();
     }
 }

@@ -26,5 +26,7 @@ public enum EmailKind
     VoucherRedeemed,
     VoucherBirthday,
     ContactReceived,
-    ContactInternal
+    ContactInternal,
+    NewsletterConfirm,
+    Newsletter
 }

@@ -29,6 +29,8 @@ public static class EmailTypes
         EmailKind.VoucherBirthday => "voucher_birthday",
         EmailKind.ContactReceived => "contact_received",
         EmailKind.ContactInternal => "contact_internal",
+        EmailKind.NewsletterConfirm => "newsletter_confirm",
+        EmailKind.Newsletter => "newsletter",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
 

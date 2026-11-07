@@ -1,0 +1,11 @@
+subject: {{subject}}
+===
+{{contentText}}
+
+---
+Obento Tensho のニュースレターにご登録いただいたため、このメールをお送りしています。
+配信を停止する: {{unsubscribeLink}}
+===
+{{contentHtml}}
+<hr>
+<p style="font-size:13px;color:#6b6b6b">Obento Tensho のニュースレターにご登録いただいたため、このメールをお送りしています。<br><a href="{{unsubscribeLink}}">配信を停止する</a></p>

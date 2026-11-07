@@ -20,7 +20,7 @@ public static class EmailPolicy
             or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled
             or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
-        EmailKind.ReservationReminder or EmailKind.OrderAttention or EmailKind.ContactReceived or EmailKind.ContactInternal => 3,
+        EmailKind.ReservationReminder or EmailKind.OrderAttention or EmailKind.ContactReceived or EmailKind.ContactInternal or EmailKind.NewsletterConfirm => 3,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
         EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed or EmailKind.VoucherBirthday => 4,
         _ => 5,

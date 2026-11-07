@@ -1,0 +1,17 @@
+subject: Confirm your Obento Tensho newsletter subscription
+===
+Hello,
+
+Please confirm to receive offers and news from Obento Tensho. This link is valid for 48 hours.
+
+Confirm subscription: {{link}}
+
+If this was not you, please ignore this email.
+
+Obento Tensho
+===
+<p>Hello,</p>
+<p>Please confirm to receive offers and news from Obento Tensho. This link is valid for 48 hours.</p>
+<p><a class="button" href="{{link}}">Confirm subscription</a></p>
+<p>If this was not you, please ignore this email.</p>
+<p>Obento Tensho</p>

@@ -1,0 +1,17 @@
+subject: Xác nhận đăng ký nhận tin Obento Tensho
+===
+Xin chào,
+
+Vui lòng xác nhận để nhận bản tin ưu đãi và tin mới từ Obento Tensho. Liên kết có hiệu lực trong 48 giờ.
+
+Xác nhận đăng ký: {{link}}
+
+Nếu không phải bạn đăng ký, hãy bỏ qua thư này.
+
+Obento Tensho
+===
+<p>Xin chào,</p>
+<p>Vui lòng xác nhận để nhận bản tin ưu đãi và tin mới từ Obento Tensho. Liên kết có hiệu lực trong 48 giờ.</p>
+<p><a class="button" href="{{link}}">Xác nhận đăng ký</a></p>
+<p>Nếu không phải bạn đăng ký, hãy bỏ qua thư này.</p>
+<p>Obento Tensho</p>

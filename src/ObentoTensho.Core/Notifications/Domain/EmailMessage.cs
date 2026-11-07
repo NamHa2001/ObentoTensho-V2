@@ -1,4 +1,4 @@
 namespace ObentoTensho.Core.Notifications.Domain;
 
 // Thư đã dựng từ mẫu, sẵn sàng giao cho nhà cung cấp gửi
-public sealed record EmailMessage(string To, string Subject, string HtmlBody, string TextBody, IReadOnlyList<EmailAttachment>? Attachments = null);
+public sealed record EmailMessage(string To, string Subject, string HtmlBody, string TextBody, IReadOnlyList<EmailAttachment>? Attachments = null, IReadOnlyDictionary<string, string>? Headers = null);

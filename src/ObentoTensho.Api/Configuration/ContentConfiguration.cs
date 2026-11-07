@@ -33,6 +33,12 @@ public static class ContentConfiguration
         services.AddSingleton<IValidator<UpdateReviewRequest>, UpdateReviewRequestValidator>();
         services.AddSingleton<IValidator<ReviewReplyRequest>, ReviewReplyRequestValidator>();
         services.AddSingleton<IValidator<ContactRequest>, ContactRequestValidator>();
+        services.AddSingleton<IValidator<NewsletterSubscribeRequest>, NewsletterSubscribeRequestValidator>();
+        services.AddSingleton<IValidator<NewsletterCampaignRequest>, NewsletterCampaignRequestValidator>();
+        services.AddScoped<NewsletterService>();
+        services.AddScoped<NewsletterCampaignService>();
+        services.AddScoped<NewsletterSendJob>();
+        services.AddScoped<IRecurringJob>(sp => sp.GetRequiredService<NewsletterSendJob>());
         services.AddScoped<ReviewService>();
         services.AddScoped<ReviewAdminService>();
         services.AddScoped<ContactService>();

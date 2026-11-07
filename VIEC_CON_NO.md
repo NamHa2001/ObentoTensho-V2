@@ -138,7 +138,13 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 | Đổi `Location` 301 từ đường dẫn API sang đường dẫn trang khi làm SSR | `BR-CNT-41` | Làm ở giao diện khách |
 | Đưa nội dung `docs/legal/` vào trang tĩnh sau khi chủ quán duyệt | `FR-CNT-04` | Trang chưa có nội dung trả 404 |
 | Bản dịch en/ja tin tức, trang tĩnh | `docs/srs/22` | Phần đa ngôn ngữ |
-| Newsletter | `FR-CNT-07` | Đang làm tiếp |
+| Tự ngừng gửi cho địa chỉ bounce cứng, theo dõi tỷ lệ báo spam | `BR-CNT-26` | Cần webhook của nhà cung cấp email (`D-33`) |
+| Xuất danh sách bản tin bằng job nền, bắt buộc lý do, 1 lần/ngày, liên kết ký số | `BR-CNT-25`, `BR-CUS-07` | Hiện xuất trực tiếp, đã có audit; làm cùng phần Khách hàng |
+| Thành viên bật/tắt nhận bản tin trong tài khoản | `FR-CNT-07`, `BR-CNT-26` | Làm ở phần Khách hàng |
+| Header one-click dùng `PublicBaseUrl/api/...`: cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Làm ở phần triển khai |
+| Giữ bền khóa Data Protection: mất khóa thì không gửi được bản tin vì không dựng được liên kết hủy | `BR-CNT-24` | Làm ở phần triển khai |
+| Cập nhật tài liệu dữ liệu: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` | Cột phát sinh khi làm; người đăng ký có thể chưa có tài khoản |
+| `POST /newsletter/subscribe` trả `already_subscribed` cho biết email đã đăng ký | `BR-CNT-20` | Làm đúng SRS; chủ dự án cân nhắc đổi sang phản hồi giống nhau |
 | Báo real-time `contact.created` cho quản lý | `FR-CNT-06` | Làm ở phần realtime; hiện đã có email nội bộ và danh sách chưa đọc |
 | Thư báo tin liên hệ nội bộ cũng chịu giới hạn 3 thư cùng loại/giờ theo địa chỉ nhận, thư vượt bị bỏ | `BR-CNT-33`, `BR-NTF-08` | Tin vẫn nằm trong danh sách chưa đọc; gộp chung quyết định về thư bị bỏ |
 | Cache danh sách đánh giá công khai | `PERF-11/12` | Hiện đọc thẳng DB, có phân trang và chỉ mục |

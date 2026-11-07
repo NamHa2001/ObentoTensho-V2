@@ -17,6 +17,11 @@ internal static class MimeMessageFactory
 
         mime.To.Add(MailboxAddress.Parse(message.To));
         mime.Subject = message.Subject;
+        foreach (var (name, value) in message.Headers ?? new Dictionary<string, string>(StringComparer.Ordinal))
+        {
+            mime.Headers.Add(name, value);
+        }
+
         var body = new BodyBuilder { HtmlBody = message.HtmlBody, TextBody = message.TextBody };
         foreach (var attachment in message.Attachments ?? [])
         {
