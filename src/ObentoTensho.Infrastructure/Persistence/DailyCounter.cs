@@ -4,6 +4,7 @@ namespace ObentoTensho.Infrastructure.Persistence;
 public sealed class DailyCounter
 {
     public const string ReservationKind = "reservation";
+    public const string OrderKind = "order";
 
     public required DateOnly Date { get; init; }
 

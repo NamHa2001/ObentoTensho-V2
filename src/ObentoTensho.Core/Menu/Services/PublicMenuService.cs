@@ -74,7 +74,8 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, IC
         return Result.Success(new PublicMenuItemDetailDto(ToDto(snapshot, item, language), t?.FullDescHtml ?? item.FullDescHtml, groups, related));
     }
 
-    private Task<MenuSnapshot> SnapshotAsync(CancellationToken cancellationToken) =>
+    // Ảnh chụp thực đơn công khai (cache); đặt món dùng để lấy tên đã dịch, còn giá luôn đọc từ CSDL (BR-ORD-02)
+    public Task<MenuSnapshot> SnapshotAsync(CancellationToken cancellationToken) =>
         cache.GetOrCreateAsync(async ct => new MenuSnapshot(await menu.LoadPublicDataAsync(ct)), cancellationToken);
 
     private static IEnumerable<MenuItem> Filter(MenuSnapshot snapshot, PublicMenuQuery query)

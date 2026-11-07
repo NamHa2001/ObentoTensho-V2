@@ -1,0 +1,20 @@
+subject: Your order {{code}} has been cancelled
+===
+Hello {{fullName}},
+
+We are sorry — the restaurant has cancelled your order {{code}}.
+
+Reason: {{reason}}
+
+If you have paid by bank transfer, the restaurant will contact you about a refund.
+
+See the menu and order again: {{menuLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>We are sorry — the restaurant has cancelled your order {{code}}.</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Reason</td><td style="padding:4px 0">{{reason}}</td></tr></table>
+<p>If you have paid by bank transfer, the restaurant will contact you about a refund.</p><p><a class="button" href="{{menuLink}}">View menu</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

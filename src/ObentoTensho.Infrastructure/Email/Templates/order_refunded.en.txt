@@ -1,0 +1,19 @@
+subject: Refund recorded for order {{code}}
+===
+Hello {{fullName}},
+
+The restaurant has recorded a refund for your cancelled order {{code}}.
+
+Amount: {{total}}
+Note: {{refundNote}}
+
+If you have not received the money within 3 working days, please contact the restaurant.
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>The restaurant has recorded a refund for your cancelled order {{code}}.</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Amount</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Note</td><td style="padding:4px 0">{{refundNote}}</td></tr></table>
+<p>If you have not received the money within 3 working days, please contact the restaurant.</p>
+<p>Kind regards,<br>Obento Tensho</p>

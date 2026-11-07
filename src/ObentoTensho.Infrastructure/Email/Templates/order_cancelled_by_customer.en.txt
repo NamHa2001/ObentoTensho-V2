@@ -1,0 +1,17 @@
+subject: You have cancelled order {{code}}
+===
+Hello {{fullName}},
+
+Order {{code}} has been cancelled at your request.
+
+If you have paid by bank transfer, the restaurant will contact you about a refund. If you did not cancel this order, please call the restaurant.
+
+{{menuLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Order {{code}} has been cancelled at your request.</p>
+<p>If you have paid by bank transfer, the restaurant will contact you about a refund. If you did not cancel this order, please call the restaurant.</p><p><a class="button" href="{{menuLink}}">View menu</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

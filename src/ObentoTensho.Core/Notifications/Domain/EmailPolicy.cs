@@ -17,7 +17,9 @@ public static class EmailPolicy
     {
         EmailKind.VerifyEmail or EmailKind.PasswordReset or EmailKind.VerificationCode => 1,
         EmailKind.ReservationReceived or EmailKind.ReservationConfirmed or EmailKind.ReservationRejected
-            or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled => 2,
+            or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled
+            or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
+            or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
         EmailKind.ReservationReminder => 3,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
         _ => 5,

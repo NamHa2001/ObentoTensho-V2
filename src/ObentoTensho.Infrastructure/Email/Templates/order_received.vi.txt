@@ -1,0 +1,26 @@
+subject: Obento Tensho đã nhận đơn {{code}}
+===
+Xin chào {{fullName}},
+
+Cảm ơn bạn đã đặt món tại Obento Tensho. Chúng tôi đã nhận đơn của bạn:
+
+Mã đơn: {{code}}
+Giờ lấy: {{date}} lúc {{time}} (giờ Việt Nam)
+Thanh toán: {{payment}}
+Tổng tiền: {{total}}
+
+Món đã đặt:
+{{items}}
+
+Nhà hàng có thể gọi điện để xác nhận đơn trước khi chế biến. Chúng tôi sẽ gửi email khi món sẵn sàng.
+
+Theo dõi hoặc hủy đơn (khi đơn còn chờ xác nhận): {{trackLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Cảm ơn bạn đã đặt món tại Obento Tensho. Chúng tôi đã nhận đơn của bạn:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đơn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ lấy</td><td style="padding:4px 0">{{date}} lúc {{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Thanh toán</td><td style="padding:4px 0">{{payment}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Tổng tiền</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr></table><p>Món đã đặt:</p><div style="white-space:pre-line;margin:0 0 16px">{{items}}</div>
+<p>Nhà hàng có thể gọi điện để xác nhận đơn trước khi chế biến. Chúng tôi sẽ gửi email khi món sẵn sàng.</p><p>Theo dõi hoặc hủy đơn (khi đơn còn chờ xác nhận):</p><p><a class="button" href="{{trackLink}}">Theo dõi đơn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

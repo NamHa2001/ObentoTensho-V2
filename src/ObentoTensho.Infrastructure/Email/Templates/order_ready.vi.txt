@@ -1,0 +1,26 @@
+subject: Đơn {{code}} đã sẵn sàng
+===
+Xin chào {{fullName}},
+
+Món của bạn đã sẵn sàng. Mời bạn đến quán nhận món:
+
+Mã đơn: {{code}}
+Giờ lấy: {{date}} lúc {{time}} (giờ Việt Nam)
+Thanh toán: {{payment}}
+Tổng tiền: {{total}}
+
+Món đã đặt:
+{{items}}
+
+Khi đến, vui lòng đọc mã đơn cho nhân viên.
+
+Xem đơn (nhập mã đơn và 4 số cuối số điện thoại): {{trackLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Món của bạn đã sẵn sàng. Mời bạn đến quán nhận món:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đơn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ lấy</td><td style="padding:4px 0">{{date}} lúc {{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Thanh toán</td><td style="padding:4px 0">{{payment}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Tổng tiền</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr></table><p>Món đã đặt:</p><div style="white-space:pre-line;margin:0 0 16px">{{items}}</div>
+<p>Khi đến, vui lòng đọc mã đơn cho nhân viên.</p><p><a class="button" href="{{trackLink}}">Xem đơn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

@@ -23,6 +23,7 @@ builder.Services.AddAuthServices();
 builder.Services.AddTablesServices();
 builder.Services.AddReservationServices();
 builder.Services.AddMenuServices();
+builder.Services.AddOrderServices();
 
 var app = builder.Build();
 

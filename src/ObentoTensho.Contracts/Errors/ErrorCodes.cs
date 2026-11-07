@@ -58,5 +58,9 @@ public static class ErrorCodes
     // Tệp tải lên (BR-MNU-14): sai định dạng/mẫu, hoặc vượt giới hạn dung lượng/số dòng
     public const string FileInvalid = "FILE_INVALID";
     public const string FileTooLarge = "FILE_TOO_LARGE";
+    // Đặt món mang về (docs/srs/12)
+    public const string ItemUnavailable = "ITEM_UNAVAILABLE";
+    public const string OrderLimit = "ORD_LIMIT";
+    public const string PaymentRequired = "PAYMENT_REQUIRED";
     public const string InternalError = "INTERNAL_ERROR";
 }

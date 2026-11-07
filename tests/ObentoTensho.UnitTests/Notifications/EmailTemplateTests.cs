@@ -21,6 +21,12 @@ public sealed class EmailTemplateTests
         ["bookingLink"] = "https://www.obento.test/reservations",
         ["reason"] = "Ca đã kín chỗ",
         ["minutes"] = "5",
+        ["items"] = "2 × Cơm gà (Lớn) — 160.000 ₫\n1 × Trà đá — 5.000 ₫",
+        ["total"] = "165.000 ₫",
+        ["payment"] = "Tiền mặt khi nhận món",
+        ["trackLink"] = "https://www.obento.test/orders/track?code=OBT-TK-8K4Q-7ZM2#token=abc",
+        ["menuLink"] = "https://www.obento.test/menu",
+        ["refundNote"] = "Đã chuyển khoản lại",
     };
 
     public static TheoryData<EmailKind, string> Cases()

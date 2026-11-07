@@ -1,0 +1,37 @@
+using ObentoTensho.Core.Orders.Domain;
+
+namespace ObentoTensho.Core.Orders.Abstractions;
+
+public interface IOrderRepository
+{
+    void Add(Order order);
+
+    void AddHistory(OrderStatusHistory history);
+
+    // Bản được theo dõi để sửa; withItems = kèm dòng món và tùy chọn
+    Task<Order?> FindForUpdateAsync(Guid id, bool withItems, CancellationToken cancellationToken);
+
+    Task<Order?> FindByCodeAsync(string code, bool withItems, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<OrderStatusHistory>> GetHistoryAsync(Guid orderId, CancellationToken cancellationToken);
+
+    // Kèm dòng món; ngày lọc là ngày lấy theo giờ VN
+    Task<(IReadOnlyList<Order> Items, int Total)> ListAsync(OrderQuery query, DateTime? fromUtc, DateTime? toUtc, CancellationToken cancellationToken);
+
+    // Màn hình bếp: đơn đang mở, sắp theo giờ lấy, kèm dòng món
+    Task<IReadOnlyList<Order>> ListOpenAsync(int limit, CancellationToken cancellationToken);
+
+    Task<(IReadOnlyList<Order> Items, int Total)> ListForUserAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken);
+
+    // BR-ORD-20: đơn đang xử lý của một SĐT
+    Task<int> CountOpenForPhoneAsync(string phone, CancellationToken cancellationToken);
+
+    // BR-ORD-21: SĐT đã từng có đơn hoàn thành chưa
+    Task<bool> HasCompletedForPhoneAsync(string phone, CancellationToken cancellationToken);
+
+    // DB-16: số thứ tự trong ngày VN, tăng nguyên tử
+    Task<int> NextDailySeqAsync(DateOnly date, CancellationToken cancellationToken);
+
+    // BR-ORD-09: Unpaid → Paid có điều kiện trong một lệnh UPDATE (hai thu ngân bấm cùng lúc chỉ một lần ghi)
+    Task<bool> TryMarkPaidAsync(Guid id, Guid staffId, DateTime nowUtc, CancellationToken cancellationToken);
+}

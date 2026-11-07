@@ -1,0 +1,17 @@
+subject: Bạn đã hủy đơn {{code}}
+===
+Xin chào {{fullName}},
+
+Đơn {{code}} đã được hủy theo yêu cầu của bạn.
+
+Nếu bạn đã chuyển khoản, nhà hàng sẽ liên hệ để hoàn tiền. Nếu bạn không thực hiện việc hủy này, vui lòng gọi cho nhà hàng.
+
+{{menuLink}}
+
+Trân trọng,
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Đơn {{code}} đã được hủy theo yêu cầu của bạn.</p>
+<p>Nếu bạn đã chuyển khoản, nhà hàng sẽ liên hệ để hoàn tiền. Nếu bạn không thực hiện việc hủy này, vui lòng gọi cho nhà hàng.</p><p><a class="button" href="{{menuLink}}">Xem thực đơn</a></p>
+<p>Trân trọng,<br>Obento Tensho</p>

@@ -889,6 +889,287 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccessTokenHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("CancelReason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("CancelledByType")
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ContactConfirmedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ContactConfirmedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("CustomerEmail")
+                        .IsRequired()
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("CustomerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CustomerPhone")
+                        .IsRequired()
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<int>("DailySeq")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Lang")
+                        .IsRequired()
+                        .HasColumnType("char(2)");
+
+                    b.Property<decimal>("MemberDiscount")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<bool>("NeedsContactConfirm")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasColumnType("varchar(25)");
+
+                    b.Property<DateTime?>("PaidAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("PaidByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte>("PaymentMethod")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("PaymentStatus")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("PickupAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<int>("PointsEarned")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RefundNote")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("RefundedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("RefundedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("SubTotal")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("VoucherCodeSnapshot")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<decimal>("VoucherDiscount")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int?>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("CustomerPhone", "Status");
+
+                    b.HasIndex("Status", "CreatedAtUtc");
+
+                    b.HasIndex("Status", "PickupAtUtc");
+
+                    b.ToTable("Orders", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0");
+
+                            t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
+
+                            t.HasCheckConstraint("CK_Orders_CompletedPaid", "[Status] <> 3 OR [PaymentStatus] = 1");
+
+                            t.HasCheckConstraint("CK_Orders_PaymentMethod", "[PaymentMethod] BETWEEN 0 AND 1");
+
+                            t.HasCheckConstraint("CK_Orders_PaymentStatus", "[PaymentStatus] BETWEEN 0 AND 1");
+
+                            t.HasCheckConstraint("CK_Orders_Status", "[Status] BETWEEN 0 AND 4");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("ItemNameLocalized")
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal>("ItemPrice")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<int?>("MenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("OptionsPrice")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderItems_Prices", "[ItemPrice] >= 0 AND [OptionsPrice] >= 0");
+
+                            t.HasCheckConstraint("CK_OrderItems_Quantity", "[Quantity] BETWEEN 1 AND 99");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItemOption", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("GroupName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("GroupNameLocalized")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("OptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OptionName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("OptionNameLocalized")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<long>("OrderItemId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("PriceDelta")
+                        .HasColumnType("decimal(18,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OptionId");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.ToTable("OrderItemOptions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderItemOptions_PriceDelta", "[PriceDelta] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderStatusHistory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("ChangedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ChangedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChangedByType")
+                        .IsRequired()
+                        .HasColumnType("varchar(10)");
+
+                    b.Property<byte?>("FromStatus")
+                        .HasColumnType("tinyint");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<byte>("ToStatus")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderStatusHistory", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_OrderStatusHistory_ChangedByType", "[ChangedByType] IN ('customer', 'staff', 'system')");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1588,6 +1869,51 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.Order", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItem", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ObentoTensho.Core.Orders.Domain.Order", null)
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItemOption", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuOption", null)
+                        .WithMany()
+                        .HasForeignKey("OptionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ObentoTensho.Core.Orders.Domain.OrderItem", null)
+                        .WithMany("Options")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderStatusHistory", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Orders.Domain.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Tables.Domain.ServiceSlot", null)
@@ -1650,6 +1976,16 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CreatedByStaffId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.Order", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItem", b =>
+                {
+                    b.Navigation("Options");
                 });
 #pragma warning restore 612, 618
         }

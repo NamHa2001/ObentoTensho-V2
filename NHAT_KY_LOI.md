@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Đặt món mang về – bước 1 (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Lệnh shell dài (heredoc chứa script Python tạo nhiều file C#) báo `unexpected EOF while looking for matching` và không chạy gì — lặp lại lần thứ ba | Lệnh quá dài/nhiều dấu nháy làm bộ phân tích lệnh của công cụ chạy shell hỏng, dù heredoc đã đặt `'EOF'` | Ghi script Python ra thư mục tạm bằng công cụ ghi file rồi chạy `python <file>` | Mọi đoạn tạo nhiều file: viết script thành file trước, không nhét vào heredoc |
+| Helper test báo `The value of 'OptionTranslation.EntityId' is unknown when attempting to save changes` | Thêm bản dịch dùng `large.Id` khi tùy chọn chưa được lưu (Id còn 0, EF coi khóa ngoại chưa xác định) | Gọi `SaveChangesAsync` sau khi thêm tùy chọn, rồi mới thêm liên kết/bản dịch | Thực thể có Id do CSDL sinh: lưu xong mới dùng Id |
+| Test hiện liên hệ mong `0949…` nhưng nhận `+84949…` | SĐT lưu dạng chuẩn hóa E.164 (giống đặt bàn) — đúng thiết kế | Sửa kỳ vọng của test | Nhớ quy ước SĐT chuẩn hóa khi viết test |
+
 ## Thực đơn – bước 2: nhập/xuất Excel (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

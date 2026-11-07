@@ -3,6 +3,7 @@ using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Notifications.Domain;
+using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Core.Verification.Domain;
@@ -66,6 +67,14 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<OptionGroupTranslation> OptionGroupTranslations => Set<OptionGroupTranslation>();
 
     public DbSet<OptionTranslation> OptionTranslations => Set<OptionTranslation>();
+
+    public DbSet<Order> Orders => Set<Order>();
+
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+
+    public DbSet<OrderItemOption> OrderItemOptions => Set<OrderItemOption>();
+
+    public DbSet<OrderStatusHistory> OrderStatusHistory => Set<OrderStatusHistory>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

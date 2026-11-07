@@ -90,9 +90,24 @@ Cập nhật lần cuối: 07/11/2026 — sau phần Đặt bàn.
 | Cache thực đơn nhiều instance (HybridCache + Redis, xóa cache phát tán) | `PERF-10` | Hiện `IMemoryCache` một tiến trình; phần triển khai |
 | Test đếm truy vấn `GET /menu/items` ≤ 2 | `PERF-51`, `TST-28` | Thêm interceptor đếm truy vấn ở phần kiểm thử cuối |
 
+## Đặt món mang về
+
+| Việc | Mã | Ghi chú |
+|---|---|---|
+| Không đến lấy: nhắc nhân viên khi `Ready` quá `order.noPickupMinutes`, hủy "không đến lấy" tăng cờ theo SĐT, SĐT có cờ ⇒ luôn phải gọi xác nhận | `BR-ORD-18`, `BR-ORD-21` | Bước 2 của phần đặt món |
+| Danh sách/thư "cần xử lý": `Pending` quá hạn, đơn hủy chưa hoàn tiền, `Ready` không ai lấy | `docs/srs/20` #30, `BR-ORD-16` | Bước 2 (danh sách hoàn tiền đã có qua `?refundPending=true`) |
+| Áp voucher khi đặt (giữ lượt nguyên tử), hoàn voucher khi hủy | `BR-ORD-03/04/07`, `DB-21` | Phần voucher; cột `VoucherId`/`VoucherDiscount` đã có |
+| Giảm giá theo hạng thành viên | `BR-ORD-03` | Phần điểm/hạng; `OrderPricing.Compute` đã nhận tỷ lệ hạng |
+| Cộng điểm khi hoàn thành + đã thanh toán, thu hồi khi hủy sau đó; sự kiện `OrderCompleted`/`OrderCancelled` qua outbox | `BR-ORD-08/13/15` | Phần điểm/hạng |
+| STK + QR chuyển khoản lấy từ cài đặt `payment.*` | `FR-ORD-03` | Phần cài đặt |
+| Đơn mới/đổi trạng thái real-time cho bếp, thu ngân, trang theo dõi của khách | `RT-03`, `FR-ORD-05` | Phần realtime |
+| Turnstile chỉ bắt buộc với khách vãng lai | `BR-ORD-20` | Hiện bộ lọc Turnstile áp cho mọi lượt đặt khi bật |
+| Đánh giá món sau khi nhận đơn (`POST /reviews`) | `BR-CNT-11` | Phần nội dung/đánh giá |
+| Gộp giỏ `localStorage` khi đăng nhập, kiểm lại giá khi mở giỏ | `FR-ORD-01` | Giao diện khách (API `POST /orders/quote` đã có) |
+
 ## Chưa bắt đầu (theo thứ tự dự kiến)
 
-Đặt món mang về → Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Đặt món mang về (bước 2) → Điểm & hạng → Voucher & khuyến mãi → Nội dung (CMS) → Quản lý khách & nhân viên → Báo cáo, dashboard, cài đặt → Realtime (SignalR) → Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
 
 ## Việc của chủ dự án
 

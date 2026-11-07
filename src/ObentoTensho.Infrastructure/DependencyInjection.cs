@@ -7,11 +7,13 @@ using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Menu.Abstractions;
+using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Infrastructure.Caching;
 using ObentoTensho.Infrastructure.Messaging;
+using ObentoTensho.Infrastructure.Orders;
 using ObentoTensho.Infrastructure.Persistence;
 using ObentoTensho.Infrastructure.Persistence.Repositories;
 using ObentoTensho.Infrastructure.Reservations;
@@ -53,6 +55,8 @@ public static class DependencyInjection
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationEmailOutbox, ReservationEmailOutbox>();
         services.AddScoped<IMenuRepository, MenuRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
         services.AddSingleton<IMenuSpreadsheet, ClosedXmlMenuSpreadsheet>();
@@ -62,6 +66,12 @@ public static class DependencyInjection
             .Validate(o => o.IsValid(), "Cấu hình Reservation không hợp lệ (xem docs/srs/19 §3).")
             .ValidateOnStart();
         services.AddSingleton<IReservationSettings>(sp => sp.GetRequiredService<IOptions<ReservationOptions>>().Value);
+
+        services.AddOptions<OrderOptions>()
+            .Bind(configuration.GetSection(OrderOptions.SectionName))
+            .Validate(o => o.IsValid(), "Cấu hình Order không hợp lệ (xem docs/srs/19 §3).")
+            .ValidateOnStart();
+        services.AddSingleton<IOrderSettings>(sp => sp.GetRequiredService<IOptions<OrderOptions>>().Value);
 
         return services;
     }

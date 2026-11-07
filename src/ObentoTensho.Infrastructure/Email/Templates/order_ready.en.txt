@@ -1,0 +1,26 @@
+subject: Your order {{code}} is ready
+===
+Hello {{fullName}},
+
+Your food is ready. Please come to the restaurant to pick it up:
+
+Order code: {{code}}
+Pickup: {{date}} at {{time}} (Vietnam time)
+Payment: {{payment}}
+Total: {{total}}
+
+Your order:
+{{items}}
+
+Please tell our staff your order code when you arrive.
+
+View your order (enter the order code and the last 4 digits of your phone number): {{trackLink}}
+
+Kind regards,
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Your food is ready. Please come to the restaurant to pick it up:</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Order code</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Pickup</td><td style="padding:4px 0">{{date}} at {{time}} (Vietnam time)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Payment</td><td style="padding:4px 0">{{payment}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Total</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr></table><p>Your order:</p><div style="white-space:pre-line;margin:0 0 16px">{{items}}</div>
+<p>Please tell our staff your order code when you arrive.</p><p><a class="button" href="{{trackLink}}">View order</a></p>
+<p>Kind regards,<br>Obento Tensho</p>

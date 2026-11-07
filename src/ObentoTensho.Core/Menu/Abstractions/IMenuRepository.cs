@@ -78,6 +78,9 @@ public interface IMenuRepository
     void AddTranslation<T>(T translation)
         where T : MenuTranslation;
 
+    // Đặt món (BR-ORD-02): đọc thẳng CSDL, không qua cache
+    Task<OrderableMenu> LoadOrderableAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken);
+
     // Dữ liệu trang thực đơn công khai: chỉ thứ khách được thấy (BR-MNU-02), đọc một lần rồi cache
     Task<PublicMenuData> LoadPublicDataAsync(CancellationToken cancellationToken);
 }

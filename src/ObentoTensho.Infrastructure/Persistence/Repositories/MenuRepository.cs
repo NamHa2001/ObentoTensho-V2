@@ -147,6 +147,19 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
     public void AddTranslation<T>(T translation)
         where T : MenuTranslation => db.Set<T>().Add(translation);
 
+    public async Task<OrderableMenu> LoadOrderableAsync(IReadOnlyCollection<int> itemIds, CancellationToken cancellationToken)
+    {
+        var items = await db.MenuItems.AsNoTracking()
+            .Where(i => itemIds.Contains(i.Id) && !i.IsDeleted && db.MenuCategories.Any(c => c.Id == i.CategoryId && c.IsActive))
+            .ToListAsync(cancellationToken);
+        var ids = items.Select(i => i.Id).ToArray();
+        var links = await db.MenuItemOptionGroups.AsNoTracking().Where(l => ids.Contains(l.MenuItemId)).ToListAsync(cancellationToken);
+        var groupIds = links.Select(l => l.GroupId).Distinct().ToArray();
+        var groups = await db.OptionGroups.AsNoTracking().Where(g => groupIds.Contains(g.Id)).ToListAsync(cancellationToken);
+        var options = await db.Options.AsNoTracking().Where(o => groupIds.Contains(o.GroupId)).ToListAsync(cancellationToken);
+        return new OrderableMenu(items, links, groups, options);
+    }
+
     public async Task<PublicMenuData> LoadPublicDataAsync(CancellationToken cancellationToken)
     {
         var categories = await db.MenuCategories.AsNoTracking().Where(c => c.IsActive).ToListAsync(cancellationToken);

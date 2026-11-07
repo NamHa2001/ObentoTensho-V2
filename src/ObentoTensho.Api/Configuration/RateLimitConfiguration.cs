@@ -16,6 +16,7 @@ public static class RateLimitConfiguration
     public const string LoginPolicy = "login";
     public const string ReservationPolicy = "reservation";
     public const string LookupPolicy = "lookup";
+    public const string OrderPolicy = "order";
 
     private static readonly TimeSpan Window = TimeSpan.FromMinutes(1);
     private const int SegmentsPerWindow = 6;
@@ -24,7 +25,7 @@ public static class RateLimitConfiguration
     {
         services.AddOptions<RateLimitSettings>()
             .Bind(configuration.GetSection(RateLimitSettings.SectionName))
-            .Validate(s => s.LoginPerMinute > 0 && s.GeneralPerMinute > 0 && s.ReservationPerHour > 0 && s.LookupPerMinute > 0, "RateLimiting: giới hạn phải lớn hơn 0.")
+            .Validate(s => s.LoginPerMinute > 0 && s.GeneralPerMinute > 0 && s.ReservationPerHour > 0 && s.LookupPerMinute > 0 && s.OrderPerHour > 0, "RateLimiting: giới hạn phải lớn hơn 0.")
             .ValidateOnStart();
 
         services.AddRateLimiter(_ => { });
@@ -39,6 +40,7 @@ public static class RateLimitConfiguration
             options.AddPolicy(LoginPolicy, http => SlidingWindow(ClientKey(http), limits.LoginPerMinute));
             options.AddPolicy(ReservationPolicy, http => SlidingWindow(ClientKey(http), limits.ReservationPerHour, TimeSpan.FromHours(1)));
             options.AddPolicy(LookupPolicy, http => SlidingWindow(ClientKey(http), limits.LookupPerMinute));
+            options.AddPolicy(OrderPolicy, http => SlidingWindow(ClientKey(http), limits.OrderPerHour, TimeSpan.FromHours(1)));
         });
 
         return services;

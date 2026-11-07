@@ -1,0 +1,25 @@
+subject: ご注文 {{code}} の準備ができました
+===
+{{fullName}} 様
+
+ご注文の準備ができました。店舗までお受け取りにお越しください。
+
+注文番号: {{code}}
+受け取り: {{date}} {{time}} （ベトナム時間）
+お支払い: {{payment}}
+合計: {{total}}
+
+ご注文内容：
+{{items}}
+
+ご来店の際は注文番号をスタッフにお伝えください。
+
+注文の確認（注文番号と電話番号の下4桁を入力）: {{trackLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>ご注文の準備ができました。店舗までお受け取りにお越しください。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">注文番号</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">受け取り</td><td style="padding:4px 0">{{date}} {{time}} （ベトナム時間）</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">お支払い</td><td style="padding:4px 0">{{payment}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">合計</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr></table><p>ご注文内容：</p><div style="white-space:pre-line;margin:0 0 16px">{{items}}</div>
+<p>ご来店の際は注文番号をスタッフにお伝えください。</p><p><a class="button" href="{{trackLink}}">注文を確認する</a></p>
+<p>Obento Tensho</p>
