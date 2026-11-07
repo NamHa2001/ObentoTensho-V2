@@ -17,6 +17,7 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
     // SEC-46: token đặt ở phần #fragment — trình duyệt không gửi lên máy chủ, không lọt vào log/Referer
     private const string VerifyEmailPath = "/auth/verify-email#token=";
     private const string ResetPasswordPath = "/auth/reset-password#token=";
+    private const string StaffInvitePath = "/auth/accept-invite#token=";
 
     public void EnqueueEmailVerification(User user, string verificationToken) =>
         Enqueue(new EmailRequest(
@@ -43,6 +44,15 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
             recipient.Language,
             Values(recipient.FullName, ("link", Link(BaseUrl(recipient), ResetPasswordPath, resetToken))),
             $"password_reset:{recipient.Id:N}:{Guid.CreateVersion7():N}",
+            recipient.Id.ToString()));
+
+    public void EnqueueStaffInvite(AccountRecipient recipient, string inviteToken) =>
+        Enqueue(new EmailRequest(
+            EmailKind.StaffInvite,
+            recipient.Email,
+            recipient.Language,
+            Values(recipient.FullName, ("link", Link(links.Value.AdminBaseUrl, StaffInvitePath, inviteToken))),
+            $"staff_invite:{recipient.Id:N}:{Guid.CreateVersion7():N}",
             recipient.Id.ToString()));
 
     public void EnqueuePasswordChanged(AccountRecipient recipient, DateTime changedAtUtc) =>

@@ -18,10 +18,12 @@ public sealed class StaffPasswordService(
     ISecureTokenService secureTokens,
     StaffSignInFlow flow,
     AuthSecurityEvents securityEvents,
+    IAccountEmailOutbox emailOutbox,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<StaffChangePasswordRequest> changeValidator,
-    IValidator<AcceptInviteRequest> inviteValidator)
+    IValidator<AcceptInviteRequest> inviteValidator,
+    IValidator<ChangeOwnPasswordRequest> ownValidator)
 {
     private const string NewPasswordField = "newPassword";
     private const string PasswordField = "password";
@@ -59,6 +61,37 @@ public sealed class StaffPasswordService(
 
         await SetPasswordAsync(tracked, request.NewPassword, securityEvents.RecordStaffPasswordChanged, cancellationToken);
         return Result.Success(await flow.ContinueAsync(tracked, challenge.SecondFactorPassed, client, cancellationToken));
+    }
+
+    // FR-AUTH-06: đang đăng nhập tự đổi; mọi phiên bị thu hồi nên phải đăng nhập lại
+    public async Task<Result> ChangeOwnPasswordAsync(Guid staffId, ChangeOwnPasswordRequest request, CancellationToken cancellationToken)
+    {
+        var validation = await ownValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return validation.ToFailure();
+        }
+
+        if (await staff.FindForUpdateAsync(staffId, cancellationToken) is not { PasswordHash: { } currentHash } tracked)
+        {
+            return Result.Failure(ErrorCodes.Unauthenticated);
+        }
+
+        if (passwordHasher.Verify(currentHash, request.CurrentPassword) == PasswordCheckResult.Failed)
+        {
+            await staff.RegisterFailedLoginAsync(tracked.Id, clock.UtcNow + AuthPolicy.LockoutDuration, cancellationToken);
+            await securityEvents.StaffLoginFailedAsync(tracked.Id, tracked.Email, "wrong_current_password", cancellationToken);
+            return Result.Failure(ErrorCodes.InvalidCredentials);
+        }
+
+        if (PasswordRules.ContainsEmail(request.NewPassword, tracked.Email))
+        {
+            return Result.Failure(ErrorCodes.ValidationFailed, ContainsEmailError(NewPasswordField));
+        }
+
+        emailOutbox.EnqueuePasswordChanged(new AccountRecipient(tracked.Id, tracked.Email, tracked.FullName, AuthPolicy.DefaultLanguage, IsStaff: true), clock.UtcNow);
+        await SetPasswordAsync(tracked, request.NewPassword, securityEvents.RecordStaffPasswordChanged, cancellationToken);
+        return Result.Success();
     }
 
     public async Task<Result> AcceptInviteAsync(AcceptInviteRequest request, CancellationToken cancellationToken)

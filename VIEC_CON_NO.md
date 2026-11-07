@@ -26,12 +26,8 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Quản lý nhân viên: tạo + gửi lời mời, gửi lại lời mời, khóa/mở, đổi vai trò, thu hồi phiên, đặt lại 2FA | `18` §API, `BR-STF-*` | Hiện chỉ có luồng nhận lời mời; chưa có API tạo lời mời |
-| Không khóa/hạ quyền SuperAdmin cuối cùng | `BR-STF-04` | |
-| Xác thực lại (step-up) cho thao tác rủi ro cao | `SEC-61` | Đổi `payment.*`, đổi vai trò, xuất khách, tắt 2FA… |
-| Nhân viên đổi mật khẩu khi đang đăng nhập | `FR-AUTH-06` | Hiện chỉ có đổi mật khẩu bắt buộc lúc đăng nhập |
+| Áp step-up cho các thao tác rủi ro còn lại: đổi `payment.*`, xuất khách, điều chỉnh điểm lớn | `SEC-61` | Đã có bộ lọc `StepUpFilter`; thao tác nhân viên đã áp |
 | Bật 2FA tự nguyện cho vai trò không bắt buộc; tạo lại mã khôi phục | `2fa/recovery` | |
-| API `GET /admin/me` trả vai trò + danh sách quyền cho menu | `01` §3 | |
 | "Màn hình ca" bằng PIN cho bếp/thu ngân | `SEC-74` | |
 
 ## Bảo mật & vận hành

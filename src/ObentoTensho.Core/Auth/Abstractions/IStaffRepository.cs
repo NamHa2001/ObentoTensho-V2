@@ -24,6 +24,11 @@ public interface IStaffRepository
     // Email nhân viên đang hoạt động thuộc các vai trò (nhận thư vận hành)
     Task<IReadOnlyList<string>> ListActiveEmailsAsync(IReadOnlyCollection<StaffRole> roles, CancellationToken cancellationToken);
 
+    Task<(IReadOnlyList<Staff> Items, int Total)> ListAsync(StaffQuery query, CancellationToken cancellationToken);
+
+    // BR-STF-04: giữ khóa bảng tới hết transaction để hai SuperAdmin không cùng khóa nhau
+    Task<int> CountActiveSuperAdminsForUpdateAsync(CancellationToken cancellationToken);
+
     Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);
 
     void Add(Staff staff);

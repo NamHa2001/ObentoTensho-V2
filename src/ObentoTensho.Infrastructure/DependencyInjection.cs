@@ -57,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IAccountEmailOutbox, AccountEmailOutbox>();
         services.AddScoped<IAuditTrail, EfAuditTrail>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<ITableLayoutRepository, TableLayoutRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
         services.AddSingleton<IPublicScheduleCache, MemoryPublicScheduleCache>();

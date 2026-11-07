@@ -5,6 +5,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos.Auth;
+using ObentoTensho.Contracts.Dtos.Staff;
+using ObentoTensho.Core.Audit.Services;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Auth.Services;
@@ -18,7 +20,7 @@ public static class AuthConfiguration
     public const string AdminCorsPolicy = "admin";
 
     private static readonly string[] AllowedHeaders =
-        ["Authorization", "Content-Type", TrustedOriginFilter.ClientHeader, TurnstileFilter.Header, "Idempotency-Key", "If-Match"];
+        ["Authorization", "Content-Type", StepUpFilter.Header, TrustedOriginFilter.ClientHeader, TurnstileFilter.Header, "Idempotency-Key", "If-Match"];
 
     public static IServiceCollection AddAuthServices(this IServiceCollection services)
     {
@@ -40,6 +42,13 @@ public static class AuthConfiguration
         services.AddScoped<StaffPasswordService>();
         services.AddScoped<StaffSessionService>();
         services.AddScoped<StaffBootstrapService>();
+        services.AddScoped<StaffAdminService>();
+        services.AddScoped<StaffStepUpService>();
+        services.AddScoped<AuditLogService>();
+        services.AddScoped<StepUpFilter>();
+        services.AddSingleton<IValidator<CreateStaffRequest>, CreateStaffRequestValidator>();
+        services.AddSingleton<IValidator<UpdateStaffRequest>, UpdateStaffRequestValidator>();
+        services.AddSingleton<IValidator<ChangeOwnPasswordRequest>, ChangeOwnPasswordRequestValidator>();
         services.AddScoped<CustomerOriginFilter>();
         services.AddScoped<AdminOriginFilter>();
 

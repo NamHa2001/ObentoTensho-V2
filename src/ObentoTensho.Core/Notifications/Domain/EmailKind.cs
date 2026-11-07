@@ -6,6 +6,7 @@ public enum EmailKind
     VerifyEmail,
     DuplicateRegistration,
     PasswordReset,
+    StaffInvite,
     PasswordChanged,
     ReservationReceived,
     ReservationConfirmed,

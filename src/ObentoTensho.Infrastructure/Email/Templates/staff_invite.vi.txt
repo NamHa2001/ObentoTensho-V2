@@ -1,0 +1,14 @@
+subject: Lời mời tham gia quản trị Obento Tensho
+===
+Xin chào {{fullName}},
+
+Bạn được mời dùng trang quản trị Obento Tensho. Hãy tự đặt mật khẩu qua liên kết dưới đây. Liên kết dùng một lần và hết hạn sau 72 giờ.
+
+Đặt mật khẩu: {{link}}
+
+Nếu bạn không mong đợi thư này, hãy bỏ qua.
+===
+<p>Xin chào {{fullName}},</p>
+<p>Bạn được mời dùng trang quản trị Obento Tensho. Hãy tự đặt mật khẩu qua liên kết dưới đây. Liên kết dùng một lần và hết hạn sau 72 giờ.</p>
+<p><a class="button" href="{{link}}">Đặt mật khẩu</a></p>
+<p>Nếu bạn không mong đợi thư này, hãy bỏ qua.</p>

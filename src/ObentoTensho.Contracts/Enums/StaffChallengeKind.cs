@@ -5,5 +5,8 @@ public enum StaffChallengeKind
 {
     PasswordChange,
     TotpVerify,
-    TotpSetup
+    TotpSetup,
+
+    // SEC-61: không phải bước đăng nhập, là bằng chứng vừa xác thực lại
+    StepUp
 }

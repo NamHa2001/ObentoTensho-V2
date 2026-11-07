@@ -41,6 +41,9 @@ public static class AuthPolicy
     // Mã tạm giữa bước mật khẩu và bước 2FA (docs/srs/10 §4.2)
     public static readonly TimeSpan StaffChallengeLifetime = TimeSpan.FromMinutes(5);
 
+    // SEC-61
+    public static readonly TimeSpan StepUpLifetime = TimeSpan.FromMinutes(5);
+
     public const string TotpIssuer = "Obento Tensho";
 
     // D-06: bắt buộc 2FA

@@ -45,6 +45,13 @@ public sealed class EndpointAuthorizationTests
             return;
         }
 
+        // Riêng thao tác trên chính tài khoản của mình không phụ thuộc ma trận quyền
+        if (method.DeclaringType == typeof(ObentoTensho.Api.Controllers.Admin.AdminAccountController))
+        {
+            Assert.All(Authorizations(method), a => Assert.IsType<RequireStaffAttribute>(a));
+            return;
+        }
+
         Assert.All(Authorizations(method), a => Assert.IsType<RequireCapabilityAttribute>(a));
     }
 

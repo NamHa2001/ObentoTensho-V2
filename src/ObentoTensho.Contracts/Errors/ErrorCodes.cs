@@ -72,6 +72,13 @@ public static class ErrorCodes
     public const string VoucherExhausted = "VOUCHER_EXHAUSTED";
     public const string VoucherLoginRequired = "VOUCHER_LOGIN_REQUIRED";
     public const string VoucherInUse = "VOUCHER_IN_USE";
+    // Nhân viên (docs/srs/18 §2)
+    public const string StepUpRequired = "STEP_UP_REQUIRED";
+    public const string EmailTaken = "EMAIL_TAKEN";
+    public const string LastSuperAdmin = "LAST_SUPER_ADMIN";
+    public const string CannotChangeSelf = "CANNOT_CHANGE_SELF";
+    public const string InviteAlreadyAccepted = "INVITE_ALREADY_ACCEPTED";
+
     // Đánh giá (docs/srs/17 §3.4)
     public const string ReviewNotAllowed = "REVIEW_NOT_ALLOWED";
     public const string ReviewExists = "REVIEW_EXISTS";

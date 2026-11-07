@@ -97,7 +97,7 @@ public sealed class StaffTwoFactorService(
     }
 
     // Trả bước đã dùng; null khi mã sai hoặc bước đó đã được dùng (chống phát lại)
-    private async Task<long?> TryConsumeTotpAsync(Staff member, string? code, CancellationToken cancellationToken)
+    public async Task<long?> TryConsumeTotpAsync(Staff member, string? code, CancellationToken cancellationToken)
     {
         if (member.TotpSecretEncrypted is null || secretProtector.Unprotect(member.TotpSecretEncrypted) is not { } secret)
         {

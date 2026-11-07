@@ -1,0 +1,14 @@
+subject: Your invitation to Obento Tensho admin
+===
+Hello {{fullName}},
+
+You have been invited to the Obento Tensho admin site. Set your own password using the link below. It works once and expires in 72 hours.
+
+Set password: {{link}}
+
+If you were not expecting this email, please ignore it.
+===
+<p>Hello {{fullName}},</p>
+<p>You have been invited to the Obento Tensho admin site. Set your own password using the link below. It works once and expires in 72 hours.</p>
+<p><a class="button" href="{{link}}">Set password</a></p>
+<p>If you were not expecting this email, please ignore it.</p>

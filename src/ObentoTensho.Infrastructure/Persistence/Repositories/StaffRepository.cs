@@ -39,6 +39,23 @@ internal sealed class StaffRepository(AppDbContext db, IMemoryCache cache) : ISt
             .OrderBy(e => e)
             .ToListAsync(cancellationToken);
 
+    public async Task<(IReadOnlyList<Staff> Items, int Total)> ListAsync(StaffQuery query, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim();
+        var source = db.StaffMembers.AsNoTracking()
+            .Where(s => (query.Role == null || s.Role == query.Role)
+                && (query.IsActive == null || s.IsActive == query.IsActive)
+                && (search == null || s.FullName.Contains(search) || s.Email.Contains(search)));
+        var total = await source.CountAsync(cancellationToken);
+        var items = await source.OrderBy(s => s.FullName).ThenBy(s => s.Id).Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToListAsync(cancellationToken);
+        return (items, total);
+    }
+
+    public Task<int> CountActiveSuperAdminsForUpdateAsync(CancellationToken cancellationToken) =>
+        db.StaffMembers.FromSql($"SELECT * FROM [Staff] WITH (UPDLOCK, HOLDLOCK)")
+            .CountAsync(s => s.Role == StaffRole.SuperAdmin && s.IsActive, cancellationToken);
+
     public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken)
     {
         var key = $"auth:staff-session:{id:N}";

@@ -8,6 +8,7 @@ public static class EmailTypes
         EmailKind.VerifyEmail => "verify_email",
         EmailKind.DuplicateRegistration => "duplicate_registration",
         EmailKind.PasswordReset => "password_reset",
+        EmailKind.StaffInvite => "staff_invite",
         EmailKind.PasswordChanged => "password_changed",
         EmailKind.ReservationReceived => "reservation_received",
         EmailKind.ReservationConfirmed => "reservation_confirmed",

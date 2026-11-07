@@ -13,6 +13,13 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Nhân viên và audit (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Các kiểm tra "phiên bị thu hồi" trả 401 như mong đợi nhưng ca đối chứng (đổi tên giữ phiên) lại 401 | Test đọc cookie khách nên refresh token là null, mọi lời gọi đều 401, ba kiểm tra trước đó không chứng minh gì | Dùng `ReadAdminCookie` | Kiểm tra từ chối luôn đi kèm một ca đối chứng phải thành công |
+| Đột biến bỏ kiểm loại mã và bỏ kiểm security stamp của step-up không làm test đỏ | Mã thử thuộc nhân viên khác nên bị chặn bởi kiểm tra khác; test sau đó chỉ kiểm access token | Dùng mã đăng nhập của chính người gọi; gọi lại ngay sau khi đổi stamp | Mỗi điều kiện bảo mật cần một ca chỉ có điều kiện đó chặn |
+
 ## Nội dung – đánh giá và liên hệ (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
