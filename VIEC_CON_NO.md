@@ -134,7 +134,10 @@ Cập nhật lần cuối: 07/11/2026 — sau bước 1 phần Nội dung (CMS).
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Tin tức, danh mục tin, hẹn giờ, slug cũ 301, thùng rác; Trang tĩnh có phiên bản | `FR-CNT-03/04`, `BR-CNT-40..44` | Bước 2 |
+| Slug cũ 301 cho món và khuyến mãi | `BR-CNT-41` | Bảng `SlugRedirects` đã có; hiện mới dùng cho tin tức |
+| Đổi `Location` 301 từ đường dẫn API sang đường dẫn trang khi làm SSR | `BR-CNT-41` | Làm ở giao diện khách |
+| Đưa nội dung `docs/legal/` vào trang tĩnh sau khi chủ quán duyệt | `FR-CNT-04` | Trang chưa có nội dung trả 404 |
+| Bản dịch en/ja tin tức, trang tĩnh | `docs/srs/22` | Phần đa ngôn ngữ |
 | Đánh giá, Liên hệ, Newsletter | `FR-CNT-05/06/07` | Bước 3 |
 | Dọn ảnh mồ côi sau 30 ngày, xóa gốc + biến thể | `BR-CNT-32`, `FR-IMG-10` | Hiện xóa banner/gallery thì ảnh ở lại |
 | Sinh lại biến thể khi đổi cấu hình (tăng `Version`), AVIF | `FR-IMG-03/04` | `Version` đã có; chưa có lệnh sinh lại |

@@ -73,6 +73,8 @@ public static class DependencyInjection
         services.AddScoped<IPromotionRepository, PromotionRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
         services.AddScoped<IContentRepository, ContentRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IStaticPageRepository, StaticPageRepository>();
         services.AddSingleton<IPublicContentCache, MemoryPublicContentCache>();
         services.AddSingleton<IImageProcessor, NetVipsImageProcessor>();
         services.AddSingleton<IImageFileStore, LocalImageFileStore>();

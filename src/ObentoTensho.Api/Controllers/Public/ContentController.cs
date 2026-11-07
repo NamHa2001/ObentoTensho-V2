@@ -10,8 +10,13 @@ namespace ObentoTensho.Api.Controllers.Public;
 [ApiController]
 [Route("api/v1")]
 [AllowAnonymous]
-public sealed class ContentController(PublicContentService content) : ControllerBase
+public sealed class ContentController(PublicContentService content, StaticPageService pages) : ControllerBase
 {
+    // Danh sách slug cho phép nằm ở StaticPage; slug lạ hoặc trang chưa có nội dung ⇒ 404
+    [HttpGet("public/pages/{slug}")]
+    public async Task<IActionResult> Page(string slug, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await pages.GetAsync(slug, cancellationToken));
+
     [HttpGet("banners")]
     public async Task<IActionResult> Banners(CancellationToken cancellationToken) =>
         this.Data(await content.BannersAsync(cancellationToken));

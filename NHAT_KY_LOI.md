@@ -13,6 +13,13 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Nội dung – tin tức và trang tĩnh (07/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| `dotnet ef` báo thiếu `Microsoft.EntityFrameworkCore.Design` ở project Api, rồi báo thiếu `ConnectionStrings__Default` | Tool phải chạy với startup là Infrastructure, nơi có `DesignTimeDbContextFactory`, và factory đọc chuỗi kết nối từ biến môi trường | Dùng `--startup-project src/ObentoTensho.Infrastructure` và đặt biến `ConnectionStrings__Default` | Luôn dùng hai thiết lập này cho mọi lệnh `dotnet ef` |
+| Đột biến "bỏ xóa chuyển hướng khi quay lại slug cũ" không làm test đỏ | Test chỉ kiểm tra địa chỉ hiện bài; dòng chuyển hướng thừa chỉ gây trùng khóa ở lần đổi slug kế tiếp | Thêm bước rời slug đó lần nữa vào test | Với dữ liệu phụ, kiểm tra cả thao tác tiếp theo chứ không chỉ kết quả ngay |
+
 ## Nội dung – bước 1: ảnh, banner, gallery (07/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

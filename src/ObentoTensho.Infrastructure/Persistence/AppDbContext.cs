@@ -81,6 +81,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<StoredImage> Images => Set<StoredImage>();
 
+    public DbSet<NewsCategory> NewsCategories => Set<NewsCategory>();
+
+    public DbSet<NewsArticle> News => Set<NewsArticle>();
+
+    public DbSet<SlugRedirect> SlugRedirects => Set<SlugRedirect>();
+
+    public DbSet<StaticPage> StaticPages => Set<StaticPage>();
+
+    public DbSet<StaticPageVersion> StaticPageVersions => Set<StaticPageVersion>();
+
     public DbSet<Banner> Banners => Set<Banner>();
 
     public DbSet<GalleryItem> Gallery => Set<GalleryItem>();

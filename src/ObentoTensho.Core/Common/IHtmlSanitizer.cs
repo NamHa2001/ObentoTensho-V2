@@ -4,4 +4,7 @@ namespace ObentoTensho.Core.Common;
 public interface IHtmlSanitizer
 {
     string Sanitize(string html);
+
+    // Bài viết, trang tĩnh: thêm tiêu đề lớn và ảnh (src http/https/đường dẫn tương đối), vẫn bỏ script và thuộc tính sự kiện
+    string SanitizeRich(string html);
 }

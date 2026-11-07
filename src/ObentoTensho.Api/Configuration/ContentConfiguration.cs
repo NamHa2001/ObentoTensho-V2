@@ -25,6 +25,15 @@ public static class ContentConfiguration
         services.AddScoped<BannerAdminService>();
         services.AddScoped<GalleryAdminService>();
         services.AddScoped<PublicContentService>();
+
+        services.AddSingleton<IValidator<NewsCategoryRequest>, NewsCategoryRequestValidator>();
+        services.AddSingleton<IValidator<NewsRequest>, NewsRequestValidator>();
+        services.AddSingleton<IValidator<StaticPageRequest>, StaticPageRequestValidator>();
+        services.AddScoped<NewsCategoryService>();
+        services.AddScoped<NewsAdminService>();
+        services.AddScoped<PublicNewsService>();
+        services.AddScoped<StaticPageService>();
+        services.AddScoped<IRecurringJob, NewsTrashPurgeJob>();
         return services;
     }
 

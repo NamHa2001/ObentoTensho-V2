@@ -27,6 +27,30 @@ public sealed class HtmlSanitizerAdapterTests
     }
 
     [Fact]
+    public void Bai_viet_giu_anh_nhung_mo_ta_mon_thi_khong()
+    {
+        const string html = "<h2>Tin</h2><img src=\"/media/a.webp\" alt=\"a\">";
+
+        Assert.Equal(html, _sanitizer.SanitizeRich(html));
+        Assert.Empty(_sanitizer.Sanitize(html));
+    }
+
+    [Theory]
+    [InlineData("<img src=\"javascript:alert(1)\">")]
+    [InlineData("<img src=\"data:image/svg+xml,x\">")]
+    [InlineData("<img src=\"/a.webp\" onerror=\"alert(1)\">")]
+    [InlineData("<svg onload=\"alert(1)\"></svg>")]
+    [InlineData("<iframe src=\"https://evil.test\"></iframe>")]
+    public void Bai_viet_van_bo_ma_chay_duoc(string html)
+    {
+        var clean = _sanitizer.SanitizeRich(html);
+
+        Assert.DoesNotContain("alert", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("data:", clean, StringComparison.Ordinal);
+        Assert.DoesNotContain("evil", clean, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Lien_ket_chi_nhan_http_va_them_rel()
     {
         Assert.DoesNotContain("javascript", _sanitizer.Sanitize("<a href=\"javascript:alert(1)\">x</a>"), StringComparison.OrdinalIgnoreCase);

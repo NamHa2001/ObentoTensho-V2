@@ -3,24 +3,29 @@ using IHtmlSanitizer = ObentoTensho.Core.Common.IHtmlSanitizer;
 
 namespace ObentoTensho.Infrastructure.Security;
 
-// SEC-08: chỉ giữ thẻ định dạng văn bản cơ bản; bỏ script, style, iframe, ảnh, thuộc tính sự kiện và liên kết javascript:
+// SEC-08: chỉ giữ thẻ định dạng văn bản cơ bản (bài viết thêm ảnh); bỏ script, style, iframe, thuộc tính sự kiện và liên kết javascript:
 internal sealed class HtmlSanitizerAdapter : IHtmlSanitizer
 {
     private static readonly string[] AllowedTags =
         ["p", "br", "strong", "b", "em", "i", "u", "s", "ul", "ol", "li", "h3", "h4", "blockquote", "a", "span"];
 
-    private readonly HtmlSanitizer _sanitizer = Create();
+    private static readonly string[] RichTags = [.. AllowedTags, "h2", "img", "figure", "figcaption", "hr"];
+
+    private readonly HtmlSanitizer _sanitizer = Create(AllowedTags, ["href", "title"], ["href"]);
+    private readonly HtmlSanitizer _richSanitizer = Create(RichTags, ["href", "title", "src", "alt", "width", "height"], ["href", "src"]);
 
     public string Sanitize(string html) => _sanitizer.Sanitize(html ?? string.Empty).Trim();
 
-    private static HtmlSanitizer Create()
+    public string SanitizeRich(string html) => _richSanitizer.Sanitize(html ?? string.Empty).Trim();
+
+    private static HtmlSanitizer Create(string[] tags, string[] attributes, string[] uriAttributes)
     {
         var options = new HtmlSanitizerOptions
         {
-            AllowedTags = new HashSet<string>(AllowedTags, StringComparer.OrdinalIgnoreCase),
-            AllowedAttributes = new HashSet<string>(["href", "title"], StringComparer.OrdinalIgnoreCase),
+            AllowedTags = new HashSet<string>(tags, StringComparer.OrdinalIgnoreCase),
+            AllowedAttributes = new HashSet<string>(attributes, StringComparer.OrdinalIgnoreCase),
             AllowedSchemes = new HashSet<string>(["http", "https", "mailto"], StringComparer.OrdinalIgnoreCase),
-            UriAttributes = new HashSet<string>(["href"], StringComparer.OrdinalIgnoreCase),
+            UriAttributes = new HashSet<string>(uriAttributes, StringComparer.OrdinalIgnoreCase),
         };
         var sanitizer = new HtmlSanitizer(options);
 
