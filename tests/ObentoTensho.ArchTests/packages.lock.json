@@ -225,6 +225,11 @@
           "Microsoft.IdentityModel.Logging": "8.23.0"
         }
       },
+      "Microsoft.OpenApi": {
+        "type": "Transitive",
+        "resolved": "2.12.2",
+        "contentHash": "ZkT7qiJe0Kj0+DTZOZo+xrDy1kNmdsWFQVPIQLNx9ZJ0T9cB2LG7r+Bi60so8/+yg1nkS7QCPadrzsTG4VPKrA=="
+      },
       "Microsoft.SqlServer.Server": {
         "type": "Transitive",
         "resolved": "1.0.0",
@@ -346,9 +351,11 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.JwtBearer": "[10.0.14, )",
+          "Microsoft.AspNetCore.OpenApi": "[10.0.14, )",
           "ObentoTensho.Contracts": "[1.0.0, )",
           "ObentoTensho.Core": "[1.0.0, )",
-          "ObentoTensho.Infrastructure": "[1.0.0, )"
+          "ObentoTensho.Infrastructure": "[1.0.0, )",
+          "Scalar.AspNetCore": "[2.19.0, )"
         }
       },
       "obentotensho.contracts": {
@@ -420,6 +427,15 @@
           "Microsoft.IdentityModel.Protocols.OpenIdConnect": "8.19.2"
         }
       },
+      "Microsoft.AspNetCore.OpenApi": {
+        "type": "CentralTransitive",
+        "requested": "[10.0.14, )",
+        "resolved": "10.0.14",
+        "contentHash": "3M6yO4nv8fmvM/1X7DqQcMxw/ptNLBcUzZt19SBEyfZF32gqZuwoPNnYd1xlDnFvQOGOkZDncf7p9E24blcTkQ==",
+        "dependencies": {
+          "Microsoft.OpenApi": "[2.12.2, 3.0.0)"
+        }
+      },
       "Microsoft.EntityFrameworkCore.SqlServer": {
         "type": "CentralTransitive",
         "requested": "[10.0.14, )",
@@ -448,6 +464,12 @@
           "Microsoft.IdentityModel.Protocols": "8.23.0",
           "System.IdentityModel.Tokens.Jwt": "8.23.0"
         }
+      },
+      "Scalar.AspNetCore": {
+        "type": "CentralTransitive",
+        "requested": "[2.19.0, )",
+        "resolved": "2.19.0",
+        "contentHash": "nTXL9wsg6UhQ27KPUhuMr3/BE02H3zjuii2I5x7vbx7myPHkJzvzGDj7hfd1lKZBmJgUcKI+W7wcIzDdV/N/Dg=="
       },
       "System.Security.Cryptography.Pkcs": {
         "type": "CentralTransitive",

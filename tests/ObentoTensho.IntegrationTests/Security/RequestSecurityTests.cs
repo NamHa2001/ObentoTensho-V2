@@ -79,6 +79,21 @@ public sealed class RequestSecurityTests(SqlServerFixture fixture)
         Assert.Equal(HttpStatusCode.TooManyRequests, (await http.SendAsync(Login("203.0.113.20", forwardedFor: "192.0.2.99"))).StatusCode);
     }
 
+    [Theory]
+    [InlineData("/scalar/")]
+    [InlineData("/openapi/v1.json")]
+    public async Task Trang_thu_API_khong_ton_tai_ngoai_moi_truong_dev(string path)
+    {
+        using var factory = new ApiFactory(fixture.ConnectionString);
+        using var http = factory.CreateApiClient();
+
+        var response = await http.GetAsync(path);
+
+        // Giống hệt một đường dẫn không có thật: chính sách mặc định từ chối (401), không lộ trang nào
+        Assert.Equal((await http.GetAsync("/khong-ton-tai")).StatusCode, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     [Fact]
     public async Task Phan_hoi_co_header_bao_mat_va_khong_co_header_Server()
     {

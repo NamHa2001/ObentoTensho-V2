@@ -1,6 +1,7 @@
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Infrastructure;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +27,10 @@ builder.Services.AddMenuServices();
 builder.Services.AddOrderServices();
 builder.Services.AddLoyaltyServices();
 builder.Services.AddVoucherServices();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddOpenApi();
+}
 
 var app = builder.Build();
 
@@ -46,6 +51,13 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health/live").AllowAnonymous();
+
+// Trang tài liệu + thử API chỉ có ở máy dev, không bao giờ mở ở môi trường chạy thật
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi().AllowAnonymous();
+    app.MapScalarApiReference().AllowAnonymous();
+}
 
 await app.SeedSuperAdminAsync();
 await app.RunAsync();

@@ -74,4 +74,6 @@ Chống bot: máy chủ bắt buộc `Turnstile__Enabled=true`, `Turnstile__Secr
 
 Việc định kỳ (nhắc đặt bàn, tự no-show, tự hủy đặt bàn treo) chạy nền trong API, dùng khóa `sp_getapplock` nên chạy nhiều instance không trùng; tắt bằng `Jobs__Enabled=false`. Hạn mức mã OTP mỗi ngày: `Otp__DailyQuota` (mặc định 200). Núm vặn đặt bàn: `Reservation__*` (xem `ReservationOptions`).
 
+Trang tài liệu và thử API (chỉ có khi chạy môi trường Development, không tồn tại ở bản chạy thật): chạy `dotnet run --project src/ObentoTensho.Api --launch-profile http` rồi mở `http://localhost:5212/scalar/`.
+
 Tài khoản SuperAdmin đầu tiên: khi hệ thống chưa có SuperAdmin nào, đặt `Seed__SuperAdmin__Email`, `Seed__SuperAdmin__FullName`, `Seed__SuperAdmin__Password` rồi khởi động API. Lần đăng nhập đầu sẽ bắt đổi mật khẩu và thiết lập 2FA; sau đó xóa các biến này. Đổi khóa ký: thêm khóa mới vào `Jwt:SigningKeys`, chuyển `Jwt:ActiveKeyId` sang khóa mới, giữ khóa cũ thêm ít nhất 15 phút rồi mới xóa.
