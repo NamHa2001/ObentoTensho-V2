@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Vouchers.Abstractions;
 using ObentoTensho.Core.Vouchers.Domain;
 
@@ -18,17 +19,7 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
 
     public async Task<(IReadOnlyList<Voucher> Items, int Total)> ListAsync(VoucherQuery query, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(query);
-        var source = db.Vouchers.AsNoTracking()
-            .Where(v => (query.Source == null || v.Source == query.Source)
-                && (query.ApprovalStatus == null || v.ApprovalStatus == query.ApprovalStatus)
-                && (query.BatchId == null || v.BatchId == query.BatchId));
-        if (!string.IsNullOrWhiteSpace(query.Search))
-        {
-            var term = VoucherCodes.Normalize(query.Search);
-            source = source.Where(v => v.Code.Contains(term));
-        }
-
+        var source = Filter(query);
         var total = await source.CountAsync(cancellationToken);
         var items = await source.OrderByDescending(v => v.Id).Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).ToListAsync(cancellationToken);
         return (items, total);
@@ -36,6 +27,22 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
 
     public async Task<IReadOnlyList<Voucher>> ListOwnedAsync(Guid userId, CancellationToken cancellationToken) =>
         await db.Vouchers.AsNoTracking().Where(v => v.OwnerUserId == userId).OrderByDescending(v => v.Id).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken) =>
+        await Filter(query).OrderByDescending(v => v.Id).Take(limit).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, int limit, CancellationToken cancellationToken) =>
+        await db.Users.AsNoTracking()
+            .Where(u => u.IsActive && !u.IsDeleted && u.IsEmailVerified && u.DateOfBirth != null
+                && ((u.DateOfBirth.Value.Month == month && u.DateOfBirth.Value.Day == day)
+                    || (includeLeapDay && u.DateOfBirth.Value.Month == 2 && u.DateOfBirth.Value.Day == 29))
+                && !db.Vouchers.Any(v => v.OwnerUserId == u.Id && v.BirthdayYear == year))
+            .OrderBy(u => u.Id)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+    public Task<bool> PromotionExistsAsync(int promotionId, CancellationToken cancellationToken) =>
+        db.Promotions.AnyAsync(p => p.Id == promotionId && p.DeletedAtUtc == null, cancellationToken);
 
     public async Task<IReadOnlySet<string>> ExistingCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken)
     {
@@ -54,6 +61,22 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
     public async Task<bool> HasUsageAsync(int voucherId, CancellationToken cancellationToken) =>
         await db.UserVouchers.AnyAsync(u => u.VoucherId == voucherId, cancellationToken)
         || await db.Orders.AnyAsync(o => o.VoucherId == voucherId, cancellationToken);
+
+    private IQueryable<Voucher> Filter(VoucherQuery query)
+    {
+        ArgumentNullException.ThrowIfNull(query);
+        var source = db.Vouchers.AsNoTracking()
+            .Where(v => (query.Source == null || v.Source == query.Source)
+                && (query.ApprovalStatus == null || v.ApprovalStatus == query.ApprovalStatus)
+                && (query.BatchId == null || v.BatchId == query.BatchId));
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var term = VoucherCodes.Normalize(query.Search);
+            source = source.Where(v => v.Code.Contains(term));
+        }
+
+        return source;
+    }
 
     public void Add(Voucher voucher) => db.Vouchers.Add(voucher);
 

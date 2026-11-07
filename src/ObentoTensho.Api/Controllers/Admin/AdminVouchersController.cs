@@ -28,6 +28,19 @@ public sealed class AdminVouchersController(VoucherAdminService vouchers) : Cont
         CancellationToken cancellationToken = default) =>
         Ok(await vouchers.ListAsync(new VoucherQuery(q, source, approvalStatus, batchId, page, pageSize), cancellationToken));
 
+    // BR-VCH-15: dùng cùng bộ lọc với danh sách
+    [HttpGet("export")]
+    public async Task<IActionResult> Export(
+        [FromQuery] string? q,
+        [FromQuery] VoucherSource? source,
+        [FromQuery] ApprovalStatus? approvalStatus,
+        [FromQuery] Guid? batchId,
+        CancellationToken cancellationToken) =>
+        File(
+            await vouchers.ExportAsync(new VoucherQuery(q, source, approvalStatus, batchId, Page: 1, PageSize: 1), cancellationToken),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            vouchers.ExportFileName());
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> Get(int id, CancellationToken cancellationToken) =>
         this.DataOrProblem(await vouchers.GetAsync(id, cancellationToken), v => v.Version);

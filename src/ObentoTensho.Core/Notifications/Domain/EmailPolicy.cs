@@ -22,7 +22,7 @@ public static class EmailPolicy
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
         EmailKind.ReservationReminder or EmailKind.OrderAttention => 3,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged => 3,
-        EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed => 4,
+        EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed or EmailKind.VoucherBirthday => 4,
         _ => 5,
     };
 

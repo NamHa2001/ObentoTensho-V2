@@ -61,6 +61,8 @@ public sealed class LoyaltyRulesTests
 
         public decimal RedeemVoucherValue => 30_000m;
 
+        public decimal BirthdayVoucherValue => 50_000m;
+
         public int SilverPoints => 300;
 
         public int GoldPoints => 1000;

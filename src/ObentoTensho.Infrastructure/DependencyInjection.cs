@@ -9,6 +9,7 @@ using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Loyalty.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
+using ObentoTensho.Core.Promotions.Abstractions;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Time;
@@ -64,6 +65,9 @@ public static class DependencyInjection
         services.AddScoped<ILoyaltyEmailOutbox, LoyaltyEmailOutbox>();
         services.AddScoped<IVoucherRepository, VoucherRepository>();
         services.AddScoped<IVoucherEmailOutbox, VoucherEmailOutbox>();
+        services.AddSingleton<IVoucherSpreadsheet, ClosedXmlVoucherSpreadsheet>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
+        services.AddSingleton<IPromotionCache, MemoryPromotionCache>();
         services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
         services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();

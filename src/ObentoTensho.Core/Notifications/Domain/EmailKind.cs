@@ -23,5 +23,6 @@ public enum EmailKind
     LoyaltyPointsEarned,
     LoyaltyTierUp,
     LoyaltyPointsExpiring,
-    VoucherRedeemed
+    VoucherRedeemed,
+    VoucherBirthday
 }

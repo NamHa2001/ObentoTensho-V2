@@ -1313,6 +1313,71 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Promotions.Domain.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("DescriptionHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("PublicTeaser")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByStaffId");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.HasIndex("IsActive", "EndDate");
+
+                    b.ToTable("Promotions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Promotions_Dates", "[EndDate] >= [StartDate]");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1899,6 +1964,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("BatchId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int?>("BirthdayYear")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasColumnType("varchar(50)");
@@ -1979,9 +2047,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OwnerUserId");
 
+                    b.HasIndex("PromotionId");
+
                     b.HasIndex("ReviewedByStaffId");
 
                     b.HasIndex("ApprovalStatus", "CreatedAtUtc");
+
+                    b.HasIndex("OwnerUserId", "BirthdayYear")
+                        .IsUnique()
+                        .HasFilter("[BirthdayYear] IS NOT NULL");
 
                     b.ToTable("Vouchers", null, t =>
                         {
@@ -2259,6 +2333,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Promotions.Domain.Promotion", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByStaffId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Reservations.Domain.Reservation", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Tables.Domain.ServiceSlot", null)
@@ -2349,6 +2432,11 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("OwnerUserId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ObentoTensho.Core.Promotions.Domain.Promotion", null)
+                        .WithMany()
+                        .HasForeignKey("PromotionId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()

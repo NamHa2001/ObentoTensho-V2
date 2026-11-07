@@ -27,6 +27,7 @@ public static class VoucherMappings
             v.Source,
             v.OwnerUserId,
             v.BatchId,
+            v.PromotionId,
             v.ApprovalStatus,
             v.CreatedAtUtc,
             RowVersions.Encode(v.RowVersion));

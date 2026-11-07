@@ -25,11 +25,15 @@ public sealed class VoucherService(
     ILoyaltySettings loyaltySettings,
     IVoucherSettings settings,
     IVoucherEmailOutbox emails,
+    IActionThrottle throttle,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<ValidateVoucherRequest> validator)
 {
     private const string RedeemPrefix = "DIEM";
+
+    // BR-VCH-12: ngoài giới hạn theo IP, mỗi tài khoản tối đa 30 lần kiểm mã mỗi giờ
+    private const int ValidatePerHour = 30;
 
     public async Task<Result<VoucherCheckDto>> ValidateAsync(ValidateVoucherRequest request, Guid? userId, CancellationToken cancellationToken)
     {
@@ -37,6 +41,17 @@ public sealed class VoucherService(
         if (!validation.IsValid)
         {
             return validation.ToFailure<VoucherCheckDto>();
+        }
+
+        if (userId is { } id)
+        {
+            var key = $"voucher-validate:{id:N}";
+            if (throttle.Count(key) >= ValidatePerHour)
+            {
+                return Result.Failure<VoucherCheckDto>(ErrorCodes.RateLimited);
+            }
+
+            throttle.Increment(key, TimeSpan.FromHours(1));
         }
 
         var priced = await cart.PriceAsync(request.Items, AuthPolicy.DefaultLanguage, cancellationToken);

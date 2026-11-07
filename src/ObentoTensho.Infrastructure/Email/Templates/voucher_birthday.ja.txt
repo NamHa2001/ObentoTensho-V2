@@ -1,0 +1,21 @@
+subject: {{fullName}} 様、お誕生日おめでとうございます
+===
+{{fullName}} 様
+
+お誕生日おめでとうございます。Obento Tensho からクーポンをお贈りします。
+
+コード: {{voucherCode}}
+金額: {{value}}
+有効期限: {{expiryDate}} まで
+
+このクーポンは本アカウントにログインした状態で、テイクアウト注文に 1 回のみご利用いただけます。会員割引との併用はできません。
+
+クーポンを確認する: {{accountLink}}
+
+Obento Tensho
+===
+<p>{{fullName}} 様</p>
+<p>お誕生日おめでとうございます。Obento Tensho からクーポンをお贈りします。</p>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">コード</td><td style="padding:4px 0"><strong>{{voucherCode}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">金額</td><td style="padding:4px 0">{{value}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">有効期限</td><td style="padding:4px 0">{{expiryDate}} まで</td></tr></table>
+<p>このクーポンは本アカウントにログインした状態で、テイクアウト注文に 1 回のみご利用いただけます。会員割引との併用はできません。</p><p><a class="button" href="{{accountLink}}">クーポンを確認する</a></p>
+<p>Obento Tensho</p>

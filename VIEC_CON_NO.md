@@ -4,7 +4,7 @@ Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu c�
 
 Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
 
-Cập nhật lần cuối: 07/11/2026 — sau commit `1e20913`.
+Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
 
 ## Xác thực & tài khoản
 
@@ -101,16 +101,17 @@ Cập nhật lần cuối: 07/11/2026 — sau commit `1e20913`.
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Chương trình khuyến mãi công khai (`/promotions`, slug, mô tả đã làm sạch, ngày VN, xóa mềm, `PublicTeaser`) | `BR-VCH-13/16/17` | Bước 2 |
-| Xuất danh sách voucher ra Excel, chống chèn công thức | `BR-VCH-15` | Bước 2 |
-| Giới hạn kiểm mã theo tài khoản (30/giờ) — hiện chỉ theo IP 10/phút | `BR-VCH-12` | Bước 2 |
+| Banner khuyến mãi (`BannerImageId`) | `docs/srs/08` §6 | Cần pipeline ảnh |
+| Bản dịch en/ja của khuyến mãi | `D-36`, `docs/srs/22` | Phần đa ngôn ngữ |
+| Tắt tự động khuyến mãi hết hạn | `docs/srs/14` §3 | Không cần: hiệu lực tính khi truy vấn, job chỉ là dọn dẹp tùy chọn |
+| Voucher sinh nhật có thể bị lợi dụng bằng cách đăng ký mới với ngày sinh là hôm nay | `BR-LOY-20` | SRS chỉ khóa việc sửa ngày sinh; cần chủ dự án quyết có yêu cầu tài khoản đủ cũ không. Hiện chỉ yêu cầu email đã xác thực |
+| Sửa ngày sinh một lần, khóa 60 ngày quanh sinh nhật | `BR-LOY-20` | Làm cùng hồ sơ khách; hiện ngày sinh chỉ nhập lúc đăng ký |
 | Voucher giới hạn theo SĐT/email cho khách vãng lai | `D-16` | Đã chốt bắt buộc đăng nhập; không làm |
 
 ## Điểm & hạng
 
 | Việc | Mã | Ghi chú |
 |---|---|---|
-| Voucher sinh nhật mỗi năm một lần (ngày sinh chỉ đặt một lần, email đã xác thực) | `BR-LOY-09/20` | Bước 2 phần voucher |
 | Đối soát hằng đêm `CurrentPoints = Σ sổ cái = Σ lô` và cảnh báo khi lệch | `BR-LOY-04` | Bất biến đã giữ trong mọi thao tác; còn thiếu việc định kỳ kiểm lại |
 | Cảnh báo nhân viên khi khách có nợ điểm | `BR-LOY-08` | Số nợ đã hiện ở `GET /admin/customers/{id}/loyalty-points`; màn hình ở giao diện quản trị |
 | Đọc ngưỡng hạng/thang điểm từ bảng cài đặt (hiện từ cấu hình `Loyalty:*`) | `BR-LOY-03`, `BR-RPT-21` | Phần cài đặt |

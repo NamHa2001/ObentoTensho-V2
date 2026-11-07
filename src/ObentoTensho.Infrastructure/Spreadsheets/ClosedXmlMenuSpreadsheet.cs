@@ -50,7 +50,7 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
         var guide = book.AddWorksheet(MenuSheet.GuideSheet);
         for (var i = 0; i < workbook.Guide.Count; i++)
         {
-            SetCell(guide.Cell(i + 1, 1), workbook.Guide[i]);
+            ClosedXmlCells.SetText(guide.Cell(i + 1, 1), workbook.Guide[i]);
         }
 
         guide.Column(1).Width = 120;
@@ -157,7 +157,7 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
                 case null:
                     break;
                 case string text:
-                    SetCell(cell, text);
+                    ClosedXmlCells.SetText(cell, text);
                     break;
                 case decimal number:
                     cell.Value = number;
@@ -166,21 +166,9 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
                     cell.Value = number;
                     break;
                 default:
-                    SetCell(cell, Convert.ToString(values[c], CultureInfo.InvariantCulture) ?? string.Empty);
+                    ClosedXmlCells.SetText(cell, Convert.ToString(values[c], CultureInfo.InvariantCulture) ?? string.Empty);
                     break;
             }
-        }
-    }
-
-    // SEC-11: mọi văn bản ghi dưới dạng chuỗi (định dạng "@"). Ô bắt đầu bằng ký tự công thức bật cờ quotePrefix —
-    // tương đương gõ dấu ' trong Excel: ô hiện đúng chữ, Excel/LibreOffice không bao giờ tính như công thức.
-    private static void SetCell(IXLCell cell, string text)
-    {
-        cell.Value = text;
-        cell.Style.NumberFormat.Format = "@";
-        if (!string.Equals(SpreadsheetText.Guard(text), text, StringComparison.Ordinal))
-        {
-            cell.Style.IncludeQuotePrefix = true;
         }
     }
 

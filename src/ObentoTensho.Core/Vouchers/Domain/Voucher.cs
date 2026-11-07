@@ -50,6 +50,9 @@ public sealed class Voucher
 
     public Guid? BatchId { get; init; }
 
+    // BR-LOY-20: năm của voucher sinh nhật; UNIQUE (OwnerUserId, BirthdayYear) để mỗi năm chỉ một voucher
+    public int? BirthdayYear { get; init; }
+
     public required DateTime CreatedAtUtc { get; init; }
 
     public DateTime? UpdatedAtUtc { get; set; }

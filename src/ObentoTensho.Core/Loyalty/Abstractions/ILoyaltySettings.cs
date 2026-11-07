@@ -25,6 +25,9 @@ public interface ILoyaltySettings
 
     decimal RedeemVoucherValue { get; }
 
+    // BR-LOY-09: giá trị voucher sinh nhật (₫); 0 = tắt
+    decimal BirthdayVoucherValue { get; }
+
     // BR-LOY-03: ngưỡng điểm tích lũy và % giảm của từng hạng
     int SilverPoints { get; }
 

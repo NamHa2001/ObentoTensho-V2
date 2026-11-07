@@ -5,6 +5,7 @@ using ObentoTensho.Core.Loyalty.Domain;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Notifications.Domain;
 using ObentoTensho.Core.Orders.Domain;
+using ObentoTensho.Core.Promotions.Domain;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Tables.Domain;
 using ObentoTensho.Core.Verification.Domain;
@@ -75,6 +76,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<LoyaltyLot> LoyaltyLots => Set<LoyaltyLot>();
 
     public DbSet<LoyaltyAdjustment> LoyaltyAdjustments => Set<LoyaltyAdjustment>();
+
+    public DbSet<Promotion> Promotions => Set<Promotion>();
 
     public DbSet<Voucher> Vouchers => Set<Voucher>();
 

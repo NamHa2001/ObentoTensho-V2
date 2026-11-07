@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Promotions.Domain;
 using ObentoTensho.Core.Vouchers.Domain;
 
 namespace ObentoTensho.Infrastructure.Persistence.Configurations;
@@ -35,12 +36,17 @@ internal sealed class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.Property(v => v.IsActive).HasDefaultValue(true).ValueGeneratedNever();
         builder.Property(v => v.RowVersion).IsRowVersion();
 
+        builder.HasOne<Promotion>().WithMany().HasForeignKey(v => v.PromotionId).OnDelete(DeleteBehavior.SetNull);
         builder.HasOne<User>().WithMany().HasForeignKey(v => v.OwnerUserId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Staff>().WithMany().HasForeignKey(v => v.CreatedByStaffId).OnDelete(DeleteBehavior.NoAction);
         builder.HasOne<Staff>().WithMany().HasForeignKey(v => v.ReviewedByStaffId).OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(v => v.Code).IsUnique();
         builder.HasIndex(v => v.OwnerUserId);
+        builder.HasIndex(v => v.PromotionId);
+
+        // BR-LOY-20: mỗi khách mỗi năm một voucher sinh nhật
+        builder.HasIndex(v => new { v.OwnerUserId, v.BirthdayYear }).IsUnique().HasFilter("[BirthdayYear] IS NOT NULL");
         builder.HasIndex(v => v.BatchId);
         builder.HasIndex(v => new { v.ApprovalStatus, v.CreatedAtUtc });
     }

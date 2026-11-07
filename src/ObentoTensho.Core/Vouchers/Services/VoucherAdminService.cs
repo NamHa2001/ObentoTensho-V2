@@ -7,6 +7,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Promotions.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Core.Vouchers.Abstractions;
 using ObentoTensho.Core.Vouchers.Domain;
@@ -17,6 +18,8 @@ namespace ObentoTensho.Core.Vouchers.Services;
 public sealed class VoucherAdminService(
     IVoucherRepository vouchers,
     IVoucherSettings settings,
+    IVoucherSpreadsheet spreadsheet,
+    IPromotionCache promotionCache,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock,
@@ -26,6 +29,15 @@ public sealed class VoucherAdminService(
     public const int MaxPageSize = 100;
     private const string Entity = "voucher";
 
+    // Trần một lần xuất: đủ cho vài lô 5.000 mã mà không nạp cả bảng vào bộ nhớ
+    private const int ExportLimit = 20_000;
+
+    private static readonly string[] ExportColumns =
+    [
+        "Mã", "Loại", "Giá trị", "Giảm tối đa", "Đơn tối thiểu", "Tổng lượt", "Lượt mỗi khách", "Đã dùng",
+        "Từ ngày", "Đến ngày", "Đang bật", "Duyệt", "Nguồn",
+    ];
+
     public async Task<PagedResponse<AdminVoucherDto>> ListAsync(VoucherQuery query, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(query);
@@ -34,6 +46,18 @@ public sealed class VoucherAdminService(
         var (items, total) = await vouchers.ListAsync(query with { Page = page, PageSize = pageSize }, cancellationToken);
         return new PagedResponse<AdminVoucherDto>(items.Select(v => v.ToAdmin(clock)).ToArray(), new PageMeta(page, pageSize, total));
     }
+
+    // BR-VCH-15: danh sách mã là dữ liệu nhạy cảm nên mỗi lần xuất đều ghi audit
+    public async Task<byte[]> ExportAsync(VoucherQuery query, CancellationToken cancellationToken)
+    {
+        var items = await vouchers.ListForExportAsync(query, ExportLimit, cancellationToken);
+        audit.Record(new AuditEntry($"vouchers.{Entity}.exported", Entity, "export", After: new { items.Count, query.Source, query.ApprovalStatus, query.BatchId }));
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return spreadsheet.Write(ExportColumns, items.Select(ToRow).ToArray());
+    }
+
+    public string ExportFileName() =>
+        string.Create(CultureInfo.InvariantCulture, $"voucher-{clock.TodayLocal:yyyy-MM-dd}.xlsx");
 
     public async Task<Result<AdminVoucherDto>> GetAsync(int id, CancellationToken cancellationToken) =>
         await vouchers.FindAsync(id, cancellationToken) is { } voucher
@@ -48,6 +72,11 @@ public sealed class VoucherAdminService(
             return validation.ToFailure<AdminVoucherDto>();
         }
 
+        if (await CheckPromotionAsync(request.PromotionId, cancellationToken) is { } missing)
+        {
+            return Result.Failure<AdminVoucherDto>(ErrorCodes.ValidationFailed, missing);
+        }
+
         var code = request.Code is null ? await UniqueCodeAsync(prefix: null, cancellationToken) : VoucherCodes.Normalize(request.Code);
         if ((await vouchers.ExistingCodesAsync([code], cancellationToken)).Count > 0)
         {
@@ -58,6 +87,7 @@ public sealed class VoucherAdminService(
         voucher.ApprovalStatus = VoucherRules.NeedsApproval(request.DiscountType, request.DiscountValue, request.MaxUsageTotal, settings)
             ? ApprovalStatus.Pending
             : ApprovalStatus.Approved;
+        promotionCache.Invalidate();
         return await unitOfWork.TryCreateAsync(async ct =>
         {
             vouchers.Add(voucher);
@@ -82,6 +112,11 @@ public sealed class VoucherAdminService(
             return Result.Failure<AdminVoucherDto>(ErrorCodes.PreconditionRequired);
         }
 
+        if (await CheckPromotionAsync(request.PromotionId, cancellationToken) is { } missing)
+        {
+            return Result.Failure<AdminVoucherDto>(ErrorCodes.ValidationFailed, missing);
+        }
+
         if (await vouchers.FindAsync(id, cancellationToken) is not { } voucher)
         {
             return Result.Failure<AdminVoucherDto>(ErrorCodes.NotFound);
@@ -104,7 +139,9 @@ public sealed class VoucherAdminService(
         }
 
         audit.Record(new AuditEntry($"vouchers.{Entity}.updated", Entity, Id(voucher), before, Snapshot(voucher)));
-        return await unitOfWork.TrySaveAsync(() => voucher.ToAdmin(clock), ErrorCodes.DuplicateName, cancellationToken);
+        var result = await unitOfWork.TrySaveAsync(() => voucher.ToAdmin(clock), ErrorCodes.DuplicateName, cancellationToken);
+        promotionCache.Invalidate();
+        return result;
     }
 
     // BR-VCH-11: đã có lượt dùng thì chỉ được tắt
@@ -128,7 +165,9 @@ public sealed class VoucherAdminService(
         unitOfWork.ExpectRowVersion(voucher, version);
         audit.Record(new AuditEntry($"vouchers.{Entity}.deleted", Entity, Id(voucher), Before: Snapshot(voucher)));
         vouchers.Remove(voucher);
-        return await unitOfWork.TrySaveAsync(ErrorCodes.VoucherInUse, cancellationToken);
+        var result = await unitOfWork.TrySaveAsync(ErrorCodes.VoucherInUse, cancellationToken);
+        promotionCache.Invalidate();
+        return result;
     }
 
     public async Task<Result<BulkGenerateResultDto>> BulkGenerateAsync(BulkGenerateVouchersRequest request, Guid staffId, CancellationToken cancellationToken)
@@ -137,6 +176,11 @@ public sealed class VoucherAdminService(
         if (!validation.IsValid)
         {
             return validation.ToFailure<BulkGenerateResultDto>();
+        }
+
+        if (await CheckPromotionAsync(request.Template.PromotionId, cancellationToken) is { } missing)
+        {
+            return Result.Failure<BulkGenerateResultDto>(ErrorCodes.ValidationFailed, missing);
         }
 
         var codes = await UniqueCodesAsync(request.Prefix, request.Quantity, cancellationToken);
@@ -177,6 +221,7 @@ public sealed class VoucherAdminService(
 
             audit.Record(new AuditEntry($"vouchers.{Entity}.{(approve ? "approved" : "rejected")}", Entity, Id(voucher), After: new { note }));
             await unitOfWork.SaveChangesAsync(ct);
+            promotionCache.Invalidate();
             return Result.Success(voucher.ToAdmin(clock));
         }, cancellationToken);
 
@@ -225,6 +270,11 @@ public sealed class VoucherAdminService(
         return null;
     }
 
+    private async Task<Dictionary<string, string[]>?> CheckPromotionAsync(int? promotionId, CancellationToken cancellationToken) =>
+        promotionId is { } id && !await vouchers.PromotionExistsAsync(id, cancellationToken)
+            ? new Dictionary<string, string[]>(StringComparer.Ordinal) { ["promotionId"] = [FieldErrorCodes.NotFound] }
+            : null;
+
     private Voucher New(string code, VoucherRequest request, Guid staffId, Guid? batchId)
     {
         var voucher = new Voucher
@@ -252,8 +302,33 @@ public sealed class VoucherAdminService(
         voucher.StartUtc = request.StartDate is { } start ? clock.ToUtc(start, TimeOnly.MinValue) : null;
         voucher.EndUtc = request.EndDate is { } end ? clock.ToUtc(end.AddDays(1), TimeOnly.MinValue) : null;
         voucher.IsActive = request.IsActive;
+        voucher.PromotionId = request.PromotionId;
         voucher.UpdatedAtUtc = clock.UtcNow;
     }
+
+    private object?[] ToRow(Voucher v) =>
+    [
+        v.Code, v.DiscountType == DiscountType.Percent ? "Phần trăm" : "Số tiền", v.DiscountValue, v.MaxDiscountAmount, v.MinOrderValue,
+        v.MaxUsageTotal, v.MaxUsagePerUser, v.UsedCount,
+        VoucherMappings.StartDate(v, clock)?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        VoucherMappings.EndDate(v, clock)?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
+        v.IsActive ? "Có" : "Không", ApprovalText(v.ApprovalStatus), SourceText(v.Source),
+    ];
+
+    private static string ApprovalText(ApprovalStatus status) => status switch
+    {
+        ApprovalStatus.Approved => "Đã duyệt",
+        ApprovalStatus.Rejected => "Từ chối",
+        _ => "Chờ duyệt",
+    };
+
+    private static string SourceText(VoucherSource source) => source switch
+    {
+        VoucherSource.Redeem => "Đổi điểm",
+        VoucherSource.Birthday => "Sinh nhật",
+        VoucherSource.Game => "Game",
+        _ => "Quản trị",
+    };
 
     private async Task<string> UniqueCodeAsync(string? prefix, CancellationToken cancellationToken) =>
         (await UniqueCodesAsync(prefix, 1, cancellationToken))[0];

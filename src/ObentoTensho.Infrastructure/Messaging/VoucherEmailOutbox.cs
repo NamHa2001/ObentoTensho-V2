@@ -12,10 +12,16 @@ using ObentoTensho.Infrastructure.Persistence;
 
 namespace ObentoTensho.Infrastructure.Messaging;
 
-// docs/srs/20 #17: thư mã voucher sau khi đổi điểm, theo ngôn ngữ ưa thích của thành viên
+// docs/srs/20 #16, #17: thư mã voucher sinh nhật và đổi điểm, theo ngôn ngữ ưa thích của thành viên
 internal sealed class VoucherEmailOutbox(AppDbContext db, IClock clock, IOptions<PublicLinkOptions> links) : IVoucherEmailOutbox
 {
-    public void EnqueueRedeemed(User user, Voucher voucher, int points)
+    public void EnqueueRedeemed(User user, Voucher voucher, int points) =>
+        Enqueue(EmailKind.VoucherRedeemed, user, voucher, ("points", points.ToString(CultureInfo.InvariantCulture)));
+
+    public void EnqueueBirthday(User user, Voucher voucher) =>
+        Enqueue(EmailKind.VoucherBirthday, user, voucher);
+
+    private void Enqueue(EmailKind kind, User user, Voucher voucher, params (string Key, string Value)[] extra)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(voucher);
@@ -24,13 +30,16 @@ internal sealed class VoucherEmailOutbox(AppDbContext db, IClock clock, IOptions
             ["fullName"] = user.FullName,
             ["voucherCode"] = voucher.Code,
             ["value"] = voucher.DiscountValue.ToString("#,0", CultureInfo.InvariantCulture).Replace(",", ".", StringComparison.Ordinal) + " ₫",
-            ["points"] = points.ToString(CultureInfo.InvariantCulture),
             ["expiryDate"] = VoucherMappings.EndDate(voucher, clock)?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? string.Empty,
             ["accountLink"] = links.Value.PublicBaseUrl.TrimEnd('/') + "/account/vouchers",
         };
+        foreach (var (key, value) in extra)
+        {
+            values[key] = value;
+        }
 
         var now = clock.UtcNow;
-        var request = new EmailRequest(EmailKind.VoucherRedeemed, user.Email, user.PreferredLang, values, $"{EmailTypes.Of(EmailKind.VoucherRedeemed)}:{voucher.Code}", user.Id.ToString(), Attachments: null);
+        var request = new EmailRequest(kind, user.Email, user.PreferredLang, values, $"{EmailTypes.Of(kind)}:{voucher.Code}", user.Id.ToString(), Attachments: null);
         db.OutboxMessages.Add(new OutboxMessage
         {
             Type = AccountEmailOutbox.EmailType,

@@ -2,7 +2,7 @@
 
 Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
 
-Cập nhật lần cuối: 07/11/2026 — sau commit `1e20913`.
+Cập nhật lần cuối: 07/11/2026 — sau phần Voucher & khuyến mãi.
 
 - **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
 - **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
@@ -22,7 +22,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 
 ## 2. Tiến độ theo bảng trọng số
 
-**Toàn dự án: 54/100. Riêng backend: 54/71 (khoảng 76%). Giao diện: 0/22.**
+**Toàn dự án: 56/100. Riêng backend: 56/71 (khoảng 79%). Giao diện: 0/22.**
 
 | Phần | Trọng số | Đã xong | Trạng thái |
 |---|---:|---:|---|
@@ -36,9 +36,9 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Đặt bàn | 7 | 7 | Xong |
 | Thực đơn + nhập/xuất Excel | 6 | 6 | Xong |
 | Đặt món mang về | 8 | 8 | Xong |
-| Điểm & hạng | 5 | 4,5 | Còn voucher sinh nhật |
-| Voucher & khuyến mãi | 5 | 3,5 | **Đang làm** — còn bước 2 |
-| Nội dung (CMS) | 4 | 0 | Chưa làm |
+| Điểm & hạng | 5 | 5 | Xong |
+| Voucher & khuyến mãi | 5 | 5 | Xong |
+| Nội dung (CMS) | 4 | 0 | **Việc kế tiếp** |
 | Quản lý khách & nhân viên | 3 | 0 | Chưa làm |
 | Báo cáo, dashboard, cài đặt | 4 | 0 | Chưa làm |
 | Realtime (SignalR) | 2 | 0 | Chưa làm |
@@ -49,20 +49,21 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Triển khai (Docker, Nginx, sao lưu) | 4 | 0 | Chưa làm |
 | Kiểm thử cuối (E2E, hiệu năng, bảo mật) | 3 | 0 | Chưa làm |
 
-Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) không tính.
+Game (Phase 2) không tính.
 
 ## 3. Thứ tự làm tiếp
 
 Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 
-1. **Voucher bước 2 (việc kế tiếp):** khuyến mãi công khai (`/promotions`), voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản
-2. Nội dung (CMS)
-3. Quản lý khách & nhân viên
-4. Báo cáo, dashboard, cài đặt
-5. Realtime (SignalR)
-6. Đa ngôn ngữ
-7. Giao diện khách → Giao diện quản trị → PWA
-8. Triển khai → Kiểm thử cuối
+1. **Nội dung (CMS) — việc kế tiếp**
+2. Quản lý khách & nhân viên
+3. Báo cáo, dashboard, cài đặt
+4. Realtime (SignalR)
+5. Đa ngôn ngữ
+6. Giao diện khách → Giao diện quản trị → PWA
+7. Triển khai → Kiểm thử cuối
+
+Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (mục "Rủi ro thư bị bỏ" trong `VIEC_CON_NO.md`).
 
 ## 4. Đã làm theo từng phần
 
@@ -79,6 +80,7 @@ Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 | Đặt món | `2e76616`, `63a7973` | Giá do server tính, giờ lấy, theo dõi, tự hủy, màn hình bếp và thu ngân, hoàn tiền, cờ không đến lấy, danh sách và thư "cần xử lý" |
 | Điểm & hạng | `8ee787e` | Sổ cái chỉ thêm, lô FIFO, hạng, giảm theo hạng, nợ điểm, hết hạn, điều chỉnh bốn mắt |
 | Voucher bước 1 | `0539d34` | Kiểm mã, giữ lượt nguyên tử, hoàn lượt, đổi điểm, sinh hàng loạt, duyệt bốn mắt |
+| Voucher bước 2 | commit sau `4010e09` | Khuyến mãi công khai và quản trị, voucher sinh nhật, xuất Excel voucher, giới hạn kiểm mã theo tài khoản |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -86,17 +88,17 @@ Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 **Cấu trúc:** `Contracts` ← `Core` ← `Infrastructure` ← `Api`.
 
 - `Contracts`: DTO, enum, mã lỗi
-- `Core`: nghiệp vụ, chia thư mục `Audit`, `Auth`, `Common`, `Loyalty`, `Menu`, `Notifications`, `Orders`, `Reservations`, `Tables`, `Time`, `Verification`, `Vouchers`
+- `Core`: nghiệp vụ, chia thư mục `Audit`, `Auth`, `Common`, `Loyalty`, `Menu`, `Notifications`, `Orders`, `Reservations`, `Promotions`, `Tables`, `Time`, `Verification`, `Vouchers`
 - `Infrastructure`: EF, repository, email, job, ClosedXML
 - `Api`: controller mỏng
 
-**API công khai và khách** (tiền tố `/api/v1`): `auth`, `otp`, `menu`, `public/opening-hours`, `reservations`, `orders`, `vouchers/validate`, `account/orders`, `account/loyalty-points`, `account/vouchers`, `account/redeem-points`.
+**API công khai và khách** (tiền tố `/api/v1`): `auth`, `otp`, `menu`, `public/opening-hours`, `reservations`, `orders`, `promotions`, `vouchers/validate`, `account/orders`, `account/loyalty-points`, `account/vouchers`, `account/redeem-points`.
 
-**API quản trị** (`/api/v1/admin`): `auth`, `table-areas`, `tables`, `opening-hours`, `service-slots`, `blocked-dates`, `reservations`, `menu/*`, `orders`, `customers/{id}/loyalty-points`, `loyalty/adjustments`, `vouchers`.
+**API quản trị** (`/api/v1/admin`): `auth`, `table-areas`, `tables`, `opening-hours`, `service-slots`, `blocked-dates`, `reservations`, `menu/*`, `orders`, `customers/{id}/loyalty-points`, `loyalty/adjustments`, `vouchers`, `promotions`.
 
-**Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`.
+**Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`.
 
-**Kiểm thử ở commit `1e20913`:** 705 test (250 kiến trúc, 342 đơn vị, 113 tích hợp trên SQL Server thật).
+**Kiểm thử:** 729 test (266 kiến trúc, 345 đơn vị, 118 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 
@@ -110,6 +112,9 @@ Những điểm không thấy ngay khi đọc yêu cầu:
 - **Sự kiện đơn hoàn thành:** cộng điểm gọi trực tiếp trong transaction, chưa dùng sự kiện outbox `OrderCompleted` như `BR-ORD-15`.
 - **Tên món trong đơn:** chụp cả tiếng Việt (cho bếp) và tên theo ngôn ngữ khách, nên `OrderItems`/`OrderItemOptions` có thêm cột `*Localized` so với từ điển dữ liệu.
 - **Cột thêm so với từ điển dữ liệu:** `Orders.NeedsContactConfirm`, `NoPickup`, `AttentionNotifiedAtUtc`, `CancelledByType`; `Vouchers.ApprovalStatus`, `BatchId`; bảng `LoyaltyAdjustments`.
+- **Cột thêm so với từ điển dữ liệu (bước 2):** `Vouchers.BirthdayYear`, `Promotions.RowVersion`.
+- **Khuyến mãi:** ngày kết thúc được bằng ngày bắt đầu (theo CHECK của từ điển dữ liệu, `BR-VCH-13` ghi "lớn hơn"). Trang công khai chỉ hiện mã dùng chung, không hiện mã cá nhân và mã sinh hàng loạt.
+- **Voucher sinh nhật:** hạn dùng lấy theo `voucher.redeemExpiryDays` vì SRS chưa có khóa riêng. Sinh 29/2 nhận vào 28/2 năm thường.
 - **Quyền voucher:** dùng chung `StaffCapability.Customers` theo dòng "Khách hàng, khuyến mãi, voucher" của ma trận.
 - **Giới hạn thư:** mỗi địa chỉ nhận tối đa 3 thư cùng loại mỗi giờ và 10 thư mỗi ngày; thư vượt giới hạn bị bỏ hẳn, không hoãn (xem mục "Rủi ro thư bị bỏ" của `VIEC_CON_NO.md`).
 - **Định dạng liên hệ:** SĐT lưu dạng `+84…`; email lưu chữ thường.

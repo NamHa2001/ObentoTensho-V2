@@ -7,4 +7,7 @@ namespace ObentoTensho.Core.Vouchers.Abstractions;
 public interface IVoucherEmailOutbox
 {
     void EnqueueRedeemed(User user, Voucher voucher, int points);
+
+    // docs/srs/20 #16
+    void EnqueueBirthday(User user, Voucher voucher);
 }

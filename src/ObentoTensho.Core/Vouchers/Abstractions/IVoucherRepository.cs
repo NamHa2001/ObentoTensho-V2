@@ -1,3 +1,4 @@
+using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Vouchers.Domain;
 
 namespace ObentoTensho.Core.Vouchers.Abstractions;
@@ -14,6 +15,14 @@ public interface IVoucherRepository
     Task<(IReadOnlyList<Voucher> Items, int Total)> ListAsync(VoucherQuery query, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<Voucher>> ListOwnedAsync(Guid userId, CancellationToken cancellationToken);
+
+    // Xuất Excel: cùng bộ lọc với danh sách, không phân trang, có trần
+    Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken);
+
+    // BR-LOY-09/20: khách có sinh nhật ngày này, email đã xác thực, chưa có voucher sinh nhật năm nay
+    Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, int limit, CancellationToken cancellationToken);
+
+    Task<bool> PromotionExistsAsync(int promotionId, CancellationToken cancellationToken);
 
     Task<IReadOnlySet<string>> ExistingCodesAsync(IReadOnlyCollection<string> codes, CancellationToken cancellationToken);
 

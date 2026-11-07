@@ -21,6 +21,7 @@ public sealed record AdminVoucherDto(
     VoucherSource Source,
     Guid? OwnerUserId,
     Guid? BatchId,
+    int? PromotionId,
     ApprovalStatus ApprovalStatus,
     DateTime CreatedAtUtc,
     string Version);
