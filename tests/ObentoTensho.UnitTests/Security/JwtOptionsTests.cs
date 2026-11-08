@@ -54,7 +54,9 @@ public sealed class JwtOptionsTests
     [Fact]
     public void Danh_sach_mat_khau_pho_bien_duoc_nhung_va_nap_duoc()
     {
-        Assert.True(EmbeddedCommonPasswordList.Count > 50);
+        Assert.True(EmbeddedCommonPasswordList.Count >= 10_000);
         Assert.True(new EmbeddedCommonPasswordList().Contains("Matkhau123"));
+        Assert.True(new EmbeddedCommonPasswordList().Contains("Q1W2E3R4T5"));
+        Assert.True(new EmbeddedCommonPasswordList().Contains("obentotensho"));
     }
 }
