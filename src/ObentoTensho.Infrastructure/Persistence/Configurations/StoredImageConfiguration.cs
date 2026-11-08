@@ -11,7 +11,13 @@ internal sealed class StoredImageConfiguration : IEntityTypeConfiguration<Stored
     public void Configure(EntityTypeBuilder<StoredImage> builder)
     {
         var maxStatus = (byte)Enum.GetValues<ImageStatus>().Max();
-        builder.ToTable("Images", table => table.HasCheckConstraint("CK_Images_Status", $"[Status] BETWEEN 0 AND {maxStatus}"));
+        builder.ToTable("Images", table =>
+        {
+            table.HasCheckConstraint("CK_Images_Status", $"[Status] BETWEEN 0 AND {maxStatus}");
+            table.HasCheckConstraint(
+                "CK_Images_Uploader",
+                "([CreatedByStaffId] IS NOT NULL AND [CreatedByUserId] IS NULL) OR ([CreatedByStaffId] IS NULL AND [CreatedByUserId] IS NOT NULL)");
+        });
 
         builder.HasKey(i => i.Id);
         builder.Property(i => i.Id).ValueGeneratedNever();
@@ -26,6 +32,7 @@ internal sealed class StoredImageConfiguration : IEntityTypeConfiguration<Stored
         builder.Ignore(i => i.Widths);
 
         builder.HasOne<Staff>().WithMany().HasForeignKey(i => i.CreatedByStaffId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<User>().WithMany().HasForeignKey(i => i.CreatedByUserId).OnDelete(DeleteBehavior.NoAction);
         builder.HasIndex(i => i.ContentHash);
         builder.HasIndex(i => i.Status);
     }

@@ -48,7 +48,8 @@ internal sealed class ImageRepository(AppDbContext db) : IImageRepository
                 && !db.MenuItems.Any(m => m.MainImageId == i.Id)
                 && !db.MenuItemImages.Any(m => m.ImageId == i.Id)
                 && !db.MenuCategories.Any(c => c.ImageId == i.Id)
-                && !db.Promotions.Any(p => p.BannerImageId == i.Id))
+                && !db.Promotions.Any(p => p.BannerImageId == i.Id)
+                && !db.Users.Any(u => u.AvatarImageId == i.Id))
             .OrderBy(i => i.CreatedAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);

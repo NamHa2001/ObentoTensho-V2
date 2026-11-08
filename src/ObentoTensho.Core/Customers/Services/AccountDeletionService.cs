@@ -123,6 +123,7 @@ public sealed class AccountDeletionService(
         user.PhoneNumber = null;
         user.IsPhoneVerified = false;
         user.DateOfBirth = null;
+        user.AvatarImageId = null;
         user.DateOfBirthSetAtUtc = null;
         user.PasswordHash = null;
         user.PendingEmail = null;

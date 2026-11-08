@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Media.Domain;
 
 namespace ObentoTensho.Infrastructure.Persistence.Configurations;
 
@@ -40,6 +41,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.IsActive).HasDefaultValue(true).ValueGeneratedNever();
         builder.Property(u => u.RowVersion).IsRowVersion();
 
+        builder.HasOne<StoredImage>().WithMany().HasForeignKey(u => u.AvatarImageId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasIndex(u => u.AvatarImageId).HasFilter("[AvatarImageId] IS NOT NULL");
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.EmailCanonical);
         builder.HasIndex(u => u.PhoneNumber);

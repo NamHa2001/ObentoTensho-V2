@@ -20,6 +20,8 @@ public sealed class User
 
     public DateOnly? DateOfBirth { get; set; }
 
+    public Guid? AvatarImageId { get; set; }
+
     public DateTime? DateOfBirthSetAtUtc { get; set; }
 
     public byte DateOfBirthEditCount { get; set; }

@@ -4,6 +4,11 @@ namespace ObentoTensho.Core.Media.Domain;
 public static class MediaRules
 {
     public const long MaxUploadBytes = 15 * 1024 * 1024;
+
+    // Ảnh đại diện của khách: nhỏ hơn ảnh nội dung, luôn xử lý ngay
+    public const long AvatarMaxBytes = 5 * 1024 * 1024;
+
+    public const int AvatarUploadsPerDay = 10;
     public const long MaxPixels = 40_000_000;
 
     // FR-IMG-08: tới mức này xử lý ngay trong request, lớn hơn thì xử lý nền

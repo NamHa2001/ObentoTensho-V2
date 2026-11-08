@@ -27,7 +27,10 @@ public sealed class StoredImage
 
     public required string ContentHash { get; init; }
 
-    public required Guid CreatedByStaffId { get; init; }
+    // Đúng một trong hai: nhân viên tải ảnh nội dung, khách tải ảnh đại diện
+    public Guid? CreatedByStaffId { get; init; }
+
+    public Guid? CreatedByUserId { get; init; }
 
     public required DateTime CreatedAtUtc { get; init; }
 

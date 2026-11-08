@@ -1,3 +1,4 @@
+using ObentoTensho.Contracts.Dtos.Media;
 using ObentoTensho.Contracts.Enums;
 
 namespace ObentoTensho.Contracts.Dtos.Account;
@@ -13,4 +14,5 @@ public sealed record ProfileDto(
     bool IsEmailVerified,
     MemberTier MemberTier,
     int CurrentPoints,
-    DateTime? DeletionScheduledAtUtc);
+    DateTime? DeletionScheduledAtUtc,
+    ImageDto? Avatar);

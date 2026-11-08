@@ -266,6 +266,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<int>("AccumulatedPoints")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("AvatarImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2(3)");
 
@@ -374,6 +377,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2(3)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AvatarImageId")
+                        .HasFilter("[AvatarImageId] IS NOT NULL");
 
                     b.HasIndex("DeletionScheduledAtUtc")
                         .HasFilter("[DeletionScheduledAtUtc] IS NOT NULL");
@@ -1506,7 +1512,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2(3)");
 
-                    b.Property<Guid>("CreatedByStaffId")
+                    b.Property<Guid?>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CreatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("FailedAtUtc")
@@ -1545,11 +1554,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedByStaffId");
 
+                    b.HasIndex("CreatedByUserId");
+
                     b.HasIndex("Status");
 
                     b.ToTable("Images", null, t =>
                         {
                             t.HasCheckConstraint("CK_Images_Status", "[Status] BETWEEN 0 AND 2");
+
+                            t.HasCheckConstraint("CK_Images_Uploader", "([CreatedByStaffId] IS NOT NULL AND [CreatedByUserId] IS NULL) OR ([CreatedByStaffId] IS NULL AND [CreatedByUserId] IS NOT NULL)");
                         });
                 });
 
@@ -3312,6 +3325,14 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Auth.Domain.User", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("AvatarImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Content.Domain.Banner", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
@@ -3560,8 +3581,12 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()
                         .HasForeignKey("CreatedByStaffId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategory", b =>

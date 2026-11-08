@@ -10,6 +10,8 @@ using ObentoTensho.Core.Auth.Validators;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Customers.Domain;
+using ObentoTensho.Core.Media.Abstractions;
+using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Customers.Services;
@@ -23,6 +25,8 @@ public sealed class AccountService(
     ISecureTokenService secureTokens,
     SessionFactory sessions,
     IAccountEmailOutbox emailOutbox,
+    IImageRepository images,
+    ImageMapper imageMapper,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<UpdateProfileRequest> profileValidator,
@@ -31,7 +35,7 @@ public sealed class AccountService(
 {
     public async Task<Result<ProfileDto>> ProfileAsync(Guid userId, CancellationToken cancellationToken) =>
         await users.FindByIdAsync(userId, cancellationToken) is { IsDeleted: false } user
-            ? Result.Success(ToDto(user))
+            ? Result.Success(await ToDtoAsync(user, cancellationToken))
             : Result.Failure<ProfileDto>(ErrorCodes.NotFound);
 
     public async Task<Result<ProfileDto>> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken cancellationToken)
@@ -64,7 +68,7 @@ public sealed class AccountService(
         user.PreferredLang = request.PreferredLang ?? user.PreferredLang;
         user.UpdatedAtUtc = clock.UtcNow;
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success(ToDto(user));
+        return Result.Success(await ToDtoAsync(user, cancellationToken));
     }
 
     // Thu hồi mọi phiên rồi cấp phiên mới cho thiết bị đang dùng (FR-AUTH-06: chỉ các phiên khác bị đăng xuất)
@@ -234,6 +238,11 @@ public sealed class AccountService(
 
     private static AccountRecipient Recipient(User u) => new(u.Id, u.Email, u.FullName, u.PreferredLang, IsStaff: false);
 
-    private static ProfileDto ToDto(User u) =>
-        new(u.FullName, u.Email, u.PendingEmail, u.PhoneNumber, u.DateOfBirth, u.PreferredLang, u.IsEmailVerified, u.MemberTier, u.CurrentPoints, u.DeletionScheduledAtUtc);
+    private async Task<ProfileDto> ToDtoAsync(User u, CancellationToken cancellationToken)
+    {
+        var avatar = u.AvatarImageId is { } id ? await images.FindAsync(id, cancellationToken) : null;
+        return new(
+            u.FullName, u.Email, u.PendingEmail, u.PhoneNumber, u.DateOfBirth, u.PreferredLang, u.IsEmailVerified, u.MemberTier, u.CurrentPoints,
+            u.DeletionScheduledAtUtc, avatar is null ? null : imageMapper.ToDto(avatar));
+    }
 }

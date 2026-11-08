@@ -37,7 +37,19 @@ public sealed class ImageService(
             });
         }
 
-        var bytes = await ReadAllAsync(content, cancellationToken);
+        return await StoreAsync(content, alt, new Uploader(staffId, UserId: null), MediaRules.MaxUploadBytes, cancellationToken);
+    }
+
+    // Ảnh đại diện của khách: giới hạn nhỏ hơn và luôn sinh biến thể ngay (không chờ việc định kỳ)
+    public Task<Result<ImageDto>> UploadAvatarAsync(Stream content, Guid userId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+        return StoreAsync(content, "Ảnh đại diện", new Uploader(StaffId: null, userId), MediaRules.AvatarMaxBytes, cancellationToken);
+    }
+
+    private async Task<Result<ImageDto>> StoreAsync(Stream content, string alt, Uploader uploader, long maxBytes, CancellationToken cancellationToken)
+    {
+        var bytes = await ReadAllAsync(content, maxBytes, cancellationToken);
         if (bytes is null)
         {
             return Result.Failure<ImageDto>(ErrorCodes.FileTooLarge);
@@ -64,7 +76,8 @@ public sealed class ImageService(
             Height = probe.Value.Height,
             AltText = alt,
             ContentHash = hash,
-            CreatedByStaffId = staffId,
+            CreatedByStaffId = uploader.StaffId,
+            CreatedByUserId = uploader.UserId,
             CreatedAtUtc = clock.UtcNow,
         };
         images.Add(image);
@@ -152,14 +165,14 @@ public sealed class ImageService(
         }
     }
 
-    private static async Task<byte[]?> ReadAllAsync(Stream content, CancellationToken cancellationToken)
+    private static async Task<byte[]?> ReadAllAsync(Stream content, long maxBytes, CancellationToken cancellationToken)
     {
         using var buffer = new MemoryStream();
         var chunk = new byte[81920];
         int read;
         while ((read = await content.ReadAsync(chunk, cancellationToken)) > 0)
         {
-            if (buffer.Length + read > MediaRules.MaxUploadBytes)
+            if (buffer.Length + read > maxBytes)
             {
                 return null;
             }
@@ -169,4 +182,6 @@ public sealed class ImageService(
 
         return buffer.ToArray();
     }
+
+    private sealed record Uploader(Guid? StaffId, Guid? UserId);
 }

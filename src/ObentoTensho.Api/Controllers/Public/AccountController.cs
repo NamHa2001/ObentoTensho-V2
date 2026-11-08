@@ -7,10 +7,13 @@ using ObentoTensho.Api.Realtime;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Account;
 using ObentoTensho.Contracts.Dtos.Auth;
+using ObentoTensho.Contracts.Dtos.Media;
+using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Content.Services;
 using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Customers.Services;
+using ObentoTensho.Core.Media.Domain;
 
 namespace ObentoTensho.Api.Controllers.Public;
 
@@ -26,8 +29,12 @@ public sealed class AccountController(
     IUserRepository users,
     ICustomerRepository customers,
     GuestClaimService guestClaims,
+    AvatarService avatars,
     HubTicketIssuer tickets) : ControllerBase
 {
+    // Phần dư ngoài tệp cho ranh giới multipart
+    private const long AvatarRequestLimit = MediaRules.AvatarMaxBytes + (16 * 1024);
+
     private const int ReservationLimit = 50;
 
     // RT-09: vé một lần để nối /hubs/v1/public với danh tính khách (theo dõi đơn của mình)
@@ -82,6 +89,33 @@ public sealed class AccountController(
     [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
     public async Task<IActionResult> ClaimReservation(ClaimGuestRequest request, CancellationToken cancellationToken) =>
         this.NoContentOrProblem(await guestClaims.ClaimReservationAsync(CustomerId(), request, cancellationToken));
+
+    // docs/srs/10 §5: multipart, trường "file"; action không tham số để tự đọc form (xem ImagesController)
+    [HttpPost("avatar")]
+    [RequestSizeLimit(AvatarRequestLimit)]
+    [RequestFormLimits(MultipartBodyLengthLimit = AvatarRequestLimit)]
+    public async Task<IActionResult> UploadAvatar()
+    {
+        var cancellationToken = HttpContext.RequestAborted;
+        if (Request.ContentLength > AvatarRequestLimit)
+        {
+            return ApiProblems.Create(HttpContext, ErrorCodes.FileTooLarge).ToActionResult();
+        }
+
+        var form = Request.HasFormContentType ? await Request.ReadFormAsync(cancellationToken) : null;
+        if (form?.Files.GetFile("file") is not { } file)
+        {
+            return ApiProblems.Create(HttpContext, ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal) { ["file"] = [FieldErrorCodes.Required] }).ToActionResult();
+        }
+
+        await using var content = file.OpenReadStream();
+        var result = await avatars.SetAsync(CustomerId(), content, cancellationToken);
+        return result.IsSuccess ? Ok(new ApiResponse<ImageDto>(result.Value)) : this.ToProblem(result);
+    }
+
+    [HttpDelete("avatar")]
+    public async Task<IActionResult> RemoveAvatar(CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await avatars.RemoveAsync(CustomerId(), cancellationToken));
 
     [HttpGet("sessions")]
     public async Task<IActionResult> Sessions(CancellationToken cancellationToken) =>
