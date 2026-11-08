@@ -193,9 +193,17 @@ public sealed class ReportTests : IDisposable
 
         Assert.Equal(HttpStatusCode.NotFound, (await _admin.SendAsync(HttpMethod.Get, $"{Reports}/hack/export?from=2057-07-01&to=2057-07-31", manager)).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Get, $"{Reports}/revenue/export?from=2057-07-01&to=2057-07-31&format=csv", manager)).StatusCode);
+
+        // Q2: PDF cùng dữ liệu, tiêu đề tiếng Việt in được (thiếu glyph thì QuestPDF báo lỗi ⇒ 500)
+        var pdf = await _admin.SendAsync(HttpMethod.Get, $"{Reports}/revenue/export?from=2057-07-01&to=2057-07-31&format=pdf", manager);
+        Assert.Equal(HttpStatusCode.OK, pdf.StatusCode);
+        Assert.Equal("application/pdf", pdf.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("bao-cao-revenue-20570701-20570731.pdf", pdf.Content.Headers.ContentDisposition?.FileNameStar ?? pdf.Content.Headers.ContentDisposition?.FileName);
+        Assert.StartsWith("%PDF-", System.Text.Encoding.ASCII.GetString(await pdf.Content.ReadAsByteArrayAsync(), 0, 5), StringComparison.Ordinal);
         foreach (var report in new[] { "reservations", "orders", "customers", "top-dishes" })
         {
             Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Get, $"{Reports}/{report}/export?from=2057-07-01&to=2057-07-31", manager)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Get, $"{Reports}/{report}/export?from=2057-07-01&to=2057-07-31&format=pdf", manager)).StatusCode);
         }
 
         await using var db = _fixture.CreateContext();

@@ -16,6 +16,7 @@ public sealed class ReportService(
     IStatsRepository stats,
     BusinessCalendar calendar,
     ITableSpreadsheet spreadsheet,
+    IReportPdf pdf,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock)
@@ -28,6 +29,15 @@ public sealed class ReportService(
 
     private static readonly string[] RevenueColumns = ["Kỳ", "Tiền thu", "Hoàn tiền", "Doanh thu"];
     private static readonly string[] SummaryColumns = ["Chỉ số", "Giá trị"];
+
+    private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
+    {
+        ["revenue"] = "Báo cáo doanh thu",
+        ["reservations"] = "Báo cáo đặt bàn",
+        ["orders"] = "Báo cáo đơn hàng",
+        ["customers"] = "Báo cáo khách hàng",
+        ["top-dishes"] = "Báo cáo món bán chạy",
+    };
     private static readonly string[] CustomerColumns = ["Khách", "Số đơn", "Đã chi"];
     private static readonly string[] DishColumns = ["Món", "Số lượng", "Doanh thu"];
 
@@ -140,7 +150,7 @@ public sealed class ReportService(
     }
 
     // BR-RPT-12: khoảng tối đa 366 ngày nên luôn dưới 10.000 dòng, xuất ngay trong yêu cầu
-    public async Task<Result<ReportFile>> ExportAsync(string report, DateOnly from, DateOnly to, ReportGrouping grouping, CancellationToken cancellationToken)
+    public async Task<Result<ReportFile>> ExportAsync(string report, DateOnly from, DateOnly to, ReportGrouping grouping, ReportFormat format, CancellationToken cancellationToken)
     {
         var table = report switch
         {
@@ -156,10 +166,16 @@ public sealed class ReportService(
             return Result.Failure<ReportFile>(table.ErrorCode ?? ErrorCodes.ValidationFailed);
         }
 
-        audit.Record(new AuditEntry("reports.Report.exported", "Report", report, After: new { from, to, Rows = table.Value.Rows.Length }));
+        audit.Record(new AuditEntry("reports.Report.exported", "Report", report, After: new { from, to, Rows = table.Value.Rows.Length, Format = format }));
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        var name = string.Create(CultureInfo.InvariantCulture, $"bao-cao-{report}-{from:yyyyMMdd}-{to:yyyyMMdd}.xlsx");
-        return Result.Success(new ReportFile(name, spreadsheet.Write("Báo cáo", table.Value.Columns, table.Value.Rows)));
+        var name = string.Create(CultureInfo.InvariantCulture, $"bao-cao-{report}-{from:yyyyMMdd}-{to:yyyyMMdd}");
+        if (format == ReportFormat.Pdf)
+        {
+            var subtitle = string.Create(CultureInfo.InvariantCulture, $"Từ {from:dd/MM/yyyy} đến {to:dd/MM/yyyy} · xuất lúc {clock.ToLocal(clock.UtcNow):HH:mm dd/MM/yyyy}");
+            return Result.Success(new ReportFile(name + ".pdf", "application/pdf", pdf.Write(Titles[report], subtitle, table.Value.Columns, table.Value.Rows)));
+        }
+
+        return Result.Success(new ReportFile(name + ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", spreadsheet.Write("Báo cáo", table.Value.Columns, table.Value.Rows)));
     }
 
     private async Task<Result<(string[] Columns, string[][] Rows)>> RevenueTableAsync(DateOnly from, DateOnly to, ReportGrouping grouping, CancellationToken cancellationToken)

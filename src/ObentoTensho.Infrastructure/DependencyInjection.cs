@@ -214,6 +214,7 @@ public static class DependencyInjection
         services.AddScoped<INewsletterEmails, NewsletterEmails>();
         services.AddSingleton<INewsletterTokenProtector, DataProtectionNewsletterTokenProtector>();
         services.AddSingleton<ITableSpreadsheet, ClosedXmlTableSpreadsheet>();
+        services.AddSingleton<IReportPdf, Reports.QuestPdfReport>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IDataExportRepository, DataExportRepository>();
         services.AddScoped<IAdminEmailOutbox, AdminEmailOutbox>();

@@ -457,7 +457,8 @@
           "NetVips.Native.linux-x64": "[8.18.7, )",
           "NetVips.Native.win-x64": "[8.18.7, )",
           "ObentoTensho.Contracts": "[1.0.0, )",
-          "ObentoTensho.Core": "[1.0.0, )"
+          "ObentoTensho.Core": "[1.0.0, )",
+          "QuestPDF": "[2026.9.1, )"
         }
       },
       "ClosedXML": {
@@ -547,6 +548,12 @@
         "requested": "[8.18.7, )",
         "resolved": "8.18.7",
         "contentHash": "xmJCf4GoVHOSB7nED+/JxP6nxx+a/JZTqv3VQ8ni1LdZb3dewcMwSJPjEItdzNMpKLJL/40HZG42/dP05ifEJA=="
+      },
+      "QuestPDF": {
+        "type": "CentralTransitive",
+        "requested": "[2026.9.1, )",
+        "resolved": "2026.9.1",
+        "contentHash": "i2BT/v+Ui6Hg9+BZbOci/VfsyvmtY8nlQqAOmFt8iOZ4Hm9aKZZRgZZ+LfrKWYXAHRb3l1EjDcMVfjRaZTt+Cw=="
       },
       "System.Security.Cryptography.Pkcs": {
         "type": "CentralTransitive",

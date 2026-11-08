@@ -17,6 +17,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 public sealed class AdminReportsController(ReportService reports, StatsRollupService rollup) : ControllerBase
 {
     private const string Xlsx = "xlsx";
+    private const string Pdf = "pdf";
 
     // PERF-55: tính lại số liệu tổng hợp sau khi nhập dữ liệu cũ
     [HttpPost("recompute")]
@@ -56,14 +57,18 @@ public sealed class AdminReportsController(ReportService reports, StatsRollupSer
         [FromQuery] ReportGrouping groupBy = ReportGrouping.Day,
         CancellationToken cancellationToken = default)
     {
-        if (!string.Equals(format, Xlsx, StringComparison.Ordinal))
+        ReportFormat? kind = format switch
+        {
+            Xlsx => ReportFormat.Xlsx,
+            Pdf => ReportFormat.Pdf,
+            _ => null,
+        };
+        if (kind is null)
         {
             return this.ToProblem(Core.Common.Result.Failure(Contracts.Errors.ErrorCodes.ValidationFailed));
         }
 
-        var file = await reports.ExportAsync(report, from, to, groupBy, cancellationToken);
-        return file.IsSuccess
-            ? File(file.Value.Content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", file.Value.FileName)
-            : this.ToProblem(file);
+        var file = await reports.ExportAsync(report, from, to, groupBy, kind.Value, cancellationToken);
+        return file.IsSuccess ? File(file.Value.Content, file.Value.ContentType, file.Value.FileName) : this.ToProblem(file);
     }
 }
