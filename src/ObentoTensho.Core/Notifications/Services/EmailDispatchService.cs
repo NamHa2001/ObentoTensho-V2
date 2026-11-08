@@ -32,7 +32,8 @@ public sealed class EmailDispatchService(
 
         if (log is null)
         {
-            if (await ExceedsRecipientLimitAsync(request, cancellationToken))
+            var limit = await RecipientLimitAsync(request, cancellationToken);
+            if (limit == RecipientLimit.Suppress)
             {
                 logs.Add(NewLog(request, EmailStatus.Suppressed, "recipient_limit"));
                 await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -40,7 +41,7 @@ public sealed class EmailDispatchService(
             }
 
             var sentToday = await logs.CountSentSinceAsync(StartOfTodayUtc(), cancellationToken);
-            if (EmailPolicy.ShouldDefer(request.Kind, sentToday, settings.EmailDailyQuota))
+            if (limit == RecipientLimit.Defer || EmailPolicy.ShouldDefer(request.Kind, sentToday, settings.EmailDailyQuota))
             {
                 return DispatchOutcome.Deferred;
             }
@@ -85,14 +86,17 @@ public sealed class EmailDispatchService(
         }
     }
 
-    private async Task<bool> ExceedsRecipientLimitAsync(EmailRequest request, CancellationToken cancellationToken)
+    private async Task<RecipientLimit> RecipientLimitAsync(EmailRequest request, CancellationToken cancellationToken)
     {
+        if (EmailPolicy.IsInternal(request.Kind))
+        {
+            return RecipientLimit.Within;
+        }
+
         var to = request.To;
-        var startOfDay = StartOfTodayUtc();
         var sameKindLastHour = await logs.CountSentToAsync(to, [EmailTypes.Of(request.Kind)], clock.UtcNow.AddHours(-1), cancellationToken);
-        var allToday = await logs.CountSentToAsync(to, types: null, startOfDay, cancellationToken);
-        var securityToday = await logs.CountSentToAsync(to, EmailTypes.SecurityNotices, startOfDay, cancellationToken);
-        return EmailPolicy.ExceedsRecipientLimit(request.Kind, sameKindLastHour, allToday, securityToday);
+        var allToday = await logs.CountSentToAsync(to, types: null, StartOfTodayUtc(), cancellationToken);
+        return EmailPolicy.CheckRecipient(request.Kind, sameKindLastHour, allToday);
     }
 
     private EmailLog NewLog(EmailRequest request, EmailStatus status, string? error) => new()

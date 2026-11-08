@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using ObentoTensho.Core.Notifications.Services;
+using ObentoTensho.Core.Notifications.Domain;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
@@ -93,8 +96,9 @@ public sealed partial class EmailFlowTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await admin.LoginAsync(email, NewPassword)).StatusCode);
     }
 
+    // Q1: thư giao dịch cho chính chủ không bị giới hạn 3 thư/giờ
     [Fact]
-    public async Task Moi_dia_chi_toi_da_3_thu_cung_loai_moi_gio()
+    public async Task Thu_giao_dich_khong_bi_gioi_han_3_thu_moi_gio()
     {
         var email = AuthApiClient.NewEmail();
         (await _customer.RegisterAsync(email)).EnsureSuccessStatusCode();
@@ -104,9 +108,41 @@ public sealed partial class EmailFlowTests : IDisposable
             await _factory.ProcessOutboxAsync();
         }
 
-        Assert.Equal(3, _factory.Emails.To(email).Count(m => m.Subject.StartsWith("Đặt lại mật khẩu", StringComparison.Ordinal)));
+        Assert.Equal(4, _factory.Emails.To(email).Count(m => m.Subject.StartsWith("Đặt lại mật khẩu", StringComparison.Ordinal)));
         await using var db = _fixture.CreateContext();
-        Assert.Equal(1, await db.EmailLogs.CountAsync(l => l.ToEmail == email && l.Status == EmailStatus.Suppressed));
+        Assert.Equal(0, await db.EmailLogs.CountAsync(l => l.ToEmail == email && l.Status == EmailStatus.Suppressed));
+    }
+
+    // Q1: vượt giới hạn theo địa chỉ ⇒ thư quảng bá dời sang ngày sau (không ghi bỏ), thư giao dịch quá 30/ngày thì bỏ, thư nội bộ vẫn gửi
+    [Fact]
+    public async Task Vuot_gioi_han_thi_quang_ba_doi_giao_dich_bo_noi_bo_van_gui()
+    {
+        var email = AuthApiClient.NewEmail();
+        await using (var db = _fixture.CreateContext())
+        {
+            var now = DateTime.UtcNow;
+            db.EmailLogs.AddRange(Enumerable.Range(0, EmailPolicy.MaxTransactionalPerDay).Select(i => new EmailLog
+            {
+                Type = "order_received",
+                ToEmail = email,
+                Status = EmailStatus.Sent,
+                SentAtUtc = now,
+                CreatedAtUtc = now,
+                IdempotencyKey = $"seed:{email}:{i}",
+            }));
+            await db.SaveChangesAsync();
+        }
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var dispatcher = scope.ServiceProvider.GetRequiredService<EmailDispatchService>();
+        EmailRequest Request(EmailKind kind) => new(kind, email, "vi", new Dictionary<string, string>(StringComparer.Ordinal) { ["message"] = "x", ["adminLink"] = "https://admin.test", ["code"] = "123456" }, $"{kind}:{email}", RelatedEntityId: null);
+
+        Assert.Equal(DispatchOutcome.Deferred, await dispatcher.DispatchAsync(Request(EmailKind.LoyaltyTierUp), CancellationToken.None));
+        Assert.Equal(DispatchOutcome.Suppressed, await dispatcher.DispatchAsync(Request(EmailKind.VerificationCode), CancellationToken.None));
+        Assert.Equal(DispatchOutcome.Sent, await dispatcher.DispatchAsync(Request(EmailKind.AdminAlert), CancellationToken.None));
+
+        await using var check = _fixture.CreateContext();
+        Assert.False(await check.EmailLogs.AnyAsync(l => l.IdempotencyKey == $"{EmailKind.LoyaltyTierUp}:{email}"));
     }
 
     [Fact]

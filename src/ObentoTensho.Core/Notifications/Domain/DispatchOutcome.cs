@@ -8,7 +8,7 @@ public enum DispatchOutcome
     // Không gửi vì vượt giới hạn theo địa chỉ nhận — không thử lại
     Suppressed,
 
-    // Hết hạn mức ngày cho nhóm ưu tiên này — thử lại vào ngày mai
+    // Hết hạn mức ngày cho nhóm ưu tiên này, hoặc thư quảng bá vượt giới hạn theo địa chỉ nhận — thử lại vào ngày mai
     Deferred,
 
     // Lỗi tạm thời (SMTP…) — hộp thư đi thử lại sau

@@ -1,13 +1,15 @@
 namespace ObentoTensho.Core.Notifications.Domain;
 
-// BR-NTF-08 (giới hạn theo địa chỉ nhận), BR-NTF-09 (cảnh báo bảo mật), BR-NTF-12 (hạn mức theo ưu tiên)
+// BR-NTF-08 (giới hạn theo địa chỉ nhận), BR-NTF-09 (cảnh báo bảo mật), BR-NTF-12 (hạn mức theo ưu tiên).
+// Q1: chia ba nhóm thay vì bỏ mọi thư vượt giới hạn —
+//   thư giao dịch cho chính chủ (xác nhận, OTP, đặt lại mật khẩu, cảnh báo bảo mật): không giới hạn theo giờ, chỉ trần 30/ngày chống spam;
+//   thư nội bộ cho nhân viên (đã là bản tóm tắt/cảnh báo): không giới hạn theo địa chỉ;
+//   thư quảng bá (điểm, voucher, bản tin): giữ 3 cùng loại/giờ và 10/ngày, vượt thì dời sang ngày sau
 public static class EmailPolicy
 {
     public const int MaxSameKindPerHour = 3;
     public const int MaxPerDay = 10;
-
-    // Cảnh báo bảo mật gửi cho chính chủ không theo giới hạn thường nhưng vẫn có trần tuyệt đối
-    public const int MaxSecurityNoticesPerDay = 30;
+    public const int MaxTransactionalPerDay = 30;
 
     // Từ mức này trở lên chỉ gửi thư ưu tiên cao
     public const double SoftQuotaRatio = 0.8;
@@ -29,14 +31,25 @@ public static class EmailPolicy
         _ => 5,
     };
 
-    public static bool IsSecurityNotice(EmailKind kind) =>
-        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice or EmailKind.LoginLockout
-            or EmailKind.StaffNewDevice;
+    public static bool IsInternal(EmailKind kind) =>
+        kind is EmailKind.OrderAttention or EmailKind.ContactInternal or EmailKind.AdminAlert;
 
-    public static bool ExceedsRecipientLimit(EmailKind kind, int sameKindLastHour, int allKindsToday, int securityNoticesToday) =>
-        IsSecurityNotice(kind)
-            ? securityNoticesToday >= MaxSecurityNoticesPerDay
-            : sameKindLastHour >= MaxSameKindPerHour || allKindsToday >= MaxPerDay;
+    public static bool IsPromotional(EmailKind kind) => !IsInternal(kind) && Priority(kind) >= 4;
+
+    public static RecipientLimit CheckRecipient(EmailKind kind, int sameKindLastHour, int allKindsToday)
+    {
+        if (IsInternal(kind))
+        {
+            return RecipientLimit.Within;
+        }
+
+        if (IsPromotional(kind))
+        {
+            return sameKindLastHour >= MaxSameKindPerHour || allKindsToday >= MaxPerDay ? RecipientLimit.Defer : RecipientLimit.Within;
+        }
+
+        return allKindsToday >= MaxTransactionalPerDay ? RecipientLimit.Suppress : RecipientLimit.Within;
+    }
 
     // Hết hạn mức: nhóm 1–2 vẫn gửi (thư đăng nhập/xác nhận không được treo); ≥ 80%: hoãn nhóm 4–5; 100%: hoãn nhóm 3+
     public static bool ShouldDefer(EmailKind kind, int sentToday, int dailyQuota)

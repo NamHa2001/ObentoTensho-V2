@@ -44,7 +44,4 @@ public static class EmailTypes
         EmailKind.AccountDeletionScheduled => "account_deletion_scheduled",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Loại email chưa có tên."),
     };
-
-    public static IReadOnlyList<string> SecurityNotices { get; } =
-        Enum.GetValues<EmailKind>().Where(EmailPolicy.IsSecurityNotice).Select(Of).ToArray();
 }

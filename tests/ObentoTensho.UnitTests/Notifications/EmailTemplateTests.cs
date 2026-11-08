@@ -112,15 +112,19 @@ public sealed class EmailTemplateTests
         Assert.Equal(deferred, EmailPolicy.ShouldDefer(kind, sentToday, quota));
     }
 
-    [Fact]
-    public void Gioi_han_theo_dia_chi_nhan()
+    // Q1: thư giao dịch chỉ có trần 30/ngày; thư nội bộ không giới hạn; thư quảng bá vượt 3/giờ hoặc 10/ngày thì dời
+    [Theory]
+    [InlineData(EmailKind.PasswordReset, 5, 29, RecipientLimit.Within)]
+    [InlineData(EmailKind.PasswordReset, 5, 30, RecipientLimit.Suppress)]
+    [InlineData(EmailKind.OrderReceived, 9, 12, RecipientLimit.Within)]
+    [InlineData(EmailKind.PasswordChanged, 5, 30, RecipientLimit.Suppress)]
+    [InlineData(EmailKind.AdminAlert, 50, 500, RecipientLimit.Within)]
+    [InlineData(EmailKind.OrderAttention, 50, 500, RecipientLimit.Within)]
+    [InlineData(EmailKind.Newsletter, 2, 9, RecipientLimit.Within)]
+    [InlineData(EmailKind.Newsletter, 3, 3, RecipientLimit.Defer)]
+    [InlineData(EmailKind.VoucherBirthday, 0, 10, RecipientLimit.Defer)]
+    public void Gioi_han_theo_dia_chi_nhan_chia_nhom(EmailKind kind, int sameKindLastHour, int allKindsToday, RecipientLimit expected)
     {
-        Assert.False(EmailPolicy.ExceedsRecipientLimit(EmailKind.PasswordReset, sameKindLastHour: 2, allKindsToday: 2, securityNoticesToday: 0));
-        Assert.True(EmailPolicy.ExceedsRecipientLimit(EmailKind.PasswordReset, sameKindLastHour: 3, allKindsToday: 3, securityNoticesToday: 0));
-        Assert.True(EmailPolicy.ExceedsRecipientLimit(EmailKind.VerifyEmail, sameKindLastHour: 0, allKindsToday: 10, securityNoticesToday: 0));
-
-        // Cảnh báo bảo mật cho chính chủ: không theo giới hạn thường, chỉ trần 30/ngày
-        Assert.False(EmailPolicy.ExceedsRecipientLimit(EmailKind.PasswordChanged, sameKindLastHour: 5, allKindsToday: 12, securityNoticesToday: 29));
-        Assert.True(EmailPolicy.ExceedsRecipientLimit(EmailKind.PasswordChanged, sameKindLastHour: 5, allKindsToday: 12, securityNoticesToday: 30));
+        Assert.Equal(expected, EmailPolicy.CheckRecipient(kind, sameKindLastHour, allKindsToday));
     }
 }
