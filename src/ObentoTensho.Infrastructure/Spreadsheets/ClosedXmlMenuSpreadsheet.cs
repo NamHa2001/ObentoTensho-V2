@@ -37,15 +37,17 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
         items.Column(4).Width = 40;
 
         var categories = book.AddWorksheet(MenuSheet.CategoriesSheet);
-        WriteRow(categories, 1, ["Slug", "Tên danh mục"]);
+        WriteRow(categories, 1, MenuSheet.CategoryColumns);
         categories.Row(1).Style.Font.Bold = true;
-        for (var i = 0; i < workbook.Categories.Count; i++)
+        for (var i = 0; i < workbook.CategoryRows.Count; i++)
         {
-            WriteRow(categories, i + 2, [workbook.Categories[i].Slug, workbook.Categories[i].Name]);
+            WriteRow(categories, i + 2, workbook.CategoryRows[i]);
         }
 
+        categories.SheetView.FreezeRows(1);
         categories.Column(1).Width = 30;
         categories.Column(2).Width = 36;
+        categories.Columns(3, 4).Width = 12;
 
         var guide = book.AddWorksheet(MenuSheet.GuideSheet);
         for (var i = 0; i < workbook.Guide.Count; i++)
@@ -60,38 +62,52 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
         return output.ToArray();
     }
 
-    public Result<IReadOnlyList<MenuSheetRow>> Read(Stream content)
+    public Result<MenuSheetData> Read(Stream content)
     {
         ArgumentNullException.ThrowIfNull(content);
         using var buffer = new MemoryStream();
         if (!CopyWithLimit(content, buffer, MenuSheet.MaxBytes))
         {
-            return Result.Failure<IReadOnlyList<MenuSheetRow>>(ErrorCodes.FileTooLarge);
+            return Result.Failure<MenuSheetData>(ErrorCodes.FileTooLarge);
         }
 
         if (CheckArchive(buffer) is { } archiveError)
         {
-            return Result.Failure<IReadOnlyList<MenuSheetRow>>(archiveError);
+            return Result.Failure<MenuSheetData>(archiveError);
         }
 
         try
         {
             buffer.Position = 0;
             using var book = new XLWorkbook(buffer);
-            return book.TryGetWorksheet(MenuSheet.ItemsSheet, out var sheet)
-                ? ReadItems(sheet)
-                : Result.Failure<IReadOnlyList<MenuSheetRow>>(ErrorCodes.FileInvalid);
+            if (!book.TryGetWorksheet(MenuSheet.ItemsSheet, out var itemsSheet))
+            {
+                return Result.Failure<MenuSheetData>(ErrorCodes.FileInvalid);
+            }
+
+            var items = ReadRows(itemsSheet, MenuSheet.Columns);
+            if (!items.IsSuccess)
+            {
+                return Result.Failure<MenuSheetData>(items.ErrorCode!);
+            }
+
+            // Sheet "Danh mục" không bắt buộc: tệp chỉ có món vẫn nhập được
+            var categories = book.TryGetWorksheet(MenuSheet.CategoriesSheet, out var categoriesSheet)
+                ? ReadRows(categoriesSheet, MenuSheet.CategoryColumns)
+                : Result.Success<IReadOnlyList<MenuSheetRow>>([]);
+            return categories.IsSuccess
+                ? Result.Success(new MenuSheetData(items.Value, categories.Value))
+                : Result.Failure<MenuSheetData>(categories.ErrorCode!);
         }
         catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
         {
             // Tệp hỏng/không phải Excel: ClosedXML và OpenXML ném nhiều loại ngoại lệ khác nhau
-            return Result.Failure<IReadOnlyList<MenuSheetRow>>(ErrorCodes.FileInvalid);
+            return Result.Failure<MenuSheetData>(ErrorCodes.FileInvalid);
         }
     }
 
-    private static Result<IReadOnlyList<MenuSheetRow>> ReadItems(IXLWorksheet sheet)
+    private static Result<IReadOnlyList<MenuSheetRow>> ReadRows(IXLWorksheet sheet, IReadOnlyList<string> columns)
     {
-        var columns = MenuSheet.Columns;
         var header = Enumerable.Range(1, columns.Count).Select(c => sheet.Cell(1, c).GetString().Trim()).ToArray();
         if (!header.SequenceEqual(columns, StringComparer.Ordinal) || !sheet.Cell(1, columns.Count + 1).IsEmpty())
         {

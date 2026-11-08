@@ -8,5 +8,5 @@ public interface IMenuSpreadsheet
 {
     byte[] Write(MenuWorkbook workbook);
 
-    Result<IReadOnlyList<MenuSheetRow>> Read(Stream content);
+    Result<MenuSheetData> Read(Stream content);
 }

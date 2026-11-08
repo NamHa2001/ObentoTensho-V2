@@ -17,7 +17,7 @@ public sealed class ClosedXmlMenuSpreadsheetTests
     {
         var bytes = _sheet.Write(new MenuWorkbook(
             [Values("com-ga", "Cơm gà", 65_000m), new object?[MenuSheet.Columns.Count], Values(null, "=HYPERLINK(\"http://evil\")", 1_000m)],
-            [("com-hop", "Cơm hộp")],
+            [Category("com-hop", "Cơm hộp")],
             MenuSheet.Guide));
 
         var rows = Read(bytes);
@@ -32,7 +32,7 @@ public sealed class ClosedXmlMenuSpreadsheetTests
     [Fact]
     public void Tep_xuat_khong_chua_cong_thuc_va_co_danh_muc_huong_dan()
     {
-        var bytes = _sheet.Write(new MenuWorkbook([Values(null, "=1+1", 1_000m)], [("com-hop", "Cơm hộp")], MenuSheet.Guide));
+        var bytes = _sheet.Write(new MenuWorkbook([Values(null, "=1+1", 1_000m)], [Category("com-hop", "Cơm hộp")], MenuSheet.Guide));
 
         using var book = new XLWorkbook(new MemoryStream(bytes));
         var cell = book.Worksheet(MenuSheet.ItemsSheet).Cell(2, 3);
@@ -117,7 +117,32 @@ public sealed class ClosedXmlMenuSpreadsheetTests
     {
         var result = _sheet.Read(new MemoryStream(bytes));
         Assert.True(result.IsSuccess, result.ErrorCode);
-        return result.Value;
+        return result.Value.Items;
+    }
+
+    private static object?[] Category(string slug, string name) => [slug, name, 1, MenuSheet.Yes];
+
+    [Fact]
+    public void Doc_sheet_danh_muc_va_tu_choi_tieu_de_sai()
+    {
+        var bytes = _sheet.Write(new MenuWorkbook([Values("com-ga", "Cơm gà", 65_000m)], [Category("com-hop", "Cơm hộp"), Category("mon-moi", "Món mới")], MenuSheet.Guide));
+        var data = _sheet.Read(new MemoryStream(bytes));
+        Assert.True(data.IsSuccess, data.ErrorCode);
+        Assert.Equal(["com-hop", "mon-moi"], data.Value.Categories.Select(r => r[MenuSheet.Slug]), StringComparer.Ordinal);
+        Assert.Equal(("Món mới", "1", MenuSheet.Yes), (data.Value.Categories[1][MenuSheet.CategoryName], data.Value.Categories[1][MenuSheet.DisplayOrder], data.Value.Categories[1][MenuSheet.CategoryVisible]));
+
+        // Tệp chỉ có sheet món vẫn đọc được; sheet danh mục sai tiêu đề thì cả tệp không hợp lệ
+        using var book = new XLWorkbook(new MemoryStream(bytes));
+        book.Worksheet(MenuSheet.CategoriesSheet).Delete();
+        using var itemsOnly = new MemoryStream();
+        book.SaveAs(itemsOnly);
+        Assert.Empty(Assert.IsType<MenuSheetData>(_sheet.Read(new MemoryStream(itemsOnly.ToArray())).Value).Categories);
+
+        using var broken = new XLWorkbook(new MemoryStream(bytes));
+        broken.Worksheet(MenuSheet.CategoriesSheet).Cell(1, 2).Value = "Tên";
+        using var brokenStream = new MemoryStream();
+        broken.SaveAs(brokenStream);
+        Assert.Equal(ErrorCodes.FileInvalid, _sheet.Read(new MemoryStream(brokenStream.ToArray())).ErrorCode);
     }
 
     private static object?[] Values(string? slug, string name, decimal price)

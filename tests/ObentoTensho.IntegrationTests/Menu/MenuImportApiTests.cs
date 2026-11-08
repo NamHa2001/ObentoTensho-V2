@@ -171,6 +171,108 @@ public sealed class MenuImportApiTests : IDisposable
         Assert.Equal(ErrorCodes.FileTooLarge, await AuthApiClient.ReadErrorCodeAsync(chunked));
     }
 
+    // Sheet "Danh mục": tạo danh mục mới và sửa danh mục cũ cùng lúc với món dùng danh mục mới
+    [Fact]
+    public async Task Nhap_danh_muc_moi_va_sua_danh_muc_cu_cung_mon_trong_mot_tep()
+    {
+        var manager = await _api.SignInAsync(StaffRole.Manager);
+        var existing = await CreateCategoryAsync(manager);
+        var tag = Unique();
+        var newSlug = $"mon-nuoc-{tag}";
+        var file = WorkbookWithCategories(
+            [Row(newSlug, $"Phở {tag}", "55000")],
+            Category(existing.Slug, $"Đã đổi {tag}", "3", "Không"),
+            Category(newSlug, $"Món nước {tag}", null, null));
+
+        var preview = await ImportAsync(manager, file, commit: false);
+        var planned = preview.GetProperty("categories").EnumerateArray().ToArray();
+        Assert.Equal(["update", "create"], planned.Select(c => c.GetProperty("action").GetString()), StringComparer.Ordinal);
+        Assert.All(planned, c => Assert.Empty(Errors(c)));
+        Assert.Empty(Errors(preview.GetProperty("rows")[0]));
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.False(await db.MenuCategories.AnyAsync(c => c.Slug == newSlug));
+        }
+
+        Assert.True((await ImportAsync(manager, file, commit: true)).GetProperty("committed").GetBoolean());
+        await using (var db = _fixture.CreateContext())
+        {
+            var created = await db.MenuCategories.SingleAsync(c => c.Slug == newSlug);
+            Assert.True(created.IsActive);
+            Assert.Equal(created.Id, await db.MenuItems.Where(i => i.NameVi == $"Phở {tag}").Select(i => i.CategoryId).SingleAsync());
+            var renamed = await db.MenuCategories.SingleAsync(c => c.Id == existing.Id);
+            Assert.Equal(($"Đã đổi {tag}", false, 3), (renamed.Name, renamed.IsActive, renamed.DisplayOrder));
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "menu.menu_category.created" && a.EntityId == created.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "menu.menu_category.updated" && a.EntityId == existing.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        // Nhập lại đúng tệp đó: danh mục không đổi gì thì không ghi audit sửa lần nữa
+        Assert.True((await ImportAsync(manager, file, commit: true)).GetProperty("committed").GetBoolean());
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.Action == "menu.menu_category.updated" && a.EntityId == existing.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        // Tệp chỉ đổi tên danh mục (không có món) vẫn được ghi
+        var renameOnly = await ImportAsync(manager, WorkbookWithCategories([], Category(existing.Slug, $"Tên mới {tag}", "3", "Không")), commit: true);
+        Assert.True(renameOnly.GetProperty("committed").GetBoolean());
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.Equal($"Tên mới {tag}", await db.MenuCategories.Where(c => c.Id == existing.Id).Select(c => c.Name).SingleAsync());
+        }
+    }
+
+    // Tên trống, slug lặp trong tệp, giá trị Có/Không sai: lỗi đúng dòng, không ghi gì
+    [Fact]
+    public async Task Loi_o_sheet_danh_muc_bao_dung_dong_va_khong_ghi()
+    {
+        var manager = await _api.SignInAsync(StaffRole.Manager);
+        var tag = Unique();
+        var bad = WorkbookWithCategories(
+            [],
+            Category($"x-{tag}", null, null, null),
+            Category($"y-{tag}", "Một", null, null),
+            Category($"y-{tag}", "Hai", null, "Có lẽ"));
+        var report = await ImportAsync(manager, bad, commit: true);
+        Assert.False(report.GetProperty("committed").GetBoolean());
+        var rows = report.GetProperty("categories").EnumerateArray().ToArray();
+        Assert.Contains(Errors(rows[0]), e => string.Equals(e.Column, MenuSheet.CategoryName, StringComparison.Ordinal));
+        Assert.Empty(Errors(rows[1]));
+        Assert.Contains((MenuSheet.Slug, FieldErrorCodes.Duplicate), Errors(rows[2]));
+        Assert.Contains((MenuSheet.CategoryVisible, FieldErrorCodes.InvalidFormat), Errors(rows[2]));
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.False(await db.MenuCategories.AnyAsync(c => c.Slug == $"y-{tag}"));
+        }
+    }
+
+    private static Dictionary<string, string?> Category(string slug, string? name, string? order, string? visible) =>
+        new(StringComparer.Ordinal)
+        {
+            [MenuSheet.Slug] = slug,
+            [MenuSheet.CategoryName] = name,
+            [MenuSheet.DisplayOrder] = order,
+            [MenuSheet.CategoryVisible] = visible,
+        };
+
+    private static byte[] WorkbookWithCategories(Dictionary<string, string?>[] items, params Dictionary<string, string?>[] categories)
+    {
+        using var book = new XLWorkbook(new MemoryStream(Workbook(items)));
+        var sheet = book.AddWorksheet(MenuSheet.CategoriesSheet);
+        for (var c = 0; c < MenuSheet.CategoryColumns.Count; c++)
+        {
+            sheet.Cell(1, c + 1).Value = MenuSheet.CategoryColumns[c];
+            for (var r = 0; r < categories.Length; r++)
+            {
+                sheet.Cell(r + 2, c + 1).Value = categories[r].GetValueOrDefault(MenuSheet.CategoryColumns[c]);
+            }
+        }
+
+        using var output = new MemoryStream();
+        book.SaveAs(output);
+        return output.ToArray();
+    }
+
     private static string Unique() => Guid.NewGuid().ToString("N")[..8];
 
     private static (string Column, string? Code)[] Errors(JsonElement row) =>

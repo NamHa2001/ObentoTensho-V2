@@ -38,6 +38,31 @@ public static partial class MenuSheetRows
     private static readonly HashSet<string> Truthy = new(["co", "x", "1", "true", "yes"], StringComparer.Ordinal);
     private static readonly HashSet<string> Falsy = new(["khong", "0", "false", "no"], StringComparer.Ordinal);
 
+    public sealed record ParsedCategory(string? Slug, string Name, int? DisplayOrder, bool IsActive);
+
+    public static ParsedCategory ParseCategory(MenuSheetRow row, ICollection<MenuImportError> errors)
+    {
+        ArgumentNullException.ThrowIfNull(row);
+        ArgumentNullException.ThrowIfNull(errors);
+        foreach (var column in MenuSheet.CategoryColumns.Where(row.FormulaColumns.Contains))
+        {
+            errors.Add(new MenuImportError(column, FieldErrorCodes.InvalidFormat));
+        }
+
+        return new ParsedCategory(
+            row[MenuSheet.Slug],
+            row[MenuSheet.CategoryName] ?? string.Empty,
+            ParseOrder(row, errors),
+            ParseFlag(row, MenuSheet.CategoryVisible, whenEmpty: true, errors));
+    }
+
+    // Cùng thứ tự MenuSheet.CategoryColumns
+    public static IReadOnlyList<object?> ToRow(MenuCategory category)
+    {
+        ArgumentNullException.ThrowIfNull(category);
+        return [category.Slug, category.Name, category.DisplayOrder, YesNo(category.IsActive)];
+    }
+
     public static Parsed Parse(MenuSheetRow row, ICollection<MenuImportError> errors)
     {
         ArgumentNullException.ThrowIfNull(row);
