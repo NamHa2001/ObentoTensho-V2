@@ -41,6 +41,11 @@ public sealed class ImagesController(ImageService images) : ControllerBase
         return this.CreatedOrProblem(await images.UploadAsync(content, form["altText"], User.StaffId(), cancellationToken));
     }
 
+    // FR-IMG-08: hết lượt tự thử lại thì người quản trị bấm "Thử lại"
+    [HttpPost("{id:guid}/retry")]
+    public async Task<IActionResult> Retry(Guid id, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await images.RetryAsync(id, cancellationToken));
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken) =>
         this.DataOrProblem(await images.GetAsync(id, cancellationToken));

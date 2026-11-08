@@ -31,6 +31,11 @@ public sealed class StoredImage
 
     public required DateTime CreatedAtUtc { get; init; }
 
+    // FR-IMG-08: số lần xử lý nền thất bại liên tiếp; tự thử lại tối đa MediaRules.MaxProcessingAttempts lần
+    public int ProcessingAttempts { get; set; }
+
+    public DateTime? FailedAtUtc { get; set; }
+
     public IReadOnlyList<int> Widths =>
         string.IsNullOrEmpty(VariantWidths)
             ? []

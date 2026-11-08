@@ -1509,6 +1509,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("CreatedByStaffId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("FailedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
                     b.Property<string>("Format")
                         .IsRequired()
                         .HasColumnType("varchar(10)");
@@ -1519,6 +1522,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<string>("OriginalPath")
                         .IsRequired()
                         .HasColumnType("nvarchar(300)");
+
+                    b.Property<int>("ProcessingAttempts")
+                        .HasColumnType("int");
 
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");

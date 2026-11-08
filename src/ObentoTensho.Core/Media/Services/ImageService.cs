@@ -105,6 +105,26 @@ public sealed class ImageService(
         return done;
     }
 
+    // FR-IMG-08: nút "Thử lại" ở thư viện ảnh sau khi đã hết lượt tự thử lại
+    public async Task<Result<ImageDto>> RetryAsync(Guid id, CancellationToken cancellationToken)
+    {
+        if (await images.FindAsync(id, cancellationToken) is not { } image)
+        {
+            return Result.Failure<ImageDto>(ErrorCodes.NotFound);
+        }
+
+        if (image.Status != ImageStatus.Failed)
+        {
+            return Result.Failure<ImageDto>(ErrorCodes.InvalidTransition);
+        }
+
+        image.Status = ImageStatus.Processing;
+        image.ProcessingAttempts = 0;
+        audit.Record(new AuditEntry($"media.{Entity}.retry", Entity, id.ToString("D"), After: new { image.Status }));
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(mapper.ToDto(image));
+    }
+
     private async Task GenerateAsync(StoredImage image, byte[] original, CancellationToken cancellationToken)
     {
         try
@@ -120,11 +140,15 @@ public sealed class ImageService(
             image.BlurHash = processed.BlurHash;
             image.VariantWidths = string.Join(',', processed.Variants.Select(v => v.Width.ToString(CultureInfo.InvariantCulture)));
             image.Status = ImageStatus.Ready;
+            image.ProcessingAttempts = 0;
+            image.FailedAtUtc = null;
         }
         catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
         {
             // Giữ ảnh gốc để sinh lại sau; ảnh Failed không dùng được cho nội dung
             image.Status = ImageStatus.Failed;
+            image.ProcessingAttempts++;
+            image.FailedAtUtc = clock.UtcNow;
         }
     }
 

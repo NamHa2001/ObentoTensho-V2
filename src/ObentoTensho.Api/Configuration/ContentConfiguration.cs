@@ -23,6 +23,8 @@ public static class ContentConfiguration
         services.AddSingleton<ImageMapper>();
         services.AddScoped<ImageService>();
         services.AddScoped<IRecurringJob, ImageProcessingJob>();
+        services.AddScoped<IRecurringJob, ImageRetryJob>();
+        services.AddScoped<IRecurringJob, ImageOrphanCleanupJob>();
         services.AddScoped<BannerAdminService>();
         services.AddScoped<GalleryAdminService>();
         services.AddScoped<PublicContentService>();

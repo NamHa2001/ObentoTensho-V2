@@ -19,4 +19,11 @@ public static class MediaRules
         var widths = Sizes.Where(w => w <= originalWidth).ToArray();
         return widths.Length > 0 ? widths : [originalWidth];
     }
+
+    // FR-IMG-08: thử lại ảnh lỗi tối đa 3 lần, cách nhau 5 phút
+    public const int MaxProcessingAttempts = 3;
+    public static readonly TimeSpan RetryDelay = TimeSpan.FromMinutes(5);
+
+    // BR-CNT-32: ảnh không còn được dùng quá 30 ngày thì dọn
+    public static readonly TimeSpan OrphanGrace = TimeSpan.FromDays(30);
 }

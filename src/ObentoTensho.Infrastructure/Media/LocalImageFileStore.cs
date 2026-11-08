@@ -28,6 +28,23 @@ internal sealed class LocalImageFileStore(IOptions<MediaOptions> options) : IIma
         await File.WriteAllBytesAsync(Path.Combine(directory, $"{variant.Width}.webp"), variant.Content, cancellationToken);
     }
 
+    public Task DeleteAsync(Guid imageId, string originalPath, CancellationToken cancellationToken)
+    {
+        var original = Path.Combine(options.Value.OriginalsDirectory, Path.GetFileName(originalPath));
+        if (File.Exists(original))
+        {
+            File.Delete(original);
+        }
+
+        var variants = Path.Combine(options.Value.PublicDirectory, Folder, imageId.ToString("N", CultureInfo.InvariantCulture));
+        if (Directory.Exists(variants))
+        {
+            Directory.Delete(variants, recursive: true);
+        }
+
+        return Task.CompletedTask;
+    }
+
     public string VariantUrl(Guid imageId, int version, int width, string format) =>
         string.Create(CultureInfo.InvariantCulture, $"{options.Value.PublicBaseUrl.TrimEnd('/')}/{Folder}/{imageId:N}/{version}/{width}.{format}");
 }

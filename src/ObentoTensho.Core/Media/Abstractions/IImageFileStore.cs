@@ -11,4 +11,7 @@ public interface IImageFileStore
     Task SaveVariantAsync(Guid imageId, int version, ImageVariant variant, CancellationToken cancellationToken);
 
     string VariantUrl(Guid imageId, int version, int width, string format);
+
+    // Xóa ảnh gốc và mọi biến thể
+    Task DeleteAsync(Guid imageId, string originalPath, CancellationToken cancellationToken);
 }
