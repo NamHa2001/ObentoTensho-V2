@@ -118,6 +118,7 @@ public static class DependencyInjection
 
         services.AddOptions<MediaOptions>().Bind(configuration.GetSection(MediaOptions.SectionName));
         services.AddOptions<ContentOptions>().Bind(configuration.GetSection(ContentOptions.SectionName));
+        services.AddOptions<ScheduleCacheOptions>().Bind(configuration.GetSection(ScheduleCacheOptions.SectionName));
         services.AddSingleton<IContentSettings>(sp => sp.GetRequiredService<IOptions<ContentOptions>>().Value);
 
         services.AddOptions<OrderOptions>()

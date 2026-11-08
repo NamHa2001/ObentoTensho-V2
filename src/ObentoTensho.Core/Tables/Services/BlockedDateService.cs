@@ -39,7 +39,7 @@ public sealed class BlockedDateService(
             return Result.Failure<BlockedDateDto>(ErrorCodes.Forbidden);
         }
 
-        return await unitOfWork.TryCreateAsync(async ct =>
+        var created = await unitOfWork.TryCreateAsync(async ct =>
         {
             var blocked = new BlockedDate
             {
@@ -55,9 +55,10 @@ public sealed class BlockedDateService(
             await unitOfWork.SaveChangesAsync(ct);
             audit.Record(new AuditEntry(AuditActions.For(Entity, AuditActions.Created), Entity, blocked.Id.ToString(CultureInfo.InvariantCulture), After: request));
             await unitOfWork.SaveChangesAsync(ct);
-            publicCache.Invalidate();
             return blocked.ToDto();
         }, ErrorCodes.DuplicateName, cancellationToken);
+        publicCache.Invalidate();
+        return created;
     }
 
     public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken)

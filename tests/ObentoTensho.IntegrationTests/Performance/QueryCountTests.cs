@@ -19,11 +19,12 @@ public sealed class QueryCountTests : IDisposable
     private const int MenuColdLimit = 11;
     private const int MenuWarmLimit = 2;
 
-    // Giờ mở cửa, giờ đặc biệt, ngày khóa, ca, sức chứa theo ngày
-    private const int AvailabilityLimit = 5;
+    // Lần đầu: giờ mở cửa, giờ đặc biệt, ngày khóa, ca, sức chứa theo ngày. Khi lịch đã cache (Q13): chỉ đặt bàn/sức chứa
+    private const int AvailabilityColdLimit = 5;
+    private const int AvailabilityLimit = 2;
 
-    // 3 bảng lịch + 4 bảng thực đơn (giá luôn đọc từ CSDL, BR-ORD-22) + giới hạn + số thứ tự + ghi đơn/dòng/tùy chọn/lịch sử/hộp thư
-    private const int GuestOrderLimit = 13;
+    // Lịch đã cache (Q13) + 4 bảng thực đơn (giá luôn đọc từ CSDL, BR-ORD-22) + giới hạn + số thứ tự + ghi đơn/dòng/tùy chọn/lịch sử/hộp thư
+    private const int GuestOrderLimit = 10;
 
     private readonly SqlServerFixture _fixture;
     private readonly ApiFactory _factory;
@@ -32,7 +33,7 @@ public sealed class QueryCountTests : IDisposable
     public QueryCountTests(SqlServerFixture fixture)
     {
         _fixture = fixture;
-        _factory = new ApiFactory(fixture.ConnectionString);
+        _factory = new ApiFactory(fixture.ConnectionString, new Dictionary<string, string>(StringComparer.Ordinal) { ["Caching:Schedule:Enabled"] = "true" });
         _factory.Server.PreserveExecutionContext = true;
         _http = _factory.CreateApiClient();
     }
@@ -77,6 +78,7 @@ public sealed class QueryCountTests : IDisposable
     {
         await TestSchedule.OpenEveryDayAsync(_fixture);
         var url = $"/api/v1/reservations/availability?date={ReservationApiClient.Date(TestSchedule.Tomorrow)}";
+        await CountAsync(() => _http.GetAsync(url), HttpStatusCode.OK, AvailabilityColdLimit);
         var first = await CountAsync(() => _http.GetAsync(url), HttpStatusCode.OK, AvailabilityLimit);
 
         // Có đặt bàn trong ngày cũng không đọc thêm
