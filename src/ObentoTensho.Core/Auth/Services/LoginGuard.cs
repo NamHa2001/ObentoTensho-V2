@@ -7,9 +7,16 @@ namespace ObentoTensho.Core.Auth.Services;
 // Đếm theo email đã chuẩn hóa kể cả khi tài khoản không tồn tại, để phản hồi không lộ email nào có thật
 public sealed class LoginGuard(IActionThrottle throttle)
 {
+    public const string CustomerScope = "customer";
+    public const string StaffScope = "staff";
+
+    // SEC-51: từ lần sai thứ 3 của cặp (tài khoản, IP) thì phải kèm Turnstile
+    public const int CaptchaAfter = 3;
     public const int MaxPerAccountAndIp = 5;
     public const int MaxPerAccount = 20;
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(15);
+
+    public bool NeedsCaptcha(string scope, string account, string? ip) => throttle.Count(PairKey(scope, account, ip)) >= CaptchaAfter;
 
     public bool IsBlocked(string scope, string account, string? ip) => throttle.Count(PairKey(scope, account, ip)) >= MaxPerAccountAndIp;
 

@@ -5,6 +5,7 @@ using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Auth;
+using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Services;
 using ObentoTensho.Core.Common;
@@ -17,6 +18,7 @@ namespace ObentoTensho.Api.Controllers.Public;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AuthController(
     CustomerRegistrationService registration,
+    LoginCaptcha captcha,
     CustomerSessionService sessions,
     CustomerAccountService accounts) : ControllerBase
 {
@@ -37,6 +39,11 @@ public sealed class AuthController(
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken)
     {
+        if (!await captcha.PassesAsync(HttpContext, LoginGuard.CustomerScope, request.Email))
+        {
+            return ApiProblems.Create(HttpContext, ErrorCodes.CaptchaFailed).ToActionResult();
+        }
+
         var result = await sessions.LoginAsync(request, HttpContext.GetClientInfo(), cancellationToken);
         return StartSession(result);
     }

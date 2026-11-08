@@ -24,7 +24,7 @@ public sealed class CustomerSessionService(
 {
     private static readonly Result<AuthSession> InvalidCredentials = Result.Failure<AuthSession>(ErrorCodes.InvalidCredentials);
     private static readonly Result<AuthSession> Unauthenticated = Result.Failure<AuthSession>(ErrorCodes.Unauthenticated);
-    private const string Scope = "customer";
+    private const string Scope = LoginGuard.CustomerScope;
 
     public async Task<Result<AuthSession>> LoginAsync(LoginRequest request, ClientInfo client, CancellationToken cancellationToken)
     {

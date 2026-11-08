@@ -21,7 +21,7 @@ public sealed class StaffLoginService(
     IValidator<LoginRequest> loginValidator)
 {
     private static readonly Result<StaffSignInResult> InvalidCredentials = Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
-    private const string Scope = "staff";
+    private const string Scope = LoginGuard.StaffScope;
 
     public async Task<Result<StaffSignInResult>> LoginAsync(LoginRequest request, ClientInfo client, CancellationToken cancellationToken)
     {

@@ -6,6 +6,7 @@ using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Auth;
+using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Services;
 using ObentoTensho.Core.Common;
@@ -20,6 +21,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class AdminAuthController(
     StaffLoginService login,
+    LoginCaptcha captcha,
     StaffTwoFactorService twoFactor,
     StaffPasswordService passwords,
     StaffSessionService sessions,
@@ -31,7 +33,9 @@ public sealed class AdminAuthController(
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> Login(LoginRequest request, CancellationToken cancellationToken) =>
-        SignIn(await login.LoginAsync(request, HttpContext.GetClientInfo(), cancellationToken));
+        await captcha.PassesAsync(HttpContext, LoginGuard.StaffScope, request.Email)
+            ? SignIn(await login.LoginAsync(request, HttpContext.GetClientInfo(), cancellationToken))
+            : ApiProblems.Create(HttpContext, ErrorCodes.CaptchaFailed).ToActionResult();
 
     [HttpPost("2fa/verify")]
     [AllowAnonymous]

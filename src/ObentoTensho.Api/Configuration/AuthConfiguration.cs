@@ -33,6 +33,7 @@ public static class AuthConfiguration
 
         services.AddScoped<SessionFactory>();
         services.AddScoped<LoginGuard>();
+        services.AddScoped<LoginCaptcha>();
         services.AddScoped<AccessTokenSessionValidator>();
         services.AddScoped<CustomerSessionService>();
         services.AddScoped<CustomerRegistrationService>();
