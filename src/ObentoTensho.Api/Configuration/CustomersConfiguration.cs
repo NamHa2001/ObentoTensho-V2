@@ -22,6 +22,7 @@ public static class CustomersConfiguration
         services.AddSingleton<IValidator<UpdateProfileRequest>, UpdateProfileRequestValidator>();
         services.AddSingleton<IValidator<ChangeEmailRequest>, ChangeEmailRequestValidator>();
         services.AddScoped<AccountService>();
+        services.AddScoped<GuestClaimService>();
         services.AddScoped<AccountDeletionService>();
         services.AddScoped<IRecurringJob, AccountDeletionJob>();
         services.AddScoped<BusinessCalendar>();

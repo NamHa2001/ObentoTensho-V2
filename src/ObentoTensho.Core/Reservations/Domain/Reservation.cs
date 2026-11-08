@@ -13,7 +13,8 @@ public sealed class Reservation
 
     public string? AccessTokenHash { get; init; }
 
-    public Guid? UserId { get; init; }
+    // BR-AUTH-17: đặt bàn vãng lai có thể được gắn vào tài khoản sau
+    public Guid? UserId { get; set; }
 
     public required string GuestName { get; init; }
 

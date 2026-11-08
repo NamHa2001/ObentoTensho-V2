@@ -13,7 +13,8 @@ public sealed class Order
 
     public required string AccessTokenHash { get; init; }
 
-    public Guid? UserId { get; init; }
+    // BR-AUTH-17: đơn vãng lai có thể được gắn vào tài khoản sau
+    public Guid? UserId { get; set; }
 
     public required string CustomerName { get; init; }
 

@@ -25,6 +25,7 @@ public sealed class AccountController(
     NewsletterService newsletter,
     IUserRepository users,
     ICustomerRepository customers,
+    GuestClaimService guestClaims,
     HubTicketIssuer tickets) : ControllerBase
 {
     private const int ReservationLimit = 50;
@@ -70,6 +71,17 @@ public sealed class AccountController(
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> ConfirmEmail(TokenRequest request, CancellationToken cancellationToken) =>
         this.NoContentOrProblem(await account.ConfirmEmailChangeAsync(request.Token, cancellationToken));
+
+    // BR-AUTH-17: nhận đơn/đặt bàn đã làm khi chưa đăng nhập (mã + token trong thư gửi tới email của tài khoản)
+    [HttpPost("claim-order")]
+    [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
+    public async Task<IActionResult> ClaimOrder(ClaimGuestRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await guestClaims.ClaimOrderAsync(CustomerId(), request, cancellationToken));
+
+    [HttpPost("claim-reservation")]
+    [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
+    public async Task<IActionResult> ClaimReservation(ClaimGuestRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await guestClaims.ClaimReservationAsync(CustomerId(), request, cancellationToken));
 
     [HttpGet("sessions")]
     public async Task<IActionResult> Sessions(CancellationToken cancellationToken) =>
