@@ -43,15 +43,28 @@ public sealed class OpeningHoursService(
             return validation.ToFailure<WeeklyHoursDto>();
         }
 
-        var current = await schedule.ListWeeklyAsync(forUpdate: true, cancellationToken);
         if (string.IsNullOrWhiteSpace(ifMatch))
         {
             return Result.Failure<WeeklyHoursDto>(ErrorCodes.PreconditionRequired);
         }
 
+        // BR-TBL-16: đọc (có khóa), so ETag và ghi trong cùng transaction
+        var saved = await unitOfWork.TryInTransactionAsync(ct => ReplaceWeeklyLockedAsync(request, ifMatch, ct), cancellationToken);
+        if (!saved.IsSuccess)
+        {
+            return Result.Failure<WeeklyHoursDto>(saved.ErrorCode!, saved.FieldErrors);
+        }
+
+        publicCache.Invalidate();
+        return Result.Success(await GetWeeklyAsync(cancellationToken));
+    }
+
+    private async Task<Result<bool>> ReplaceWeeklyLockedAsync(WeeklyHoursRequest request, string ifMatch, CancellationToken cancellationToken)
+    {
+        var current = await schedule.ListWeeklyAsync(forUpdate: true, cancellationToken);
         if (!string.Equals(ifMatch.Trim().Trim('"'), WeeklyVersion(current), StringComparison.Ordinal))
         {
-            return Result.Failure<WeeklyHoursDto>(ErrorCodes.PreconditionFailed);
+            return Result.Failure<bool>(ErrorCodes.PreconditionFailed);
         }
 
         var replacement = request.Days.SelectMany(ToRows).ToArray();
@@ -63,7 +76,7 @@ public sealed class OpeningHoursService(
             .ToArray();
         if (orphaned.Length > 0)
         {
-            return Result.Failure<WeeklyHoursDto>(
+            return Result.Failure<bool>(
                 ErrorCodes.SlotOutsideOpeningHours,
                 new Dictionary<string, string[]>(StringComparer.Ordinal) { ["serviceSlots"] = orphaned });
         }
@@ -71,8 +84,7 @@ public sealed class OpeningHoursService(
         schedule.ReplaceWeekly(current, replacement);
         audit.Record(new AuditEntry(AuditActions.For(WeeklyEntity, AuditActions.Updated), WeeklyEntity, "weekly", current.ToWeeklyDto(), request.Days));
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        publicCache.Invalidate();
-        return Result.Success(await GetWeeklyAsync(cancellationToken));
+        return Result.Success(true);
     }
 
     public async Task<IReadOnlyList<SpecialHoursDto>> ListSpecialAsync(CancellationToken cancellationToken)
@@ -94,29 +106,45 @@ public sealed class OpeningHoursService(
             return Result.Failure<SpecialHoursDto>(ErrorCodes.ValidationFailed, DateError());
         }
 
-        var current = await schedule.ListSpecialAsync(date, date, forUpdate: true, cancellationToken);
-        var replacement = request.Closed
-            ? [new SpecialHour { Date = date, IsClosed = true, Note = request.Note, CreatedByStaffId = staffId }]
-            : request.Ranges.Select(r => new SpecialHour { Date = date, OpenTime = r.Open, CloseTime = r.Close, Note = request.Note, CreatedByStaffId = staffId }).ToArray();
-
-        schedule.ReplaceSpecial(current, replacement);
-        audit.Record(new AuditEntry(AuditActions.For(SpecialEntity, AuditActions.Updated), SpecialEntity, date.ToString("O", CultureInfo.InvariantCulture), current.ToSpecialDto(), replacement.ToSpecialDto()));
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var replacement = await unitOfWork.InTransactionAsync(
+            async ct =>
+            {
+                var current = await schedule.ListSpecialAsync(date, date, forUpdate: true, ct);
+                SpecialHour[] rows = request.Closed
+                    ? [new SpecialHour { Date = date, IsClosed = true, Note = request.Note, CreatedByStaffId = staffId }]
+                    : request.Ranges.Select(r => new SpecialHour { Date = date, OpenTime = r.Open, CloseTime = r.Close, Note = request.Note, CreatedByStaffId = staffId }).ToArray();
+                schedule.ReplaceSpecial(current, rows);
+                audit.Record(new AuditEntry(AuditActions.For(SpecialEntity, AuditActions.Updated), SpecialEntity, date.ToString("O", CultureInfo.InvariantCulture), current.ToSpecialDto(), rows.ToSpecialDto()));
+                await unitOfWork.SaveChangesAsync(ct);
+                return rows;
+            },
+            cancellationToken);
         publicCache.Invalidate();
         return Result.Success(replacement.ToSpecialDto()[0]);
     }
 
     public async Task<Result> DeleteSpecialAsync(DateOnly date, CancellationToken cancellationToken)
     {
-        var current = await schedule.ListSpecialAsync(date, date, forUpdate: true, cancellationToken);
-        if (current.Count == 0)
+        var deleted = await unitOfWork.TryInTransactionAsync(
+            async ct =>
+            {
+                var current = await schedule.ListSpecialAsync(date, date, forUpdate: true, ct);
+                if (current.Count == 0)
+                {
+                    return Result.Failure<bool>(ErrorCodes.NotFound);
+                }
+
+                schedule.ReplaceSpecial(current, []);
+                audit.Record(new AuditEntry(AuditActions.For(SpecialEntity, AuditActions.Deleted), SpecialEntity, date.ToString("O", CultureInfo.InvariantCulture), Before: current.ToSpecialDto()));
+                await unitOfWork.SaveChangesAsync(ct);
+                return Result.Success(true);
+            },
+            cancellationToken);
+        if (!deleted.IsSuccess)
         {
-            return Result.Failure(ErrorCodes.NotFound);
+            return Result.Failure(deleted.ErrorCode!);
         }
 
-        schedule.ReplaceSpecial(current, []);
-        audit.Record(new AuditEntry(AuditActions.For(SpecialEntity, AuditActions.Deleted), SpecialEntity, date.ToString("O", CultureInfo.InvariantCulture), Before: current.ToSpecialDto()));
-        await unitOfWork.SaveChangesAsync(cancellationToken);
         publicCache.Invalidate();
         return Result.Success();
     }

@@ -130,6 +130,40 @@ public sealed class TablesApiTests : IDisposable
     private static object Blocked(DateOnly date) =>
         new { date = date.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture), appliesTo = "reservation", start = "12:00", end = "14:00", reason = "Tiệc riêng" };
 
+    // BR-TBL-16: nhiều lần lưu cùng một ETag cùng lúc ⇒ đúng một lần thành công, các lần còn lại nhận 412 (không 409/500, không ghi chồng)
+    [Fact]
+    public async Task Luu_gio_mo_cua_dong_thoi_chi_mot_lan_thanh_cong()
+    {
+        await TestSchedule.ResetToSeedAsync(_fixture);
+        var superAdmin = await _api.SignInAsync(StaffRole.SuperAdmin);
+        try
+        {
+            // Có dòng sẵn (seed) và bảng trống: trường hợp bảng trống không có RowVersion nào để phát hiện ghi chồng
+            foreach (var empty in new[] { false, true })
+            {
+                if (empty)
+                {
+                    await using var clear = _fixture.CreateContext();
+                    await clear.OpeningHours.ExecuteDeleteAsync();
+                }
+
+                var etag = (await _api.SendAsync(HttpMethod.Get, Admin + "opening-hours", superAdmin)).Headers.ETag?.Tag;
+                var responses = await Task.WhenAll(Enumerable.Range(0, 8).Select(i =>
+                    _api.SendAsync(HttpMethod.Put, Admin + "opening-hours", superAdmin, i % 2 == 0 ? TwoShiftWeek() : ShortWeek(), etag)));
+
+                Assert.Single(responses, r => r.StatusCode == HttpStatusCode.OK);
+                Assert.All(responses.Where(r => r.StatusCode != HttpStatusCode.OK), r => Assert.Equal(HttpStatusCode.PreconditionFailed, r.StatusCode));
+                await using var db = _fixture.CreateContext();
+                var rows = await db.OpeningHours.CountAsync();
+                Assert.True(rows is 7 or 14, $"Số dòng giờ mở cửa: {rows}");
+            }
+        }
+        finally
+        {
+            await TestSchedule.ResetToSeedAsync(_fixture);
+        }
+    }
+
     private static object TwoShiftWeek() => Week(new[] { ("10:30", "14:00"), ("17:00", "21:00") });
 
     private static object ShortWeek() => Week(new[] { ("10:30", "12:00") });
