@@ -22,6 +22,7 @@ public static class EmailPolicy
             or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
         EmailKind.ReservationReminder or EmailKind.OrderAttention or EmailKind.ContactReceived or EmailKind.ContactInternal or EmailKind.NewsletterConfirm
+            or EmailKind.NewsletterAlreadySubscribed
             or EmailKind.AccountLocked or EmailKind.AccountUnlocked or EmailKind.AdminAlert or EmailKind.DataExportReady => 3,
         EmailKind.DuplicateRegistration or EmailKind.PasswordChanged or EmailKind.EmailChangeNotice or EmailKind.AccountDeletionScheduled or EmailKind.LoginLockout => 3,
         EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed or EmailKind.VoucherBirthday => 4,

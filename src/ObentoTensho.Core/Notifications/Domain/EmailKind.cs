@@ -29,6 +29,7 @@ public enum EmailKind
     ContactReceived,
     ContactInternal,
     NewsletterConfirm,
+    NewsletterAlreadySubscribed,
     Newsletter,
     AccountLocked,
     AccountUnlocked,

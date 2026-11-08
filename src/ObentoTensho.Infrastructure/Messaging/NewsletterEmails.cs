@@ -17,7 +17,19 @@ internal sealed class NewsletterEmails(AppDbContext db, IClock clock, IOptions<P
         ArgumentNullException.ThrowIfNull(subscriber);
         var values = new Dictionary<string, string>(StringComparer.Ordinal) { ["link"] = $"{BaseUrl()}/newsletter/confirm#token={Uri.EscapeDataString(token)}" };
         var key = $"{EmailTypes.Of(EmailKind.NewsletterConfirm)}:{subscriber.ConfirmTokenHash}";
-        var request = new EmailRequest(EmailKind.NewsletterConfirm, subscriber.Email, subscriber.Lang, values, key, RelatedEntityId: null);
+        Enqueue(new EmailRequest(EmailKind.NewsletterConfirm, subscriber.Email, subscriber.Lang, values, key, RelatedEntityId: null));
+    }
+
+    public void EnqueueAlreadySubscribed(NewsletterSubscriber subscriber, DateOnly day)
+    {
+        ArgumentNullException.ThrowIfNull(subscriber);
+        var key = $"{EmailTypes.Of(EmailKind.NewsletterAlreadySubscribed)}:{subscriber.Id}:{day:yyyyMMdd}";
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        Enqueue(new EmailRequest(EmailKind.NewsletterAlreadySubscribed, subscriber.Email, subscriber.Lang, values, key, RelatedEntityId: null));
+    }
+
+    private void Enqueue(EmailRequest request)
+    {
         var now = clock.UtcNow;
         db.OutboxMessages.Add(new OutboxMessage
         {

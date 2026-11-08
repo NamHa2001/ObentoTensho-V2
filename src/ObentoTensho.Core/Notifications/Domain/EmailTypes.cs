@@ -31,6 +31,7 @@ public static class EmailTypes
         EmailKind.ContactReceived => "contact_received",
         EmailKind.ContactInternal => "contact_internal",
         EmailKind.NewsletterConfirm => "newsletter_confirm",
+        EmailKind.NewsletterAlreadySubscribed => "newsletter_already_subscribed",
         EmailKind.Newsletter => "newsletter",
         EmailKind.AccountLocked => "account_locked",
         EmailKind.AccountUnlocked => "account_unlocked",

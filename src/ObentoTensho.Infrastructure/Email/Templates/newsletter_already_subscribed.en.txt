@@ -1,0 +1,14 @@
+subject: You are already subscribed to Obento Tensho news
+===
+Hello,
+
+Someone just signed up for the Obento Tensho newsletter with this address. You are already subscribed, so there is nothing more to do.
+
+To stop receiving news, use the unsubscribe link at the bottom of any newsletter.
+
+Obento Tensho
+===
+<p>Hello,</p>
+<p>Someone just signed up for the Obento Tensho newsletter with this address. You are already subscribed, so there is nothing more to do.</p>
+<p>To stop receiving news, use the unsubscribe link at the bottom of any newsletter.</p>
+<p>Obento Tensho</p>

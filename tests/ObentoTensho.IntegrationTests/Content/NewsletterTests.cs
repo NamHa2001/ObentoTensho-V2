@@ -147,7 +147,7 @@ public sealed class NewsletterTests : IDisposable
         }
 
         var again = await AdminAuthApiClient.ReadDataAsync(await SubscribeAsync(email));
-        Assert.Equal("already_subscribed", again.GetProperty("status").GetString());
+        Assert.Equal("pending_confirmation", again.GetProperty("status").GetString());
 
         Assert.Equal(HttpStatusCode.NoContent, (await UnsubscribeAsync(UnsubscribeToken(subscriber))).StatusCode);
         Assert.False((await SubscriberAsync(email)).IsActive);
@@ -159,6 +159,30 @@ public sealed class NewsletterTests : IDisposable
         var back = await SubscriberAsync(email);
         Assert.True(back.IsSubscribed);
         Assert.Null(back.UnsubscribedAtUtc);
+    }
+
+    // Q4: không lộ email đã đăng ký; chủ hộp thư nhận một thư báo mỗi ngày, trạng thái đăng ký không đổi
+    [Fact]
+    public async Task Email_da_dang_ky_tra_cung_cau_va_chi_bao_chu_hop_thu_mot_lan_moi_ngay()
+    {
+        var email = await ConfirmedAsync();
+        var subscriber = await SubscriberAsync(email);
+
+        for (var i = 0; i < 2; i++)
+        {
+            var again = await AdminAuthApiClient.ReadDataAsync(await SubscribeAsync(email));
+            Assert.Equal("pending_confirmation", again.GetProperty("status").GetString());
+        }
+
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.Equal(1, await db.OutboxMessages.CountAsync(m => m.IdempotencyKey.StartsWith($"newsletter_already_subscribed:{subscriber.Id}:")));
+            Assert.Equal(1, await db.OutboxMessages.CountAsync(m => m.IdempotencyKey.StartsWith("newsletter_confirm:") && m.PayloadJson.Contains(email)));
+        }
+
+        var after = await SubscriberAsync(email);
+        Assert.True(after.IsSubscribed);
+        Assert.Equal(subscriber.ConfirmedAtUtc, after.ConfirmedAtUtc);
     }
 
     [Fact]

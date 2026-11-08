@@ -1,0 +1,14 @@
+subject: Bạn đã đăng ký nhận tin Obento Tensho
+===
+Xin chào,
+
+Có người vừa đăng ký nhận bản tin Obento Tensho bằng địa chỉ này. Địa chỉ của bạn đã đăng ký từ trước nên không cần làm gì thêm.
+
+Muốn ngừng nhận tin, bạn dùng liên kết hủy ở cuối mỗi bản tin.
+
+Obento Tensho
+===
+<p>Xin chào,</p>
+<p>Có người vừa đăng ký nhận bản tin Obento Tensho bằng địa chỉ này. Địa chỉ của bạn đã đăng ký từ trước nên không cần làm gì thêm.</p>
+<p>Muốn ngừng nhận tin, bạn dùng liên kết hủy ở cuối mỗi bản tin.</p>
+<p>Obento Tensho</p>

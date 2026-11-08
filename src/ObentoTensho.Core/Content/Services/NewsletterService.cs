@@ -12,7 +12,8 @@ using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Content.Services;
 
-// FR-CNT-07: đăng ký hai bước (BR-CNT-21), hủy bằng POST (BR-CNT-22), đăng ký lại sau hủy phải xác nhận lại (BR-CNT-20)
+// FR-CNT-07: đăng ký hai bước (BR-CNT-21), hủy bằng POST (BR-CNT-22), đăng ký lại sau hủy phải xác nhận lại (BR-CNT-20).
+// Q4 (lệch câu chữ BR-CNT-20): email đã đăng ký vẫn trả "chờ xác nhận"; chủ hộp thư nhận thư báo riêng
 public sealed class NewsletterService(
     INewsletterRepository newsletter,
     INewsletterEmails emails,
@@ -51,7 +52,11 @@ public sealed class NewsletterService(
         var subscriber = await newsletter.FindByEmailAsync(email, cancellationToken);
         if (subscriber is { IsSubscribed: true })
         {
-            return Result.Success(new NewsletterSubscribeResultDto(NewsletterSubscribeStatus.AlreadySubscribed));
+            emails.EnqueueAlreadySubscribed(subscriber, clock.TodayLocal);
+
+            // Đã báo trong ngày: trùng khóa idempotency, trả cùng câu trả lời
+            await unitOfWork.TrySaveAsync(() => pending, ErrorCodes.DuplicateName, cancellationToken);
+            return Result.Success(pending);
         }
 
         var now = clock.UtcNow;
