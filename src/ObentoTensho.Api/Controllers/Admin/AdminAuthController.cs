@@ -25,7 +25,8 @@ public sealed class AdminAuthController(
     StaffTwoFactorService twoFactor,
     StaffPasswordService passwords,
     StaffSessionService sessions,
-    StaffPasswordResetService passwordReset) : ControllerBase
+    StaffPasswordResetService passwordReset,
+    StaffNotMeService notMe) : ControllerBase
 {
     private const string Cookie = RefreshTokenCookie.AdminName;
 
@@ -121,6 +122,13 @@ public sealed class AdminAuthController(
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken) =>
         this.NoContentOrProblem(await passwordReset.ResetPasswordAsync(request, cancellationToken));
+
+    // SEC-58: liên kết "Không phải tôi" trong thư báo đăng nhập từ thiết bị lạ
+    [HttpPost("not-me")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> NotMe(TokenRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await notMe.ReportAsync(request.Token, cancellationToken));
 
     private IActionResult SignIn(Result<StaffSignInResult> result)
     {

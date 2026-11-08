@@ -1,0 +1,20 @@
+subject: Obento Tensho admin sign-in from a new device
+===
+Hello {{fullName}},
+
+Your admin account signed in at {{at}} from a device or network not used before.
+IP: {{ip}}
+Browser: {{userAgent}}
+
+If this was you, no action is needed.
+If it was not you, open this link to revoke all sessions and lock the account until you reset your password: {{notMeLink}}
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>Your admin account signed in at {{at}} from a device or network not used before.</p>
+<p>IP: {{ip}}<br>Browser: {{userAgent}}</p>
+<p>If this was you, no action is needed.</p>
+<p><a class="button" href="{{notMeLink}}">This wasn't me</a></p>
+<p>This revokes all sessions and locks the account until you reset your password.</p>
+<p>Obento Tensho</p>

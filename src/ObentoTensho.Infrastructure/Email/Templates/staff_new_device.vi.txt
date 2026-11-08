@@ -1,0 +1,20 @@
+subject: Đăng nhập quản trị Obento Tensho từ thiết bị mới
+===
+Xin chào {{fullName}},
+
+Tài khoản quản trị của bạn vừa đăng nhập lúc {{at}} từ thiết bị hoặc mạng chưa dùng trước đây.
+IP: {{ip}}
+Trình duyệt: {{userAgent}}
+
+Nếu đúng là bạn, không cần làm gì thêm.
+Nếu không phải bạn, bấm liên kết sau để thu hồi mọi phiên và khóa tài khoản tới khi đặt lại mật khẩu: {{notMeLink}}
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Tài khoản quản trị của bạn vừa đăng nhập lúc {{at}} từ thiết bị hoặc mạng chưa dùng trước đây.</p>
+<p>IP: {{ip}}<br>Trình duyệt: {{userAgent}}</p>
+<p>Nếu đúng là bạn, không cần làm gì thêm.</p>
+<p><a class="button" href="{{notMeLink}}">Không phải tôi</a></p>
+<p>Bấm nút trên sẽ thu hồi mọi phiên và khóa tài khoản tới khi bạn đặt lại mật khẩu.</p>
+<p>Obento Tensho</p>

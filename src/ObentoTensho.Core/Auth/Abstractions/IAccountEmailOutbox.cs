@@ -28,6 +28,9 @@ public interface IAccountEmailOutbox
     // SEC-51: báo chủ tài khoản khi đăng nhập sai nhiều lần làm tài khoản bị tạm khóa
     void EnqueueLoginLockout(AccountRecipient recipient, DateTime atUtc);
 
+    // SEC-58: đăng nhập quản trị từ thiết bị/mạng lạ, kèm liên kết "Không phải tôi"
+    void EnqueueStaffNewDevice(AccountRecipient recipient, ClientInfo client, DateTime atUtc, string notMeToken);
+
     // BR-STF-06: liên kết mời một lần, không chứa mật khẩu
     void EnqueueStaffInvite(AccountRecipient recipient, string inviteToken);
 

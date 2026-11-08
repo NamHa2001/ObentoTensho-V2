@@ -17,6 +17,7 @@ public sealed class StaffSignInFlow(
     AuthSecurityEvents securityEvents,
     IRefreshTokenRepository refreshTokens,
     IAdminEmailOutbox adminEmails,
+    IAccountEmailOutbox accountEmails,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
@@ -53,8 +54,8 @@ public sealed class StaffSignInFlow(
         return session;
     }
 
-    // SEC-58: đăng nhập quản trị từ trình duyệt/dải mạng chưa từng dùng ⇒ báo chính nhân viên đó; SuperAdmin thì báo thêm
-    // các SuperAdmin khác. Lần đăng nhập đầu tiên (vừa nhận lời mời) không báo
+    // SEC-58: đăng nhập quản trị từ trình duyệt/dải mạng chưa từng dùng ⇒ báo chính nhân viên đó kèm liên kết "Không phải tôi";
+    // SuperAdmin thì báo thêm các SuperAdmin khác. Lần đăng nhập đầu tiên (vừa nhận lời mời) không báo
     private async Task AlertNewDeviceAsync(Staff member, ClientInfo client, DateTime now, CancellationToken cancellationToken)
     {
         var prefix = ClientNetwork.Prefix(client.IpAddress);
@@ -65,12 +66,14 @@ public sealed class StaffSignInFlow(
             return;
         }
 
-        var message = $"Tài khoản quản trị {member.Email} vừa đăng nhập từ thiết bị hoặc mạng mới (IP {client.IpAddress ?? "không rõ"}, "
-            + $"trình duyệt: {userAgent ?? "không rõ"}). Nếu không phải bạn, hãy đổi mật khẩu và thu hồi mọi phiên ngay.";
-        var key = $"new-device:{member.Id:N}:{now.Ticks}";
-        adminEmails.EnqueueAlert(member.Email, message, key);
+        var notMe = challenges.Protect(new StaffChallenge(member.Id, StaffChallengeKind.NotMe, member.SecurityStamp, now + AuthPolicy.NotMeLinkLifetime, SecondFactorPassed: false));
+        var recipient = new AccountRecipient(member.Id, member.Email, member.FullName, AuthPolicy.DefaultLanguage, IsStaff: true);
+        accountEmails.EnqueueStaffNewDevice(recipient, client with { UserAgent = userAgent }, now, notMe);
         if (member.Role == StaffRole.SuperAdmin)
         {
+            var message = $"Tài khoản quản trị {member.Email} vừa đăng nhập từ thiết bị hoặc mạng mới (IP {client.IpAddress ?? "không rõ"}, "
+                + $"trình duyệt: {userAgent ?? "không rõ"}).";
+            var key = $"new-device:{member.Id:N}:{now.Ticks}";
             foreach (var email in (await staff.ListActiveEmailsAsync([StaffRole.SuperAdmin], cancellationToken))
                 .Where(e => !string.Equals(e, member.Email, StringComparison.OrdinalIgnoreCase)))
             {

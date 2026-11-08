@@ -8,5 +8,8 @@ public enum StaffChallengeKind
     TotpSetup,
 
     // SEC-61: không phải bước đăng nhập, là bằng chứng vừa xác thực lại
-    StepUp
+    StepUp,
+
+    // SEC-58: liên kết "Không phải tôi" trong thư báo đăng nhập từ thiết bị lạ
+    NotMe
 }

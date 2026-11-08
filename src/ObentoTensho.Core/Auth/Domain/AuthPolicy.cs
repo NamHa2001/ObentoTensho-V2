@@ -41,6 +41,12 @@ public static class AuthPolicy
     // Mã tạm giữa bước mật khẩu và bước 2FA (docs/srs/10 §4.2)
     public static readonly TimeSpan StaffChallengeLifetime = TimeSpan.FromMinutes(5);
 
+    // SEC-58: liên kết "Không phải tôi" dùng được 7 ngày, mất hiệu lực ngay khi mật khẩu đổi
+    public static readonly TimeSpan NotMeLinkLifetime = TimeSpan.FromDays(7);
+
+    // Khóa tới khi nhân viên đặt lại mật khẩu (đặt lại xóa khóa)
+    public static readonly TimeSpan NotMeLockout = TimeSpan.FromDays(30);
+
     // BR-CUS-05
     public static readonly TimeSpan AccountDeletionGrace = TimeSpan.FromDays(7);
 

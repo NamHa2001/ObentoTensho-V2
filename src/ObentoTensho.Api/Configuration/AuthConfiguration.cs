@@ -39,6 +39,7 @@ public static class AuthConfiguration
         services.AddScoped<CustomerRegistrationService>();
         services.AddScoped<CustomerAccountService>();
         services.AddScoped<StaffPasswordResetService>();
+        services.AddScoped<StaffNotMeService>();
         services.AddScoped<StaffSignInFlow>();
         services.AddScoped<StaffLoginService>();
         services.AddScoped<StaffTwoFactorService>();

@@ -37,5 +37,6 @@ public enum EmailKind
     EmailChangeVerify,
     EmailChangeNotice,
     AccountDeletionScheduled,
-    LoginLockout
+    LoginLockout,
+    StaffNewDevice
 }

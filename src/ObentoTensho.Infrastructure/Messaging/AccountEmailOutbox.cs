@@ -19,6 +19,7 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
     private const string ResetPasswordPath = "/auth/reset-password#token=";
     private const string StaffInvitePath = "/auth/accept-invite#token=";
     private const string ConfirmEmailPath = "/account/confirm-email#token=";
+    private const string NotMePath = "/auth/not-me#token=";
 
     public void EnqueueEmailVerification(User user, string verificationToken) =>
         Enqueue(new EmailRequest(
@@ -100,6 +101,23 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
     public void EnqueueAccountUnlocked(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.AccountUnlocked, recipient, atUtc);
 
     public void EnqueueLoginLockout(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.LoginLockout, recipient, atUtc);
+
+    public void EnqueueStaffNewDevice(AccountRecipient recipient, ClientInfo client, DateTime atUtc, string notMeToken)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        Enqueue(new EmailRequest(
+            EmailKind.StaffNewDevice,
+            recipient.Email,
+            recipient.Language,
+            Values(
+                recipient.FullName,
+                ("at", clock.ToLocal(atUtc).ToString("HH:mm dd/MM/yyyy", CultureInfo.InvariantCulture)),
+                ("ip", client.IpAddress ?? "?"),
+                ("userAgent", client.UserAgent ?? "?"),
+                ("notMeLink", Link(links.Value.AdminBaseUrl, NotMePath, notMeToken))),
+            $"staff_new_device:{recipient.Id:N}:{atUtc.Ticks}",
+            recipient.Id.ToString()));
+    }
 
     private void EnqueueStatus(EmailKind kind, AccountRecipient recipient, DateTime atUtc) =>
         Enqueue(new EmailRequest(

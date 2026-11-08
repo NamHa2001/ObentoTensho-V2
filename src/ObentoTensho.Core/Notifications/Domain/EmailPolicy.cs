@@ -15,7 +15,8 @@ public static class EmailPolicy
     // 1 = xác thực/đặt lại mật khẩu/lời mời … 5 = bản tin
     public static int Priority(EmailKind kind) => kind switch
     {
-        EmailKind.VerifyEmail or EmailKind.PasswordReset or EmailKind.VerificationCode or EmailKind.StaffInvite or EmailKind.EmailChangeVerify => 1,
+        EmailKind.VerifyEmail or EmailKind.PasswordReset or EmailKind.VerificationCode or EmailKind.StaffInvite or EmailKind.EmailChangeVerify
+            or EmailKind.StaffNewDevice => 1,
         EmailKind.ReservationReceived or EmailKind.ReservationConfirmed or EmailKind.ReservationRejected
             or EmailKind.ReservationCancelled or EmailKind.ReservationAutoCancelled
             or EmailKind.OrderReceived or EmailKind.OrderReady or EmailKind.OrderCancelled
@@ -28,7 +29,8 @@ public static class EmailPolicy
     };
 
     public static bool IsSecurityNotice(EmailKind kind) =>
-        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice or EmailKind.LoginLockout;
+        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice or EmailKind.LoginLockout
+            or EmailKind.StaffNewDevice;
 
     public static bool ExceedsRecipientLimit(EmailKind kind, int sameKindLastHour, int allKindsToday, int securityNoticesToday) =>
         IsSecurityNotice(kind)

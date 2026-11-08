@@ -35,6 +35,7 @@ public static class EmailTypes
         EmailKind.AccountLocked => "account_locked",
         EmailKind.AccountUnlocked => "account_unlocked",
         EmailKind.LoginLockout => "login_lockout",
+        EmailKind.StaffNewDevice => "staff_new_device",
         EmailKind.AdminAlert => "admin_alert",
         EmailKind.DataExportReady => "data_export_ready",
         EmailKind.EmailChangeVerify => "email_change_verify",

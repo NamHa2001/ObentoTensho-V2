@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Contracts.Errors;
+using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.IntegrationTests.Fixtures;
 
 namespace ObentoTensho.IntegrationTests.Auth;
@@ -76,7 +79,7 @@ public sealed class SessionSecurityTests : IDisposable
     public async Task Dang_nhap_quan_tri_tu_thiet_bi_la_thi_bao_nhan_vien()
     {
         var (id, email) = await _admin.CreateStaffAsync(StaffRole.Kitchen);
-        var key = $"admin_alert:new-device:{id:N}:";
+        var key = $"staff_new_device:{id:N}:";
 
         Assert.Equal(HttpStatusCode.OK, (await StaffLoginAsync(email, "203.0.113.7", "Firefox/1")).StatusCode);
         Assert.Equal(0, await AlertsAsync(key));
@@ -89,6 +92,59 @@ public sealed class SessionSecurityTests : IDisposable
         Assert.Equal(1, await AlertsAsync(key));
         Assert.Equal(HttpStatusCode.OK, (await StaffLoginAsync(email, "203.0.113.7", "Chrome/2")).StatusCode);
         Assert.Equal(2, await AlertsAsync(key));
+    }
+
+    [Fact]
+    public async Task Bam_khong_phai_toi_thi_thu_hoi_phien_khoa_tai_khoan_va_gui_lien_ket_dat_lai()
+    {
+        var (id, email) = await _admin.CreateStaffAsync(StaffRole.Kitchen);
+        Assert.Equal(HttpStatusCode.OK, (await StaffLoginAsync(email, "203.0.113.7", "Firefox/1")).StatusCode);
+        var intruder = await StaffLoginAsync(email, "198.51.100.5", "Chrome/9");
+        var session = (await AdminAuthApiClient.ReadDataAsync(intruder)).GetProperty("session").GetProperty("accessToken").GetString()!;
+        Assert.Equal(HttpStatusCode.OK, (await _admin.GetAsync("/api/v1/admin/test-probe", session)).StatusCode);
+
+        await _factory.ProcessOutboxAsync();
+        var alert = Assert.Single(_factory.Emails.To(email), m => m.TextBody.Contains("/auth/not-me#token=", StringComparison.Ordinal));
+        Assert.Contains("198.51.100.5", alert.TextBody, StringComparison.Ordinal);
+        Assert.Contains("Chrome/9", alert.TextBody, StringComparison.Ordinal);
+        var token = Orders.OrderApiClient.TokenIn(alert.TextBody);
+
+        Assert.Equal(ErrorCodes.TokenInvalid, await AuthApiClient.ReadErrorCodeAsync(await _admin.PostAsync("not-me", new { token = token + "x" })));
+
+        // Mã đúng chữ ký nhưng khác loại hoặc đã hết hạn đều bị từ chối
+        await using (var db = _fixture.CreateContext())
+        {
+            var stamp = await db.StaffMembers.Where(x => x.Id == id).Select(x => x.SecurityStamp).SingleAsync();
+            var tokens = _factory.Services.GetRequiredService<IStaffChallengeTokens>();
+            var now = DateTime.UtcNow;
+            foreach (var forged in new[]
+            {
+                tokens.Protect(new StaffChallenge(id, StaffChallengeKind.StepUp, stamp, now.AddMinutes(5), SecondFactorPassed: true)),
+                tokens.Protect(new StaffChallenge(id, StaffChallengeKind.NotMe, stamp, now.AddSeconds(-1), SecondFactorPassed: false)),
+            })
+            {
+                Assert.Equal(ErrorCodes.TokenInvalid, await AuthApiClient.ReadErrorCodeAsync(await _admin.PostAsync("not-me", new { token = forged })));
+            }
+        }
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _admin.PostAsync("not-me", new { token })).StatusCode);
+
+        // Phiên của kẻ xấu hết dùng được ngay, mật khẩu cũ không đăng nhập được, liên kết chỉ dùng một lần
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _admin.GetAsync("/api/v1/admin/test-probe", session)).StatusCode);
+        Assert.NotEqual(HttpStatusCode.OK, (await StaffLoginAsync(email, "198.51.100.5", "Chrome/9")).StatusCode);
+        Assert.Equal(ErrorCodes.TokenInvalid, await AuthApiClient.ReadErrorCodeAsync(await _admin.PostAsync("not-me", new { token })));
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "auth.staff.not_me_reported" && a.EntityId == id.ToString()));
+            Assert.False(await db.RefreshTokens.AnyAsync(t => t.StaffId == id && t.RevokedAtUtc == null));
+        }
+
+        // Đặt lại mật khẩu qua liên kết trong thư thì mở khóa
+        await _factory.ProcessOutboxAsync();
+        var reset = Orders.OrderApiClient.TokenIn(Assert.Single(_factory.Emails.To(email), m => m.TextBody.Contains("/auth/reset-password#token=", StringComparison.Ordinal)).TextBody);
+        const string NewPassword = "Bep-moi-an-toan-2026";
+        Assert.Equal(HttpStatusCode.NoContent, (await _admin.PostAsync("reset-password", new { token = reset, newPassword = NewPassword })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await StaffLoginAsync(email, "198.51.100.5", "Chrome/9", NewPassword)).StatusCode);
     }
 
     [Fact]
