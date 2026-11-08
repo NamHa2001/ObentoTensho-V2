@@ -13,6 +13,11 @@ public interface IImageRepository
 
     Task<IReadOnlyList<Guid>> ListProcessingAsync(int limit, CancellationToken cancellationToken);
 
+    // Đánh dấu mọi ảnh đã xong để sinh lại; trả số ảnh được đánh dấu
+    Task<int> RequestRegenerationAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<Guid>> ListRegenerationAsync(int limit, CancellationToken cancellationToken);
+
     // FR-IMG-08: ảnh lỗi còn lượt thử lại và đã qua thời gian chờ (bản được theo dõi)
     Task<IReadOnlyList<StoredImage>> ListRetryableAsync(int maxAttempts, DateTime failedBeforeUtc, int limit, CancellationToken cancellationToken);
 

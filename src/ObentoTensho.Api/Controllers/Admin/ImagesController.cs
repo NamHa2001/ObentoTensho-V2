@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Contracts.Dtos;
+using ObentoTensho.Contracts.Dtos.Media;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Media.Domain;
@@ -45,6 +47,12 @@ public sealed class ImagesController(ImageService images) : ControllerBase
     [HttpPost("{id:guid}/retry")]
     public async Task<IActionResult> Retry(Guid id, CancellationToken cancellationToken) =>
         this.DataOrProblem(await images.RetryAsync(id, cancellationToken));
+
+    // FR-IMG-03/04: chỉ SuperAdmin — sinh lại biến thể mọi ảnh sau khi đổi cấu hình; chạy nền, ảnh vẫn hiện bộ cũ tới khi xong
+    [HttpPost("regenerate")]
+    [RequireCapability(StaffCapability.StaffAndAudit)]
+    public async Task<IActionResult> Regenerate(CancellationToken cancellationToken) =>
+        Accepted(new ApiResponse<RegenerateImagesResponse>(new RegenerateImagesResponse(await images.RequestRegenerationAsync(cancellationToken))));
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken cancellationToken) =>

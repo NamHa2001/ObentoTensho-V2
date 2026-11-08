@@ -117,6 +117,54 @@ public sealed class ImageMaintenanceTests : IDisposable
         Assert.Equal(HttpStatusCode.Conflict, (await _admin.SendAsync(HttpMethod.Post, $"{Admin}/images/{ready}/retry", editor)).StatusCode);
     }
 
+    // FR-IMG-03/04: SuperAdmin yêu cầu sinh lại; ảnh vẫn dùng bộ cũ tới khi bộ mới (phiên bản kế tiếp) xong, tệp cũ được giữ
+    [Fact]
+    public async Task Sinh_lai_bien_the_len_phien_ban_moi_va_giu_ban_cu()
+    {
+        var superAdmin = await _admin.SignInAsync(StaffRole.SuperAdmin);
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var image = await UploadAsync(manager);
+        var broken = await UploadAsync(manager);
+        var options = _factory.Services.GetRequiredService<IOptions<MediaOptions>>().Value;
+        string VariantDir(Guid id, int version) => Path.Combine(options.PublicDirectory, "images", id.ToString("N"), version.ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Post, $"{Admin}/images/regenerate", manager)).StatusCode);
+        var queued = await _admin.SendAsync(HttpMethod.Post, $"{Admin}/images/regenerate", superAdmin);
+        Assert.Equal(HttpStatusCode.Accepted, queued.StatusCode);
+        Assert.True((await AdminAuthApiClient.ReadDataAsync(queued)).GetProperty("queued").GetInt32() >= 2);
+
+        // Đang chờ: vẫn sẵn sàng, đường dẫn vẫn là phiên bản 1
+        var waiting = await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}/images/{image}", manager));
+        Assert.Equal("ready", waiting.GetProperty("status").GetString());
+        Assert.Contains("/1/", waiting.GetProperty("variants")[0].GetProperty("url").GetString(), StringComparison.Ordinal);
+
+        // Ảnh gốc mất ⇒ sinh lại lỗi nhưng ảnh vẫn dùng bộ cũ
+        await using (var db = _fixture.CreateContext())
+        {
+            var original = await db.Images.Where(i => i.Id == broken).Select(i => i.OriginalPath).SingleAsync();
+            File.Delete(Path.Combine(options.OriginalsDirectory, Path.GetFileName(original)));
+        }
+
+        // Có trần số vòng: lỗi làm cờ không bao giờ được xóa thì test đỏ chứ không treo
+        for (var round = 0; round < 500 && await RunAsync<ImageProcessingJob>() > 0; round++)
+        {
+        }
+
+        var done = await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}/images/{image}", manager));
+        Assert.Equal("ready", done.GetProperty("status").GetString());
+        Assert.Contains("/2/", done.GetProperty("variants")[0].GetProperty("url").GetString(), StringComparison.Ordinal);
+        Assert.True(Directory.Exists(VariantDir(image, 2)));
+        Assert.True(Directory.Exists(VariantDir(image, 1)));
+        await using (var db = _fixture.CreateContext())
+        {
+            var failed = await db.Images.SingleAsync(i => i.Id == broken);
+            Assert.Equal((1, false, ImageStatus.Ready), (failed.Version, failed.RegenerateRequested, failed.Status));
+            Assert.False(await db.Images.AnyAsync(i => i.Id == image && i.RegenerateRequested));
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "media.image.regenerate_requested"));
+            Assert.True(await db.AuditLogs.AnyAsync(a => a.Action == "media.image.regenerate_failed" && a.EntityId == broken.ToString()));
+        }
+    }
+
     [Fact]
     public async Task Don_anh_qua_30_ngay_khong_con_dung_va_giu_anh_dang_dung()
     {

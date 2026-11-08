@@ -21,7 +21,11 @@ public sealed class StoredImage
 
     public string Format { get; init; } = MediaRules.VariantFormat;
 
-    public int Version { get; init; } = 1;
+    // FR-IMG-04: tăng khi sinh lại biến thể; tệp của phiên bản cũ được giữ vì HTML nội dung có thể đã nhúng đường dẫn cũ
+    public int Version { get; set; } = 1;
+
+    // FR-IMG-03: SuperAdmin yêu cầu sinh lại biến thể (vd đổi cấu hình bề rộng/chất lượng); việc nền xử lý theo lô
+    public bool RegenerateRequested { get; set; }
 
     public required string AltText { get; set; }
 

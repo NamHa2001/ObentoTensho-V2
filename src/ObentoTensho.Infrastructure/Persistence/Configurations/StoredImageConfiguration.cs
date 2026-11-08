@@ -35,5 +35,6 @@ internal sealed class StoredImageConfiguration : IEntityTypeConfiguration<Stored
         builder.HasOne<User>().WithMany().HasForeignKey(i => i.CreatedByUserId).OnDelete(DeleteBehavior.NoAction);
         builder.HasIndex(i => i.ContentHash);
         builder.HasIndex(i => i.Status);
+        builder.HasIndex(i => i.CreatedAtUtc).HasDatabaseName("IX_Images_Regenerate").HasFilter("[RegenerateRequested] = 1");
     }
 }

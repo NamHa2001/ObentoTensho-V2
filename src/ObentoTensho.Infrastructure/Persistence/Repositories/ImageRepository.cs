@@ -17,6 +17,18 @@ internal sealed class ImageRepository(AppDbContext db) : IImageRepository
     public async Task<IReadOnlyDictionary<Guid, StoredImage>> LoadAsync(IReadOnlyCollection<Guid> ids, CancellationToken cancellationToken) =>
         await db.Images.AsNoTracking().Where(i => ids.Contains(i.Id)).ToDictionaryAsync(i => i.Id, cancellationToken);
 
+    public Task<int> RequestRegenerationAsync(CancellationToken cancellationToken) =>
+        db.Images.Where(i => i.Status == ImageStatus.Ready && !i.RegenerateRequested)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.RegenerateRequested, true), cancellationToken);
+
+    public async Task<IReadOnlyList<Guid>> ListRegenerationAsync(int limit, CancellationToken cancellationToken) =>
+        await db.Images.AsNoTracking()
+            .Where(i => i.RegenerateRequested)
+            .OrderBy(i => i.CreatedAtUtc)
+            .Take(limit)
+            .Select(i => i.Id)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Guid>> ListProcessingAsync(int limit, CancellationToken cancellationToken) =>
         await db.Images.AsNoTracking()
             .Where(i => i.Status == ImageStatus.Processing)

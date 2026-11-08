@@ -115,7 +115,56 @@ public sealed class ImageService(
             done++;
         }
 
+        foreach (var id in await images.ListRegenerationAsync(JobBatchSize, cancellationToken))
+        {
+            if (await images.FindAsync(id, cancellationToken) is not { RegenerateRequested: true } image)
+            {
+                continue;
+            }
+
+            await RegenerateAsync(image, cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            done++;
+        }
+
         return done;
+    }
+
+    // FR-IMG-03/04: đánh dấu mọi ảnh đã xong để việc nền sinh lại biến thể theo lô
+    public async Task<int> RequestRegenerationAsync(CancellationToken cancellationToken)
+    {
+        var queued = await images.RequestRegenerationAsync(cancellationToken);
+        audit.Record(new AuditEntry("media.image.regenerate_requested", Entity, "all", After: new { queued }));
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return queued;
+    }
+
+    // Sinh bộ biến thể mới dưới phiên bản kế tiếp rồi mới chuyển: trong lúc chạy và khi lỗi ảnh vẫn dùng bộ cũ
+    private async Task RegenerateAsync(StoredImage image, CancellationToken cancellationToken)
+    {
+        image.RegenerateRequested = false;
+        if (image.Status != ImageStatus.Ready)
+        {
+            return;
+        }
+
+        try
+        {
+            var processed = processor.Process(await files.ReadOriginalAsync(image.OriginalPath, cancellationToken));
+            var version = image.Version + 1;
+            foreach (var variant in processed.Variants)
+            {
+                await files.SaveVariantAsync(image.Id, version, variant, cancellationToken);
+            }
+
+            image.Version = version;
+            image.BlurHash = processed.BlurHash;
+            image.VariantWidths = string.Join(',', processed.Variants.Select(v => v.Width.ToString(CultureInfo.InvariantCulture)));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException and not OutOfMemoryException)
+        {
+            audit.Record(new AuditEntry("media.image.regenerate_failed", Entity, image.Id.ToString("D", CultureInfo.InvariantCulture), After: new { image.Version }));
+        }
     }
 
     // FR-IMG-08: nút "Thử lại" ở thư viện ảnh sau khi đã hết lượt tự thử lại

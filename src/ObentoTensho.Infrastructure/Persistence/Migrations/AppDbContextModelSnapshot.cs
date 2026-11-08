@@ -1535,6 +1535,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<int>("ProcessingAttempts")
                         .HasColumnType("int");
 
+                    b.Property<bool>("RegenerateRequested")
+                        .HasColumnType("bit");
+
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
 
@@ -1551,6 +1554,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ContentHash");
+
+                    b.HasIndex("CreatedAtUtc")
+                        .HasDatabaseName("IX_Images_Regenerate")
+                        .HasFilter("[RegenerateRequested] = 1");
 
                     b.HasIndex("CreatedByStaffId");
 
