@@ -26,7 +26,6 @@ public static class ReservationsConfiguration
         services.AddSingleton<TurnstileOutage>();
         services.AddScoped<TurnstileGate>();
         services.AddScoped<TurnstileFilter>();
-        services.AddScoped<GuestTurnstileFilter>();
 
         // Việc định kỳ (docs/srs/20 §4)
         services.AddScoped<ReservationJobs>();

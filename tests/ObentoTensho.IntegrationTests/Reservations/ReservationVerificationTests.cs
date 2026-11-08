@@ -84,27 +84,6 @@ public sealed partial class ReservationVerificationTests : IDisposable
     }
 
     [Fact]
-    public async Task Bat_Turnstile_thi_thieu_token_bi_400_co_token_hop_le_thi_dat_duoc()
-    {
-        await TestSchedule.OpenEveryDayAsync(_fixture);
-        using var factory = new ApiFactory(_fixture.ConnectionString, new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["Turnstile:Enabled"] = "true",
-            ["Turnstile:SecretKey"] = "test-secret",
-            ["Turnstile:AllowedHostnames:0"] = "www.obento.test",
-        });
-        using var http = factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<ITurnstileVerifier, FakeTurnstileVerifier>()))
-            .CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
-
-        var missing = await http.PostAsJsonAsync("/api/v1/reservations", ReservationApiClient.Booking(TestSchedule.Tomorrow));
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/reservations") { Content = JsonContent.Create(ReservationApiClient.Booking(TestSchedule.Tomorrow)) };
-        request.Headers.Add("X-Turnstile-Token", FakeTurnstileVerifier.ValidToken);
-
-        Assert.Equal(ErrorCodes.CaptchaFailed, await ErrorOf(missing));
-        Assert.Equal(HttpStatusCode.Created, (await http.SendAsync(request)).StatusCode);
-    }
-
-    [Fact]
     public async Task Viec_dinh_ky_nhac_mot_lan_tu_no_show_va_tu_huy_dat_ban_treo()
     {
         var slotId = await TestSchedule.OpenEveryDayAsync(_fixture);

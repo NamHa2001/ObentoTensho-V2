@@ -19,9 +19,11 @@ using ObentoTensho.Core.Vouchers.Services;
 
 namespace ObentoTensho.Core.Orders.Services;
 
-// FR-ORD-01 (đặt món), FR-ORD-04 (theo dõi), BR-ORD-17 (khách tự hủy). Không cần tài khoản; đang đăng nhập thì gắn vào tài khoản.
+// FR-ORD-01 (đặt món), FR-ORD-04 (theo dõi), BR-ORD-17 (khách tự hủy). Đặt món cần tài khoản đã xác minh SĐT
+// (chủ dự án 2026-11-08); theo dõi/hủy bằng mã + token trong thư vẫn mở.
 public sealed class PublicOrderService(
     IOrderRepository orders,
+    IUserRepository users,
     OrderCart cart,
     OrderPickup pickup,
     OrderTransitions transitions,
@@ -67,8 +69,13 @@ public sealed class PublicOrderService(
     public Task<PickupTimesDto> PickupTimesAsync(DateOnly date, CancellationToken cancellationToken) =>
         pickup.TimesAsync(date, cancellationToken);
 
-    public async Task<Result<CreatedOrderDto>> CreateAsync(CreateOrderRequest request, Guid? userId, CancellationToken cancellationToken)
+    public async Task<Result<CreatedOrderDto>> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
     {
+        if (!await users.IsPhoneVerifiedAsync(userId, cancellationToken))
+        {
+            return Result.Failure<CreatedOrderDto>(ErrorCodes.PhoneNotVerified);
+        }
+
         var validation = await validator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {

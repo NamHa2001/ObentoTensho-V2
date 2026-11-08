@@ -73,4 +73,10 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
         db.Users.Where(u => u.Id == id && u.PasswordHash == currentHash).ExecuteUpdateAsync(
             s => s.SetProperty(u => u.PasswordHash, newHash),
             cancellationToken);
+
+    public Task<bool> IsPhoneVerifiedAsync(Guid id, CancellationToken cancellationToken) =>
+        db.Users.AnyAsync(u => u.Id == id && u.IsPhoneVerified && u.IsActive && !u.IsDeleted, cancellationToken);
+
+    public Task<bool> PhoneVerifiedByOtherAsync(string phoneNumber, Guid exceptUserId, CancellationToken cancellationToken) =>
+        db.Users.AnyAsync(u => u.PhoneNumber == phoneNumber && u.IsPhoneVerified && !u.IsDeleted && u.Id != exceptUserId, cancellationToken);
 }

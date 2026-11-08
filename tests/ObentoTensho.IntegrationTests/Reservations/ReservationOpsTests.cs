@@ -146,32 +146,4 @@ public sealed class ReservationOpsTests : IDisposable
         await using var check = _fixture.CreateContext();
         Assert.Equal(TableStatus.Cleaning, await check.Tables.Where(t => t.Id == tableId).Select(t => t.CurrentStatus).SingleAsync());
     }
-
-    [Fact]
-    public async Task Dat_mon_chi_khach_vang_lai_can_Turnstile()
-    {
-        await TestSchedule.OpenEveryDayAsync(_fixture);
-        var menu = await OrderTestMenu.CreateAsync(_fixture);
-        using var factory = new ApiFactory(_fixture.ConnectionString, new Dictionary<string, string>(StringComparer.Ordinal)
-        {
-            ["Turnstile:Enabled"] = "true",
-            ["Turnstile:SecretKey"] = "test-secret",
-            ["Turnstile:AllowedHostnames:0"] = "www.obento.test",
-        });
-        using var http = factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<ITurnstileVerifier, FakeTurnstileVerifier>()))
-            .CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
-        var orders = new OrderApiClient(http);
-        var order = OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)]);
-
-        Assert.Equal(ErrorCodes.CaptchaFailed, await AuthApiClient.ReadErrorCodeAsync(await orders.CreateAsync(order)));
-
-        // Đăng ký qua máy chủ không bật Turnstile, đăng nhập ở máy chủ đang bật
-        var email = AuthApiClient.NewEmail();
-        (await new AuthApiClient(_http).RegisterAsync(email)).EnsureSuccessStatusCode();
-        var customer = await AuthApiClient.ReadAccessTokenAsync(await new AuthApiClient(http).LoginAsync(email));
-        Assert.Equal(HttpStatusCode.Created, (await orders.CreateAsync(OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)]), customer)).StatusCode);
-
-        // Token sai thì vẫn coi là khách vãng lai
-        Assert.Equal(ErrorCodes.CaptchaFailed, await AuthApiClient.ReadErrorCodeAsync(await orders.CreateAsync(order, "token-gia")));
-    }
 }

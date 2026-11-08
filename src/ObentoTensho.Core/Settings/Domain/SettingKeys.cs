@@ -46,7 +46,6 @@ public static class SettingKeys
     public const string LoyaltyPointExpiryMonths = "loyalty.pointExpiryMonths";
     public const string LoyaltyBirthdayVoucherValue = "loyalty.birthdayVoucherValue";
     public const string LoyaltyAdjustApprovalThreshold = "loyalty.adjustApprovalThreshold";
-    public const string LoyaltyClaimGuestOrders = "loyalty.claimGuestOrders";
     public const string LoyaltyTierSilver = "loyalty.tier.silver";
     public const string LoyaltyTierGold = "loyalty.tier.gold";
     public const string LoyaltyTierDiamond = "loyalty.tier.diamond";

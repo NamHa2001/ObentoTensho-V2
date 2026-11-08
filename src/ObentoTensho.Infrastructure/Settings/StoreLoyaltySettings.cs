@@ -10,7 +10,6 @@ internal sealed class StoreLoyaltySettings(ISettingsReader s, IOptions<LoyaltyOp
 {
     public int VndPerPoint => s.GetInt(LoyaltyPointsPerVnd);
 
-    public bool ClaimGuestOrders => s.GetBool(LoyaltyClaimGuestOrders);
 
     public int ReservationPoints => s.GetInt(LoyaltyReservationPoints);
 

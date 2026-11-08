@@ -31,7 +31,7 @@ public sealed class CustomerAuthApiTests : IDisposable
     {
         var email = AuthApiClient.NewEmail();
 
-        var first = await _api.RegisterAsync(email);
+        var first = await _api.RegisterAsync(email, phone: "0912 345 678");
         var second = await _api.RegisterAsync(email.ToUpperInvariant());
 
         Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);

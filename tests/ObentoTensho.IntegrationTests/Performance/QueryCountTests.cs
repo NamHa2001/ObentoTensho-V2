@@ -23,8 +23,8 @@ public sealed class QueryCountTests : IDisposable
     private const int AvailabilityColdLimit = 5;
     private const int AvailabilityLimit = 2;
 
-    // Lịch đã cache (Q13) + 4 bảng thực đơn (giá luôn đọc từ CSDL, BR-ORD-22) + giới hạn + số thứ tự + ghi đơn/dòng/tùy chọn/lịch sử/hộp thư
-    private const int GuestOrderLimit = 10;
+    // Kiểm SĐT đã xác minh + hạng thành viên + lịch đã cache (Q13) + 4 bảng thực đơn (giá luôn đọc từ CSDL, BR-ORD-22) + giới hạn + số thứ tự + ghi đơn/dòng/tùy chọn/lịch sử/hộp thư
+    private const int OrderLimit = 12;
 
     private readonly SqlServerFixture _fixture;
     private readonly ApiFactory _factory;
@@ -87,18 +87,19 @@ public sealed class QueryCountTests : IDisposable
     }
 
     [Fact]
-    public async Task Dat_mon_vang_lai_so_truy_van_khong_tang_theo_so_dong()
+    public async Task Dat_mon_so_truy_van_khong_tang_theo_so_dong()
     {
         await TestSchedule.OpenEveryDayAsync(_fixture);
         var menu = await OrderTestMenu.CreateAsync(_fixture);
         var orders = new OrderApiClient(_http);
+        var (customer, _) = await new AuthApiClient(_http).RegisterAndLoginAsync(AuthApiClient.NewEmail());
 
         // Lần đầu làm nóng cache cài đặt; đo các lần sau như lúc chạy thật
-        Assert.Equal(HttpStatusCode.Created, (await orders.CreateAsync(OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)], email: AuthApiClient.NewEmail()))).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await orders.CreateAsync(OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)], email: AuthApiClient.NewEmail()), customer)).StatusCode);
         var oneLine = await CountAsync(
-            () => orders.CreateAsync(OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)], email: AuthApiClient.NewEmail())),
+            () => orders.CreateAsync(OrderApiClient.Order([OrderApiClient.Line(menu.Rice, 1, menu.Small)], email: AuthApiClient.NewEmail()), customer),
             HttpStatusCode.Created,
-            GuestOrderLimit);
+            OrderLimit);
         var manyLines = await CountAsync(
             () => orders.CreateAsync(OrderApiClient.Order(
                 [
@@ -107,9 +108,9 @@ public sealed class QueryCountTests : IDisposable
                     OrderApiClient.Line(menu.Tea, 1, menu.Egg),
                     OrderApiClient.Line(menu.Tea, 3),
                 ],
-                email: AuthApiClient.NewEmail())),
+                email: AuthApiClient.NewEmail()), customer),
             HttpStatusCode.Created,
-            GuestOrderLimit);
+            OrderLimit);
         Assert.Equal(oneLine, manyLines);
     }
 }

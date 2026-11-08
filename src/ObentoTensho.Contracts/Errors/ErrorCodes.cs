@@ -75,6 +75,8 @@ public static class ErrorCodes
     // Tài khoản khách (docs/srs/10 §4.8, BR-LOY-20)
     public const string DateOfBirthLocked = "DATE_OF_BIRTH_LOCKED";
     public const string EmailNotVerified = "EMAIL_NOT_VERIFIED";
+    public const string PhoneNotVerified = "PHONE_NOT_VERIFIED";
+    public const string PhoneTaken = "PHONE_TAKEN";
 
     // Nhân viên (docs/srs/18 §2)
     public const string StepUpRequired = "STEP_UP_REQUIRED";

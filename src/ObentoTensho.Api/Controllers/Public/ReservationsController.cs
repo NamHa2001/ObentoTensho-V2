@@ -8,7 +8,7 @@ using ObentoTensho.Core.Reservations.Services;
 
 namespace ObentoTensho.Api.Controllers.Public;
 
-// docs/srs/11 §8 (công khai). Không cần tài khoản; đang đăng nhập thì đặt bàn gắn vào tài khoản.
+// docs/srs/11 §8 (công khai). Đặt bàn cần tài khoản khách đã xác minh SĐT; xem chỗ trống, tra cứu, hủy bằng token không cần.
 [ApiController]
 [Route("api/v1/reservations")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -20,11 +20,10 @@ public sealed class ReservationsController(ReservationSchedule schedule, PublicR
         this.Data(await schedule.GetAvailabilityAsync(date, cancellationToken));
 
     [HttpPost]
-    [AllowAnonymous]
+    [RequireCustomer]
     [EnableRateLimiting(RateLimitConfiguration.ReservationPolicy)]
-    [ServiceFilter<TurnstileFilter>]
     public async Task<IActionResult> Create(CreateReservationRequest request, CancellationToken cancellationToken) =>
-        this.CreatedOrProblem(await reservations.CreateAsync(request, User.CustomerId(), cancellationToken));
+        this.CreatedOrProblem(await reservations.CreateAsync(request, User.CustomerId() ?? Guid.Empty, cancellationToken));
 
     [HttpPost("lookup")]
     [AllowAnonymous]

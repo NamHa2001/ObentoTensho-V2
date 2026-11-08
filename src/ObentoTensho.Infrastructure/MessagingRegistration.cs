@@ -52,6 +52,11 @@ public static class MessagingRegistration
         services.AddSingleton<IOtpSettings, StoreOtpSettings>();
         services.AddScoped<IOtpRepository, OtpRepository>();
         services.AddScoped<IOtpEmailOutbox, OtpEmailOutbox>();
+        services.AddOptions<SmsOptions>()
+            .Bind(configuration.GetSection(SmsOptions.SectionName))
+            .Validate(o => o.Validate(isProduction) is null, "Cấu hình SMS không hợp lệ (xem SmsOptions.Validate).")
+            .ValidateOnStart();
+        services.AddSingleton<ISmsSender, LogSmsSender>();
 
         // Turnstile (SEC-22, SEC-57) — chờ tối đa 5 giây rồi từ chối
         services.AddOptions<TurnstileOptions>()

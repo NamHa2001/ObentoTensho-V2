@@ -14,12 +14,14 @@ using ObentoTensho.Core.Verification.Services;
 
 namespace ObentoTensho.Core.Reservations.Services;
 
-// FR-RSV-01 (khách đặt), FR-RSV-03 (tra cứu, hủy). Không cần tài khoản; đang đăng nhập thì gắn vào tài khoản.
+// FR-RSV-01 (khách đặt), FR-RSV-03 (tra cứu, hủy). Đặt bàn cần tài khoản đã xác minh SĐT (chủ dự án 2026-11-08, thay D-39);
+// tra cứu/hủy bằng mã + token trong thư vẫn mở.
 public sealed class PublicReservationService(
     IReservationRepository reservations,
     ReservationSchedule schedule,
     ReservationBooking booking,
     ReservationTransitions transitions,
+    IUserRepository users,
     OtpService otp,
     ISecureTokenService secureTokens,
     IActionThrottle throttle,
@@ -33,8 +35,13 @@ public sealed class PublicReservationService(
     private static readonly TimeSpan LookupLockout = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan NoShowWindow = TimeSpan.FromDays(90);
 
-    public async Task<Result<PublicReservationDto>> CreateAsync(CreateReservationRequest request, Guid? userId, CancellationToken cancellationToken)
+    public async Task<Result<PublicReservationDto>> CreateAsync(CreateReservationRequest request, Guid userId, CancellationToken cancellationToken)
     {
+        if (!await users.IsPhoneVerifiedAsync(userId, cancellationToken))
+        {
+            return Result.Failure<PublicReservationDto>(ErrorCodes.PhoneNotVerified);
+        }
+
         var validation = await validator.ValidateAsync(request, cancellationToken);
         if (!validation.IsValid)
         {

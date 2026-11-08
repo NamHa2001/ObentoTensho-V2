@@ -9,7 +9,8 @@ using ObentoTensho.Core.Vouchers.Domain;
 
 namespace ObentoTensho.Core.Vouchers.Services;
 
-// BR-LOY-09/20: mỗi năm một voucher sinh nhật cho khách đã xác thực email (ngày VN); chỉ mục UNIQUE giữ idempotent khi chạy lại.
+// BR-LOY-09/20: mỗi năm một voucher sinh nhật cho khách đã xác thực email và SĐT (Q3: SĐT chỉ một tài khoản xác minh,
+// chặn tạo nhiều tài khoản để nhận voucher), theo ngày VN; chỉ mục UNIQUE giữ idempotent khi chạy lại.
 // Sinh 29/2 thì năm thường nhận vào 28/2. Hạn dùng theo voucher.redeemExpiryDays.
 public sealed class BirthdayVoucherService(
     IVoucherRepository vouchers,

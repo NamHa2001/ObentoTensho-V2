@@ -28,7 +28,7 @@ public sealed class AccountController(
     NewsletterService newsletter,
     IUserRepository users,
     ICustomerRepository customers,
-    GuestClaimService guestClaims,
+    PhoneVerificationService phones,
     AvatarService avatars,
     HubTicketIssuer tickets) : ControllerBase
 {
@@ -79,16 +79,18 @@ public sealed class AccountController(
     public async Task<IActionResult> ConfirmEmail(TokenRequest request, CancellationToken cancellationToken) =>
         this.NoContentOrProblem(await account.ConfirmEmailChangeAsync(request.Token, cancellationToken));
 
-    // BR-AUTH-17: nhận đơn/đặt bàn đã làm khi chưa đăng nhập (mã + token trong thư gửi tới email của tài khoản)
-    [HttpPost("claim-order")]
+    // Xác minh SĐT của tài khoản bằng OTP SMS — điều kiện để đặt bàn, đặt món, nhận voucher sinh nhật.
+    // SEC-77: Turnstile trước khi gửi để bot không đốt tiền SMS; giới hạn theo SĐT/IP/ngày nằm ở OtpService
+    [HttpPost("phone/send-code")]
     [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
-    public async Task<IActionResult> ClaimOrder(ClaimGuestRequest request, CancellationToken cancellationToken) =>
-        this.NoContentOrProblem(await guestClaims.ClaimOrderAsync(CustomerId(), request, cancellationToken));
+    [ServiceFilter<TurnstileFilter>]
+    public async Task<IActionResult> SendPhoneCode(CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await phones.SendCodeAsync(CustomerId(), HttpContext.GetClientInfo().IpAddress, cancellationToken));
 
-    [HttpPost("claim-reservation")]
+    [HttpPost("phone/verify")]
     [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
-    public async Task<IActionResult> ClaimReservation(ClaimGuestRequest request, CancellationToken cancellationToken) =>
-        this.NoContentOrProblem(await guestClaims.ClaimReservationAsync(CustomerId(), request, cancellationToken));
+    public async Task<IActionResult> VerifyPhone(VerifyPhoneRequest request, CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await phones.VerifyAsync(CustomerId(), request.Code, cancellationToken));
 
     // docs/srs/10 §5: multipart, trường "file"; action không tham số để tự đọc form (xem ImagesController)
     [HttpPost("avatar")]

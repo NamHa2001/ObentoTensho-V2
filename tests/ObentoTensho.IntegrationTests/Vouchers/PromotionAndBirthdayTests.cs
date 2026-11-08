@@ -113,6 +113,7 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         await TestSchedule.OpenEveryDayAsync(_fixture);
         var (verified, email) = await MemberAsync(emailVerified: true, Today.AddYears(-30));
         var (unverified, _) = await MemberAsync(emailVerified: false, Today.AddYears(-30));
+        var (noPhone, _) = await MemberAsync(emailVerified: true, Today.AddYears(-30), phoneVerified: false);
         var (otherDay, _) = await MemberAsync(emailVerified: true, Today.AddDays(40).AddYears(-30));
         var (disposable, _) = await MemberAsync(emailVerified: true, Today.AddYears(-30), $"khach.{Guid.NewGuid():N}@mailinator.com");
 
@@ -127,6 +128,7 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         var voucher = await db.Vouchers.SingleAsync(v => v.OwnerUserId == verified);
         Assert.Equal((VoucherSource.Birthday, Today.Year, 50_000m, 1), (voucher.Source, voucher.BirthdayYear!.Value, voucher.DiscountValue, voucher.MaxUsageTotal!.Value));
         Assert.False(await db.Vouchers.AnyAsync(v => v.OwnerUserId == unverified || v.OwnerUserId == otherDay));
+        Assert.False(await db.Vouchers.AnyAsync(v => v.OwnerUserId == noPhone || v.OwnerUserId == otherDay));
 
         // BR-AUTH-16: email dùng một lần không nhận ưu đãi
         Assert.False(await db.Vouchers.AnyAsync(v => v.OwnerUserId == disposable));
@@ -225,10 +227,10 @@ public sealed class PromotionAndBirthdayTests : IDisposable
                 """
                 DECLARE @cols nvarchar(max) = (SELECT STRING_AGG(QUOTENAME(name), ',') FROM sys.columns
                     WHERE object_id = OBJECT_ID('Users') AND is_computed = 0 AND system_type_id <> 189
-                    AND name NOT IN ('Id', 'Email', 'EmailCanonical') AND name NOT LIKE '%TokenHash');
-                DECLARE @sql nvarchar(max) = N'INSERT INTO [Users] ([Id], [Email], [EmailCanonical], ' + @cols + N')
+                    AND name NOT IN ('Id', 'Email', 'EmailCanonical', 'PhoneNumber') AND name NOT LIKE '%TokenHash');
+                DECLARE @sql nvarchar(max) = N'INSERT INTO [Users] ([Id], [Email], [EmailCanonical], [PhoneNumber], ' + @cols + N')
                     SELECT CONVERT(uniqueidentifier, @tag + ''-0000-0000-0000-'' + RIGHT(''00000000000'' + CAST(x.n AS varchar(12)), 12)),
-                        CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), ' + @cols + N'
+                        CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), CONCAT(''t'', @tag, RIGHT(''00000'' + CAST(x.n AS varchar(5)), 5)), ' + @cols + N'
                     FROM [Users] CROSS JOIN (SELECT TOP 510 ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS n FROM sys.all_objects) AS x
                     WHERE [Id] = @src';
                 EXEC sp_executesql @sql, N'@tag varchar(8), @src uniqueidentifier', @tag = {0}, @src = {1};
@@ -247,13 +249,14 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         Assert.False(await check.Vouchers.AnyAsync(v => v.OwnerUserId == template));
     }
 
-    private async Task<(Guid Id, string Email)> MemberAsync(bool emailVerified, DateOnly dateOfBirth, string? address = null)
+    private async Task<(Guid Id, string Email)> MemberAsync(bool emailVerified, DateOnly dateOfBirth, string? address = null, bool phoneVerified = true)
     {
         var email = address ?? AuthApiClient.NewEmail();
         await new AuthApiClient(_http).RegisterAndLoginAsync(email);
         await using var db = _fixture.CreateContext();
         await db.Users.Where(u => u.Email == email).ExecuteUpdateAsync(s => s
             .SetProperty(u => u.IsEmailVerified, emailVerified)
+            .SetProperty(u => u.IsPhoneVerified, phoneVerified)
             .SetProperty(u => u.DateOfBirth, dateOfBirth));
         return (await db.Users.Where(u => u.Email == email).Select(u => u.Id).SingleAsync(), email);
     }

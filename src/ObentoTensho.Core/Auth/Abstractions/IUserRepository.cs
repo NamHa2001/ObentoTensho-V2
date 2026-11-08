@@ -33,4 +33,10 @@ public interface IUserRepository
     Task LockUntilAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken);
 
     Task ReplacePasswordHashAsync(Guid id, string currentHash, string newHash, CancellationToken cancellationToken);
+
+    // Đặt bàn/đặt món/voucher sinh nhật chỉ cho tài khoản đang hoạt động đã xác minh SĐT
+    Task<bool> IsPhoneVerifiedAsync(Guid id, CancellationToken cancellationToken);
+
+    // Có tài khoản khác (chưa xóa) đã xác minh SĐT này
+    Task<bool> PhoneVerifiedByOtherAsync(string phoneNumber, Guid exceptUserId, CancellationToken cancellationToken);
 }

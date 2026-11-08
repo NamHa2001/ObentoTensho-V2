@@ -61,7 +61,6 @@ public static class SettingsCatalog
         Int(LoyaltyPointExpiryMonths, 12, 1, 60, "Điểm hết hạn sau (tháng)"),
         Int(LoyaltyBirthdayVoucherValue, 50_000, 0, 1_000_000, "Giá trị voucher sinh nhật (₫); 0 = tắt"),
         Int(LoyaltyAdjustApprovalThreshold, 1000, 1, 100_000, "Điều chỉnh từ mức này cần người khác duyệt"),
-        Flag(LoyaltyClaimGuestOrders, false, "Gắn đơn vãng lai vào tài khoản"),
         Int(LoyaltyTierSilver, 300, 1, IntMax, "Điểm tích lũy lên hạng Bạc"),
         Int(LoyaltyTierGold, 1000, 1, IntMax, "Điểm tích lũy lên hạng Vàng"),
         Int(LoyaltyTierDiamond, 3000, 1, IntMax, "Điểm tích lũy lên hạng Kim cương"),

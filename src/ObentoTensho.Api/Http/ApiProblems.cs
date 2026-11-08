@@ -59,6 +59,8 @@ public static class ApiProblems
         [ErrorCodes.VoucherExhausted] = (StatusCodes.Status409Conflict, "Mã đã hết lượt dùng"),
         [ErrorCodes.DateOfBirthLocked] = (StatusCodes.Status409Conflict, "Không thể đổi ngày sinh lúc này, vui lòng liên hệ quán"),
         [ErrorCodes.EmailNotVerified] = (StatusCodes.Status409Conflict, "Cần xác thực email trước"),
+        [ErrorCodes.PhoneNotVerified] = (StatusCodes.Status409Conflict, "Cần xác minh số điện thoại trước"),
+        [ErrorCodes.PhoneTaken] = (StatusCodes.Status409Conflict, "Số điện thoại đã được tài khoản khác xác minh"),
         [ErrorCodes.StepUpRequired] = (StatusCodes.Status401Unauthorized, "Cần xác thực lại trước thao tác này"),
         [ErrorCodes.EmailTaken] = (StatusCodes.Status409Conflict, "Email đã được dùng"),
         [ErrorCodes.LastSuperAdmin] = (StatusCodes.Status409Conflict, "Không thể khóa hoặc hạ quyền SuperAdmin cuối cùng"),

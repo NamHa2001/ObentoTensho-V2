@@ -46,6 +46,7 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.EmailCanonical);
         builder.HasIndex(u => u.PhoneNumber);
+        builder.HasIndex(u => u.PhoneNumber, "UX_Users_VerifiedPhone").IsUnique().HasFilter("[IsPhoneVerified] = 1 AND [IsDeleted] = 0");
         builder.HasIndex(u => u.DeletionScheduledAtUtc).HasFilter("[DeletionScheduledAtUtc] IS NOT NULL");
 
         // Tra liên kết xác thực email / đặt lại mật khẩu theo băm token

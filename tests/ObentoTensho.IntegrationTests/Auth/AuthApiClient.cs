@@ -13,12 +13,14 @@ public sealed class AuthApiClient(HttpClient http)
 
     public static string NewEmail() => $"khach.{Guid.NewGuid():N}@example.com";
 
-    public Task<HttpResponseMessage> RegisterAsync(string email, string password = DefaultPassword) =>
+    public static string NewPhone() => "09" + Random.Shared.Next(10_000_000, 99_999_999).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    public Task<HttpResponseMessage> RegisterAsync(string email, string password = DefaultPassword, string? phone = null) =>
         http.PostAsJsonAsync("/api/v1/auth/register", new
         {
             fullName = "Nguyễn Văn An",
             email,
-            phoneNumber = "0912 345 678",
+            phoneNumber = phone ?? NewPhone(),
             password,
             dateOfBirth = (string?)null,
             preferredLang = (string?)null,

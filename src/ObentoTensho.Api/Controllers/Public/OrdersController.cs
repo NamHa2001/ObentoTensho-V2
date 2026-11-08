@@ -8,7 +8,7 @@ using ObentoTensho.Core.Orders.Services;
 
 namespace ObentoTensho.Api.Controllers.Public;
 
-// docs/srs/12 §8 (công khai). Không cần tài khoản; đang đăng nhập thì đơn gắn vào tài khoản.
+// docs/srs/12 §8 (công khai). Đặt món cần tài khoản khách đã xác minh SĐT; báo giá, theo dõi, hủy bằng token không cần.
 [ApiController]
 [Route("api/v1/orders")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
@@ -26,11 +26,10 @@ public sealed class OrdersController(PublicOrderService orders) : ControllerBase
         this.DataOrProblem(await orders.QuoteAsync(request, User.CustomerId(), cancellationToken));
 
     [HttpPost]
-    [AllowAnonymous]
+    [RequireCustomer]
     [EnableRateLimiting(RateLimitConfiguration.OrderPolicy)]
-    [ServiceFilter<GuestTurnstileFilter>]
     public async Task<IActionResult> Create(CreateOrderRequest request, CancellationToken cancellationToken) =>
-        this.CreatedOrProblem(await orders.CreateAsync(request, User.CustomerId(), cancellationToken));
+        this.CreatedOrProblem(await orders.CreateAsync(request, User.CustomerId() ?? Guid.Empty, cancellationToken));
 
     [HttpPost("lookup")]
     [AllowAnonymous]

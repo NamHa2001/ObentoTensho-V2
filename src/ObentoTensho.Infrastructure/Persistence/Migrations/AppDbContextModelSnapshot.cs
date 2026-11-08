@@ -399,6 +399,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasFilter("[ResetPasswordTokenHash] IS NOT NULL");
 
+                    b.HasIndex(new[] { "PhoneNumber" }, "UX_Users_VerifiedPhone")
+                        .IsUnique()
+                        .HasFilter("[IsPhoneVerified] = 1 AND [IsDeleted] = 0");
+
                     b.ToTable("Users", null, t =>
                         {
                             t.HasCheckConstraint("CK_Users_Email_Lowercase", "[Email] COLLATE Latin1_General_BIN2 = LOWER([Email]) COLLATE Latin1_General_BIN2");

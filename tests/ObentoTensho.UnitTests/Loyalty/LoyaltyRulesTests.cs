@@ -47,7 +47,6 @@ public sealed class LoyaltyRulesTests
     {
         public int VndPerPoint => 10_000;
 
-        public bool ClaimGuestOrders => false;
 
         public int ReservationPoints => 10;
 

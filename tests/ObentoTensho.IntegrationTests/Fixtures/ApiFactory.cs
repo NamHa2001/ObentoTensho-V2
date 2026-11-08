@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ObentoTensho.Core.Notifications.Abstractions;
+using ObentoTensho.Core.Verification.Abstractions;
 using ObentoTensho.Infrastructure.Messaging;
 using ObentoTensho.Infrastructure.Persistence;
 
@@ -23,6 +24,9 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
 
     // Thư "gửi" trong test nằm ở đây; hộp thư đi không tự chạy, test gọi ProcessOutboxAsync
     public FakeEmailSender Emails { get; } = new();
+
+    // SMS OTP "gửi" trong test nằm ở đây
+    public FakeSmsSender Sms { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -66,6 +70,7 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
             services.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly);
             services.AddTransient<Microsoft.AspNetCore.Hosting.IStartupFilter, TestRemoteIpStartupFilter>();
             services.AddSingleton<IEmailSender>(Emails);
+            services.AddSingleton<ISmsSender>(Sms);
 
             // Chỉ đếm khi test mở QueryCounter.Begin(); còn lại không ảnh hưởng gì
             services.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(QueryCounter.Instance));
@@ -93,14 +98,10 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
         _serverAddress = new UriBuilder(addresses.First()) { Host = "localhost" }.Uri;
     }
 
+    // Không theo chuyển hướng, không giữ cookie; đặt bàn/đặt món tự gắn khách đã xác minh SĐT (VerifiedCustomerHandler)
     public HttpClient CreateApiClient() =>
         _serverAddress is not null
-            ? new HttpClient(new SocketsHttpHandler { UseCookies = false, AllowAutoRedirect = false, UseProxy = false }) { BaseAddress = _serverAddress }
-            : CreateClient(new WebApplicationFactoryClientOptions
-            {
-                BaseAddress = new Uri("https://localhost"),
-                HandleCookies = false,
-                AllowAutoRedirect = false,
-            });
+            ? new HttpClient(new VerifiedCustomerHandler(connectionString) { InnerHandler = new SocketsHttpHandler { UseCookies = false, AllowAutoRedirect = false, UseProxy = false } }) { BaseAddress = _serverAddress }
+            : CreateDefaultClient(new Uri("https://localhost"), new VerifiedCustomerHandler(connectionString));
 
 }

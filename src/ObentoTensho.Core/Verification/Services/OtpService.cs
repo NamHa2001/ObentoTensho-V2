@@ -16,6 +16,7 @@ namespace ObentoTensho.Core.Verification.Services;
 public sealed class OtpService(
     IOtpRepository challenges,
     IOtpEmailOutbox emails,
+    ISmsSender sms,
     IOtpSettings settings,
     ISecureTokenService secureTokens,
     IUnitOfWork unitOfWork,
@@ -30,11 +31,45 @@ public sealed class OtpService(
         }
 
         var target = EmailAddress.Normalize(email);
+        var code = await CreateAsync(purpose, target, ipAddress, cancellationToken);
+        if (code is null)
+        {
+            return Result.Failure(ErrorCodes.RateLimited);
+        }
+
+        var lang = language is not null && AuthPolicy.SupportedLanguages.Contains(language, StringComparer.Ordinal) ? language : AuthPolicy.DefaultLanguage;
+        emails.EnqueueCode(target, lang, code, Guid.CreateVersion7());
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    // SĐT đã chuẩn hóa +84…; lưu mã trước rồi mới gửi SMS để không gửi mã không kiểm được.
+    // Nội dung không dấu: tin có dấu tính phí gấp đôi
+    public async Task<Result> SendSmsAsync(OtpPurpose purpose, string phoneNumber, string? ipAddress, CancellationToken cancellationToken)
+    {
+        var code = await CreateAsync(purpose, phoneNumber, ipAddress, cancellationToken);
+        if (code is null)
+        {
+            return Result.Failure(ErrorCodes.RateLimited);
+        }
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var minutes = Math.Max(1, settings.TtlSeconds / 60);
+        await sms.SendAsync(phoneNumber, string.Create(CultureInfo.InvariantCulture, $"Obento Tensho: ma xac minh cua ban la {code}, het han sau {minutes} phut. Khong chia se ma nay cho ai."), cancellationToken);
+        return Result.Success();
+    }
+
+    public Task<bool> VerifySmsAsync(OtpPurpose purpose, string phoneNumber, string? code, CancellationToken cancellationToken) =>
+        VerifyTargetAsync(purpose, phoneNumber, code, relatedEntityId: null, cancellationToken);
+
+    // null khi vượt giới hạn gửi
+    private async Task<string?> CreateAsync(OtpPurpose purpose, string target, string? ipAddress, CancellationToken cancellationToken)
+    {
         var targetHash = Hash(target);
         var ipHash = ipAddress is null ? null : Hash(ipAddress);
         if (await IsThrottledAsync(purpose, targetHash, ipHash, cancellationToken))
         {
-            return Result.Failure(ErrorCodes.RateLimited);
+            return null;
         }
 
         var now = clock.UtcNow;
@@ -48,17 +83,17 @@ public sealed class OtpService(
             IpHash = ipHash,
             CreatedAtUtc = now,
         });
-        var lang = language is not null && AuthPolicy.SupportedLanguages.Contains(language, StringComparer.Ordinal) ? language : AuthPolicy.DefaultLanguage;
-        emails.EnqueueCode(target, lang, code, Guid.CreateVersion7());
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success();
+        return code;
     }
 
     // Sai thì tăng số lần thử; sai đủ 5 lần thì mã hết hiệu lực, phải xin mã mới (có chờ 60 giây)
-    public async Task<bool> VerifyAsync(OtpPurpose purpose, string email, string? code, Guid? relatedEntityId, CancellationToken cancellationToken)
+    public Task<bool> VerifyAsync(OtpPurpose purpose, string email, string? code, Guid? relatedEntityId, CancellationToken cancellationToken) =>
+        VerifyTargetAsync(purpose, EmailAddress.Normalize(email), code, relatedEntityId, cancellationToken);
+
+    private async Task<bool> VerifyTargetAsync(OtpPurpose purpose, string target, string? code, Guid? relatedEntityId, CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
-        var targetHash = Hash(EmailAddress.Normalize(email));
+        var targetHash = Hash(target);
         var challenge = await challenges.FindUsableForUpdateAsync(purpose, targetHash, now, cancellationToken);
         if (challenge is null || string.IsNullOrEmpty(code) || code.Length != OtpPolicy.CodeLength)
         {

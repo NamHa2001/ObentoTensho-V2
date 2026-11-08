@@ -7,7 +7,6 @@ public interface ILoyaltySettings
     int VndPerPoint { get; }
 
     // BR-AUTH-17: gắn đơn vãng lai đã hoàn thành thì cộng điểm hồi tố
-    bool ClaimGuestOrders { get; }
 
     // BR-LOY-22: điểm mỗi lần check-in đặt bàn và trần mỗi tháng (giờ VN)
     int ReservationPoints { get; }
