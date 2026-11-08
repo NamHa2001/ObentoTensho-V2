@@ -15,7 +15,12 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireStaff]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AdminAccountController(StaffAdminService members, StaffStepUpService stepUp, StaffPasswordService passwords, HubTicketIssuer tickets) : ControllerBase
+public sealed class AdminAccountController(
+    StaffAdminService members,
+    StaffStepUpService stepUp,
+    StaffPasswordService passwords,
+    StaffOwnTwoFactorService twoFactor,
+    HubTicketIssuer tickets) : ControllerBase
 {
     // RT-09: vé một lần để nối /hubs/v1/staff, không đặt access token lên URL
     [HttpPost("realtime/ticket")]
@@ -30,6 +35,26 @@ public sealed class AdminAccountController(StaffAdminService members, StaffStepU
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
     public async Task<IActionResult> StepUp(StepUpRequest request, CancellationToken cancellationToken) =>
         this.DataOrProblem(await stepUp.VerifyAsync(User.StaffId(), request, cancellationToken));
+
+    // docs/srs/10 §4: tự bật 2FA (vai trò không bắt buộc), tạo lại mã khôi phục, tắt 2FA — hai việc sau cần step-up (SEC-61)
+    [HttpPost("auth/me/2fa/setup")]
+    public async Task<IActionResult> BeginTwoFactor(CancellationToken cancellationToken) =>
+        this.DataOrProblem(await twoFactor.BeginSetupAsync(User.StaffId(), cancellationToken));
+
+    [HttpPost("auth/me/2fa/setup/confirm")]
+    [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]
+    public async Task<IActionResult> ConfirmTwoFactor(TotpCodeRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await twoFactor.ConfirmSetupAsync(User.StaffId(), request, cancellationToken));
+
+    [HttpPost("auth/me/2fa/recovery-codes")]
+    [ServiceFilter<StepUpFilter>]
+    public async Task<IActionResult> RegenerateRecoveryCodes(CancellationToken cancellationToken) =>
+        this.DataOrProblem(await twoFactor.RegenerateRecoveryCodesAsync(User.StaffId(), cancellationToken));
+
+    [HttpPost("auth/me/2fa/disable")]
+    [ServiceFilter<StepUpFilter>]
+    public async Task<IActionResult> DisableTwoFactor(CancellationToken cancellationToken) =>
+        this.NoContentOrProblem(await twoFactor.DisableAsync(User.StaffId(), cancellationToken));
 
     [HttpPost("auth/me/change-password")]
     [EnableRateLimiting(RateLimitConfiguration.LoginPolicy)]

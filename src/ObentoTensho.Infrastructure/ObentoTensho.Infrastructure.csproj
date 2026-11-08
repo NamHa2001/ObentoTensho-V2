@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Security\Resources\common-passwords.txt" LogicalName="ObentoTensho.Infrastructure.Security.Resources.common-passwords.txt" />
+    <EmbeddedResource Include="Security\Resources\disposable-email-domains.txt" LogicalName="ObentoTensho.Infrastructure.Security.Resources.disposable-email-domains.txt" />
     <!-- WithCulture=false: đuôi .vi/.en/.ja là ngôn ngữ của mẫu, không để MSBuild tách thành assembly vệ tinh theo văn hóa -->
     <EmbeddedResource Include="Email\Templates\*.txt" LogicalName="EmailTemplates.%(Filename)%(Extension)" WithCulture="false" />
   </ItemGroup>

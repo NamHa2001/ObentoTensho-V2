@@ -1,4 +1,5 @@
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Loyalty.Abstractions;
@@ -15,6 +16,7 @@ public sealed class BirthdayVoucherService(
     ILoyaltySettings loyaltySettings,
     IVoucherSettings settings,
     IVoucherEmailOutbox emails,
+    IDisposableEmailDomains disposableEmails,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
@@ -31,7 +33,9 @@ public sealed class BirthdayVoucherService(
         var today = clock.TodayLocal;
         var includeLeapDay = today is { Month: 2, Day: 28 } && !DateTime.IsLeapYear(today.Year);
         var issued = 0;
-        foreach (var user in await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, BatchSize, cancellationToken))
+        // BR-AUTH-16: email dùng một lần không nhận ưu đãi
+        foreach (var user in (await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, BatchSize, cancellationToken))
+            .Where(u => !disposableEmails.IsDisposable(u.Email)))
         {
             issued += await IssueAsync(user, today, cancellationToken) ? 1 : 0;
         }

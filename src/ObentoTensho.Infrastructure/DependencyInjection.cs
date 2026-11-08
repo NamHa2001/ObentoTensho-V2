@@ -153,6 +153,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<ISecureTokenService, SecureTokenService>();
         services.AddSingleton<ICommonPasswordList, EmbeddedCommonPasswordList>();
+        services.AddSingleton<IDisposableEmailDomains, EmbeddedDisposableEmailDomains>();
 
         // SEC-16: thiếu hoặc yếu khóa ký JWT thì dừng ngay khi khởi động
         services.AddOptions<JwtOptions>().Bind(configuration.GetSection(JwtOptions.SectionName)).ValidateOnStart();

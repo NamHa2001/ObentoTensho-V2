@@ -41,6 +41,7 @@ public static class AuthConfiguration
         services.AddScoped<StaffSignInFlow>();
         services.AddScoped<StaffLoginService>();
         services.AddScoped<StaffTwoFactorService>();
+        services.AddScoped<StaffOwnTwoFactorService>();
         services.AddScoped<StaffPasswordService>();
         services.AddScoped<StaffSessionService>();
         services.AddScoped<StaffBootstrapService>();

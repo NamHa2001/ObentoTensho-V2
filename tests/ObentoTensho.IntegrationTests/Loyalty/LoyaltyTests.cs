@@ -156,9 +156,13 @@ public sealed class LoyaltyTests : IDisposable
         Assert.Equal((300, 0), await PointsAsync(userId));
 
         var approve = $"/api/v1/admin/loyalty/adjustments/{pending.GetProperty("id").GetGuid()}/approve";
-        Assert.Equal(ErrorCodes.FourEyesRequired, await AuthApiClient.ReadErrorCodeAsync(await _admin.SendAsync(HttpMethod.Post, approve, manager, new { note = (string?)null })));
-        Assert.Equal("approved", (await Data(_admin.SendAsync(HttpMethod.Post, approve, other, new { note = "Đã xem hợp đồng" }))).GetProperty("status").GetString());
-        Assert.Equal(ErrorCodes.InvalidTransition, await AuthApiClient.ReadErrorCodeAsync(await _admin.SendAsync(HttpMethod.Post, approve, other, new { note = (string?)null })));
+        // SEC-61: duyệt điều chỉnh điểm lớn phải nhập lại mật khẩu/mã 2FA
+        Assert.Equal(ErrorCodes.StepUpRequired, await AuthApiClient.ReadErrorCodeAsync(await _admin.SendAsync(HttpMethod.Post, approve, other, new { note = (string?)null })));
+        Assert.Equal((300, 0), await PointsAsync(userId));
+        Assert.Equal(ErrorCodes.FourEyesRequired, await AuthApiClient.ReadErrorCodeAsync(await _admin.SendAsync(HttpMethod.Post, approve, manager, new { note = (string?)null }, stepUp: await _admin.StepUpAsync(manager))));
+        var stepUp = await _admin.StepUpAsync(other);
+        Assert.Equal("approved", (await Data(_admin.SendAsync(HttpMethod.Post, approve, other, new { note = "Đã xem hợp đồng" }, stepUp: stepUp))).GetProperty("status").GetString());
+        Assert.Equal(ErrorCodes.InvalidTransition, await AuthApiClient.ReadErrorCodeAsync(await _admin.SendAsync(HttpMethod.Post, approve, other, new { note = (string?)null }, stepUp: stepUp)));
         Assert.Equal((1800, 0), await PointsAsync(userId));
 
         // Lễ tân không có quyền khách hàng

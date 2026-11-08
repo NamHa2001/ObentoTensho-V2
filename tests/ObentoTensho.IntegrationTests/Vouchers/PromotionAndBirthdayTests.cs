@@ -114,6 +114,7 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         var (verified, email) = await MemberAsync(emailVerified: true, Today.AddYears(-30));
         var (unverified, _) = await MemberAsync(emailVerified: false, Today.AddYears(-30));
         var (otherDay, _) = await MemberAsync(emailVerified: true, Today.AddDays(40).AddYears(-30));
+        var (disposable, _) = await MemberAsync(emailVerified: true, Today.AddYears(-30), $"khach.{Guid.NewGuid():N}@mailinator.com");
 
         await using (var scope = _factory.Services.CreateAsyncScope())
         {
@@ -126,6 +127,9 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         var voucher = await db.Vouchers.SingleAsync(v => v.OwnerUserId == verified);
         Assert.Equal((VoucherSource.Birthday, Today.Year, 50_000m, 1), (voucher.Source, voucher.BirthdayYear!.Value, voucher.DiscountValue, voucher.MaxUsageTotal!.Value));
         Assert.False(await db.Vouchers.AnyAsync(v => v.OwnerUserId == unverified || v.OwnerUserId == otherDay));
+
+        // BR-AUTH-16: email dùng một lần không nhận ưu đãi
+        Assert.False(await db.Vouchers.AnyAsync(v => v.OwnerUserId == disposable));
 
         await _factory.ProcessOutboxAsync();
         Assert.Contains(_factory.Emails.To(email), m => m.TextBody.Contains(voucher.Code, StringComparison.Ordinal));
@@ -207,9 +211,9 @@ public sealed class PromotionAndBirthdayTests : IDisposable
 
     private static string Slug(JsonElement promotion) => promotion.GetProperty("slug").GetString()!;
 
-    private async Task<(Guid Id, string Email)> MemberAsync(bool emailVerified, DateOnly dateOfBirth)
+    private async Task<(Guid Id, string Email)> MemberAsync(bool emailVerified, DateOnly dateOfBirth, string? address = null)
     {
-        var email = AuthApiClient.NewEmail();
+        var email = address ?? AuthApiClient.NewEmail();
         await new AuthApiClient(_http).RegisterAndLoginAsync(email);
         await using var db = _fixture.CreateContext();
         await db.Users.Where(u => u.Email == email).ExecuteUpdateAsync(s => s

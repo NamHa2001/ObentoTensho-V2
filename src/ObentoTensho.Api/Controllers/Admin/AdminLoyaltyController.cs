@@ -32,7 +32,9 @@ public sealed class AdminLoyaltyController(LoyaltyService loyalty) : ControllerB
     public async Task<IActionResult> Adjustments([FromQuery] ApprovalStatus? status, CancellationToken cancellationToken) =>
         this.Data(await loyalty.ListAdjustmentsAsync(status, cancellationToken));
 
+    // SEC-61: chỉ điều chỉnh vượt ngưỡng mới phải duyệt ⇒ duyệt là thao tác điều chỉnh điểm lớn, cần step-up
     [HttpPost("loyalty/adjustments/{id:guid}/approve")]
+    [ServiceFilter<StepUpFilter>]
     public async Task<IActionResult> Approve(Guid id, ReviewAdjustmentRequest request, CancellationToken cancellationToken) =>
         this.DataOrProblem(await loyalty.ApproveAsync(id, User.StaffId(), request.Note, cancellationToken));
 

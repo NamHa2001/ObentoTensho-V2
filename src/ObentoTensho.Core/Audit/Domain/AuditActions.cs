@@ -6,6 +6,8 @@ public static class AuditActions
     public const string StaffLoginSucceeded = "auth.staff.login_succeeded";
     public const string StaffLoginFailed = "auth.staff.login_failed";
     public const string StaffTwoFactorEnabled = "auth.staff.two_factor_enabled";
+    public const string StaffTwoFactorDisabled = "auth.staff.two_factor_disabled";
+    public const string StaffRecoveryCodesRegenerated = "auth.staff.recovery_codes_regenerated";
     public const string StaffRecoveryCodeUsed = "auth.staff.recovery_code_used";
     public const string StaffPasswordChanged = "auth.staff.password_changed";
     public const string StaffInviteAccepted = "auth.staff.invite_accepted";

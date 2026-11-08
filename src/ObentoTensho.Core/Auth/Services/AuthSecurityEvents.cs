@@ -48,6 +48,10 @@ public sealed class AuthSecurityEvents(IAuditTrail audit, IUnitOfWork unitOfWork
 
     public void RecordStaffStepUp(Staff member) => RecordStaff(AuditActions.StaffStepUp, member);
 
+    public void RecordStaffTwoFactorDisabled(Staff member) => RecordStaff(AuditActions.StaffTwoFactorDisabled, member);
+
+    public void RecordStaffRecoveryCodesRegenerated(Staff member) => RecordStaff(AuditActions.StaffRecoveryCodesRegenerated, member);
+
     public void RecordStaffPasswordChanged(Staff member) => RecordStaff(AuditActions.StaffPasswordChanged, member);
 
     public void RecordStaffInviteAccepted(Staff member) => RecordStaff(AuditActions.StaffInviteAccepted, member);

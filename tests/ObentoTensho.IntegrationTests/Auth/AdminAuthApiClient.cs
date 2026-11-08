@@ -75,10 +75,22 @@ public sealed class AdminAuthApiClient(ApiFactory factory, SqlServerFixture fixt
         return (await ReadDataAsync(confirm)).GetProperty("session").GetProperty("accessToken").GetString() ?? string.Empty;
     }
 
-    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string accessToken, object? body = null, string? ifMatch = null)
+    // SEC-61: mã step-up 5 phút (nhập lại mật khẩu)
+    public async Task<string> StepUpAsync(string accessToken)
+    {
+        var response = await SendAsync(HttpMethod.Post, "/api/v1/admin/auth/step-up", accessToken, new { password = Password, code = (string?)null });
+        return (await ReadDataAsync(response)).GetProperty("token").GetString()!;
+    }
+
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string accessToken, object? body = null, string? ifMatch = null, string? stepUp = null)
     {
         var request = new HttpRequestMessage(method, path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        if (stepUp is not null)
+        {
+            request.Headers.Add("X-Step-Up-Token", stepUp);
+        }
+
         if (body is not null)
         {
             request.Content = JsonContent.Create(body);
