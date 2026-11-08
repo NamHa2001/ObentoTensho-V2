@@ -35,6 +35,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    public DbSet<Jobs.JobRun> JobRuns => Set<Jobs.JobRun>();
+
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     public DbSet<TableArea> TableAreas => Set<TableArea>();

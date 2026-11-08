@@ -30,6 +30,7 @@ public static class CustomersConfiguration
         services.AddScoped<ReportService>();
         services.AddScoped<IRecurringJob, StatsRollupJob>();
         services.AddScoped<IRecurringJob, StatsReconcileJob>();
+        services.AddScoped<IRecurringJob, ObentoTensho.Core.Maintenance.Services.DataRetentionJob>();
         services.AddScoped<SettingsSeeder>();
         services.AddScoped<SettingsService>();
         services.AddScoped<CustomerAdminService>();

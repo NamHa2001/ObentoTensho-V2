@@ -46,11 +46,11 @@ internal sealed partial class RecurringJobWorker(
             }
 
             _lastRun[job.Name] = now;
-            await RunAsync(job, cancellationToken);
+            await RunAsync(job, scope.ServiceProvider, cancellationToken);
         }
     }
 
-    private async Task RunAsync(IRecurringJob job, CancellationToken cancellationToken)
+    private async Task RunAsync(IRecurringJob job, IServiceProvider services, CancellationToken cancellationToken)
     {
         try
         {
@@ -60,14 +60,34 @@ internal sealed partial class RecurringJobWorker(
                 return;
             }
 
+            var daily = job as IDailyJob;
+            var runs = services.GetRequiredService<IJobRunStore>();
+            var today = clock.TodayLocal;
+            if (daily is not null && !await IsDailyDueAsync(daily, runs, today, cancellationToken))
+            {
+                return;
+            }
+
             LogStarted(logger, job.Name);
             var processed = await job.RunAsync(cancellationToken);
+            if (daily is not null)
+            {
+                await runs.RecordAsync(job.Name, today, clock.UtcNow, cancellationToken);
+            }
+
             LogFinished(logger, job.Name, processed);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             LogFailed(logger, job.Name, ex);
         }
+    }
+
+    // Đã tới giờ (giờ VN) và hôm nay chưa chạy xong; lần trước lỗi thì chưa ghi ngày nên lượt sau thử lại
+    private async Task<bool> IsDailyDueAsync(IDailyJob job, IJobRunStore runs, DateOnly today, CancellationToken cancellationToken)
+    {
+        var nowLocal = TimeOnly.FromDateTime(clock.ToLocal(clock.UtcNow));
+        return nowLocal >= job.RunAtLocal && DailySchedule.IsDue(nowLocal, job.RunAtLocal, today, await runs.LastRunDateAsync(job.Name, cancellationToken));
     }
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Bắt đầu việc định kỳ {Job}.")]

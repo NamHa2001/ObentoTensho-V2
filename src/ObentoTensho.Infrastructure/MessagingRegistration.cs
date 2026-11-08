@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Notifications.Abstractions;
 using ObentoTensho.Core.Notifications.Services;
 using ObentoTensho.Core.Verification.Abstractions;
@@ -65,6 +66,7 @@ public static class MessagingRegistration
             .Validate(o => o.TickSeconds is >= 5 and <= 300, "Jobs:TickSeconds phải từ 5 đến 300.")
             .ValidateOnStart();
         services.AddSingleton<SqlJobLock>();
+        services.AddScoped<IJobRunStore, JobRunStore>();
         services.AddHostedService<RecurringJobWorker>();
         return services;
     }

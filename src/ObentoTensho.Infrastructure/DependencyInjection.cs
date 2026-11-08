@@ -12,6 +12,7 @@ using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Localization.Abstractions;
 using ObentoTensho.Core.Loyalty.Abstractions;
+using ObentoTensho.Core.Maintenance.Abstractions;
 using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
@@ -137,7 +138,7 @@ public static class DependencyInjection
         services.AddHostedService<SettingsRefreshWorker>();
     }
 
-    public static IServiceCollection AddSecurityFoundation(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddSecurityFoundation(this IServiceCollection services, IConfiguration configuration, bool isProduction = false)
     {
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IClock, SystemClock>();
@@ -164,6 +165,13 @@ public static class DependencyInjection
         // Khóa Data Protection mã hóa khóa TOTP: máy chủ phải đặt DataProtection:KeysPath tới thư mục bền
         var dataProtection = services.AddDataProtection().SetApplicationName("ObentoTensho");
         var keysPath = configuration["DataProtection:KeysPath"];
+
+        // SEC-16: khóa chỉ trong bộ nhớ thì khởi động lại là mất toàn bộ 2FA nhân viên và liên kết hủy bản tin
+        if (isProduction && string.IsNullOrWhiteSpace(keysPath))
+        {
+            throw new InvalidOperationException("Môi trường Production phải cấu hình DataProtection:KeysPath tới thư mục bền.");
+        }
+
         if (!string.IsNullOrWhiteSpace(keysPath))
         {
             dataProtection.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
@@ -191,6 +199,7 @@ public static class DependencyInjection
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddScoped<ISlugRedirectRepository, SlugRedirectRepository>();
+        services.AddScoped<IDataRetentionRepository, DataRetentionRepository>();
         services.AddSingleton<ITranslationCache, MemoryTranslationCache>();
         services.AddScoped<IContactEmailOutbox, ContactEmailOutbox>();
         services.AddScoped<INewsletterRepository, NewsletterRepository>();

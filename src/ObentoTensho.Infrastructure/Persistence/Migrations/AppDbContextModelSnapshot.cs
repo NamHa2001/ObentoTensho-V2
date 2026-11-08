@@ -3190,6 +3190,22 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ObentoTensho.Infrastructure.Jobs.JobRun", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("LastRunAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateOnly>("LastRunLocalDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("JobRuns", (string)null);
+                });
+
             modelBuilder.Entity("ObentoTensho.Infrastructure.Messaging.OutboxMessage", b =>
                 {
                     b.Property<long>("Id")

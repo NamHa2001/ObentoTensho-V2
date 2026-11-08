@@ -14,9 +14,9 @@ builder.WebHost.ConfigureKestrel(o =>
 });
 
 builder.Services.AddApiControllers();
-builder.Services.AddHealthChecks();
+builder.Services.AddAppHealthChecks();
 builder.Services.AddPersistence(builder.Configuration);
-builder.Services.AddSecurityFoundation(builder.Configuration);
+builder.Services.AddSecurityFoundation(builder.Configuration, builder.Environment.IsProduction());
 builder.Services.AddMessaging(builder.Configuration, builder.Environment.IsProduction());
 builder.Services.AddWebOrigins(builder.Configuration);
 builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
@@ -61,7 +61,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapRealtimeHubs();
-app.MapHealthChecks("/health/live").AllowAnonymous();
+app.MapAppHealthChecks();
 
 // Trang tài liệu + thử API chỉ có ở máy dev, không bao giờ mở ở môi trường chạy thật
 if (app.Environment.IsDevelopment())
