@@ -19,6 +19,7 @@ public static class RealtimeConfiguration
         services.AddSingleton<HubTicketStore>();
         services.AddSingleton<HubTicketIssuer>();
         services.AddSingleton<HubConnectionTracker>();
+        services.AddSingleton<RealtimeMetrics>();
         services.AddSingleton<HubInvocationLimitFilter>();
         services.AddSingleton<HubSessionSweeper>();
         services.AddHostedService(sp => sp.GetRequiredService<HubSessionSweeper>());

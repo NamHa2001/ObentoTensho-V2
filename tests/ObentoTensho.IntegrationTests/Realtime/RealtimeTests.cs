@@ -190,6 +190,64 @@ public sealed class RealtimeTests : IAsyncDisposable
         Assert.Equal(HubConnectionState.Connected, member.Connection.State);
     }
 
+    // PERF-63: đo số kết nối đang mở và độ trễ từ hàng chờ tới khi gửi, gắn nhãn theo tên sự kiện
+    [Fact]
+    public async Task Do_so_ket_noi_va_do_tre_gui_su_kien()
+    {
+        var scope = _factory.Services.GetRequiredService<System.Diagnostics.Metrics.IMeterFactory>();
+        var connections = new List<long>();
+        var delays = new List<(double Ms, string? Event)>();
+        var sent = new List<string?>();
+        using var listener = new System.Diagnostics.Metrics.MeterListener();
+        listener.InstrumentPublished = (instrument, l) =>
+        {
+            if (string.Equals(instrument.Meter.Name, RealtimeMetrics.MeterName, StringComparison.Ordinal) && ReferenceEquals(instrument.Meter.Scope, scope))
+            {
+                l.EnableMeasurementEvents(instrument);
+            }
+        };
+        static string? EventOf(ReadOnlySpan<KeyValuePair<string, object?>> tags) => tags.Length > 0 ? tags[0].Value as string : null;
+        listener.SetMeasurementEventCallback<int>((instrument, value, _, _) =>
+        {
+            lock (connections)
+            {
+                connections.Add(value);
+            }
+        });
+        listener.SetMeasurementEventCallback<double>((instrument, value, tags, _) =>
+        {
+            lock (delays)
+            {
+                delays.Add((value, EventOf(tags)));
+            }
+        });
+        listener.SetMeasurementEventCallback<long>((instrument, value, tags, _) =>
+        {
+            lock (sent)
+            {
+                sent.Add(instrument.Name + ":" + EventOf(tags));
+            }
+        });
+        listener.Start();
+
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var reception = await StaffAsync(StaffRole.Reception);
+        listener.RecordObservableInstruments();
+        Assert.True(connections.Count > 0 && connections[^1] >= 1, "Phải đếm được kết nối hub đang mở");
+
+        var code = await ReservationApiClient.CodeOf(await new ReservationApiClient(_http).CreateAsync(ReservationApiClient.Booking(TestSchedule.Tomorrow)));
+        await reception.NextAsync(RealtimeEventNames.ReservationCreated, Code(code));
+        lock (delays)
+        {
+            Assert.Contains(delays, d => string.Equals(d.Event, RealtimeEventNames.ReservationCreated, StringComparison.Ordinal) && d.Ms >= 0 && d.Ms < 5000);
+        }
+
+        lock (sent)
+        {
+            Assert.Contains("obento.realtime.events.sent:" + RealtimeEventNames.ReservationCreated, sent, StringComparer.Ordinal);
+        }
+    }
+
     [Fact]
     public void Ve_song_30_giay_xem_khong_tieu_ve_doi_thi_tieu_ve()
     {

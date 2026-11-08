@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading.Channels;
 using ObentoTensho.Core.Realtime.Domain;
 
@@ -17,5 +18,6 @@ public sealed class RealtimeFeed
 
     public ChannelReader<RealtimeMessage> Reader => _channel.Reader;
 
-    public void Enqueue(RealtimeMessage message) => _channel.Writer.TryWrite(message);
+    public void Enqueue(RealtimeMessage message) =>
+        _channel.Writer.TryWrite(message with { EnqueuedTimestamp = Stopwatch.GetTimestamp() });
 }

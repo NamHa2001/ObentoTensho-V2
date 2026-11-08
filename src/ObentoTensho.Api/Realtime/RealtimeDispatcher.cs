@@ -12,6 +12,7 @@ public sealed partial class RealtimeDispatcher(
     IHubContext<StaffHub> staffHub,
     IHubContext<PublicHub> publicHub,
     IServiceScopeFactory scopes,
+    RealtimeMetrics metrics,
     ILogger<RealtimeDispatcher> logger) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -21,9 +22,11 @@ public sealed partial class RealtimeDispatcher(
             try
             {
                 await SendAsync(message, stoppingToken);
+                metrics.Sent(message.Event, message.EnqueuedTimestamp);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
+                metrics.Failed(message.Event);
                 LogFailed(logger, message.Event, ex);
             }
         }

@@ -13,6 +13,17 @@ public sealed class HubConnectionTracker
     private readonly Dictionary<string, Entry> _connections = new(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _counts = new(StringComparer.Ordinal);
 
+    public int Count
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _connections.Count;
+            }
+        }
+    }
+
     public bool TryAdd(HubCallerContext context, string ipKey, HubIdentity? identity)
     {
         ArgumentNullException.ThrowIfNull(context);
