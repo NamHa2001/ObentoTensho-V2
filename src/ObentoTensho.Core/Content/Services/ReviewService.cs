@@ -16,6 +16,7 @@ namespace ObentoTensho.Core.Content.Services;
 // FR-CNT-05: khách đánh giá món trong đơn hoàn thành của chính mình; công khai chỉ đánh giá đã duyệt
 public sealed class ReviewService(
     IReviewRepository reviews,
+    IPublicReviewCache publicCache,
     IUnitOfWork unitOfWork,
     IClock clock,
     IAuditTrail audit,
@@ -25,10 +26,27 @@ public sealed class ReviewService(
     public const int MaxPageSize = 50;
     private const string Entity = "review";
 
-    public async Task<PagedResponse<PublicReviewDto>> ListPublicAsync(int? menuItemId, int page, int pageSize, CancellationToken cancellationToken)
+    public const int DefaultPageSize = 10;
+
+    // Chỉ cache vài trang đầu với cỡ trang mặc định (khách hay xem nhất); trang/cỡ tùy ý hoặc mã món chưa kiểm
+    // thì đọc thẳng — để không ai nhồi được vô số khóa vào bộ nhớ bằng tham số ngẫu nhiên
+    private const int CachedPages = 3;
+
+    public async Task<PagedResponse<PublicReviewDto>> ListPublicAsync(int? menuItemId, int page, int pageSize, bool cacheable, CancellationToken cancellationToken)
     {
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
+        if (!cacheable || page > CachedPages || pageSize != DefaultPageSize)
+        {
+            return await LoadPublicAsync(menuItemId, page, pageSize, cancellationToken);
+        }
+
+        var key = string.Create(CultureInfo.InvariantCulture, $"{menuItemId ?? 0}:{page}");
+        return await publicCache.GetOrCreateAsync(key, ct => LoadPublicAsync(menuItemId, page, pageSize, ct), cancellationToken);
+    }
+
+    private async Task<PagedResponse<PublicReviewDto>> LoadPublicAsync(int? menuItemId, int page, int pageSize, CancellationToken cancellationToken)
+    {
         var (items, total) = await reviews.ListAsync(ReviewStatus.Approved, menuItemId, page, pageSize, cancellationToken);
         return new PagedResponse<PublicReviewDto>(
             items.Select(row => new PublicReviewDto(
@@ -121,7 +139,9 @@ public sealed class ReviewService(
         review.Status = ReviewStatus.Pending;
         review.ReviewedAtUtc = null;
         review.ReviewedByStaffId = null;
-        return await unitOfWork.TrySaveAsync(() => ToDto(review), ErrorCodes.ReviewExists, cancellationToken);
+        var saved = await unitOfWork.TrySaveAsync(() => ToDto(review), ErrorCodes.ReviewExists, cancellationToken);
+        publicCache.Invalidate();
+        return saved;
     }
 
     public async Task<Result> DeleteAsync(Guid userId, int id, CancellationToken cancellationToken)
@@ -138,7 +158,9 @@ public sealed class ReviewService(
 
         audit.Record(new AuditEntry($"content.{Entity}.deleted", Entity, review.Id.ToString(CultureInfo.InvariantCulture), Before: new { review.OrderId, review.MenuItemId, review.Rating }));
         reviews.Remove(review);
-        return await unitOfWork.TrySaveAsync(ErrorCodes.ReviewExists, cancellationToken);
+        var deleted = await unitOfWork.TrySaveAsync(ErrorCodes.ReviewExists, cancellationToken);
+        publicCache.Invalidate();
+        return deleted;
     }
 
     private MyReviewDto ToDto(Review r) =>

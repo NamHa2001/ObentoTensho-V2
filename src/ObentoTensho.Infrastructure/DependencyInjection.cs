@@ -59,6 +59,7 @@ public static class DependencyInjection
             sql => sql.EnableRetryOnFailure().CommandTimeout(CommandTimeoutSeconds)));
 
         services.AddMemoryCache();
+        AddPublicCaches(services);
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         AddRealtime(services);
         services.AddScoped<IUserRepository, UserRepository>();
@@ -69,7 +70,6 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<ITableLayoutRepository, TableLayoutRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
-        services.AddSingleton<IPublicScheduleCache, MemoryPublicScheduleCache>();
         services.AddSingleton<IActionThrottle, MemoryActionThrottle>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationEmailOutbox, ReservationEmailOutbox>();
@@ -84,12 +84,9 @@ public static class DependencyInjection
         services.AddScoped<IImageRepository, ImageRepository>();
         AddContent(services);
         services.AddScoped<IStaticPageRepository, StaticPageRepository>();
-        services.AddSingleton<IPublicContentCache, MemoryPublicContentCache>();
         services.AddSingleton<IImageProcessor, NetVipsImageProcessor>();
         services.AddSingleton<IImageFileStore, LocalImageFileStore>();
-        services.AddSingleton<IPromotionCache, MemoryPromotionCache>();
         services.AddScoped<IOrderEmailOutbox, OrderEmailOutbox>();
-        services.AddSingleton<IMenuCache, MemoryMenuCache>();
         services.AddSingleton<IHtmlSanitizer, HtmlSanitizerAdapter>();
         services.AddSingleton<IMenuSpreadsheet, ClosedXmlMenuSpreadsheet>();
 
@@ -184,6 +181,16 @@ public static class DependencyInjection
     }
 
     // Sự kiện realtime gom theo phạm vi, phát sau commit (docs/srs/06 §B.2)
+    // PERF-11: cache ngắn cho dữ liệu công khai, xóa ngay khi quản trị sửa
+    private static void AddPublicCaches(IServiceCollection services)
+    {
+        services.AddSingleton<IPublicScheduleCache, MemoryPublicScheduleCache>();
+        services.AddSingleton<IPublicContentCache, MemoryPublicContentCache>();
+        services.AddSingleton<IPublicReviewCache, MemoryPublicReviewCache>();
+        services.AddSingleton<IPromotionCache, MemoryPromotionCache>();
+        services.AddSingleton<IMenuCache, MemoryMenuCache>();
+    }
+
     private static void AddRealtime(IServiceCollection services)
     {
         services.AddSingleton<RealtimeFeed>();

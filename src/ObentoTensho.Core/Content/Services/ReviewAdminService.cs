@@ -16,6 +16,7 @@ namespace ObentoTensho.Core.Content.Services;
 // BR-CNT-13: duyệt, từ chối, trả lời. If-Match để không duyệt nhầm nội dung khách vừa sửa
 public sealed class ReviewAdminService(
     IReviewRepository reviews,
+    IPublicReviewCache publicCache,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock,
@@ -94,7 +95,9 @@ public sealed class ReviewAdminService(
 
         unitOfWork.ExpectRowVersion(review, version);
         change(review);
-        return await unitOfWork.TrySaveAsync(ErrorCodes.ReviewExists, cancellationToken);
+        var saved = await unitOfWork.TrySaveAsync(ErrorCodes.ReviewExists, cancellationToken);
+        publicCache.Invalidate();
+        return saved;
     }
 
     private static string Id(Review review) => review.Id.ToString(CultureInfo.InvariantCulture);

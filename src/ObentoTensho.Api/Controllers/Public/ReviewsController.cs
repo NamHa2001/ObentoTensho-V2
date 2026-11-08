@@ -18,7 +18,7 @@ public sealed class ReviewsController(ReviewService reviews) : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken cancellationToken = default) =>
-        Ok(await reviews.ListPublicAsync(menuItemId, page, pageSize, cancellationToken));
+        Ok(await reviews.ListPublicAsync(menuItemId, page, pageSize, cacheable: menuItemId is null, cancellationToken));
 
     [HttpGet("mine")]
     [RequireCustomer]

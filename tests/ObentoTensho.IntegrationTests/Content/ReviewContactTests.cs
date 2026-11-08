@@ -175,6 +175,68 @@ public sealed class ReviewContactTests : IDisposable
         Assert.False(await IsPublicAsync(id, menu.Rice));
     }
 
+    // PERF-11/12: trang đầu danh sách công khai được cache 60 giây, xóa ngay khi duyệt/từ chối/sửa/xóa đánh giá
+    [Fact]
+    public async Task Danh_sach_cong_khai_duoc_cache_va_xoa_cache_khi_doi()
+    {
+        var menu = await MenuAsync();
+        var customer = await CustomerAsync();
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var first = await CreateReviewAsync(customer, await OrderAsync(customer, menu.Rice, menu.Small), menu.Rice, "Lần một");
+        var second = await CreateReviewAsync(customer, await OrderAsync(customer, menu.Rice, menu.Small), menu.Rice, "Lần hai");
+        string slug, teaSlug;
+        await using (var db = _fixture.CreateContext())
+        {
+            slug = await db.MenuItems.Where(i => i.Id == menu.Rice).Select(i => i.Slug).SingleAsync();
+            teaSlug = await db.MenuItems.Where(i => i.Id == menu.Tea).Select(i => i.Slug).SingleAsync();
+        }
+
+        var pages = new[] { Reviews, $"/api/v1/menu/items/{slug}/reviews" };
+        async Task<string?> CommentAsync(string page, int id) =>
+            (await ListAsync(await _http.GetAsync(page))).EnumerateArray().FirstOrDefault(r => r.GetProperty("id").GetInt32() == id) is { ValueKind: JsonValueKind.Object } row
+                ? row.GetProperty("comment").GetString()
+                : null;
+
+        await ApproveAsync(manager, first);
+        await ApproveAsync(manager, second);
+        foreach (var page in pages)
+        {
+            Assert.Equal("Lần một", await CommentAsync(page, first));
+        }
+
+        // Sửa thẳng CSDL (không qua dịch vụ): trang đang cache vẫn trả bản cũ, trang không cache thấy ngay
+        await using (var db = _fixture.CreateContext())
+        {
+            await db.Reviews.Where(r => r.Id == first).ExecuteUpdateAsync(x => x.SetProperty(r => r.Comment, "Đổi ngầm"));
+        }
+
+        foreach (var page in pages)
+        {
+            Assert.Equal("Lần một", await CommentAsync(page, first));
+        }
+
+        Assert.Equal("Đổi ngầm", await CommentAsync($"{Reviews}?pageSize=50", first));
+        Assert.Equal("Đổi ngầm", await CommentAsync($"{Reviews}?menuItemId={menu.Rice}", first));
+
+        // Trang của món khác có khóa cache riêng, không lẫn đánh giá của món này
+        Assert.Null(await CommentAsync($"/api/v1/menu/items/{teaSlug}/reviews", first));
+
+        // Quản trị từ chối một đánh giá ⇒ mọi trang cache bị bỏ
+        Assert.Equal(HttpStatusCode.NoContent, (await _admin.SendAsync(HttpMethod.Post, $"{Admin}/reviews/{second}/reject", manager, null, Etag(await AdminRowAsync(manager, second)))).StatusCode);
+        foreach (var page in pages)
+        {
+            Assert.Equal("Đổi ngầm", await CommentAsync(page, first));
+            Assert.Null(await CommentAsync(page, second));
+        }
+
+        // Khách sửa đánh giá đã duyệt ⇒ quay lại chờ duyệt, biến mất khỏi trang cache ngay
+        Assert.Equal(HttpStatusCode.OK, (await SendAsync(HttpMethod.Put, $"{Reviews}/{first}", customer, new { rating = 4, comment = "Sửa" })).StatusCode);
+        foreach (var page in pages)
+        {
+            Assert.Null(await CommentAsync(page, first));
+        }
+    }
+
     [Fact]
     public async Task Sua_sau_khi_duyet_quay_lai_cho_va_qua_24_gio_thi_khoa()
     {

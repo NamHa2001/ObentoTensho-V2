@@ -58,6 +58,6 @@ public sealed class MenuController(PublicMenuService menu, ReviewService reviews
     public async Task<IActionResult> Reviews(string slug, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
     {
         var item = await menu.FindVisibleIdAsync(slug, cancellationToken);
-        return item.IsSuccess ? Ok(await reviews.ListPublicAsync(item.Value, page, pageSize, cancellationToken)) : this.ToProblem(item);
+        return item.IsSuccess ? Ok(await reviews.ListPublicAsync(item.Value, page, pageSize, cacheable: true, cancellationToken)) : this.ToProblem(item);
     }
 }
