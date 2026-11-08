@@ -19,8 +19,8 @@ public interface IVoucherRepository
     // Xuất Excel: cùng bộ lọc với danh sách, không phân trang, có trần
     Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken);
 
-    // BR-LOY-09/20: khách có sinh nhật ngày này, email đã xác thực, chưa có voucher sinh nhật năm nay
-    Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, int limit, CancellationToken cancellationToken);
+    // BR-LOY-09/20: khách có sinh nhật ngày này, email đã xác thực, chưa có voucher sinh nhật năm nay; đọc theo lô, sau afterId
+    Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, Guid? afterId, int limit, CancellationToken cancellationToken);
 
     Task<bool> PromotionExistsAsync(int promotionId, CancellationToken cancellationToken);
 

@@ -144,8 +144,8 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         var vouchers = scope.ServiceProvider.GetRequiredService<IVoucherRepository>();
 
         // Năm chưa cấp voucher nào nên chỉ phụ thuộc điều kiện ngày
-        Assert.Contains(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: true, 2099, 100_000, CancellationToken.None), u => u.Id == leap);
-        Assert.DoesNotContain(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: false, 2099, 100_000, CancellationToken.None), u => u.Id == leap);
+        Assert.Contains(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: true, 2099, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
+        Assert.DoesNotContain(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: false, 2099, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
     }
 
     [Fact]
@@ -210,6 +210,42 @@ public sealed class PromotionAndBirthdayTests : IDisposable
     };
 
     private static string Slug(JsonElement promotion) => promotion.GetProperty("slug").GetString()!;
+
+    // Hơn một lô (500) tài khoản email dùng một lần đứng trước khách thật theo thứ tự Id: khách thật vẫn nhận voucher
+    [Fact]
+    public async Task Voucher_sinh_nhat_khong_bi_tai_khoan_email_tam_chiem_cho()
+    {
+        var (template, _) = await MemberAsync(emailVerified: true, Today.AddYears(-25), $"mau.{Guid.NewGuid():N}@mailinator.com");
+        var (real, _) = await MemberAsync(emailVerified: true, Today.AddYears(-25));
+        await using (var db = _fixture.CreateContext())
+        {
+            // Nhân bản tài khoản mẫu; nhóm cuối của Id nhỏ nhất nên SQL Server xếp chúng trước mọi Id thật
+            var tag = Guid.NewGuid().ToString("N")[..8];
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                DECLARE @cols nvarchar(max) = (SELECT STRING_AGG(QUOTENAME(name), ',') FROM sys.columns
+                    WHERE object_id = OBJECT_ID('Users') AND is_computed = 0 AND system_type_id <> 189
+                    AND name NOT IN ('Id', 'Email', 'EmailCanonical') AND name NOT LIKE '%TokenHash');
+                DECLARE @sql nvarchar(max) = N'INSERT INTO [Users] ([Id], [Email], [EmailCanonical], ' + @cols + N')
+                    SELECT CONVERT(uniqueidentifier, @tag + ''-0000-0000-0000-'' + RIGHT(''00000000000'' + CAST(x.n AS varchar(12)), 12)),
+                        CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), CONCAT(''tam'', x.n, ''.'', @tag, ''@mailinator.com''), ' + @cols + N'
+                    FROM [Users] CROSS JOIN (SELECT TOP 510 ROW_NUMBER() OVER (ORDER BY (SELECT 1)) AS n FROM sys.all_objects) AS x
+                    WHERE [Id] = @src';
+                EXEC sp_executesql @sql, N'@tag varchar(8), @src uniqueidentifier', @tag = {0}, @src = {1};
+                """,
+                tag,
+                template);
+        }
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            await scope.ServiceProvider.GetRequiredService<BirthdayVoucherService>().IssueDueAsync(CancellationToken.None);
+        }
+
+        await using var check = _fixture.CreateContext();
+        Assert.True(await check.Vouchers.AnyAsync(v => v.OwnerUserId == real && v.Source == VoucherSource.Birthday));
+        Assert.False(await check.Vouchers.AnyAsync(v => v.OwnerUserId == template));
+    }
 
     private async Task<(Guid Id, string Email)> MemberAsync(bool emailVerified, DateOnly dateOfBirth, string? address = null)
     {

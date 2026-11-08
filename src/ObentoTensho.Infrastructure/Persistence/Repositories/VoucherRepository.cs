@@ -31,12 +31,13 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
     public async Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken) =>
         await Filter(query).OrderByDescending(v => v.Id).Take(limit).ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, int limit, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, Guid? afterId, int limit, CancellationToken cancellationToken) =>
         await db.Users.AsNoTracking()
             .Where(u => u.IsActive && !u.IsDeleted && u.IsEmailVerified && u.DateOfBirth != null
                 && ((u.DateOfBirth.Value.Month == month && u.DateOfBirth.Value.Day == day)
                     || (includeLeapDay && u.DateOfBirth.Value.Month == 2 && u.DateOfBirth.Value.Day == 29))
-                && !db.Vouchers.Any(v => v.OwnerUserId == u.Id && v.BirthdayYear == year))
+                && !db.Vouchers.Any(v => v.OwnerUserId == u.Id && v.BirthdayYear == year)
+                && (afterId == null || u.Id.CompareTo(afterId.Value) > 0))
             .OrderBy(u => u.Id)
             .Take(limit)
             .ToListAsync(cancellationToken);

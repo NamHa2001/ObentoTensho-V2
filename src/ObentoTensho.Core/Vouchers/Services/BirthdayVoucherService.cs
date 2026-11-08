@@ -33,14 +33,27 @@ public sealed class BirthdayVoucherService(
         var today = clock.TodayLocal;
         var includeLeapDay = today is { Month: 2, Day: 28 } && !DateTime.IsLeapYear(today.Year);
         var issued = 0;
-        // BR-AUTH-16: email dùng một lần không nhận ưu đãi
-        foreach (var user in (await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, BatchSize, cancellationToken))
-            .Where(u => !disposableEmails.IsDisposable(u.Email)))
-        {
-            issued += await IssueAsync(user, today, cancellationToken) ? 1 : 0;
-        }
 
-        return issued;
+        // Đọc hết theo lô (khóa Id tăng dần): tài khoản email dùng một lần không bao giờ nhận voucher nên lần nào cũng
+        // còn "đến hạn" — chỉ đọc một lô thì chúng có thể chiếm chỗ và khách thật phía sau không bao giờ tới lượt
+        Guid? after = null;
+        while (true)
+        {
+            var batch = await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, after, BatchSize, cancellationToken);
+
+            // BR-AUTH-16: email dùng một lần không nhận ưu đãi
+            foreach (var user in batch.Where(u => !disposableEmails.IsDisposable(u.Email)))
+            {
+                issued += await IssueAsync(user, today, cancellationToken) ? 1 : 0;
+            }
+
+            if (batch.Count < BatchSize)
+            {
+                return issued;
+            }
+
+            after = batch[^1].Id;
+        }
     }
 
     private async Task<bool> IssueAsync(User user, DateOnly today, CancellationToken cancellationToken)
