@@ -9,6 +9,7 @@ using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Auth.Services;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Customers.Abstractions;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Settings.Abstractions;
 using ObentoTensho.Core.Settings.Domain;
@@ -24,11 +25,14 @@ public sealed class SettingsService(
     IImageRepository images,
     IStaffRepository staff,
     IAdminEmailOutbox adminEmails,
+    TranslationProgressService translations,
+    ContentLanguages languages,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
     private const string Entity = "SystemSetting";
+    private const int MaxMissingListed = 200;
 
     public async Task<IReadOnlyList<SettingDto>> ListAsync(CancellationToken cancellationToken)
     {
@@ -49,6 +53,11 @@ public sealed class SettingsService(
         if (errors.Count > 0)
         {
             return Result.Failure(ErrorCodes.ValidationFailed, errors);
+        }
+
+        if (await CheckLocalesAsync(request.Values, cancellationToken) is { } localeFailure)
+        {
+            return localeFailure;
         }
 
         var protectedKeys = request.Values.Keys.Where(k => SettingsCatalog.Find(k) is { Protected: true }).ToArray();
@@ -161,6 +170,37 @@ public sealed class SettingsService(
         }
 
         return errors;
+    }
+
+    // BR-I18N-06: tiếng Việt luôn bật; ngôn ngữ mới chỉ bật khi đủ bản dịch đã duyệt, trả danh sách còn thiếu
+    private async Task<Result?> CheckLocalesAsync(IReadOnlyDictionary<string, string> values, CancellationToken cancellationToken)
+    {
+        if (!values.TryGetValue(SettingKeys.I18nEnabledLocales, out var value))
+        {
+            return null;
+        }
+
+        var next = ContentLanguages.Parse(value);
+        if (!next.Contains(ContentLanguages.Source, StringComparer.Ordinal))
+        {
+            return Result.Failure(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                [SettingKeys.I18nEnabledLocales] = [FieldErrorCodes.Required],
+            });
+        }
+
+        var missing = new List<string>();
+        foreach (var lang in next.Except(languages.Enabled(), StringComparer.Ordinal))
+        {
+            missing.AddRange((await translations.MissingForEnableAsync(lang, cancellationToken)).Select(m => $"{lang}:{m}"));
+        }
+
+        return missing.Count == 0
+            ? null
+            : Result.Failure(ErrorCodes.LocaleNotReady, new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                [SettingKeys.I18nEnabledLocales] = [.. missing.Take(MaxMissingListed)],
+            });
     }
 
     // BR-LOY-03: ngưỡng hạng tăng dần, xét cả giá trị sắp ghi lẫn giá trị đang có

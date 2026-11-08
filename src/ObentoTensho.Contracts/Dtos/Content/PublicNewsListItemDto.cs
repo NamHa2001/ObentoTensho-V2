@@ -10,4 +10,6 @@ public sealed record PublicNewsListItemDto(
     ImageDto? Thumbnail,
     string? CategorySlug,
     string AuthorDisplayName,
-    DateTime PublishedAtUtc);
+    DateTime PublishedAtUtc,
+    string ContentLang,
+    bool IsFallback);

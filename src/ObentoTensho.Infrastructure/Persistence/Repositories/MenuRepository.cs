@@ -160,6 +160,16 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
         return new OrderableMenu(items, links, groups, options);
     }
 
+    public async Task<IReadOnlyList<MenuTranslation>> ListTranslationsByLangAsync(string lang, CancellationToken cancellationToken)
+    {
+        var translations = new List<MenuTranslation>();
+        translations.AddRange(await db.Set<MenuCategoryTranslation>().AsNoTracking().Where(t => t.Lang == lang).ToListAsync(cancellationToken));
+        translations.AddRange(await db.Set<MenuItemTranslation>().AsNoTracking().Where(t => t.Lang == lang).ToListAsync(cancellationToken));
+        translations.AddRange(await db.Set<OptionGroupTranslation>().AsNoTracking().Where(t => t.Lang == lang).ToListAsync(cancellationToken));
+        translations.AddRange(await db.Set<OptionTranslation>().AsNoTracking().Where(t => t.Lang == lang).ToListAsync(cancellationToken));
+        return translations;
+    }
+
     public async Task<PublicMenuData> LoadPublicDataAsync(CancellationToken cancellationToken)
     {
         var categories = await db.MenuCategories.AsNoTracking().Where(c => c.IsActive).ToListAsync(cancellationToken);

@@ -5,6 +5,7 @@ using ObentoTensho.Core.Reports.Domain;
 using ObentoTensho.Core.Settings.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Localization.Domain;
 using ObentoTensho.Core.Loyalty.Domain;
 using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Menu.Domain;
@@ -75,6 +76,16 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<OptionGroupTranslation> OptionGroupTranslations => Set<OptionGroupTranslation>();
 
     public DbSet<OptionTranslation> OptionTranslations => Set<OptionTranslation>();
+
+    public DbSet<PromotionTranslation> PromotionTranslations => Set<PromotionTranslation>();
+
+    public DbSet<BannerTranslation> BannerTranslations => Set<BannerTranslation>();
+
+    public DbSet<GalleryTranslation> GalleryTranslations => Set<GalleryTranslation>();
+
+    public DbSet<NewsTranslation> NewsTranslations => Set<NewsTranslation>();
+
+    public DbSet<StaticPageTranslation> StaticPageTranslations => Set<StaticPageTranslation>();
 
     public DbSet<LoyaltyEntry> LoyaltyPoints => Set<LoyaltyEntry>();
 

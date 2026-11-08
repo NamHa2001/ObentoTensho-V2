@@ -24,6 +24,11 @@ public interface INewsRepository
     // Bản được theo dõi để sửa; includeDeleted để khôi phục từ thùng rác
     Task<NewsArticle?> FindAsync(int id, bool includeDeleted, CancellationToken cancellationToken);
 
+    // Bài khách đang thấy, đủ nội dung (tiến độ dịch)
+    Task<IReadOnlyList<NewsArticle>> ListVisibleAsync(DateTime nowUtc, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<NewsArticle>> ListByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken);
+
     Task<NewsArticle?> FindBySlugAsync(string slug, CancellationToken cancellationToken);
 
     // Slug đã dùng: bài khác (kể cả thùng rác) hoặc chuyển hướng của bài khác

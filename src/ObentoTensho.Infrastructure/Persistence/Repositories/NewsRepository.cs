@@ -52,6 +52,15 @@ internal sealed class NewsRepository(AppDbContext db) : INewsRepository
         return await PageAsync(source.OrderByDescending(n => n.PublishedAtUtc).ThenByDescending(n => n.Id), query.Page, query.PageSize, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<NewsArticle>> ListByIdsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken) =>
+        await db.News.AsNoTracking().Where(n => ids.Contains(n.Id)).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<NewsArticle>> ListVisibleAsync(DateTime nowUtc, CancellationToken cancellationToken) =>
+        await db.News.AsNoTracking()
+            .Where(n => !n.IsDeleted && n.Status == NewsStatus.Published && n.PublishedAtUtc <= nowUtc)
+            .OrderBy(n => n.Id)
+            .ToListAsync(cancellationToken);
+
     public Task<NewsArticle?> FindAsync(int id, bool includeDeleted, CancellationToken cancellationToken) =>
         db.News.SingleOrDefaultAsync(n => n.Id == id && (includeDeleted || !n.IsDeleted), cancellationToken);
 

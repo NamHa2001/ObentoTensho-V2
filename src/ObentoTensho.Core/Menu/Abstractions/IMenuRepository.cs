@@ -83,4 +83,7 @@ public interface IMenuRepository
 
     // Dữ liệu trang thực đơn công khai: chỉ thứ khách được thấy (BR-MNU-02), đọc một lần rồi cache
     Task<PublicMenuData> LoadPublicDataAsync(CancellationToken cancellationToken);
+
+    // Mọi bản dịch (kể cả nháp) của một ngôn ngữ — màn hình tiến độ dịch
+    Task<IReadOnlyList<MenuTranslation>> ListTranslationsByLangAsync(string lang, CancellationToken cancellationToken);
 }

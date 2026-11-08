@@ -11,4 +11,6 @@ public sealed record PublicPromotionDto(
     DateOnly StartDate,
     DateOnly EndDate,
     bool Upcoming,
-    IReadOnlyList<string> VoucherCodes);
+    IReadOnlyList<string> VoucherCodes,
+    string ContentLang,
+    bool IsFallback);

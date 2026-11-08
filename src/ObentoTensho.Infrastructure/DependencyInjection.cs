@@ -10,6 +10,7 @@ using ObentoTensho.Core.Settings.Abstractions;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
+using ObentoTensho.Core.Localization.Abstractions;
 using ObentoTensho.Core.Loyalty.Abstractions;
 using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Menu.Abstractions;
@@ -186,6 +187,8 @@ public static class DependencyInjection
         services.AddScoped<INewsRepository, NewsRepository>();
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
+        services.AddScoped<ITranslationRepository, TranslationRepository>();
+        services.AddSingleton<ITranslationCache, MemoryTranslationCache>();
         services.AddScoped<IContactEmailOutbox, ContactEmailOutbox>();
         services.AddScoped<INewsletterRepository, NewsletterRepository>();
         services.AddScoped<INewsletterEmails, NewsletterEmails>();

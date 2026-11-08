@@ -55,8 +55,19 @@ public sealed class SqlServerFixture : IAsyncLifetime
             ValueType = SettingType.Number,
             Description = "Hạn mức test",
         });
+
+        // Bật đủ ba ngôn ngữ để test đọc được bản dịch; test điều kiện bật ngôn ngữ tự hạ rồi khôi phục
+        context.SystemSettings.Add(new SystemSetting
+        {
+            Key = SettingKeys.I18nEnabledLocales,
+            Value = EnabledLocales,
+            ValueType = SettingType.List,
+            Description = "Ngôn ngữ test",
+        });
         await context.SaveChangesAsync();
     }
+
+    public const string EnabledLocales = "vi,en,ja";
 
     public AppDbContext CreateContext() =>
         new(new DbContextOptionsBuilder<AppDbContext>().UseSqlServer(ConnectionString).Options);

@@ -87,5 +87,6 @@ public static class ErrorCodes
     public const string ReviewNotAllowed = "REVIEW_NOT_ALLOWED";
     public const string ReviewExists = "REVIEW_EXISTS";
     public const string ReviewLocked = "REVIEW_LOCKED";
+    public const string LocaleNotReady = "LOCALE_NOT_READY";
     public const string InternalError = "INTERNAL_ERROR";
 }

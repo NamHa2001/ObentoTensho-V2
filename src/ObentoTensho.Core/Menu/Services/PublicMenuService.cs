@@ -4,6 +4,7 @@ using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Time;
@@ -11,7 +12,7 @@ using ObentoTensho.Core.Time;
 namespace ObentoTensho.Core.Menu.Services;
 
 // Thực đơn công khai (docs/srs/15 §3.3, §6): chỉ món chưa xóa, không ẩn, thuộc danh mục đang bật (BR-MNU-02)
-public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, IClock clock)
+public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, ContentLanguages languages, IClock clock)
 {
     public const int MaxPageSize = 100;
     private const int FeaturedLimit = 12;
@@ -152,6 +153,6 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, IC
                     MenuRules.ParseAllergens(o.Allergens)))
                 .ToArray());
 
-    private static string Language(string? lang) =>
-        lang is not null && AuthPolicy.SupportedLanguages.Contains(lang, StringComparer.Ordinal) ? lang : MenuSnapshot.SourceLang;
+    // BR-I18N-01/06: ngôn ngữ chưa bật hoặc giá trị lạ ⇒ tiếng Việt
+    private string Language(string? lang) => languages.Resolve(lang);
 }

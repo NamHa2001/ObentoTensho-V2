@@ -1110,6 +1110,250 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.ToTable("DataExports", (string)null);
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.BannerTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("BannerId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("CtaText")
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Title");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("BannerTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_BannerTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_BannerTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.GalleryTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("GalleryItemId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("Caption");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("GalleryTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_GalleryTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_GalleryTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.NewsTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("NewsId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("BodyHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MetaDescription")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MetaTitle")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(300)")
+                        .HasColumnName("Title");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("NewsTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_NewsTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_NewsTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.PromotionTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("PromotionId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("BodyHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Title");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("PromotionTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_PromotionTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_PromotionTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.StaticPageTranslation", b =>
+                {
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int")
+                        .HasColumnName("StaticPageId");
+
+                    b.Property<string>("Lang")
+                        .HasColumnType("char(2)");
+
+                    b.Property<string>("BodyHtml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte>("ReviewStatus")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("ReviewedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourceHash")
+                        .IsRequired()
+                        .HasColumnType("char(64)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)")
+                        .HasColumnName("Title");
+
+                    b.Property<Guid?>("TranslatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.HasKey("EntityId", "Lang");
+
+                    b.ToTable("StaticPageTranslations", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_StaticPageTranslations_Lang", "[Lang] IN ('en', 'ja')");
+
+                            t.HasCheckConstraint("CK_StaticPageTranslations_ReviewStatus", "[ReviewStatus] BETWEEN 0 AND 1");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Loyalty.Domain.LoyaltyAdjustment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3150,6 +3394,51 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RequestedByStaffId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.BannerTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Content.Domain.Banner", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.GalleryTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Content.Domain.GalleryItem", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.NewsTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Content.Domain.NewsArticle", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.PromotionTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Promotions.Domain.Promotion", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.StaticPageTranslation", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Content.Domain.StaticPage", null)
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

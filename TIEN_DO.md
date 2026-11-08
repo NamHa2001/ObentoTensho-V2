@@ -2,7 +2,7 @@
 
 Ảnh chụp trạng thái dự án: đã làm gì, chưa làm gì, đang dừng ở đâu. Cập nhật file này sau mỗi phần việc, cùng commit với phần việc đó.
 
-Cập nhật lần cuối: 08/11/2026 — sau khi xong phần Realtime (SignalR).
+Cập nhật lần cuối: 08/11/2026 — sau khi xong phần Đa ngôn ngữ (backend).
 
 - **Việc còn nợ chi tiết (kèm mã SRS):** `VIEC_CON_NO.md`
 - **Lỗi đã gặp và cách sửa:** `NHAT_KY_LOI.md`
@@ -22,7 +22,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 
 ## 2. Tiến độ theo bảng trọng số
 
-**Toàn dự án: khoảng 68,7/100. Riêng backend: khoảng 68,7/71 (97%). Giao diện: 0/22.**
+**Toàn dự án: khoảng 70,6/100. Riêng backend: khoảng 70,6/71 (99%). Giao diện: 0/22.**
 
 | Phần | Trọng số | Đã xong | Trạng thái |
 |---|---:|---:|---|
@@ -42,7 +42,7 @@ Website nhà hàng cơm Nhật một chi nhánh: đặt bàn, đặt món mang v
 | Quản lý khách & nhân viên | 3 | 3 | Xong — nhân viên, step-up, xem audit, quản lý khách, xuất dữ liệu, tài khoản khách, xóa tài khoản |
 | Báo cáo, dashboard, cài đặt | 4 | 3,8 | Xong cài đặt, dashboard, báo cáo, xuất Excel; còn xuất PDF chờ chốt thư viện |
 | Realtime (SignalR) | 2 | 1,9 | Xong hai hub, vé kết nối, 6 sự kiện, giới hạn kết nối; còn backplane Redis làm cùng phần triển khai |
-| Đa ngôn ngữ | 2 | 0 | Chưa làm |
+| Đa ngôn ngữ | 2 | 1,9 | Xong phần backend: bản dịch nội dung, chọn ngôn ngữ theo danh sách đang bật, chặn bật khi chưa đủ bản dịch, tiến độ dịch; tệp dịch giao diện làm cùng giao diện khách |
 | Giao diện khách | 12 | 0 | Chưa làm |
 | Giao diện quản trị | 8 | 0 | Chưa làm |
 | PWA | 2 | 0 | Chưa làm |
@@ -55,7 +55,7 @@ Số điểm của phần đang làm dở là ước lượng. Game (Phase 2) kh
 
 Chủ dự án đã chốt: **làm hết backend rồi mới làm giao diện.**
 
-1. Đa ngôn ngữ
+1. Ảnh món/danh mục và banner khuyến mãi (backend, cần cho trang thực đơn)
 2. Giao diện khách → Giao diện quản trị → PWA
 3. Triển khai → Kiểm thử cuối
 
@@ -87,7 +87,8 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | Cài đặt | `e28ef97` | Bảng `SystemSettings`, danh mục 61 khóa, kiểm giá trị, khóa thanh toán có step-up, các module đọc từ bảng |
 | Dashboard | `57be1c2` | `DailyStats` tính lại từ bảng gốc, đối soát hằng ngày, bảng tin theo vai trò |
 | Báo cáo | `dd9e416` | Doanh thu, đặt bàn, đơn, khách, món bán chạy, xuất Excel |
-| Realtime | commit ngay sau `dd9e416` | Hub nhân viên và hub công khai, vé kết nối một lần, sự kiện đặt bàn/chỗ trống/đơn/liên hệ phát sau commit, giới hạn kết nối và lệnh, ngắt khi phiên bị thu hồi |
+| Realtime | `befb99c` | Hub nhân viên và hub công khai, vé kết nối một lần, sự kiện đặt bàn/chỗ trống/đơn/liên hệ phát sau commit, giới hạn kết nối và lệnh, ngắt khi phiên bị thu hồi |
+| Đa ngôn ngữ | commit ngay sau `13220e5` | Bản dịch en/ja cho khuyến mãi, banner, gallery, tin tức, trang tĩnh; chỉ hiện bản đã duyệt còn khớp bản Việt; `?lang=` theo ngôn ngữ đang bật; chặn bật ngôn ngữ khi thiếu bản dịch; tiến độ dịch |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -95,19 +96,19 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 **Cấu trúc:** `Contracts` ← `Core` ← `Infrastructure` ← `Api`.
 
 - `Contracts`: DTO, enum, mã lỗi
-- `Core`: nghiệp vụ, chia thư mục `Audit`, `Auth`, `Common`, `Content`, `Customers`, `Loyalty`, `Media`, `Menu`, `Notifications`, `Orders`, `Promotions`, `Realtime`, `Reports`, `Reservations`, `Settings`, `Tables`, `Time`, `Verification`, `Vouchers`
+- `Core`: nghiệp vụ, chia thư mục `Audit`, `Auth`, `Common`, `Content`, `Customers`, `Localization`, `Loyalty`, `Media`, `Menu`, `Notifications`, `Orders`, `Promotions`, `Realtime`, `Reports`, `Reservations`, `Settings`, `Tables`, `Time`, `Verification`, `Vouchers`
 - `Infrastructure`: EF, repository, email, job, ClosedXML
 - `Api`: controller mỏng, hub SignalR (`Realtime/`)
 
 **API công khai và khách** (tiền tố `/api/v1`): `auth`, `otp`, `menu`, `banners`, `gallery`, `public/opening-hours`, `public/settings`, `pages`, `news`, `reviews`, `contact`, `newsletter`, `reservations`, `orders`, `promotions`, `vouchers/validate`, `account` (hồ sơ, email, thiết bị, xóa tài khoản, `realtime-ticket`), `account/orders`, `account/loyalty-points`, `account/vouchers`, `account/redeem-points`.
 
-**API quản trị** (`/api/v1/admin`): `auth`, `staff`, `audit-logs`, `realtime/ticket`, `table-areas`, `tables`, `opening-hours`, `service-slots`, `blocked-dates`, `reservations`, `menu/*`, `orders`, `customers`, `loyalty/adjustments`, `vouchers`, `promotions`, `images`, `banners`, `gallery`, `news`, `pages`, `reviews`, `contact-messages`, `newsletter`, `exports`, `settings`, `dashboard`, `reports`.
+**API quản trị** (`/api/v1/admin`): `auth`, `staff`, `audit-logs`, `realtime/ticket`, `table-areas`, `tables`, `opening-hours`, `service-slots`, `blocked-dates`, `reservations`, `menu/*`, `orders`, `customers`, `loyalty/adjustments`, `vouchers`, `promotions`, `images`, `banners`, `gallery`, `news`, `pages`, `reviews`, `contact-messages`, `newsletter`, `exports`, `settings`, `dashboard`, `reports`, `translations`.
 
 **Realtime** (`/hubs/v1`): `staff` (cần vé, chỉ WebSocket, nhóm theo vai trò do server gán), `public` (ẩn danh: `WatchAvailability(date)`, `WatchOrder(code, token)`; có vé khách thì thêm `WatchMyOrder(code)`). Xin vé: `POST /api/v1/admin/realtime/ticket`, `POST /api/v1/account/realtime-ticket`. Sự kiện: `reservation.created`, `reservation.statusChanged`, `slot.availabilityChanged`, `order.created`, `order.statusChanged`, `contact.created`.
 
 **Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`, `media.process-images`.
 
-**Kiểm thử:** 1.109 test (472 kiến trúc, 439 đơn vị, 198 tích hợp trên SQL Server thật).
+**Kiểm thử:** 1.139 test (478 kiến trúc, 457 đơn vị, 204 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 
@@ -130,6 +131,7 @@ Những điểm không thấy ngay khi đọc yêu cầu:
 - **Giới hạn thư:** mỗi địa chỉ nhận tối đa 3 thư cùng loại mỗi giờ và 10 thư mỗi ngày; thư vượt giới hạn bị bỏ hẳn, không hoãn (xem mục "Rủi ro thư bị bỏ" của `VIEC_CON_NO.md`).
 - **Định dạng liên hệ:** SĐT lưu dạng `+84…`; email lưu chữ thường.
 - **Đường dẫn lạ:** trả 401 (chính sách từ chối mặc định), không phải 404.
+- **Đa ngôn ngữ:** API công khai nhận `?lang=vi|en|ja`, chỉ ngôn ngữ đang bật trong `i18n.enabledLocales`; không đọc `Accept-Language`. Phản hồi có `contentLang` và `isFallback`. Trang quản trị và thư gửi nhân viên chỉ tiếng Việt.
 - **Realtime:** sự kiện gom trong transaction và chỉ phát sau commit; mất kết nối thì giao diện phải gọi REST lấy lại trạng thái (`RT-06`), không dựa hẳn vào sự kiện. Payload chỉ có id/mã/trạng thái/số chỗ.
 
 ## 7. Môi trường dev

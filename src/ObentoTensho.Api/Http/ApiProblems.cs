@@ -62,6 +62,7 @@ public static class ApiProblems
         [ErrorCodes.StepUpRequired] = (StatusCodes.Status401Unauthorized, "Cần xác thực lại trước thao tác này"),
         [ErrorCodes.EmailTaken] = (StatusCodes.Status409Conflict, "Email đã được dùng"),
         [ErrorCodes.LastSuperAdmin] = (StatusCodes.Status409Conflict, "Không thể khóa hoặc hạ quyền SuperAdmin cuối cùng"),
+        [ErrorCodes.LocaleNotReady] = (StatusCodes.Status409Conflict, "Ngôn ngữ chưa đủ bản dịch đã duyệt để bật"),
         [ErrorCodes.CannotChangeSelf] = (StatusCodes.Status409Conflict, "Không thể tự khóa tài khoản của mình"),
         [ErrorCodes.InviteAlreadyAccepted] = (StatusCodes.Status409Conflict, "Nhân viên đã nhận lời mời"),
         [ErrorCodes.ReviewNotAllowed] = (StatusCodes.Status400BadRequest, "Đơn hoặc món này không đánh giá được"),

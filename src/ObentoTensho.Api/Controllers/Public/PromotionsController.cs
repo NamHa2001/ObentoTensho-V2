@@ -12,10 +12,10 @@ namespace ObentoTensho.Api.Controllers.Public;
 public sealed class PromotionsController(PublicPromotionService promotions) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken cancellationToken) =>
-        this.Data(await promotions.ListAsync(cancellationToken));
+    public async Task<IActionResult> List([FromQuery] string? lang, CancellationToken cancellationToken) =>
+        this.Data(await promotions.ListAsync(lang, cancellationToken));
 
     [HttpGet("{slug}")]
-    public async Task<IActionResult> Get(string slug, CancellationToken cancellationToken) =>
-        this.DataOrProblem(await promotions.GetAsync(slug, cancellationToken));
+    public async Task<IActionResult> Get(string slug, [FromQuery] string? lang, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await promotions.GetAsync(slug, lang, cancellationToken));
 }

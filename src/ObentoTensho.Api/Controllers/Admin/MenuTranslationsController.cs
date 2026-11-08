@@ -8,11 +8,11 @@ using ObentoTensho.Core.Menu.Services;
 
 namespace ObentoTensho.Api.Controllers.Admin;
 
-// docs/srs/22: bản dịch en/ja cho món, danh mục, nhóm tùy chọn, tùy chọn
+// docs/srs/22: bản dịch en/ja cho món, danh mục, nhóm tùy chọn, tùy chọn. §4.3: ContentEditor, Manager, SuperAdmin dịch/duyệt
 [ApiController]
 [Route("api/v1/admin/menu/{kind:regex(^(items|categories|option-groups|options)$)}/{id:int}/translations")]
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
-[RequireCapability(StaffCapability.Menu)]
+[RequireCapability(StaffCapability.Content)]
 public sealed class MenuTranslationsController(MenuTranslationService translations) : ControllerBase
 {
     [HttpGet]

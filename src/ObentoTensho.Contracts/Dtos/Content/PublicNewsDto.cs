@@ -13,4 +13,6 @@ public sealed record PublicNewsDto(
     DateTime PublishedAtUtc,
     string? MetaTitle,
     string? MetaDescription,
-    ImageDto? OgImage);
+    ImageDto? OgImage,
+    string ContentLang,
+    bool IsFallback);

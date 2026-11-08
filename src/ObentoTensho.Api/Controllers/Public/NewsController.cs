@@ -18,8 +18,9 @@ public sealed class NewsController(PublicNewsService news) : ControllerBase
         [FromQuery] string? q,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 12,
+        [FromQuery] string? lang = null,
         CancellationToken cancellationToken = default) =>
-        Ok(await news.ListAsync(new PublicNewsQuery(category, q, page, pageSize), cancellationToken));
+        Ok(await news.ListAsync(new PublicNewsQuery(category, q, page, pageSize), lang, cancellationToken));
 
     [HttpGet("categories")]
     public async Task<IActionResult> Categories(CancellationToken cancellationToken) =>
@@ -27,9 +28,9 @@ public sealed class NewsController(PublicNewsService news) : ControllerBase
 
     // BR-CNT-41: slug cũ trả 301 về địa chỉ mới
     [HttpGet("{slug}")]
-    public async Task<IActionResult> Get(string slug, CancellationToken cancellationToken)
+    public async Task<IActionResult> Get(string slug, [FromQuery] string? lang, CancellationToken cancellationToken)
     {
-        var found = await news.FindAsync(slug, cancellationToken);
+        var found = await news.FindAsync(slug, lang, cancellationToken);
         if (!found.IsSuccess)
         {
             return this.ToProblem(found);

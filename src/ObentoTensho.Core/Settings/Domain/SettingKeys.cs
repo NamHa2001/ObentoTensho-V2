@@ -60,4 +60,5 @@ public static class SettingKeys
 
     public const string ReportDayCutoffLocal = "report.dayCutoffLocal";
     public const string EmailDailyQuota = "email.dailyQuota";
+    public const string I18nEnabledLocales = "i18n.enabledLocales";
 }

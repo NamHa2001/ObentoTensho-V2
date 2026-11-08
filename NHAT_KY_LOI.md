@@ -13,6 +13,16 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Đa ngôn ngữ (08/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Ký tự đảo chiều chữ (U+202E…) nằm ở dạng thô trong mã test thay vì `\u202E` | Công cụ ghi tệp diễn giải chuỗi escape thành ký tự thật | Script thay mọi ký tự U+202A–202E, U+2066–2069, U+200E/F trong `src`, `tests` bằng escape | Sau khi viết test có ký tự đặc biệt, quét lại tệp tìm ký tự vô hình |
+| Test bật ngôn ngữ không thấy món của mình trong danh sách lỗi 409 | Lỗi giới hạn 200 mục, CSDL test dùng chung có hàng trăm món | Kiểm món cụ thể qua `GET /admin/translations/progress` (đủ danh sách) | Không khẳng định phần tử cụ thể trong danh sách đã bị cắt |
+| Món Rice của menu test không bị chặn khi bật `en` | `OrderTestMenu` đã tạo sẵn bản dịch `en` đã duyệt cho Rice | Dùng món Tea chưa có bản dịch | Đọc dữ liệu mẫu của helper trước khi dựa vào nó |
+| `ObjectDisposedException: Cannot access a closed Stream` trong test | Đọc thân phản hồi hai lần (`ReadErrorCodeAsync` rồi `ReadFromJsonAsync`) | Đọc JSON một lần rồi lấy `errorCode` từ đó | |
+| EF: `Ignore` không nhận biểu thức `Func<T, string?>` trong cấu hình chung | `Ignore` cần `Func<T, object?>` | Dùng tên thuộc tính (`nameof`) cho cả `Property<string?>` và `Ignore` | |
+
 ## Realtime (08/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

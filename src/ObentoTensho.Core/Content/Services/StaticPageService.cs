@@ -1,12 +1,14 @@
 using System.Globalization;
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Content;
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Content.Services;
@@ -15,6 +17,7 @@ namespace ObentoTensho.Core.Content.Services;
 public sealed class StaticPageService(
     IStaticPageRepository pages,
     IHtmlSanitizer sanitizer,
+    ContentLocalizer localizer,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock,
@@ -37,6 +40,18 @@ public sealed class StaticPageService(
         IsAllowed(slug) && await pages.FindAsync(slug, cancellationToken) is { } page
             ? Result.Success(ToDto(page))
             : Result.Failure<StaticPageDto>(ErrorCodes.NotFound);
+
+    // Trang cho khách theo ngôn ngữ; bản dịch thiếu hoặc lỗi thời ⇒ tiếng Việt (BR-I18N-07)
+    public async Task<Result<PublicStaticPageDto>> GetPublicAsync(string slug, string? lang, CancellationToken cancellationToken)
+    {
+        if (!IsAllowed(slug) || await pages.FindAsync(slug, cancellationToken) is not { } page)
+        {
+            return Result.Failure<PublicStaticPageDto>(ErrorCodes.NotFound);
+        }
+
+        var text = (await localizer.ForAsync(TranslatableContent.StaticPage, lang, cancellationToken)).Apply(page.Id, ContentSources.Of(page));
+        return Result.Success(new PublicStaticPageDto(page.Slug, text.Text.Title ?? page.Title, text.Text.BodyHtml ?? page.ContentHtml, page.UpdatedAtUtc, text.ContentLang, text.IsFallback));
+    }
 
     public async Task<Result<IReadOnlyList<StaticPageRevisionDto>>> RevisionsAsync(string slug, CancellationToken cancellationToken)
     {

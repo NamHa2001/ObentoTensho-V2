@@ -2,6 +2,7 @@ using ObentoTensho.Contracts.Dtos.Content;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Time;
@@ -14,37 +15,53 @@ public sealed class PublicContentService(
     IImageRepository images,
     ImageMapper imageMapper,
     IPublicContentCache cache,
+    ContentLocalizer localizer,
     IClock clock)
 {
-    public async Task<IReadOnlyList<PublicBannerDto>> BannersAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PublicBannerDto>> BannersAsync(string? lang, CancellationToken cancellationToken)
     {
         var snapshot = await SnapshotAsync(cancellationToken);
+        var translations = await localizer.ForAsync(TranslatableContent.Banner, lang, cancellationToken);
         var today = clock.TodayLocal;
         return snapshot.Banners
             .Where(b => b.IsVisible(today) && Ready(snapshot, b.ImageId))
-            .Select(b => new PublicBannerDto(
-                b.Id,
-                imageMapper.ToDto(snapshot.Images[b.ImageId]),
-                b.ImageMobileId is { } m && Ready(snapshot, m) ? imageMapper.ToDto(snapshot.Images[m]) : null,
-                b.Title,
-                b.Subtitle,
-                b.CtaText,
-                b.CtaLink))
+            .Select(b =>
+            {
+                var text = translations.Apply(b.Id, ContentSources.Of(b));
+                return new PublicBannerDto(
+                    b.Id,
+                    imageMapper.ToDto(snapshot.Images[b.ImageId]),
+                    b.ImageMobileId is { } m && Ready(snapshot, m) ? imageMapper.ToDto(snapshot.Images[m]) : null,
+                    text.Text.Title ?? b.Title,
+                    text.Text.Summary,
+                    text.Text.CtaText,
+                    b.CtaLink,
+                    text.ContentLang,
+                    text.IsFallback);
+            })
             .ToArray();
     }
 
-    public async Task<IReadOnlyList<PublicGalleryItemDto>> GalleryAsync(GalleryCategory? category, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PublicGalleryItemDto>> GalleryAsync(GalleryCategory? category, string? lang, CancellationToken cancellationToken)
     {
         var snapshot = await SnapshotAsync(cancellationToken);
+        var translations = await localizer.ForAsync(TranslatableContent.Gallery, lang, cancellationToken);
         return snapshot.Gallery
             .Where(i => (category is null || i.Category == category) && (i.MediaType == GalleryMediaType.Video || (i.ImageId is { } id && Ready(snapshot, id))))
-            .Select(i => new PublicGalleryItemDto(
-                i.Id,
-                i.MediaType,
-                i.ImageId is { } id ? imageMapper.ToDto(snapshot.Images[id]) : null,
-                SafeLinks.VideoEmbedUrl(i.VideoUrl),
-                i.Category,
-                i.Caption))
+            .Select(i =>
+            {
+                // Mục không có chú thích thì không có gì để dịch
+                var text = i.Caption is null ? null : translations.Apply(i.Id, ContentSources.Of(i));
+                return new PublicGalleryItemDto(
+                    i.Id,
+                    i.MediaType,
+                    i.ImageId is { } id ? imageMapper.ToDto(snapshot.Images[id]) : null,
+                    SafeLinks.VideoEmbedUrl(i.VideoUrl),
+                    i.Category,
+                    text?.Text.Title,
+                    text?.ContentLang ?? ContentLanguages.Source,
+                    text?.IsFallback ?? false);
+            })
             .ToArray();
     }
 

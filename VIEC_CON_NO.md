@@ -4,7 +4,7 @@ Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu c�
 
 Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
 
-Cập nhật lần cuối: 08/11/2026 — sau phần Realtime (SignalR); thêm đề xuất xử lý và mục quyết định của chủ dự án.
+Cập nhật lần cuối: 08/11/2026 — sau phần Đa ngôn ngữ (backend).
 
 **Cách đọc:**
 
@@ -130,7 +130,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Ảnh món, ảnh danh mục | `BR-MNU-06`, `BR-MNU-12` | Pipeline ảnh đã có | Thêm cột và DTO, làm trước giao diện khách vì trang thực đơn cần ảnh |
 | `GET /menu/items/{slug}/reviews` | `docs/srs/15` §4 | Đánh giá đã có | Làm cùng giao diện khách; có cache ngắn và phân trang |
 | Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Vẫn xóa thẳng (đơn cũ giữ bản chụp) | Tùy chọn đã xuất hiện trong đơn thì trả 409 kèm gợi ý "ẩn"; chưa từng dùng thì xóa được. Giữ được thống kê món |
-| Màn hình tiến độ dịch | `docs/srs/22` | Chưa có | Phần đa ngôn ngữ |
 | Cache thực đơn nhiều máy | `PERF-10` | `IMemoryCache` một tiến trình | HybridCache + Redis ở phần triển khai |
 | Test đếm truy vấn `GET /menu/items` ≤ 2 | `PERF-51`, `TST-28` | Chưa có | Thêm bộ đếm truy vấn EF trong test tích hợp ở phần kiểm thử cuối |
 
@@ -140,7 +139,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 |---|---|---|---|
 | Lợi dụng voucher sinh nhật bằng tài khoản mới | `BR-LOY-20` | Chỉ yêu cầu email đã xác thực | Theo Q3 |
 | Banner khuyến mãi | `docs/srs/08` §6 | Pipeline ảnh đã có | Thêm cột và DTO cùng lúc với ảnh món |
-| Bản dịch en/ja của khuyến mãi | `D-36`, `docs/srs/22` | Chưa có | Phần đa ngôn ngữ |
 | Tắt tự động khuyến mãi hết hạn | `docs/srs/14` §3 | Hiệu lực tính khi truy vấn | Không cần làm |
 | Voucher giới hạn theo SĐT/email cho khách vãng lai | `D-16` | Đã chốt bắt buộc đăng nhập | Không làm |
 
@@ -157,7 +155,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
 | Nhắc "cần xử lý" cho thu ngân trên màn hình | `BR-ORD-18`, `docs/srs/20` #30 | Có thư gộp cho quản lý mỗi 10 phút và `GET /admin/orders/attention` | Giao diện quản trị hiện huy hiệu số việc cần xử lý, gọi lại danh sách khi nhận sự kiện `order.*` và mỗi 60 giây (phòng khi mất sự kiện) |
-| Ngôn ngữ thư cho nhân viên | `docs/srs/22` | Luôn tiếng Việt | Thêm cột `Staff.Lang` mặc định `vi` ở phần đa ngôn ngữ |
 | STK + QR trên trang đặt món | `FR-ORD-03` | API đã có | Làm ở giao diện khách; nội dung chuyển khoản tự điền mã đơn để thu ngân dễ đối chiếu |
 | Turnstile chỉ bắt buộc với khách vãng lai | `BR-ORD-20` | Áp cho mọi lượt đặt khi bật | Bỏ Turnstile khi có access token khách hợp lệ (đã có giới hạn theo tài khoản). Làm nhanh, giúp khách quen đặt nhanh hơn |
 | Gộp giỏ khi đăng nhập, kiểm lại giá khi mở giỏ | `FR-ORD-01` | `POST /orders/quote` đã có | Làm ở giao diện khách; giá luôn lấy từ server, giỏ trong trình duyệt chỉ lưu id món và số lượng |
@@ -169,7 +166,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Slug cũ 301 cho món và khuyến mãi | `BR-CNT-41` | Bảng `SlugRedirects` mới dùng cho tin tức | Dùng chung bảng, làm cùng giao diện khách (SSR) |
 | `Location` 301 từ đường dẫn API sang đường dẫn trang | `BR-CNT-41` | Đang trỏ đường dẫn API | Làm ở giao diện khách |
 | Đưa nội dung pháp lý vào trang tĩnh | `FR-CNT-04` | Trang chưa có nội dung trả 404 | Theo Q7 |
-| Bản dịch en/ja tin tức, trang tĩnh, banner, gallery | `docs/srs/22` | Chưa có | Phần đa ngôn ngữ |
 | Header one-click hủy bản tin cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Chưa có | Cấu hình Nginx ở phần triển khai |
 | Giữ bền khóa Data Protection (liên kết hủy bản tin) | `BR-CNT-24` | Gộp với `SEC-16` | Như mục 5 |
 | Newsletter báo "email đã đăng ký" | `BR-CNT-20` | Làm đúng SRS | Theo Q4 |
@@ -189,16 +185,26 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 |---|---|---|---|
 | Xuất báo cáo PDF | `BR-RPT-13`, `D-04` | `format=pdf` trả 400 | Theo Q2 |
 | Dữ liệu cũ chưa có trong `DailyStats` | `PERF-55` | Job chỉ tính 2 ngày gần nhất, đối soát 7 ngày | Thêm lệnh SuperAdmin "tính lại khoảng ngày" (tối đa 366 ngày một lần), chạy nền từng ngày một, có audit. Chỉ cần khi nhập dữ liệu cũ |
-| Khóa cài đặt chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `i18n.*`, `otp.channel` khác email | `19` §3.1 | Sửa các khóa này chưa đổi hành vi | Mỗi khóa có tác dụng khi làm tính năng tương ứng (mục 3, 8, đa ngôn ngữ). Trong lúc chờ, trang cài đặt ghi "chưa có hiệu lực" cạnh các khóa này. `otp.channel` chỉ nhận `email` tới khi có nhà cung cấp SMS |
+| Khóa cài đặt chưa có tác dụng: `reservation.pendingAlertMinutes`, `loyalty.claimGuestOrders`, `otp.channel` khác email | `19` §3.1 | Sửa các khóa này chưa đổi hành vi (`i18n.*` đã có tác dụng) | Mỗi khóa có tác dụng khi làm tính năng tương ứng (mục 3, 8). Trong lúc chờ, trang cài đặt ghi "chưa có hiệu lực" cạnh các khóa này. `otp.channel` chỉ nhận `email` tới khi có nhà cung cấp SMS |
 
-## 15. Realtime (SignalR)
+## 15. Đa ngôn ngữ
+
+| Việc | Mã | Hiện trạng | Đề xuất |
+|---|---|---|---|
+| Phần giao diện: tệp XLF vi/en/ja và CI chặn khi thiếu khóa, URL `/en/…` `/ja/…`, `hreflang`, sitemap theo ngôn ngữ, nhãn "Chỉ có tiếng Việt" khi `isFallback`, dải gợi ý theo `Accept-Language`, cookie `ot-lang`, định dạng ngày/tiền theo ngôn ngữ, ghi chú "bản dịch tham khảo" ở trang pháp lý | `BR-I18N-07..12`, `22` §4.1 | API đã trả `contentLang`, `isFallback` | Làm ở giao diện khách. Thông điệp lỗi lấy theo `errorCode` trong XLF, không hiện chuỗi từ server |
+| Bảng thuật ngữ `docs/i18n/glossary.md` và CI kiểm thuật ngữ bắt buộc trong tệp XLF | `BR-I18N-05` | SRS có bảng khởi đầu `22` §5 | Tạo tệp từ bảng khởi đầu khi làm giao diện; người duyệt (Q12) xác nhận, nhất là bản tiếng Nhật |
+| Tên danh mục tin tức chưa có bản dịch | `22` §2 | Hiện tiếng Việt ở mọi ngôn ngữ | SRS không liệt kê bảng dịch cho danh mục tin; tin tức là "tùy chọn" nên giữ nguyên. Nếu cần thì thêm `NewsCategoryTranslations` theo cùng mẫu |
+| Tìm tin tức theo tiêu đề bản dịch | `22` §4.2 | Tìm theo tiêu đề tiếng Việt không dấu | Thực đơn đã tìm được cả tên bản dịch. Tin tức để sau vì ít bài |
+| Lỗi `LOCALE_NOT_READY` khi bật ngôn ngữ chỉ liệt kê tối đa 200 mục còn thiếu | `BR-I18N-06` | Danh sách đầy đủ ở `GET /admin/translations/progress?lang=` | Giao diện hiện danh sách từ màn hình tiến độ dịch |
+
+## 16. Realtime (SignalR)
 
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
 | Bảng xếp hạng trực tiếp, vé/phần thưởng theo người dùng | `RT-07`, `RT-08` | Phase 2 (game) | Chưa làm. Nhóm `user:{id}` dùng lại vé kết nối khách đã có |
 | Sự kiện cho bàn | `RT-05` | Xem mục 7 | |
 
-## 16. Tài liệu SRS cần cập nhật theo cách đã làm
+## 17. Tài liệu SRS cần cập nhật theo cách đã làm
 
 Người làm tự sửa được, không cần quyết định. Gom lại để sửa một lần trước kiểm thử cuối.
 
@@ -211,10 +217,13 @@ Người làm tự sửa được, không cần quyết định. Gom lại để
 | `docs/srs/08`: bảng `DataExports`, cột `Users.DeletionScheduledAtUtc`; `Orders.CustomerPhone` để trống sau ẩn danh hóa | `docs/srs/08` |
 | `docs/srs/08`: `NewsletterSubscribers` thêm `ConfirmTokenHash`, `ConfirmExpiryUtc`, `UnsubscribeTokenProtected`; `NewsletterRecipients` thêm `Attempts`; `ConsentRecords` thêm `Email`, `UserId` cho phép trống | `docs/srs/08` |
 | `docs/srs/08`: các cột đơn hàng/voucher phát sinh (xem `TIEN_DO.md` mục 6) | `docs/srs/08` |
+| `docs/srs/22` §4.2: API chọn ngôn ngữ chỉ bằng `?lang=`, không đọc `Accept-Language` — trình duyệt luôn gửi header này nên đọc nó sẽ tự chuyển ngôn ngữ, trái `BR-I18N-08`, và làm cache phải tách theo header | `22` §4.2 |
+| `docs/srs/22` §4.3: đường bản dịch nội dung là `PUT /admin/translations/{promotion|banner|gallery|news|static_page}/{id hoặc slug}/{en|ja}`; tiến độ dịch `GET /admin/translations/progress?lang=` | `22` §4.3 |
+| `docs/srs/08`: bảng `GalleryTranslations` dùng cột `Caption`; các bảng bản dịch nội dung chỉ có cột mà bản Việt có | `08` §2 |
 | Ghi lại quyết định Q1, Q3, Q4, Q5 sau khi chủ dự án chốt | `91` |
 
-## 17. Chưa bắt đầu (theo thứ tự dự kiến)
+## 18. Chưa bắt đầu (theo thứ tự dự kiến)
 
 Làm hết backend rồi mới làm giao diện (chủ dự án đã chốt).
 
-Đa ngôn ngữ → Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).
+Giao diện khách → Giao diện quản trị → PWA → Triển khai (Docker, Nginx, Redis, sao lưu, Cloudflare) → Kiểm thử cuối (E2E, hiệu năng, bảo mật).

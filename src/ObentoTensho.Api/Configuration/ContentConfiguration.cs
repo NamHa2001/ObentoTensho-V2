@@ -5,6 +5,7 @@ using Microsoft.Net.Http.Headers;
 using ObentoTensho.Contracts.Dtos.Content;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Services;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Content.Validators;
 using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Infrastructure.Media;
@@ -47,6 +48,13 @@ public static class ContentConfiguration
         services.AddScoped<PublicNewsService>();
         services.AddScoped<StaticPageService>();
         services.AddScoped<IRecurringJob, NewsTrashPurgeJob>();
+
+        // docs/srs/22: bản dịch nội dung, chọn ngôn ngữ theo danh sách đang bật, tiến độ dịch
+        services.AddSingleton<ContentLanguages>();
+        services.AddScoped<ContentLocalizer>();
+        services.AddScoped<ContentSources>();
+        services.AddScoped<ContentTranslationService>();
+        services.AddScoped<TranslationProgressService>();
         return services;
     }
 
