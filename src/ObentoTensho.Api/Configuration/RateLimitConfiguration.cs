@@ -39,15 +39,31 @@ public static class RateLimitConfiguration
                 http.Request.Path.StartsWithSegments("/health", StringComparison.OrdinalIgnoreCase)
                     ? RateLimitPartition.GetNoLimiter("health")
                     : SlidingWindow("general:" + ClientKey(http), limits.GeneralPerMinute));
-            options.AddPolicy(LoginPolicy, http => SlidingWindow(ClientKey(http), limits.LoginPerMinute));
-            options.AddPolicy(ReservationPolicy, http => SlidingWindow(ClientKey(http), limits.ReservationPerHour, TimeSpan.FromHours(1)));
-            options.AddPolicy(LookupPolicy, http => SlidingWindow(ClientKey(http), limits.LookupPerMinute));
-            options.AddPolicy(VoucherPolicy, http => SlidingWindow(ClientKey(http), limits.VoucherValidatePerMinute));
-            options.AddPolicy(OrderPolicy, http => SlidingWindow(ClientKey(http), limits.OrderPerHour, TimeSpan.FromHours(1)));
-            options.AddPolicy(ContactPolicy, http => SlidingWindow(ClientKey(http), limits.ContactPerHour, TimeSpan.FromHours(1)));
+            foreach (var policy in (string[])[LoginPolicy, ReservationPolicy, LookupPolicy, VoucherPolicy, OrderPolicy, ContactPolicy])
+            {
+                var (permits, window) = Limit(policy, limits);
+                options.AddPolicy(policy, http => SlidingWindow(ClientKey(http), permits, window));
+            }
         });
 
         return services;
+    }
+
+    // Số yêu cầu và cửa sổ của một chính sách; TurnstileGate dùng để tính giới hạn dự phòng
+    public static (int Permits, TimeSpan Window) Limit(string policy, RateLimitSettings limits)
+    {
+        ArgumentNullException.ThrowIfNull(limits);
+        var hour = TimeSpan.FromHours(1);
+        return policy switch
+        {
+            LoginPolicy => (limits.LoginPerMinute, Window),
+            ReservationPolicy => (limits.ReservationPerHour, hour),
+            LookupPolicy => (limits.LookupPerMinute, Window),
+            VoucherPolicy => (limits.VoucherValidatePerMinute, Window),
+            OrderPolicy => (limits.OrderPerHour, hour),
+            ContactPolicy => (limits.ContactPerHour, hour),
+            _ => (limits.GeneralPerMinute, Window),
+        };
     }
 
     // IPv6: một khách thường giữ cả dải /64, gộp lại để không lách được bằng cách đổi địa chỉ

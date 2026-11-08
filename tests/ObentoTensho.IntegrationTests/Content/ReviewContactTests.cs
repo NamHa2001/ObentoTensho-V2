@@ -1,3 +1,4 @@
+using ObentoTensho.Api.Http;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -370,5 +371,40 @@ public sealed class ReviewContactTests : IDisposable
         var missing = await http.PostAsJsonAsync("/api/v1/contact", Contact(AuthApiClient.NewEmail(), "Không có token"));
 
         Assert.Equal(ErrorCodes.CaptchaFailed, await AuthApiClient.ReadErrorCodeAsync(missing));
+    }
+
+    // Q5: Cloudflare không phản hồi ⇒ cho qua với giới hạn còn 1/3 (liên hệ 3/giờ ⇒ 1); lỗi quá 10 phút báo SuperAdmin một lần
+    [Fact]
+    public async Task Turnstile_loi_thi_cho_qua_voi_gioi_han_mot_phan_ba_va_bao_SuperAdmin()
+    {
+        using var factory = new ApiFactory(_fixture.ConnectionString, new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["Turnstile:Enabled"] = "true",
+            ["Turnstile:SecretKey"] = "test-secret",
+            ["Turnstile:AllowedHostnames:0"] = "www.obento.test",
+            ["RateLimiting:ContactPerHour"] = "3",
+        });
+        var verifier = new FakeTurnstileVerifier { Down = true };
+        var app = factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<ITurnstileVerifier>(verifier)));
+        using var http = app.CreateClient(new Microsoft.AspNetCore.Mvc.Testing.WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+        await new AdminAuthApiClient(factory, _fixture).CreateStaffAsync(StaffRole.SuperAdmin);
+        var since = app.Services.GetRequiredService<TurnstileOutage>();
+        var start = DateTime.UtcNow - TurnstileOutage.AlertAfter - TimeSpan.FromMinutes(1);
+        Assert.Null(since.Down(start));
+
+        Assert.Equal(HttpStatusCode.Accepted, (await http.PostAsJsonAsync("/api/v1/contact", Contact(AuthApiClient.NewEmail(), "Lần 1"))).StatusCode);
+        Assert.Equal(ErrorCodes.CaptchaFailed, await AuthApiClient.ReadErrorCodeAsync(await http.PostAsJsonAsync("/api/v1/contact", Contact(AuthApiClient.NewEmail(), "Lần 2"))));
+
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.True(await db.OutboxMessages.AnyAsync(m => m.IdempotencyKey.StartsWith($"admin_alert:turnstile-outage:{start.Ticks}:")));
+        }
+
+        // Cloudflare hoạt động lại: token sai vẫn bị chặn, token đúng qua
+        verifier.Down = false;
+        using var ok = new HttpRequestMessage(HttpMethod.Post, "/api/v1/contact") { Content = JsonContent.Create(Contact(AuthApiClient.NewEmail(), "Lần 3")) };
+        ok.Headers.Add(TurnstileFilter.Header, FakeTurnstileVerifier.ValidToken);
+        Assert.Equal(HttpStatusCode.Accepted, (await http.SendAsync(ok)).StatusCode);
+        Assert.Null(since.Down(DateTime.UtcNow));
     }
 }

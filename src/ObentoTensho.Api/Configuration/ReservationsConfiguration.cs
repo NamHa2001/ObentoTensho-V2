@@ -23,6 +23,8 @@ public static class ReservationsConfiguration
         services.AddScoped<ReservationDeskService>();
         services.AddScoped<ReservationStaffService>();
         services.AddScoped<OtpService>();
+        services.AddSingleton<TurnstileOutage>();
+        services.AddScoped<TurnstileGate>();
         services.AddScoped<TurnstileFilter>();
         services.AddScoped<GuestTurnstileFilter>();
 

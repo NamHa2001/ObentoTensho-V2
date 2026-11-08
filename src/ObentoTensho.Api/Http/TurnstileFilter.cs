@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.RateLimiting;
+using ObentoTensho.Api.Configuration;
 using ObentoTensho.Contracts.Errors;
-using ObentoTensho.Infrastructure.Security;
 
 namespace ObentoTensho.Api.Http;
 
 // SEC-22, SEC-57: form công khai dễ bị bot (đặt bàn, gửi OTP, đăng ký) phải kèm token Turnstile, kiểm ở server
-public class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourceFilter
+public class TurnstileFilter(TurnstileGate gate) : IAsyncResourceFilter
 {
     public const string Header = "X-Turnstile-Token";
 
@@ -20,8 +21,9 @@ public class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourceFilter
             return;
         }
 
-        var token = http.Request.Headers[Header].ToString();
-        if (!await verifier.VerifyAsync(token, http.Connection.RemoteIpAddress?.ToString(), http.RequestAborted))
+        // Giới hạn dự phòng khi Cloudflare lỗi lấy theo chính sách rate limit của endpoint
+        var policy = http.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName ?? RateLimitConfiguration.ContactPolicy;
+        if (!await gate.PassesAsync(http, policy))
         {
             context.Result = ApiProblems.Create(http, ErrorCodes.CaptchaFailed).ToActionResult();
             return;

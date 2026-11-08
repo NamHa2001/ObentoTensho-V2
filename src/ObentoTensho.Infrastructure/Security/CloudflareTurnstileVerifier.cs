@@ -13,17 +13,17 @@ internal sealed partial class CloudflareTurnstileVerifier(
 {
     private static readonly Uri SiteVerify = new("https://challenges.cloudflare.com/turnstile/v0/siteverify");
 
-    public async Task<bool> VerifyAsync(string? token, string? remoteIp, CancellationToken cancellationToken)
+    public async Task<TurnstileVerdict> VerifyAsync(string? token, string? remoteIp, CancellationToken cancellationToken)
     {
         var settings = options.Value;
         if (!settings.Enabled)
         {
-            return true;
+            return TurnstileVerdict.Passed;
         }
 
         if (string.IsNullOrWhiteSpace(token) || token.Length > 2048)
         {
-            return false;
+            return TurnstileVerdict.Failed;
         }
 
         var form = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -39,19 +39,27 @@ internal sealed partial class CloudflareTurnstileVerifier(
         try
         {
             using var response = await http.PostAsync(SiteVerify, new FormUrlEncodedContent(form), cancellationToken);
+            if ((int)response.StatusCode >= 500)
+            {
+                LogUnavailable(logger, null);
+                return TurnstileVerdict.Unavailable;
+            }
+
             var result = await response.Content.ReadFromJsonAsync<SiteVerifyResult>(cancellationToken);
             return result is { Success: true }
-                && settings.AllowedHostnames.Contains(result.Hostname ?? string.Empty, StringComparer.OrdinalIgnoreCase);
+                && settings.AllowedHostnames.Contains(result.Hostname ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                ? TurnstileVerdict.Passed
+                : TurnstileVerdict.Failed;
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or System.Text.Json.JsonException)
         {
             LogUnavailable(logger, ex);
-            return false;
+            return TurnstileVerdict.Unavailable;
         }
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Không kiểm được Turnstile; từ chối yêu cầu.")]
-    private static partial void LogUnavailable(ILogger logger, Exception exception);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Không kiểm được Turnstile; chuyển sang giới hạn dự phòng.")]
+    private static partial void LogUnavailable(ILogger logger, Exception? exception);
 
     private sealed record SiteVerifyResult(
         [property: JsonPropertyName("success")] bool Success,
