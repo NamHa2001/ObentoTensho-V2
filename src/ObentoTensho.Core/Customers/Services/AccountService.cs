@@ -242,7 +242,7 @@ public sealed class AccountService(
     {
         var avatar = u.AvatarImageId is { } id ? await images.FindAsync(id, cancellationToken) : null;
         return new(
-            u.FullName, u.Email, u.PendingEmail, u.PhoneNumber, u.DateOfBirth, u.PreferredLang, u.IsEmailVerified, u.MemberTier, u.CurrentPoints,
+            u.FullName, u.Email, u.PendingEmail, u.PhoneNumber, u.DateOfBirth, u.PreferredLang, u.IsEmailVerified, u.IsPhoneVerified, u.MemberTier, u.CurrentPoints,
             u.DeletionScheduledAtUtc, avatar is null ? null : imageMapper.ToDto(avatar));
     }
 }
