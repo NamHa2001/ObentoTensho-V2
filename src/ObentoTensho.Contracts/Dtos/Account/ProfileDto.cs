@@ -12,6 +12,7 @@ public sealed record ProfileDto(
     DateOnly? DateOfBirth,
     string PreferredLang,
     bool IsEmailVerified,
+    bool IsPhoneVerified,
     MemberTier MemberTier,
     int CurrentPoints,
     DateTime? DeletionScheduledAtUtc,

@@ -94,6 +94,10 @@ public sealed class PhoneVerificationTests : IDisposable
         Assert.Equal(HttpStatusCode.NoContent, (await PostAsync(Send, token)).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await PostAsync(Verify, token, new { code = _factory.Sms.LastCode(International(phone)) })).StatusCode);
 
+        using var profile = new HttpRequestMessage(HttpMethod.Get, "/api/v1/account/profile");
+        profile.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        Assert.True((await (await _http.SendAsync(profile)).Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("data").GetProperty("isPhoneVerified").GetBoolean());
+
         Assert.Equal(HttpStatusCode.Created, (await RawBookingAsync(token)).StatusCode);
         Assert.Equal(HttpStatusCode.Created, (await RawOrderAsync(token, items)).StatusCode);
     }
