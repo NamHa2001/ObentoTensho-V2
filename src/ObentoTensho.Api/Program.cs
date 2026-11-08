@@ -1,5 +1,7 @@
 using ObentoTensho.Api.Configuration;
+using Microsoft.Extensions.Logging.Console;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Api.Logging;
 using ObentoTensho.Api.Realtime;
 using ObentoTensho.Infrastructure;
 using Scalar.AspNetCore;
@@ -12,6 +14,12 @@ builder.WebHost.ConfigureKestrel(o =>
     o.AddServerHeader = false;
     o.Limits.MaxRequestBodySize = 1024 * 1024;
 });
+
+// SEC-53: log JSON một dòng, có traceId, đã che dữ liệu nhạy cảm
+builder.Logging.ClearProviders();
+builder.Logging.Configure(o => o.ActivityTrackingOptions = ActivityTrackingOptions.TraceId | ActivityTrackingOptions.SpanId);
+builder.Logging.AddConsole(o => o.FormatterName = RedactingJsonConsoleFormatter.FormatterName)
+    .AddConsoleFormatter<RedactingJsonConsoleFormatter, ConsoleFormatterOptions>();
 
 builder.Services.AddApiControllers();
 builder.Services.AddAppHealthChecks();
