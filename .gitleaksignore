@@ -2,3 +2,6 @@
 
 # Khóa thử nghiệm công khai của RFC 6238 ("12345678901234567890" dạng Base32) trong test TOTP, không phải bí mật
 ffeca06414121723c1cda5fc18e84d5d33cdc2e6:tests/ObentoTensho.UnitTests/Auth/TotpTests.cs:generic-api-key:58
+
+# Mật khẩu giả trong test đặt lại mật khẩu nhân viên sau khi bấm "Không phải tôi", chỉ dùng trên CSDL test
+2011a1e899c389df0e7c0e4dd4f1c09b253395f5:tests/ObentoTensho.IntegrationTests/Auth/SessionSecurityTests.cs:generic-api-key:145
