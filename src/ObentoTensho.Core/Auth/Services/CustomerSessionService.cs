@@ -17,11 +17,14 @@ public sealed class CustomerSessionService(
     IPasswordHasher passwordHasher,
     SessionFactory sessions,
     AuthSecurityEvents securityEvents,
+    LoginGuard guard,
+    IAccountEmailOutbox emails,
     IClock clock,
     IValidator<LoginRequest> loginValidator)
 {
     private static readonly Result<AuthSession> InvalidCredentials = Result.Failure<AuthSession>(ErrorCodes.InvalidCredentials);
     private static readonly Result<AuthSession> Unauthenticated = Result.Failure<AuthSession>(ErrorCodes.Unauthenticated);
+    private const string Scope = "customer";
 
     public async Task<Result<AuthSession>> LoginAsync(LoginRequest request, ClientInfo client, CancellationToken cancellationToken)
     {
@@ -32,21 +35,25 @@ public sealed class CustomerSessionService(
         }
 
         var now = clock.UtcNow;
-        var user = await users.FindByEmailAsync(EmailAddress.Normalize(request.Email), cancellationToken);
+        var email = EmailAddress.Normalize(request.Email);
+        var user = await users.FindByEmailAsync(email, cancellationToken);
 
         // Không có tài khoản, đã xóa, chưa đặt mật khẩu hay đang bị khóa: cùng phản hồi, cùng thời gian (BR-AUTH-14)
-        if (user?.PasswordHash is null || user.IsDeleted || user.LockoutEndUtc > now)
+        if (user?.PasswordHash is null || user.IsDeleted || user.LockoutEndUtc > now || guard.IsBlocked(Scope, email, client.IpAddress))
         {
             passwordHasher.SimulateVerify(request.Password);
+            guard.RegisterFailure(Scope, email, client.IpAddress);
             return InvalidCredentials;
         }
 
         var check = passwordHasher.Verify(user.PasswordHash, request.Password);
         if (check == PasswordCheckResult.Failed)
         {
-            await users.RegisterFailedLoginAsync(user.Id, now + AuthPolicy.LockoutDuration, cancellationToken);
+            await RegisterFailureAsync(user, email, client, now, cancellationToken);
             return InvalidCredentials;
         }
+
+        guard.Reset(Scope, email, client.IpAddress);
 
         if (!user.IsActive)
         {
@@ -122,6 +129,19 @@ public sealed class CustomerSessionService(
         {
             await refreshTokens.RevokeAsync(stored.Id, RefreshTokenRevokedReason.Logout, clock.UtcNow, cancellationToken);
         }
+    }
+
+    // SEC-51: vừa chạm ngưỡng sai toàn tài khoản ⇒ khóa 15 phút và báo chủ tài khoản một lần
+    private async Task RegisterFailureAsync(User user, string email, ClientInfo client, DateTime now, CancellationToken cancellationToken)
+    {
+        if (!guard.RegisterFailure(Scope, email, client.IpAddress))
+        {
+            return;
+        }
+
+        await users.LockUntilAsync(user.Id, now + LoginGuard.Window, cancellationToken);
+        emails.EnqueueLoginLockout(new AccountRecipient(user.Id, user.Email, user.FullName, user.PreferredLang, IsStaff: false), now);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private async Task AfterSuccessfulPasswordAsync(User user, PasswordCheckResult check, string password, CancellationToken cancellationToken)

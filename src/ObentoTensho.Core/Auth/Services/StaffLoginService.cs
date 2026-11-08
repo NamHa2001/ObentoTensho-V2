@@ -8,16 +8,20 @@ using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Auth.Services;
 
-// FR-AUTH-02 cho nhân viên; SEC-03: khóa 5 lần sai, phản hồi và thời gian như nhau
+// FR-AUTH-02 cho nhân viên; SEC-03, SEC-51: chặn theo (tài khoản, IP), khóa cả tài khoản khi sai từ nhiều nơi; phản hồi và thời gian như nhau
 public sealed class StaffLoginService(
     IStaffRepository staff,
     IPasswordHasher passwordHasher,
     StaffSignInFlow flow,
     AuthSecurityEvents securityEvents,
+    LoginGuard guard,
+    IAccountEmailOutbox emails,
+    IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<LoginRequest> loginValidator)
 {
     private static readonly Result<StaffSignInResult> InvalidCredentials = Result.Failure<StaffSignInResult>(ErrorCodes.InvalidCredentials);
+    private const string Scope = "staff";
 
     public async Task<Result<StaffSignInResult>> LoginAsync(LoginRequest request, ClientInfo client, CancellationToken cancellationToken)
     {
@@ -32,9 +36,10 @@ public sealed class StaffLoginService(
         var member = await staff.FindByEmailAsync(email, cancellationToken);
 
         // Chưa nhận lời mời (chưa có mật khẩu), không tồn tại hay đang bị khóa: cùng phản hồi
-        if (member?.PasswordHash is null || member.LockoutEndUtc > now)
+        if (member?.PasswordHash is null || member.LockoutEndUtc > now || guard.IsBlocked(Scope, email, client.IpAddress))
         {
             passwordHasher.SimulateVerify(request.Password);
+            guard.RegisterFailure(Scope, email, client.IpAddress);
             await securityEvents.StaffLoginFailedAsync(member?.Id, email, member is null ? "unknown_account" : "locked_or_no_password", cancellationToken);
             return InvalidCredentials;
         }
@@ -42,10 +47,18 @@ public sealed class StaffLoginService(
         var check = passwordHasher.Verify(member.PasswordHash, request.Password);
         if (check == PasswordCheckResult.Failed)
         {
-            await staff.RegisterFailedLoginAsync(member.Id, now + AuthPolicy.LockoutDuration, cancellationToken);
+            if (guard.RegisterFailure(Scope, email, client.IpAddress))
+            {
+                await staff.LockUntilAsync(member.Id, now + LoginGuard.Window, cancellationToken);
+                emails.EnqueueLoginLockout(new AccountRecipient(member.Id, member.Email, member.FullName, AuthPolicy.DefaultLanguage, IsStaff: true), now);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
             await securityEvents.StaffLoginFailedAsync(member.Id, email, "wrong_password", cancellationToken);
             return InvalidCredentials;
         }
+
+        guard.Reset(Scope, email, client.IpAddress);
 
         if (!member.IsActive)
         {

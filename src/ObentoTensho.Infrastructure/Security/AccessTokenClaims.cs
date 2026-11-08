@@ -6,4 +6,5 @@ public static class AccessTokenClaims
     public const string Subject = "sub";
     public const string Role = "role";
     public const string SecurityStamp = "sv";
+    public const string SessionId = "sid";
 }

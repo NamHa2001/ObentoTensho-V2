@@ -13,7 +13,7 @@ public sealed class SessionFactory(
     IAccessTokenIssuer accessTokens,
     IClock clock)
 {
-    private const int UserAgentMaxLength = 300;
+    public const int UserAgentMaxLength = 300;
 
     public SecureToken NewRefreshToken() => secureTokens.Create();
 
@@ -37,7 +37,7 @@ public sealed class SessionFactory(
     {
         var expiresAt = clock.UtcNow + AuthPolicy.RefreshTokenLifetime;
         AddRefreshToken(refreshToken, familyId, user.Id, staffId: null, expiresAt, client);
-        return new AuthSession(accessTokens.IssueForCustomer(user.Id, user.SecurityStamp), refreshToken.Value, expiresAt);
+        return new AuthSession(accessTokens.IssueForCustomer(user.Id, user.SecurityStamp, familyId), refreshToken.Value, expiresAt);
     }
 
     // SEC-74: phiên nhân viên trượt theo hoạt động (30 phút) nhưng không vượt 12 giờ kể từ lúc đăng nhập
@@ -48,7 +48,7 @@ public sealed class SessionFactory(
         var expiresAt = idleExpiry < absoluteExpiry ? idleExpiry : absoluteExpiry;
 
         AddRefreshToken(refreshToken, familyId, userId: null, staff.Id, expiresAt, client);
-        return new AuthSession(accessTokens.IssueForStaff(staff.Id, staff.Role, staff.SecurityStamp), refreshToken.Value, expiresAt);
+        return new AuthSession(accessTokens.IssueForStaff(staff.Id, staff.Role, staff.SecurityStamp, familyId), refreshToken.Value, expiresAt);
     }
 
     private async Task RevokeExcessAsync(IReadOnlyList<Guid> activeFamilies, CancellationToken cancellationToken)

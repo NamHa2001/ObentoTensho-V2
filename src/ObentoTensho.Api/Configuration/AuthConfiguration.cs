@@ -9,6 +9,7 @@ using ObentoTensho.Contracts.Dtos.Staff;
 using ObentoTensho.Core.Audit.Services;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
+using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Services;
 using ObentoTensho.Core.Auth.Validators;
 using ObentoTensho.Infrastructure.Security;
@@ -31,6 +32,7 @@ public static class AuthConfiguration
         services.AddSingleton<IValidator<ResetPasswordRequest>, ResetPasswordRequestValidator>();
 
         services.AddScoped<SessionFactory>();
+        services.AddScoped<LoginGuard>();
         services.AddScoped<AccessTokenSessionValidator>();
         services.AddScoped<CustomerSessionService>();
         services.AddScoped<CustomerRegistrationService>();
@@ -139,9 +141,19 @@ public static class AuthConfiguration
         var valid = Guid.TryParse(subject, out var id) && (isStaff
             ? await validator.IsStaffSessionValidAsync(id, stamp, cancellationToken)
             : await validator.IsCustomerSessionValidAsync(id, stamp, cancellationToken));
+
+        // SEC-50: phiên đã đăng xuất/bị thu hồi ⇒ access token còn hạn cũng không dùng được
+        if (valid && SessionOf(context) is { } sessionId && context.HttpContext.RequestServices.GetRequiredService<ISessionDenylist>().IsRevoked(sessionId))
+        {
+            valid = false;
+        }
+
         if (!valid)
         {
             context.Fail("Phiên đã bị thu hồi.");
         }
     }
+
+    private static Guid? SessionOf(TokenValidatedContext context) =>
+        Guid.TryParse(context.Principal?.FindFirst(AccessTokenClaims.SessionId)?.Value, out var sid) ? sid : null;
 }

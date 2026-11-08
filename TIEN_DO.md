@@ -89,7 +89,8 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 | Báo cáo | `dd9e416` | Doanh thu, đặt bàn, đơn, khách, món bán chạy, xuất Excel |
 | Realtime | `befb99c` | Hub nhân viên và hub công khai, vé kết nối một lần, sự kiện đặt bàn/chỗ trống/đơn/liên hệ phát sau commit, giới hạn kết nối và lệnh, ngắt khi phiên bị thu hồi |
 | Đa ngôn ngữ | `d61eb97` | Bản dịch en/ja cho khuyến mãi, banner, gallery, tin tức, trang tĩnh; chỉ hiện bản đã duyệt còn khớp bản Việt; `?lang=` theo ngôn ngữ đang bật; chặn bật ngôn ngữ khi thiếu bản dịch; tiến độ dịch |
-| Ảnh thực đơn, khuyến mãi | commit ngay sau `d61eb97` | Ảnh chính + 4 ảnh phụ của món, ảnh danh mục, banner khuyến mãi; chỉ ẩn tùy chọn đã có đơn; slug cũ 301 cho món/khuyến mãi; đánh giá theo món; kiểm zip bomb bằng giải nén thật |
+| Ảnh thực đơn, khuyến mãi | `c6a28ba` | Ảnh chính + 4 ảnh phụ của món, ảnh danh mục, banner khuyến mãi; chỉ ẩn tùy chọn đã có đơn; slug cũ 301 cho món/khuyến mãi; đánh giá theo món; kiểm zip bomb bằng giải nén thật |
+| Phiên và đăng nhập | commit ngay sau `c6a28ba` | Đăng xuất/thu hồi thiết bị làm access token hết dùng ngay (claim `sid`); chặn đăng nhập theo (tài khoản, IP), khóa cả tài khoản sau 20 lần sai kèm thư báo; báo nhân viên đăng nhập từ thiết bị/mạng lạ |
 | Trang thử API | `1e20913` | OpenAPI + Scalar tại `/scalar/`, chỉ ở môi trường Development |
 
 ## 5. Backend hiện có
@@ -109,7 +110,7 @@ Chờ chủ dự án quyết định: cách xử lý thư vượt giới hạn (
 
 **Việc định kỳ:** `reservations.reminder`, `reservations.no-show`, `reservations.pending-cutoff`, `orders.attention`, `loyalty.expire`, `loyalty.expiry-notice`, `vouchers.birthday`, `media.process-images`.
 
-**Kiểm thử:** 1.151 test (484 kiến trúc, 458 đơn vị, 209 tích hợp trên SQL Server thật).
+**Kiểm thử:** 1.159 test (484 kiến trúc, 461 đơn vị, 214 tích hợp trên SQL Server thật).
 
 ## 6. Quyết định và hành vi cần nhớ
 
@@ -130,6 +131,7 @@ Những điểm không thấy ngay khi đọc yêu cầu:
 - **Gói gốc libvips:** chỉ cài `win-x64` và `linux-x64`. Nếu triển khai bằng ảnh Docker Alpine hoặc ARM thì phải đổi gói.
 - **Quyền voucher:** dùng chung `StaffCapability.Customers` theo dòng "Khách hàng, khuyến mãi, voucher" của ma trận.
 - **Giới hạn thư:** mỗi địa chỉ nhận tối đa 3 thư cùng loại mỗi giờ và 10 thư mỗi ngày; thư vượt giới hạn bị bỏ hẳn, không hoãn (xem mục "Rủi ro thư bị bỏ" của `VIEC_CON_NO.md`).
+- **Đăng nhập:** sai 5 lần chỉ chặn cặp (tài khoản, IP) 15 phút; sai 20 lần từ nhiều IP mới khóa cả tài khoản. Access token mang `sid` (= phiên); đăng xuất/thu hồi phiên làm token hết dùng ngay.
 - **Định dạng liên hệ:** SĐT lưu dạng `+84…`; email lưu chữ thường.
 - **Đường dẫn lạ:** trả 401 (chính sách từ chối mặc định), không phải 404.
 - **Đa ngôn ngữ:** API công khai nhận `?lang=vi|en|ja`, chỉ ngôn ngữ đang bật trong `i18n.enabledLocales`; không đọc `Accept-Language`. Phản hồi có `contentLang` và `isFallback`. Trang quản trị và thư gửi nhân viên chỉ tiếng Việt.

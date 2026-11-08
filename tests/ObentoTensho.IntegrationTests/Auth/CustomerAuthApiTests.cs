@@ -121,22 +121,53 @@ public sealed class CustomerAuthApiTests : IDisposable
     }
 
     [Fact]
-    public async Task Sai_5_lan_thi_lan_6_dung_mat_khau_van_bi_tu_choi()
+    public async Task Sai_5_lan_tu_mot_IP_chi_chan_IP_do_chu_tai_khoan_o_noi_khac_van_vao_duoc()
     {
         var email = AuthApiClient.NewEmail();
         (await _api.RegisterAsync(email)).EnsureSuccessStatusCode();
 
         for (var i = 0; i < 5; i++)
         {
-            await _api.LoginAsync(email, "Sai-mat-khau-2026");
+            await LoginFromAsync("203.0.113.10", email, "Sai-mat-khau-2026");
         }
 
-        var response = await _api.LoginAsync(email);
+        // SEC-51: kẻ xấu ở IP khác không khóa được chủ tài khoản
+        Assert.Equal(HttpStatusCode.Unauthorized, (await LoginFromAsync("203.0.113.10", email, AuthApiClient.DefaultPassword)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await LoginFromAsync("198.51.100.20", email, AuthApiClient.DefaultPassword)).StatusCode);
+        await using var db = _fixture.CreateContext();
+        Assert.Null((await db.Users.SingleAsync(u => u.Email == email)).LockoutEndUtc);
+    }
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    [Fact]
+    public async Task Sai_20_lan_tu_nhieu_IP_thi_khoa_ca_tai_khoan_va_bao_chu_tai_khoan()
+    {
+        var email = AuthApiClient.NewEmail();
+        (await _api.RegisterAsync(email)).EnsureSuccessStatusCode();
+
+        for (var ip = 1; ip <= 5; ip++)
+        {
+            for (var i = 0; i < 4; i++)
+            {
+                await LoginFromAsync($"203.0.113.{ip}", email, "Sai-mat-khau-2026");
+            }
+        }
+
+        Assert.Equal(HttpStatusCode.Unauthorized, (await LoginFromAsync("198.51.100.99", email, AuthApiClient.DefaultPassword)).StatusCode);
         await using var db = _fixture.CreateContext();
         var user = await db.Users.SingleAsync(u => u.Email == email);
         Assert.NotNull(user.LockoutEndUtc);
+        var prefix = $"login_lockout:{user.Id:N}:";
+        Assert.Equal(1, await db.OutboxMessages.CountAsync(m => m.IdempotencyKey.StartsWith(prefix)));
+    }
+
+    private async Task<HttpResponseMessage> LoginFromAsync(string ip, string email, string password)
+    {
+        using var http = _factory.CreateApiClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/login") { Content = JsonContent.Create(new { email, password }) };
+        request.Headers.Add(TestRemoteIpStartupFilter.Header, ip);
+        var response = await http.SendAsync(request);
+        await response.Content.LoadIntoBufferAsync();
+        return response;
     }
 
     [Fact]

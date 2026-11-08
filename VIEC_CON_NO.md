@@ -4,7 +4,7 @@ Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu c�
 
 Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
 
-Cập nhật lần cuối: 08/11/2026 — đang làm các việc tự làm được trong file này (đợt 1: thực đơn, khuyến mãi).
+Cập nhật lần cuối: 08/11/2026 — đang làm các việc tự làm được trong file này (xong đợt 1: thực đơn, khuyến mãi; đợt 2a: phiên và đăng nhập).
 
 **Cách đọc:**
 
@@ -59,14 +59,13 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
-| Ảnh đại diện khách | `FR-AUTH-08` | Đã có hồ sơ; còn cột `AvatarImageId` và `POST /account/avatar` | Dùng lại pipeline ảnh NetVips: chỉ nhận JPEG/PNG/WebP ≤ 5 MB, cắt vuông 256/512 px, mã hóa lại (tự bỏ EXIF có vị trí GPS), tối đa 5 lần đổi/ngày. Ảnh cũ vào danh sách dọn ảnh mồ côi |
+| Ảnh đại diện khách | `FR-AUTH-08` | Đã có hồ sơ; pipeline ảnh hiện chỉ cho nhân viên tải lên | Làm cùng giao diện khách: thêm chủ sở hữu ảnh là khách (cột người tải lên), giới hạn 5 MB và 5 lần/ngày, cắt vuông 256/512 px, mã hóa lại để bỏ EXIF; ảnh cũ vào danh sách dọn ảnh mồ côi |
 | Chặn email dùng một lần khi nhận ưu đãi | `BR-AUTH-16` | Chưa có | Nhúng danh sách tên miền email tạm (bản công khai, giấy phép CC0), cập nhật theo bản phát hành. Kiểm lúc đăng ký và lúc nhận ưu đãi (voucher chào mừng, sinh nhật); chỉ chặn nhận ưu đãi, không chặn đăng ký để không mất khách thật |
 | Gắn đơn/đặt bàn vãng lai vào tài khoản | `BR-AUTH-17`, khóa `loyalty.claimGuestOrders` | Khóa có trong cài đặt nhưng chưa có tác dụng | Chỉ gắn khi email tài khoản **đã xác thực** trùng email của đơn **và** SĐT trùng; khách bấm "Nhận đơn cũ" chứ không tự động. Chỉ đơn trong 30 ngày gần nhất, cộng điểm hồi tố một lần, có audit. Tránh việc ai đó đăng ký bằng email người khác để lấy điểm |
 | Client native: refresh token trong body | `BR-AUTH-12` | Phase 3 | Chưa làm. Khi làm: chỉ nhận khi có header `X-Client: native` kèm khóa thiết bị; web vẫn chỉ dùng cookie `HttpOnly` |
-| Thu hồi access token khi đăng xuất | `SEC-50` | Access token còn dùng được tối đa 15 phút sau đăng xuất | Lưu `jti` của token đã đăng xuất vào danh sách chặn tới khi token hết hạn: bộ nhớ đệm bây giờ, Redis khi chạy nhiều máy. Mỗi request chỉ tra thêm một khóa, gần như không tốn chi phí |
-| Khóa đăng nhập đúng chuẩn | `BR-AUTH-03`, `SEC-51` | Bộ đếm chỉ về 0 khi đăng nhập đúng hoặc khi bị khóa | Đếm theo cửa sổ trượt 15 phút, tách hai bộ đếm (theo tài khoản và theo tài khoản + IP). Từ lần sai thứ 3 bắt Turnstile; thứ 5 khóa 15 phút và gửi email cảnh báo cho chủ tài khoản. Bộ đếm theo IP chặn dò nhiều tài khoản. Khóa theo tài khoản + IP để kẻ xấu không khóa được khách thật từ IP khác |
+| Bắt Turnstile sau vài lần đăng nhập sai | `SEC-51` | Đã chặn theo (tài khoản, IP) sau 5 lần, khóa cả tài khoản sau 20 lần từ nhiều IP và gửi thư báo | Thêm khi làm giao diện (cần widget Turnstile trên form đăng nhập): từ lần sai thứ 3 của cặp (tài khoản, IP) thì yêu cầu token Turnstile |
 | Danh sách mật khẩu phổ biến lớn hơn | `BR-AUTH-01` | Khoảng 80 mục | Thay bằng danh sách 10.000 mật khẩu phổ biến nhất (bản công khai, giấy phép MIT), thêm các mẫu tiếng Việt ("matkhau", "123456a@", tên quán). Không gọi dịch vụ ngoài để không gửi mật khẩu đi đâu |
-| Cảnh báo đăng nhập quản trị từ thiết bị/IP mới | `SEC-58`, email #23/#29 | Chưa có | Lưu dấu thiết bị (băm user-agent + dải IP /24) khi đăng nhập thành công. Gặp dấu mới thì gửi email cho chính nhân viên đó, kèm nút "Không phải tôi" để thu hồi mọi phiên. Đăng nhập SuperAdmin từ thiết bị mới thì báo thêm các SuperAdmin khác |
+| Nút "Không phải tôi" trong thư báo đăng nhập quản trị từ nơi lạ | `SEC-58` | Thư báo đã gửi (so trình duyệt + dải IP /24 với các phiên cũ) | Cần trang xác nhận ở giao diện quản trị; hiện nhân viên tự đổi mật khẩu/thu hồi phiên |
 
 ## 4. Nhân viên
 
@@ -81,6 +80,7 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
 | Bộ đếm rate limit, `IActionThrottle`, cache security stamp, cache giờ mở cửa | `09` §6, `PERF-11` | Trong bộ nhớ từng tiến trình | Chuyển sang Redis/Valkey ở phần triển khai. Redis lỗi thì quay về bộ đếm cục bộ chặt hơn (`PERF-43`). Chạy một máy thì bản hiện tại đã đúng |
+| Danh sách phiên bị thu hồi (`ISessionDenylist`), bộ đếm đăng nhập sai (`LoginGuard`) | `SEC-50`, `SEC-51` | Trong bộ nhớ tiến trình | Chuyển Redis cùng các bộ đếm khác khi chạy nhiều instance |
 | Backplane Redis cho SignalR; vé kết nối hub và bộ đếm kết nối | `06` §B.2, `SEC-69` | Trong bộ nhớ tiến trình | Làm cùng mục trên. Vé lưu Redis có TTL 30 giây, lấy và xóa vé bằng một lệnh nguyên tử (`GETDEL`) |
 | Realtime: MessagePack, đo số kết nối và độ trễ | `PERF-63` | Chưa có | Chỉ cần đo (số kết nối, thời gian từ commit tới gửi) qua OpenTelemetry. MessagePack không đáng làm vì payload rất nhỏ |
 | Log có cấu trúc, che dữ liệu nhạy cảm, chống log injection | `SEC-53` | Log mặc định của .NET | Serilog ghi JSON có `traceId`; bộ lọc che SĐT/email/token/mật khẩu theo tên trường và theo mẫu; bỏ ký tự xuống dòng trong giá trị người dùng nhập; xóa query `ticket`, `token`, `code` khỏi đường dẫn trong log (`SEC-46`) |

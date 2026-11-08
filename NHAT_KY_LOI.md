@@ -13,6 +13,15 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Phiên và đăng nhập (08/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Đăng nhập lại ngay sau "thu hồi mọi phiên" bị 401 trong vài giây | Lỗi có từ trước: trạng thái phiên nhớ 5 giây vẫn giữ security stamp cũ, token mới mang stamp mới bị coi là sai | Stamp không khớp bản nhớ thì đọc lại CSDL một lần trước khi từ chối | Bộ nhớ đệm dùng để cho phép nhanh, không được dùng làm lý do từ chối |
+| Thu hồi mọi phiên nhưng token cấp trong cùng giây vẫn dùng được | Chặn theo mốc thời gian, mà `iat` chỉ chính xác tới giây | Chặn theo từng phiên (`sid` = FamilyId) của mọi refresh token cấp trong khoảng đời access token gần nhất | Không so mốc thời gian dưới độ chính xác của claim |
+| Test thu hồi thiết bị chọn nhầm phiên | Sắp phiên theo `CreatedAtUtc`, nhiều token tạo trong cùng mili giây | Đọc `sid` trực tiếp từ access token | |
+| Test cũ "thu hồi thiết bị" dùng tiếp token của chính phiên vừa thu hồi | Trước đây access token còn sống 15 phút sau thu hồi | Sửa test: phiên bị thu hồi phải 401, kiểm danh sách bằng token của thiết bị còn lại | |
+
 ## Ảnh thực đơn, khuyến mãi, slug cũ (08/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

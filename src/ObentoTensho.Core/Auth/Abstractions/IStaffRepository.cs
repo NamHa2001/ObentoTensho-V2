@@ -29,13 +29,16 @@ public interface IStaffRepository
     // BR-STF-04: giữ khóa bảng tới hết transaction để hai SuperAdmin không cùng khóa nhau
     Task<int> CountActiveSuperAdminsForUpdateAsync(CancellationToken cancellationToken);
 
-    Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);
+    // freshRead: bỏ qua bộ nhớ đệm (stamp trong token mới hơn bản đang nhớ)
+    Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken, bool freshRead = false);
 
     void Add(Staff staff);
 
     Task RegisterFailedLoginAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken);
 
     Task ResetFailedLoginsAsync(Guid id, CancellationToken cancellationToken);
+
+    Task LockUntilAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken);
 
     Task ReplacePasswordHashAsync(Guid id, string currentHash, string newHash, CancellationToken cancellationToken);
 

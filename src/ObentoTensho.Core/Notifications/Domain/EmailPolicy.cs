@@ -22,13 +22,13 @@ public static class EmailPolicy
             or EmailKind.OrderCancelledByCustomer or EmailKind.OrderRefunded => 2,
         EmailKind.ReservationReminder or EmailKind.OrderAttention or EmailKind.ContactReceived or EmailKind.ContactInternal or EmailKind.NewsletterConfirm
             or EmailKind.AccountLocked or EmailKind.AccountUnlocked or EmailKind.AdminAlert or EmailKind.DataExportReady => 3,
-        EmailKind.DuplicateRegistration or EmailKind.PasswordChanged or EmailKind.EmailChangeNotice or EmailKind.AccountDeletionScheduled => 3,
+        EmailKind.DuplicateRegistration or EmailKind.PasswordChanged or EmailKind.EmailChangeNotice or EmailKind.AccountDeletionScheduled or EmailKind.LoginLockout => 3,
         EmailKind.LoyaltyPointsEarned or EmailKind.LoyaltyTierUp or EmailKind.LoyaltyPointsExpiring or EmailKind.VoucherRedeemed or EmailKind.VoucherBirthday => 4,
         _ => 5,
     };
 
     public static bool IsSecurityNotice(EmailKind kind) =>
-        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice;
+        kind is EmailKind.PasswordChanged or EmailKind.DuplicateRegistration or EmailKind.EmailChangeNotice or EmailKind.LoginLockout;
 
     public static bool ExceedsRecipientLimit(EmailKind kind, int sameKindLastHour, int allKindsToday, int securityNoticesToday) =>
         IsSecurityNotice(kind)

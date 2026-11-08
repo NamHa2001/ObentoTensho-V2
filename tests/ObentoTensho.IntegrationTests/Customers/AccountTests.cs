@@ -177,7 +177,7 @@ public sealed class AccountTests : IDisposable
     public async Task Thiet_bi_dang_nhap_liet_ke_va_thu_hoi_duoc()
     {
         var (_, email, access, first) = await CustomerAsync();
-        await _auth.LoginAsync(email);
+        var other = await AuthApiClient.ReadAccessTokenAsync(await _auth.LoginAsync(email));
         var (_, _, stranger, _) = await CustomerAsync();
 
         var sessions = await AdminAuthApiClient.ReadDataAsync(await SendAsync(HttpMethod.Get, "/sessions", access));
@@ -189,7 +189,10 @@ public sealed class AccountTests : IDisposable
         var rotated = await AdminAuthApiClient.ReadDataAsync(await SendAsync(HttpMethod.Get, "/sessions", access));
         var target = rotated.EnumerateArray().First().GetProperty("id").GetGuid();
         Assert.Equal(HttpStatusCode.NoContent, (await SendAsync(HttpMethod.Delete, $"/sessions/{target}", access)).StatusCode);
-        Assert.Equal(1, (await AdminAuthApiClient.ReadDataAsync(await SendAsync(HttpMethod.Get, "/sessions", access))).GetArrayLength());
+
+        // Phiên vừa thu hồi là phiên của chính `access` ⇒ token đó hết dùng ngay (SEC-50); thiết bị còn lại vẫn dùng được
+        Assert.Equal(HttpStatusCode.Unauthorized, (await SendAsync(HttpMethod.Get, "/sessions", access)).StatusCode);
+        Assert.Equal(1, (await AdminAuthApiClient.ReadDataAsync(await SendAsync(HttpMethod.Get, "/sessions", other))).GetArrayLength());
 
         var (_, _, all, one) = await CustomerAsync();
         Assert.Equal(HttpStatusCode.NoContent, (await SendAsync(HttpMethod.Post, "/sessions/revoke-all", all)).StatusCode);

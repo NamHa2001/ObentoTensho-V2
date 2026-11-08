@@ -33,6 +33,13 @@ public sealed class AuthApiClient(HttpClient http)
     public Task<HttpResponseMessage> LogoutAsync(string? refreshToken) =>
         http.SendAsync(CookieRequest("/api/v1/auth/logout", refreshToken, trusted: true));
 
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string accessToken)
+    {
+        var request = new HttpRequestMessage(method, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        return http.SendAsync(request);
+    }
+
     public Task<HttpResponseMessage> GetProtectedAsync(string accessToken)
     {
         var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/test-probe");

@@ -16,10 +16,10 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
     public Task<User?> FindByIdAsync(Guid id, CancellationToken cancellationToken) =>
         db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == id, cancellationToken);
 
-    public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken, bool freshRead = false)
     {
         var key = $"auth:user-session:{id:N}";
-        if (cache.TryGetValue(key, out UserSessionState? cached))
+        if (!freshRead && cache.TryGetValue(key, out UserSessionState? cached))
         {
             return cached;
         }
@@ -60,6 +60,9 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
                 .SetProperty(u => u.FailedLoginCount, u => u.FailedLoginCount >= threshold ? 0 : u.FailedLoginCount + 1),
             cancellationToken);
     }
+
+    public Task LockUntilAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken) =>
+        db.Users.Where(x => x.Id == id).ExecuteUpdateAsync(u => u.SetProperty(x => x.LockoutEndUtc, lockoutEndUtc), cancellationToken);
 
     public Task ResetFailedLoginsAsync(Guid id, CancellationToken cancellationToken) =>
         db.Users.Where(u => u.Id == id).ExecuteUpdateAsync(

@@ -36,5 +36,6 @@ public enum EmailKind
     DataExportReady,
     EmailChangeVerify,
     EmailChangeNotice,
-    AccountDeletionScheduled
+    AccountDeletionScheduled,
+    LoginLockout
 }

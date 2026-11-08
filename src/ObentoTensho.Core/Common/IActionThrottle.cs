@@ -7,4 +7,6 @@ public interface IActionThrottle
 
     // Tăng và trả giá trị mới; bộ đếm tự hết sau `window` kể từ lần tăng đầu
     int Increment(string key, TimeSpan window);
+
+    void Reset(string key);
 }

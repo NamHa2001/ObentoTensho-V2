@@ -99,6 +99,8 @@ internal sealed class AccountEmailOutbox(AppDbContext db, IClock clock, IOptions
 
     public void EnqueueAccountUnlocked(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.AccountUnlocked, recipient, atUtc);
 
+    public void EnqueueLoginLockout(AccountRecipient recipient, DateTime atUtc) => EnqueueStatus(EmailKind.LoginLockout, recipient, atUtc);
+
     private void EnqueueStatus(EmailKind kind, AccountRecipient recipient, DateTime atUtc) =>
         Enqueue(new EmailRequest(
             kind,

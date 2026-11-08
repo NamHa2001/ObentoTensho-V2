@@ -1,0 +1,14 @@
+subject: Your Obento Tensho account is temporarily locked
+===
+Hello {{fullName}},
+
+There were many failed sign-in attempts on your account, so it has been locked for 15 minutes to protect it. After that you can sign in as usual.
+
+If these attempts were not you, please change your password as soon as the account is unlocked.
+
+Obento Tensho
+===
+<p>Hello {{fullName}},</p>
+<p>There were many failed sign-in attempts on your account, so it has been locked for 15 minutes to protect it. After that you can sign in as usual.</p>
+<p>If these attempts were not you, please change your password as soon as the account is unlocked.</p>
+<p>Obento Tensho</p>

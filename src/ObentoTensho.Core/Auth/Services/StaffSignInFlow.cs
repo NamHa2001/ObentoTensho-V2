@@ -2,6 +2,7 @@ using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Auth.Services;
@@ -14,6 +15,8 @@ public sealed class StaffSignInFlow(
     IStaffChallengeTokens challenges,
     SessionFactory sessions,
     AuthSecurityEvents securityEvents,
+    IRefreshTokenRepository refreshTokens,
+    IAdminEmailOutbox adminEmails,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
@@ -40,6 +43,7 @@ public sealed class StaffSignInFlow(
     public async Task<AuthSession> StartSessionAsync(Staff member, ClientInfo client, CancellationToken cancellationToken)
     {
         var now = clock.UtcNow;
+        await AlertNewDeviceAsync(member, client, now, cancellationToken);
         await staff.ResetFailedLoginsAsync(member.Id, cancellationToken);
         await staff.RecordLoginAsync(member.Id, now, cancellationToken);
         await sessions.EnforceStaffSessionLimitAsync(member.Id, cancellationToken);
@@ -47,6 +51,32 @@ public sealed class StaffSignInFlow(
         securityEvents.RecordStaffLoginSucceeded(member);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return session;
+    }
+
+    // SEC-58: đăng nhập quản trị từ trình duyệt/dải mạng chưa từng dùng ⇒ báo chính nhân viên đó; SuperAdmin thì báo thêm
+    // các SuperAdmin khác. Lần đăng nhập đầu tiên (vừa nhận lời mời) không báo
+    private async Task AlertNewDeviceAsync(Staff member, ClientInfo client, DateTime now, CancellationToken cancellationToken)
+    {
+        var prefix = ClientNetwork.Prefix(client.IpAddress);
+        var userAgent = client.UserAgent is { Length: > SessionFactory.UserAgentMaxLength } ua ? ua[..SessionFactory.UserAgentMaxLength] : client.UserAgent;
+        if (!await refreshTokens.StaffHasSessionsAsync(member.Id, cancellationToken)
+            || await refreshTokens.StaffSeenClientAsync(member.Id, prefix, userAgent, cancellationToken))
+        {
+            return;
+        }
+
+        var message = $"Tài khoản quản trị {member.Email} vừa đăng nhập từ thiết bị hoặc mạng mới (IP {client.IpAddress ?? "không rõ"}, "
+            + $"trình duyệt: {userAgent ?? "không rõ"}). Nếu không phải bạn, hãy đổi mật khẩu và thu hồi mọi phiên ngay.";
+        var key = $"new-device:{member.Id:N}:{now.Ticks}";
+        adminEmails.EnqueueAlert(member.Email, message, key);
+        if (member.Role == StaffRole.SuperAdmin)
+        {
+            foreach (var email in (await staff.ListActiveEmailsAsync([StaffRole.SuperAdmin], cancellationToken))
+                .Where(e => !string.Equals(e, member.Email, StringComparison.OrdinalIgnoreCase)))
+            {
+                adminEmails.EnqueueAlert(email, message, key);
+            }
+        }
     }
 
     // Mã tạm chỉ hợp lệ khi đúng loại, còn hạn, tài khoản còn hoạt động, không bị khóa và security stamp chưa đổi

@@ -56,10 +56,10 @@ internal sealed class StaffRepository(AppDbContext db, IMemoryCache cache) : ISt
         db.StaffMembers.FromSql($"SELECT * FROM [Staff] WITH (UPDLOCK, HOLDLOCK)")
             .CountAsync(s => s.Role == StaffRole.SuperAdmin && s.IsActive, cancellationToken);
 
-    public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken, bool freshRead = false)
     {
         var key = $"auth:staff-session:{id:N}";
-        if (cache.TryGetValue(key, out UserSessionState? cached))
+        if (!freshRead && cache.TryGetValue(key, out UserSessionState? cached))
         {
             return cached;
         }
@@ -84,6 +84,9 @@ internal sealed class StaffRepository(AppDbContext db, IMemoryCache cache) : ISt
                 .SetProperty(s => s.FailedLoginCount, s => s.FailedLoginCount >= threshold ? 0 : s.FailedLoginCount + 1),
             cancellationToken);
     }
+
+    public Task LockUntilAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken) =>
+        db.StaffMembers.Where(x => x.Id == id).ExecuteUpdateAsync(u => u.SetProperty(x => x.LockoutEndUtc, lockoutEndUtc), cancellationToken);
 
     public Task ResetFailedLoginsAsync(Guid id, CancellationToken cancellationToken) =>
         db.StaffMembers.Where(s => s.Id == id && (s.FailedLoginCount > 0 || s.LockoutEndUtc != null)).ExecuteUpdateAsync(

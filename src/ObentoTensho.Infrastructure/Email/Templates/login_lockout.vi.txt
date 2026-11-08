@@ -1,0 +1,14 @@
+subject: Tài khoản Obento Tensho của bạn tạm bị khóa
+===
+Xin chào {{fullName}},
+
+Tài khoản của bạn vừa có nhiều lần đăng nhập sai nên được tạm khóa 15 phút để bảo vệ. Sau thời gian này bạn đăng nhập lại bình thường.
+
+Nếu không phải bạn đăng nhập, hãy đổi mật khẩu ngay sau khi tài khoản mở lại.
+
+Obento Tensho
+===
+<p>Xin chào {{fullName}},</p>
+<p>Tài khoản của bạn vừa có nhiều lần đăng nhập sai nên được tạm khóa 15 phút để bảo vệ. Sau thời gian này bạn đăng nhập lại bình thường.</p>
+<p>Nếu không phải bạn đăng nhập, hãy đổi mật khẩu ngay sau khi tài khoản mở lại.</p>
+<p>Obento Tensho</p>

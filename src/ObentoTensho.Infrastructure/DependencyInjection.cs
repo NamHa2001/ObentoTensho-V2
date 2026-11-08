@@ -158,6 +158,7 @@ public static class DependencyInjection
         services.AddOptions<JwtOptions>().Bind(configuration.GetSection(JwtOptions.SectionName)).ValidateOnStart();
         services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton<IAccessTokenIssuer, JwtAccessTokenIssuer>();
+        services.AddSingleton<ISessionDenylist, MemorySessionDenylist>();
 
         // Khóa Data Protection mã hóa khóa TOTP: máy chủ phải đặt DataProtection:KeysPath tới thư mục bền
         var dataProtection = services.AddDataProtection().SetApplicationName("ObentoTensho");

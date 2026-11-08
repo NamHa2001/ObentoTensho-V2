@@ -9,7 +9,8 @@ public interface IUserRepository
 
     Task<User?> FindByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken);
+    // freshRead: bỏ qua bộ nhớ đệm (stamp trong token mới hơn bản đang nhớ)
+    Task<UserSessionState?> GetSessionStateAsync(Guid id, CancellationToken cancellationToken, bool freshRead = false);
 
     // Bản được theo dõi thay đổi, lưu bằng IUnitOfWork
     Task<User?> FindByEmailForUpdateAsync(string normalizedEmail, CancellationToken cancellationToken);
@@ -28,6 +29,8 @@ public interface IUserRepository
     Task RegisterFailedLoginAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken);
 
     Task ResetFailedLoginsAsync(Guid id, CancellationToken cancellationToken);
+
+    Task LockUntilAsync(Guid id, DateTime lockoutEndUtc, CancellationToken cancellationToken);
 
     Task ReplacePasswordHashAsync(Guid id, string currentHash, string newHash, CancellationToken cancellationToken);
 }

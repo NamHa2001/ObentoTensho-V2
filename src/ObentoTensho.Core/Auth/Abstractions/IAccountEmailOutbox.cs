@@ -25,6 +25,9 @@ public interface IAccountEmailOutbox
 
     void EnqueueAccountUnlocked(AccountRecipient recipient, DateTime atUtc);
 
+    // SEC-51: báo chủ tài khoản khi đăng nhập sai nhiều lần làm tài khoản bị tạm khóa
+    void EnqueueLoginLockout(AccountRecipient recipient, DateTime atUtc);
+
     // BR-STF-06: liên kết mời một lần, không chứa mật khẩu
     void EnqueueStaffInvite(AccountRecipient recipient, string inviteToken);
 

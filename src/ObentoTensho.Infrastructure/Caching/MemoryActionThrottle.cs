@@ -25,6 +25,14 @@ internal sealed class MemoryActionThrottle(IMemoryCache cache) : IActionThrottle
         }
     }
 
+    public void Reset(string key)
+    {
+        lock (_gate)
+        {
+            cache.Remove(CacheKey(key));
+        }
+    }
+
     private static string CacheKey(string key) => "throttle:" + key;
 
     private sealed class Counter

@@ -7,6 +7,11 @@ public interface IRefreshTokenRepository
 {
     Task<RefreshToken?> FindByHashAsync(string tokenHash, CancellationToken cancellationToken);
 
+    // SEC-58: nhân viên đã từng đăng nhập chưa / đã từng đăng nhập từ trình duyệt và dải mạng này chưa
+    Task<bool> StaffHasSessionsAsync(Guid staffId, CancellationToken cancellationToken);
+
+    Task<bool> StaffSeenClientAsync(Guid staffId, string? networkPrefix, string? userAgent, CancellationToken cancellationToken);
+
     void Add(RefreshToken token);
 
     // Chỉ thành công cho một yêu cầu duy nhất: token phải còn hiệu lực ngay tại câu lệnh UPDATE
