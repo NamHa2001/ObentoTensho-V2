@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ObentoTensho.Core.Notifications.Abstractions;
 using ObentoTensho.Infrastructure.Messaging;
+using ObentoTensho.Infrastructure.Persistence;
 
 namespace ObentoTensho.IntegrationTests.Fixtures;
 
@@ -63,6 +65,9 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
             services.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly);
             services.AddTransient<Microsoft.AspNetCore.Hosting.IStartupFilter, TestRemoteIpStartupFilter>();
             services.AddSingleton<IEmailSender>(Emails);
+
+            // Chỉ đếm khi test mở QueryCounter.Begin(); còn lại không ảnh hưởng gì
+            services.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(QueryCounter.Instance));
         });
     }
 
