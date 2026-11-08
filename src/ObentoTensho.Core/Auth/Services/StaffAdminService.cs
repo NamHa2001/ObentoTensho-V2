@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos;
 using ObentoTensho.Contracts.Dtos.Staff;
@@ -8,6 +9,7 @@ using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Customers.Abstractions;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Auth.Services;
@@ -18,6 +20,7 @@ public sealed class StaffAdminService(
     IRefreshTokenRepository refreshTokens,
     ISecureTokenService secureTokens,
     IAccountEmailOutbox emailOutbox,
+    IAdminEmailOutbox adminEmails,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock,
@@ -109,17 +112,30 @@ public sealed class StaffAdminService(
             }
 
             var before = Snapshot(member);
+            var previousRole = member.Role;
             member.FullName = request.FullName.Trim();
             member.Role = request.Role;
             audit.Record(new AuditEntry($"staff.{Entity}.updated", Entity, member.Id.ToString(), before, Snapshot(member)));
             if (roleChanged)
             {
                 await EndSessionsAsync(member, RefreshTokenRevokedReason.AccountLocked, ct);
+                await AlertRoleChangedAsync(member, previousRole, ct);
             }
 
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(ToDto(member));
         }, cancellationToken);
+    }
+
+    // SEC-58, docs/srs/20 #29: đổi vai trò nhân viên ⇒ báo mọi SuperAdmin đang hoạt động
+    private async Task AlertRoleChangedAsync(Staff member, StaffRole previousRole, CancellationToken cancellationToken)
+    {
+        var message = $"Vai trò của nhân viên {member.Email} vừa đổi từ {previousRole} sang {member.Role}. Mọi phiên của người này đã bị đăng xuất.";
+        var key = $"role-change:{member.Id:N}:{clock.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture)}";
+        foreach (var email in await staff.ListActiveEmailsAsync([StaffRole.SuperAdmin], cancellationToken))
+        {
+            adminEmails.EnqueueAlert(email, message, key);
+        }
     }
 
     public Task<Result<StaffDto>> SetStatusAsync(Guid id, StaffStatusRequest request, Guid actorId, CancellationToken cancellationToken)

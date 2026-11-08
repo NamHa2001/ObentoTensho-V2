@@ -200,6 +200,13 @@ public sealed class StaffAdminTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, (await RiskyAsync(HttpMethod.Put, $"{Staff}/{renamed.Id}", superAdmin, stepUp, new { fullName = "Tên Mới", role = "cashier" })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await _admin.RefreshAsync(renamed.Refresh)).StatusCode);
 
+        // docs/srs/20 #29: đổi vai trò báo SuperAdmin; chỉ đổi tên thì không
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.True(await db.OutboxMessages.AnyAsync(m => m.IdempotencyKey.StartsWith($"admin_alert:role-change:{moved.Id:N}:")));
+            Assert.False(await db.OutboxMessages.AnyAsync(m => m.IdempotencyKey.StartsWith($"admin_alert:role-change:{renamed.Id:N}:")));
+        }
+
         var revoked = await LoggedInCashierAsync();
         Assert.Equal(HttpStatusCode.NoContent, (await RiskyAsync(HttpMethod.Post, $"{Staff}/{revoked.Id}/revoke-sessions", superAdmin, stepUp)).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await _admin.RefreshAsync(revoked.Refresh)).StatusCode);
