@@ -31,5 +31,7 @@ internal sealed class StoreReservationSettings(ISettingsReader s, IOptions<Reser
 
     public int PendingCutoffMinutes => s.GetInt(ReservationPendingCutoffMinutes);
 
+    public int PendingAlertMinutes => s.GetInt(ReservationPendingAlertMinutes);
+
     public int ReminderLeadMinutes => options.Value.ReminderLeadMinutes;
 }

@@ -133,6 +133,7 @@ public sealed class ReservationStaffService(
         if (tableId is { } id && await tables.FindTableAsync(id, cancellationToken) is { CurrentStatus: TableStatus.Reserved or TableStatus.Occupied } table)
         {
             table.CurrentStatus = TableStatus.Available;
+            realtime.Stage(RealtimeMessages.TableChanged(table));
         }
     }
 

@@ -69,6 +69,9 @@ public sealed class Reservation
 
     public DateTime? ReminderSentAtUtc { get; set; }
 
+    // BR-RSV-25: đã nhắc nhân viên về đặt bàn chờ quá hạn (nhắc một lần)
+    public DateTime? PendingAlertedAtUtc { get; set; }
+
     public int PointsEarned { get; set; }
 
     public required DateTime CreatedAtUtc { get; init; }

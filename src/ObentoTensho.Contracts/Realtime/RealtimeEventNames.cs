@@ -12,4 +12,5 @@ public static class RealtimeEventNames
     public const string OrderCreated = "order.created";
     public const string OrderStatusChanged = "order.statusChanged";
     public const string ContactCreated = "contact.created";
+    public const string TableStatusChanged = "table.statusChanged";
 }

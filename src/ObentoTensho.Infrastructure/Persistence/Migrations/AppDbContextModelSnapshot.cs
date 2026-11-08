@@ -2529,6 +2529,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<bool>("OtpRequired")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("PendingAlertedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
                     b.Property<int>("PointsEarned")
                         .HasColumnType("int");
 

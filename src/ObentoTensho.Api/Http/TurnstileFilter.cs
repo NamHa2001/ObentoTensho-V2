@@ -5,7 +5,7 @@ using ObentoTensho.Infrastructure.Security;
 namespace ObentoTensho.Api.Http;
 
 // SEC-22, SEC-57: form công khai dễ bị bot (đặt bàn, gửi OTP, đăng ký) phải kèm token Turnstile, kiểm ở server
-public sealed class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourceFilter
+public class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourceFilter
 {
     public const string Header = "X-Turnstile-Token";
 
@@ -14,6 +14,12 @@ public sealed class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourc
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(next);
         var http = context.HttpContext;
+        if (IsExempt(http))
+        {
+            await next();
+            return;
+        }
+
         var token = http.Request.Headers[Header].ToString();
         if (!await verifier.VerifyAsync(token, http.Connection.RemoteIpAddress?.ToString(), http.RequestAborted))
         {
@@ -23,4 +29,6 @@ public sealed class TurnstileFilter(ITurnstileVerifier verifier) : IAsyncResourc
 
         await next();
     }
+
+    protected virtual bool IsExempt(HttpContext http) => false;
 }

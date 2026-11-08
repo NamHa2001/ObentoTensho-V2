@@ -45,4 +45,10 @@ public interface IReservationRepository
 
     // Cho các việc theo lịch; mỗi lần lấy giới hạn số lượng để một lượt chạy không quá lâu
     Task<IReadOnlyList<Guid>> ListIdsAsync(ReservationStatus status, DateTime fromUtc, DateTime toUtc, bool reminderNotSent, int limit, CancellationToken cancellationToken);
+
+    // BR-RSV-25: đặt bàn Pending tạo trước mốc, chưa nhắc (bản được theo dõi để đánh dấu đã nhắc)
+    Task<IReadOnlyList<Reservation>> ListPendingNotAlertedAsync(DateTime createdBeforeUtc, int limit, CancellationToken cancellationToken);
+
+    // BR-RSV-09: đặt bàn đã xác nhận trong ngày có gán bàn
+    Task<IReadOnlyList<Reservation>> ListConfirmedWithTableAsync(DateOnly date, CancellationToken cancellationToken);
 }

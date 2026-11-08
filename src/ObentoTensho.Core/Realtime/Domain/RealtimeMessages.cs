@@ -3,6 +3,7 @@ using ObentoTensho.Contracts.Realtime;
 using ObentoTensho.Core.Content.Domain;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Reservations.Domain;
+using ObentoTensho.Core.Tables.Domain;
 
 namespace ObentoTensho.Core.Realtime.Domain;
 
@@ -27,6 +28,10 @@ public static class RealtimeMessages
 
     public static RealtimeMessage ContactCreated(ContactMessage message) =>
         new(RealtimeEventNames.ContactCreated, RealtimeGroups.StaffWith(StaffCapability.Feedback), new ContactEventDto(message.Id));
+
+    // RT-05: người xem sơ đồ bàn
+    public static RealtimeMessage TableChanged(DiningTable table) =>
+        new(RealtimeEventNames.TableStatusChanged, RealtimeGroups.StaffWith(StaffCapability.TablesView), new TableEventDto(table.Id, table.CurrentStatus));
 
     private static ReservationEventDto Payload(Reservation reservation) =>
         new(reservation.Id, reservation.ReservationCode, reservation.Status, reservation.SlotId);

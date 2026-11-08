@@ -29,6 +29,9 @@ public interface IReservationSettings
     // BR-RSV-25: còn bấy nhiêu phút tới giờ hẹn mà vẫn Pending ⇒ tự hủy, xin lỗi khách
     int PendingCutoffMinutes { get; }
 
+    // BR-RSV-25: chờ xác nhận quá bấy nhiêu phút thì nhắc nhân viên
+    int PendingAlertMinutes { get; }
+
     // BR-RSV-08: nhắc trước giờ hẹn khoảng bấy nhiêu phút
     int ReminderLeadMinutes { get; }
 }

@@ -128,6 +128,18 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
     public Task<bool> HasAnyForSlotAsync(int slotId, CancellationToken cancellationToken) =>
         db.Reservations.AnyAsync(r => r.SlotId == slotId, cancellationToken);
 
+    public async Task<IReadOnlyList<Reservation>> ListPendingNotAlertedAsync(DateTime createdBeforeUtc, int limit, CancellationToken cancellationToken) =>
+        await db.Reservations
+            .Where(r => r.Status == ReservationStatus.Pending && r.PendingAlertedAtUtc == null && r.CreatedAtUtc <= createdBeforeUtc)
+            .OrderBy(r => r.CreatedAtUtc)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<Reservation>> ListConfirmedWithTableAsync(DateOnly date, CancellationToken cancellationToken) =>
+        await db.Reservations
+            .Where(r => r.Status == ReservationStatus.Confirmed && r.ReservedDate == date && r.TableId != null)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Guid>> ListIdsAsync(ReservationStatus status, DateTime fromUtc, DateTime toUtc, bool reminderNotSent, int limit, CancellationToken cancellationToken) =>
         await db.Reservations.AsNoTracking()
             .Where(r => r.Status == status && r.ReservedAtUtc > fromUtc && r.ReservedAtUtc <= toUtc

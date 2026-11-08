@@ -24,12 +24,15 @@ public static class ReservationsConfiguration
         services.AddScoped<ReservationStaffService>();
         services.AddScoped<OtpService>();
         services.AddScoped<TurnstileFilter>();
+        services.AddScoped<GuestTurnstileFilter>();
 
         // Việc định kỳ (docs/srs/20 §4)
         services.AddScoped<ReservationJobs>();
         services.AddScoped<IRecurringJob, ReservationReminderJob>();
         services.AddScoped<IRecurringJob, ReservationNoShowJob>();
         services.AddScoped<IRecurringJob, ReservationPendingCutoffJob>();
+        services.AddScoped<IRecurringJob, ReservationPendingAlertJob>();
+        services.AddScoped<IRecurringJob, ReservationTableDayStartJob>();
         return services;
     }
 }

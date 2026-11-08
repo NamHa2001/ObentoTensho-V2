@@ -28,7 +28,7 @@ public sealed class OrdersController(PublicOrderService orders) : ControllerBase
     [HttpPost]
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitConfiguration.OrderPolicy)]
-    [ServiceFilter<TurnstileFilter>]
+    [ServiceFilter<GuestTurnstileFilter>]
     public async Task<IActionResult> Create(CreateOrderRequest request, CancellationToken cancellationToken) =>
         this.CreatedOrProblem(await orders.CreateAsync(request, User.CustomerId(), cancellationToken));
 

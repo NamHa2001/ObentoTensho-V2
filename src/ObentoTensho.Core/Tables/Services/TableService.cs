@@ -6,6 +6,8 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Realtime.Abstractions;
+using ObentoTensho.Core.Realtime.Domain;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Tables.Abstractions;
 using ObentoTensho.Core.Tables.Domain;
@@ -18,6 +20,7 @@ public sealed class TableService(
     IUnitOfWork unitOfWork,
     IAuditTrail audit,
     IReservationRepository reservations,
+    IRealtimeEvents realtime,
     IValidator<TableRequest> validator)
 {
     private const string Entity = "table";
@@ -90,6 +93,7 @@ public sealed class TableService(
 
         var before = new { table.CurrentStatus };
         table.CurrentStatus = status;
+        realtime.Stage(RealtimeMessages.TableChanged(table));
         audit.Record(new AuditEntry(AuditActions.For(Entity, AuditActions.StatusChanged), Entity, id.ToString(CultureInfo.InvariantCulture), before, new { table.CurrentStatus }));
         return await unitOfWork.TrySaveAsync(table.ToDto, ErrorCodes.DuplicateName, cancellationToken);
     }

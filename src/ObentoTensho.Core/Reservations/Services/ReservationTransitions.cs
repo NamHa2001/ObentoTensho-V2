@@ -80,6 +80,7 @@ public sealed class ReservationTransitions(
         }
 
         var today = reservation.ReservedDate == clock.TodayLocal;
+        var before = table.CurrentStatus;
         table.CurrentStatus = reservation.Status switch
         {
             ReservationStatus.CheckedIn => TableStatus.Occupied,
@@ -87,6 +88,10 @@ public sealed class ReservationTransitions(
             _ when table.CurrentStatus is TableStatus.Reserved or TableStatus.Occupied => TableStatus.Available,
             _ => table.CurrentStatus,
         };
+        if (table.CurrentStatus != before)
+        {
+            realtime.Stage(RealtimeMessages.TableChanged(table));
+        }
     }
 
     // BR-RSV-07, BR-LOY-22: thành viên check-in được cộng điểm một lần cho mỗi đặt bàn, tối đa trần mỗi tháng (giờ VN);

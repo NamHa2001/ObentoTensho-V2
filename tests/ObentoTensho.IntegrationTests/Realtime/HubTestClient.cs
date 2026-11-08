@@ -20,6 +20,7 @@ public sealed class HubTestClient : IAsyncDisposable
         RealtimeEventNames.OrderCreated,
         RealtimeEventNames.OrderStatusChanged,
         RealtimeEventNames.ContactCreated,
+        RealtimeEventNames.TableStatusChanged,
     ];
 
     private readonly Channel<(string Event, JsonElement Payload)> _received = Channel.CreateUnbounded<(string, JsonElement)>();
