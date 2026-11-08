@@ -58,6 +58,43 @@ public sealed class TranslationTests : IDisposable
         return (created.GetProperty("id").GetInt32(), created.GetProperty("slug").GetString()!);
     }
 
+    // docs/srs/22 §4.2: tìm tin tức theo tiêu đề bản dịch đã duyệt; bản chưa duyệt hoặc đã lỗi thời thì không
+    [Fact]
+    public async Task Tim_tin_tuc_theo_tieu_de_ban_dich_da_duyet()
+    {
+        var editor = await _admin.SignInAsync(StaffRole.ContentEditor);
+        var (tag, english, japanese) = (Guid.NewGuid().ToString("N")[..8], $"blossom{Guid.NewGuid():N}"[..16], $"pending{Guid.NewGuid():N}"[..16]);
+        object Article(string title) => new
+        {
+            title, slug = (string?)null, thumbnailImageId = (Guid?)null, summary = "Tóm tắt", contentHtml = "<p>Nội dung</p>",
+            categoryId = (int?)null, authorDisplayName = (string?)null, metaTitle = (string?)null, metaDescription = (string?)null, ogImageId = (Guid?)null,
+            status = "published", publishedAtUtc = (DateTime?)null,
+        };
+        var created = await _admin.SendAsync(HttpMethod.Post, $"{Admin}/news", editor, Article($"Hội hoa {tag}"));
+        var id = (await AdminAuthApiClient.ReadDataAsync(created)).GetProperty("id").GetInt32();
+        var key = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        async Task<int> FoundAsync(string q) =>
+            (await (await _http.GetAsync($"/api/v1/news?q={q}")).Content.ReadFromJsonAsync<JsonElement>()).GetProperty("data").GetArrayLength();
+
+        Assert.Equal(HttpStatusCode.OK, (await TranslateAsync(editor, "news", key, "en", Text($"Cherry {english}", "<p>Body</p>"))).StatusCode);
+        Assert.Equal(1, await FoundAsync(english));
+        Assert.Equal(HttpStatusCode.OK, (await TranslateAsync(editor, "news", key, "ja", Text($"桜 {japanese}", "<p>本文</p>", approve: false))).StatusCode);
+        Assert.Equal(1, await FoundAsync(english.ToUpperInvariant()));
+        Assert.Equal(1, await FoundAsync($"hoi hoa {tag}"));
+        Assert.Equal(0, await FoundAsync(japanese));
+
+        // Lưu lại bản Việt không đổi gì: bản dịch vẫn hợp lệ nên vẫn tìm được
+        var etag = (await _admin.SendAsync(HttpMethod.Get, $"{Admin}/news/{id}", editor)).Headers.ETag?.Tag;
+        Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Put, $"{Admin}/news/{id}", editor, Article($"Hội hoa {tag}"), etag)).StatusCode);
+        Assert.Equal(1, await FoundAsync(english));
+
+        // Sửa bản Việt ⇒ bản dịch lỗi thời, không còn tìm theo tiêu đề tiếng Anh
+        etag = (await _admin.SendAsync(HttpMethod.Get, $"{Admin}/news/{id}", editor)).Headers.ETag?.Tag;
+        Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Put, $"{Admin}/news/{id}", editor, Article($"Hội hoa mới {tag}"), etag)).StatusCode);
+        Assert.Equal(0, await FoundAsync(english));
+        Assert.Equal(1, await FoundAsync($"hoa moi {tag}"));
+    }
+
     private Task<HttpResponseMessage> TranslateAsync(string token, string kind, string key, string lang, object body) =>
         _admin.SendAsync(HttpMethod.Put, $"{Translations}/{kind}/{key}/{lang}", token, body);
 

@@ -9,6 +9,8 @@ using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Localization.Abstractions;
+using ObentoTensho.Core.Localization.Services;
 using ObentoTensho.Core.Media.Abstractions;
 using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Menu.Services;
@@ -20,6 +22,7 @@ namespace ObentoTensho.Core.Content.Services;
 // xóa mềm vào thùng rác (BR-CNT-42); hủy xuất bản không xóa ngày đăng (BR-CNT-40)
 public sealed class NewsAdminService(
     INewsRepository news,
+    ITranslationRepository translations,
     IImageRepository images,
     ImageMapper imageMapper,
     IHtmlSanitizer sanitizer,
@@ -109,6 +112,7 @@ public sealed class NewsAdminService(
             var before = Snapshot(article);
             await ChangeSlugAsync(article, request.Slug, ct);
             Apply(article, request);
+            article.TitleSearch = NewsSearchText.Build(article, await translations.ListForEntityAsync(TranslatableContent.News, article.Id, ct));
             audit.Record(new AuditEntry($"content.{Entity}.updated", Entity, Id(article), before, Snapshot(article)));
             var saved = await unitOfWork.TrySaveAsync(ErrorCodes.DuplicateName, ct);
             return saved.IsSuccess

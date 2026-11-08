@@ -2,6 +2,7 @@ using ObentoTensho.Contracts.Dtos.Localization;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Content.Abstractions;
 using ObentoTensho.Core.Localization.Abstractions;
 using ObentoTensho.Core.Localization.Domain;
 using ObentoTensho.Core.Time;
@@ -12,6 +13,7 @@ namespace ObentoTensho.Core.Localization.Services;
 // Trường bản Việt không có thì bản dịch cũng bỏ trống; HTML qua cùng bộ lọc với bản Việt (SEC-08)
 public sealed class ContentTranslationService(
     ContentSources sources,
+    INewsRepository news,
     ITranslationRepository translations,
     ITranslationCache cache,
     IHtmlSanitizer sanitizer,
@@ -61,6 +63,12 @@ public sealed class ContentTranslationService(
         }
 
         Apply(translation, text, hash, request.Approve, staffId, now);
+        if (kind == TranslatableContent.News && await news.FindAsync(source.Id, includeDeleted: true, cancellationToken) is { } article)
+        {
+            var others = (await translations.ListForEntityAsync(kind, source.Id, cancellationToken)).Where(t => !string.Equals(t.Lang, lang, StringComparison.Ordinal));
+            article.TitleSearch = NewsSearchText.Build(article, [.. others, translation]);
+        }
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
         cache.Invalidate();
         return Result.Success(ToDto(translation, hash));
