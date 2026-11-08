@@ -9,6 +9,9 @@ public sealed class PublicLinkOptions
 
     public string AdminBaseUrl { get; set; } = string.Empty;
 
+    // SEC-60: email nhận báo lỗ hổng cho /.well-known/security.txt; để trống thì không phục vụ tệp này
+    public string? SecurityContact { get; set; }
+
     public string? Validate() =>
         IsBaseUrl(PublicBaseUrl) && IsBaseUrl(AdminBaseUrl)
             ? null
