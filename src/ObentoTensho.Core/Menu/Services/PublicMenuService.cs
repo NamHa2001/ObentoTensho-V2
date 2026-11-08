@@ -4,7 +4,12 @@ using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Content.Services;
 using ObentoTensho.Core.Localization.Services;
+using ObentoTensho.Core.Media.Abstractions;
+using ObentoTensho.Core.Media.Domain;
+using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Time;
@@ -12,7 +17,14 @@ using ObentoTensho.Core.Time;
 namespace ObentoTensho.Core.Menu.Services;
 
 // Thực đơn công khai (docs/srs/15 §3.3, §6): chỉ món chưa xóa, không ẩn, thuộc danh mục đang bật (BR-MNU-02)
-public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, ContentLanguages languages, IClock clock)
+public sealed class PublicMenuService(
+    IMenuRepository menu,
+    IMenuCache cache,
+    IImageRepository images,
+    ImageMapper imageMapper,
+    SlugHistory slugs,
+    ContentLanguages languages,
+    IClock clock)
 {
     public const int MaxPageSize = 100;
     private const int FeaturedLimit = 12;
@@ -27,7 +39,7 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, Co
             .Select(c =>
             {
                 var t = snapshot.Translation<MenuCategoryTranslation>(c.Id, language);
-                return new PublicCategoryDto(c.Id, c.Slug, t?.Name ?? c.Name, counts.GetValueOrDefault(c.Id), t is null ? MenuSnapshot.SourceLang : language, t is null && !string.Equals(language, MenuSnapshot.SourceLang, StringComparison.Ordinal));
+                return new PublicCategoryDto(c.Id, c.Slug, t?.Name ?? c.Name, counts.GetValueOrDefault(c.Id), Image(snapshot.ReadyImage(c.ImageId)), t is null ? MenuSnapshot.SourceLang : language, t is null && !string.Equals(language, MenuSnapshot.SourceLang, StringComparison.Ordinal));
             })
             .ToArray();
     }
@@ -72,12 +84,28 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, Co
             .Take(RelatedLimit)
             .Select(i => ToDto(snapshot, i, language))
             .ToArray();
-        return Result.Success(new PublicMenuItemDetailDto(ToDto(snapshot, item, language), t?.FullDescHtml ?? item.FullDescHtml, groups, related));
+        var gallery = snapshot.GalleryOf(item.Id).Select(imageMapper.ToDto).ToArray();
+        return Result.Success(new PublicMenuItemDetailDto(ToDto(snapshot, item, language), t?.FullDescHtml ?? item.FullDescHtml, gallery, groups, related));
     }
+
+    public async Task<Result<int>> FindVisibleIdAsync(string slug, CancellationToken cancellationToken) =>
+        (await SnapshotAsync(cancellationToken)).Items.FirstOrDefault(i => string.Equals(i.Slug, slug, StringComparison.Ordinal)) is { } item
+            ? Result.Success(item.Id)
+            : Result.Failure<int>(ErrorCodes.NotFound);
+
+    // BR-CNT-41: slug cũ của món còn đang bán ⇒ slug hiện tại để trả 301
+    public async Task<string?> CurrentSlugAsync(string oldSlug, CancellationToken cancellationToken) =>
+        await slugs.TargetAsync(SlugRedirect.MenuItemEntity, oldSlug, cancellationToken) is { } id
+            ? (await SnapshotAsync(cancellationToken)).Items.FirstOrDefault(i => i.Id == id)?.Slug
+            : null;
 
     // Ảnh chụp thực đơn công khai (cache); đặt món dùng để lấy tên đã dịch, còn giá luôn đọc từ CSDL (BR-ORD-02)
     public Task<MenuSnapshot> SnapshotAsync(CancellationToken cancellationToken) =>
-        cache.GetOrCreateAsync(async ct => new MenuSnapshot(await menu.LoadPublicDataAsync(ct)), cancellationToken);
+        cache.GetOrCreateAsync(async ct =>
+        {
+            var data = await menu.LoadPublicDataAsync(ct);
+            return new MenuSnapshot(data, await images.LoadAsync(MenuSnapshot.ImageIds(data), ct));
+        }, cancellationToken);
 
     private static IEnumerable<MenuItem> Filter(MenuSnapshot snapshot, PublicMenuQuery query)
     {
@@ -131,6 +159,7 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, Co
             item.AllowTakeaway,
             new MenuLabels(item.IsNew, item.IsBestseller, item.IsFeatured, item.IsVegetarian, item.IsSpicy),
             snapshot.AllergensOf(item),
+            Image(snapshot.ReadyImage(item.MainImageId)),
             t is null ? MenuSnapshot.SourceLang : language,
             t is null && !string.Equals(language, MenuSnapshot.SourceLang, StringComparison.Ordinal));
     }
@@ -152,6 +181,8 @@ public sealed class PublicMenuService(IMenuRepository menu, IMenuCache cache, Co
                     o.Status,
                     MenuRules.ParseAllergens(o.Allergens)))
                 .ToArray());
+
+    private Contracts.Dtos.Media.ImageDto? Image(StoredImage? image) => image is null ? null : imageMapper.ToDto(image);
 
     // BR-I18N-01/06: ngôn ngữ chưa bật hoặc giá trị lạ ⇒ tiếng Việt
     private string Language(string? lang) => languages.Resolve(lang);

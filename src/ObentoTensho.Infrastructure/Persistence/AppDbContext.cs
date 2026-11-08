@@ -69,6 +69,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<MenuItemOptionGroup> MenuItemOptionGroups => Set<MenuItemOptionGroup>();
 
+    public DbSet<MenuItemImage> MenuItemImages => Set<MenuItemImage>();
+
     public DbSet<MenuItemTranslation> MenuItemTranslations => Set<MenuItemTranslation>();
 
     public DbSet<MenuCategoryTranslation> MenuCategoryTranslations => Set<MenuCategoryTranslation>();

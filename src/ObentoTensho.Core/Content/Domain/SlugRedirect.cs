@@ -4,6 +4,8 @@ namespace ObentoTensho.Core.Content.Domain;
 public sealed class SlugRedirect
 {
     public const string NewsEntity = "news";
+    public const string MenuItemEntity = "menu_item";
+    public const string PromotionEntity = "promotion";
 
     public required string EntityType { get; init; }
 

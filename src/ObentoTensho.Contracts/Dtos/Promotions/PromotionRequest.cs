@@ -11,4 +11,5 @@ public sealed record PromotionRequest(
     DateOnly StartDate,
     DateOnly EndDate,
     bool PublicTeaser,
-    bool IsActive);
+    bool IsActive,
+    Guid? BannerImageId = null);

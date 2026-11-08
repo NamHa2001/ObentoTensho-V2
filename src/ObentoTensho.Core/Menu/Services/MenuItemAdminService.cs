@@ -7,6 +7,8 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Content.Services;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Time;
@@ -20,6 +22,7 @@ public sealed class MenuItemAdminService(
     IAuditTrail audit,
     IMenuCache cache,
     IHtmlSanitizer sanitizer,
+    SlugHistory slugs,
     IClock clock,
     IValidator<MenuItemRequest> validator)
 {
@@ -95,6 +98,7 @@ public sealed class MenuItemAdminService(
 
             var before = MenuItemMapping.Snapshot(item);
             unitOfWork.ExpectRowVersion(item, version);
+            await slugs.RecordAsync(SlugRedirect.MenuItemEntity, id, item.Slug, request.Slug ?? item.Slug, ct);
             item.Slug = request.Slug ?? item.Slug;
             MenuItemMapping.Apply(item, request, sanitizer, clock.UtcNow);
             item.NameSearch = MenuItemMapping.SearchText(item, await menu.ListTranslationsAsync<MenuItemTranslation>(id, ct));

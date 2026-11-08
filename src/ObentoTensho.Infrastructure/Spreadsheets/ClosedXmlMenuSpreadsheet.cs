@@ -200,11 +200,33 @@ internal sealed class ClosedXmlMenuSpreadsheet : IMenuSpreadsheet
                 return ErrorCodes.FileTooLarge;
             }
 
-            return zip.Entries.Sum(e => e.Length) > MaxUncompressedBytes ? ErrorCodes.FileTooLarge : null;
+            // Kích thước khai trong tệp có thể bị làm giả: giải nén thật và đếm byte, vượt ngưỡng thì dừng ngay (SEC-11)
+            return zip.Entries.Sum(e => e.Length) > MaxUncompressedBytes || ActualSize(zip) > MaxUncompressedBytes ? ErrorCodes.FileTooLarge : null;
         }
         catch (InvalidDataException)
         {
             return ErrorCodes.FileInvalid;
         }
+    }
+
+    private static long ActualSize(ZipArchive zip)
+    {
+        var chunk = new byte[81920];
+        long total = 0;
+        foreach (var entry in zip.Entries)
+        {
+            using var stream = entry.Open();
+            int read;
+            while ((read = stream.Read(chunk, 0, chunk.Length)) > 0)
+            {
+                total += read;
+                if (total > MaxUncompressedBytes)
+                {
+                    return total;
+                }
+            }
+        }
+
+        return total;
     }
 }

@@ -1,3 +1,5 @@
+using ObentoTensho.Contracts.Dtos.Media;
+
 namespace ObentoTensho.Contracts.Dtos.Promotions;
 
 /// <summary>
@@ -12,5 +14,6 @@ public sealed record PublicPromotionDto(
     DateOnly EndDate,
     bool Upcoming,
     IReadOnlyList<string> VoucherCodes,
+    ImageDto? BannerImage,
     string ContentLang,
     bool IsFallback);

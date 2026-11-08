@@ -13,6 +13,14 @@ Ghi lại các lỗi **đã mất công mới sửa được** trong lúc làm, 
 
 ---
 
+## Ảnh thực đơn, khuyến mãi, slug cũ (08/11/2026)
+
+| Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |
+|---|---|---|---|
+| Sửa khuyến mãi trong transaction sẽ không lưu gì (phát hiện khi đọc lại mã) | Khuyến mãi đọc trước transaction; `InTransactionAsync` bắt đầu bằng `ChangeTracker.Clear()` nên thực thể bị bỏ theo dõi | Đọc khuyến mãi bên trong lambda của transaction | Mọi thực thể cần sửa phải nạp bên trong transaction |
+| Đột biến bỏ bước giải nén thật vẫn qua test zip khai sai kích thước | .NET tự từ chối khi dữ liệu giải nén vượt kích thước khai (`InvalidDataException`), nên bước đếm byte là lớp bảo vệ thứ hai | Giữ lại bước đếm byte phòng khi hành vi thư viện đổi; test chấp nhận cả `FILE_TOO_LARGE` lẫn `FILE_INVALID` | Ghi rõ lớp bảo vệ trùng để không tưởng nhầm test đang kiểm lớp đó |
+| Ảnh món không nhận được qua form món | Nhập Excel dùng chung `MenuItemRequest`; thêm trường ảnh vào đó thì mỗi lần nhập sẽ xóa ảnh | Tách API riêng `PUT /admin/menu/items/{id}/images` | Trường không có trong tệp Excel thì không đặt vào request dùng chung với nhập Excel |
+
 ## Đa ngôn ngữ (08/11/2026)
 
 | Triệu chứng | Nguyên nhân | Cách sửa | Phòng tránh |

@@ -8,7 +8,7 @@ namespace ObentoTensho.Core.Menu.Services;
 public static class MenuMappings
 {
     public static AdminCategoryDto ToAdmin(this MenuCategory c, int itemCount) =>
-        new(c.Id, c.Name, c.Slug, c.DisplayOrder, c.IsActive, itemCount, RowVersions.Encode(c.RowVersion));
+        new(c.Id, c.Name, c.Slug, c.DisplayOrder, c.IsActive, itemCount, RowVersions.Encode(c.RowVersion), c.ImageId);
 
     public static AdminMenuItemDto ToAdmin(this MenuItem i, IReadOnlyList<int> groupIds) =>
         new(

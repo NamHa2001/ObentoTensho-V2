@@ -15,7 +15,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [Route("api/v1/admin/menu/items")]
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireCapability(StaffCapability.Menu)]
-public sealed class MenuItemsController(MenuItemAdminService items, MenuSpreadsheetService spreadsheet) : ControllerBase
+public sealed class MenuItemsController(MenuItemAdminService items, MenuItemImageService itemImages, MenuSpreadsheetService spreadsheet) : ControllerBase
 {
     private const string XlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -48,6 +48,15 @@ public sealed class MenuItemsController(MenuItemAdminService items, MenuSpreadsh
     [HttpPatch("{id:int}/status")]
     public async Task<IActionResult> SetStatus(int id, MenuItemStatusRequest request, CancellationToken cancellationToken) =>
         this.DataOrProblem(await items.SetStatusAsync(id, request, cancellationToken), i => i.Version);
+
+    // BR-MNU-06/12: ảnh chính + tối đa 4 ảnh phụ, thay cả bộ trong một lần
+    [HttpGet("{id:int}/images")]
+    public async Task<IActionResult> Images(int id, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await itemImages.GetAsync(id, cancellationToken));
+
+    [HttpPut("{id:int}/images")]
+    public async Task<IActionResult> ReplaceImages(int id, MenuItemImagesRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await itemImages.ReplaceAsync(id, request, cancellationToken));
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken) =>

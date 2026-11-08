@@ -6,6 +6,10 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Content.Domain;
+using ObentoTensho.Core.Content.Services;
+using ObentoTensho.Core.Media.Abstractions;
+using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Menu.Services;
 using ObentoTensho.Core.Promotions.Abstractions;
 using ObentoTensho.Core.Promotions.Domain;
@@ -19,6 +23,8 @@ public sealed class PromotionAdminService(
     IPromotionCache cache,
     IAuditTrail audit,
     IHtmlSanitizer sanitizer,
+    IImageRepository images,
+    SlugHistory slugs,
     IUnitOfWork unitOfWork,
     IClock clock,
     IValidator<PromotionRequest> validator)
@@ -46,6 +52,11 @@ public sealed class PromotionAdminService(
         if (!validation.IsValid)
         {
             return validation.ToFailure<AdminPromotionDto>();
+        }
+
+        if (await ImageReferences.CheckAsync(images, request.BannerImageId, "bannerImageId", cancellationToken) is { } imageFailure)
+        {
+            return Result.Failure<AdminPromotionDto>(imageFailure.ErrorCode ?? ErrorCodes.ValidationFailed, imageFailure.FieldErrors);
         }
 
         if (request.Slug is { } requested && await promotions.SlugExistsAsync(requested, null, cancellationToken))
@@ -84,14 +95,14 @@ public sealed class PromotionAdminService(
             return validation.ToFailure<AdminPromotionDto>();
         }
 
+        if (await ImageReferences.CheckAsync(images, request.BannerImageId, "bannerImageId", cancellationToken) is { } imageFailure)
+        {
+            return Result.Failure<AdminPromotionDto>(imageFailure.ErrorCode ?? ErrorCodes.ValidationFailed, imageFailure.FieldErrors);
+        }
+
         if (RowVersions.Decode(ifMatch) is not { } version)
         {
             return Result.Failure<AdminPromotionDto>(ErrorCodes.PreconditionRequired);
-        }
-
-        if (await promotions.FindAsync(id, cancellationToken) is not { } promotion)
-        {
-            return Result.Failure<AdminPromotionDto>(ErrorCodes.NotFound);
         }
 
         if (request.Slug is { } slug && await promotions.SlugExistsAsync(slug, id, cancellationToken))
@@ -99,12 +110,22 @@ public sealed class PromotionAdminService(
             return Result.Failure<AdminPromotionDto>(ErrorCodes.DuplicateName);
         }
 
-        unitOfWork.ExpectRowVersion(promotion, version);
-        var before = Snapshot(promotion);
-        promotion.Slug = request.Slug ?? promotion.Slug;
-        Apply(promotion, request);
-        audit.Record(new AuditEntry($"promotions.{Entity}.updated", Entity, Id(promotion), before, Snapshot(promotion)));
-        var result = await unitOfWork.TrySaveAsync(promotion.ToAdmin, ErrorCodes.DuplicateName, cancellationToken);
+        // Đọc trong transaction: mỗi lần thử bắt đầu từ context sạch
+        var result = await unitOfWork.TryInTransactionAsync(async ct =>
+        {
+            if (await promotions.FindAsync(id, ct) is not { } promotion)
+            {
+                return Result.Failure<AdminPromotionDto>(ErrorCodes.NotFound);
+            }
+
+            unitOfWork.ExpectRowVersion(promotion, version);
+            var before = Snapshot(promotion);
+            await slugs.RecordAsync(SlugRedirect.PromotionEntity, id, promotion.Slug, request.Slug ?? promotion.Slug, ct);
+            promotion.Slug = request.Slug ?? promotion.Slug;
+            Apply(promotion, request);
+            audit.Record(new AuditEntry($"promotions.{Entity}.updated", Entity, Id(promotion), before, Snapshot(promotion)));
+            return await unitOfWork.TrySaveAsync(promotion.ToAdmin, ErrorCodes.DuplicateName, ct);
+        }, cancellationToken);
         cache.Invalidate();
         return result;
     }
@@ -133,6 +154,7 @@ public sealed class PromotionAdminService(
     {
         promotion.Title = request.Title.Trim();
         promotion.DescriptionHtml = string.IsNullOrWhiteSpace(request.DescriptionHtml) ? null : sanitizer.Sanitize(request.DescriptionHtml);
+        promotion.BannerImageId = request.BannerImageId;
         promotion.StartDate = request.StartDate;
         promotion.EndDate = request.EndDate;
         promotion.PublicTeaser = request.PublicTeaser;
@@ -140,7 +162,7 @@ public sealed class PromotionAdminService(
         promotion.UpdatedAtUtc = clock.UtcNow;
     }
 
-    private static object Snapshot(Promotion p) => new { p.Title, p.Slug, p.StartDate, p.EndDate, p.PublicTeaser, p.IsActive };
+    private static object Snapshot(Promotion p) => new { p.Title, p.Slug, p.StartDate, p.EndDate, p.PublicTeaser, p.IsActive, p.BannerImageId };
 
     private static string Id(Promotion promotion) => promotion.Id.ToString(CultureInfo.InvariantCulture);
 }

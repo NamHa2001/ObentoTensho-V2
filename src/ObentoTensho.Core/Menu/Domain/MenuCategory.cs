@@ -9,6 +9,8 @@ public sealed class MenuCategory
 
     public required string Slug { get; set; }
 
+    public Guid? ImageId { get; set; }
+
     public int DisplayOrder { get; set; }
 
     public bool IsActive { get; set; } = true;

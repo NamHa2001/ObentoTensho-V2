@@ -57,6 +57,9 @@ public interface IMenuRepository
 
     Task<bool> GroupInUseAsync(int groupId, CancellationToken cancellationToken);
 
+    // BR-MNU-23: tùy chọn đã xuất hiện trong đơn nào chưa
+    Task<bool> AnyOptionOrderedAsync(IReadOnlyCollection<int> optionIds, CancellationToken cancellationToken);
+
     Task<int> CountOptionsAsync(int groupId, CancellationToken cancellationToken);
 
     void AddGroup(OptionGroup group);
@@ -83,6 +86,11 @@ public interface IMenuRepository
 
     // Dữ liệu trang thực đơn công khai: chỉ thứ khách được thấy (BR-MNU-02), đọc một lần rồi cache
     Task<PublicMenuData> LoadPublicDataAsync(CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<MenuItemImage>> ListItemImagesAsync(int itemId, CancellationToken cancellationToken);
+
+    // Thay toàn bộ ảnh phụ theo thứ tự gửi lên, trong transaction của bên gọi
+    Task ReplaceItemImagesAsync(int itemId, IReadOnlyList<Guid> imageIds, CancellationToken cancellationToken);
 
     // Mọi bản dịch (kể cả nháp) của một ngôn ngữ — màn hình tiến độ dịch
     Task<IReadOnlyList<MenuTranslation>> ListTranslationsByLangAsync(string lang, CancellationToken cancellationToken);

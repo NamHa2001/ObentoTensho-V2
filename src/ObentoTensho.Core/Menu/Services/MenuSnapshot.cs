@@ -1,4 +1,5 @@
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Menu.Domain;
 
@@ -14,10 +15,14 @@ public sealed class MenuSnapshot
     private readonly ILookup<int, MenuOption> _optionsByGroup;
     private readonly Dictionary<int, OptionGroup> _groups;
     private readonly ILookup<int, MenuItemOptionGroup> _itemGroups;
+    private readonly ILookup<int, MenuItemImage> _itemImages;
+    private readonly IReadOnlyDictionary<Guid, StoredImage> _images;
 
-    public MenuSnapshot(PublicMenuData data)
+    public MenuSnapshot(PublicMenuData data, IReadOnlyDictionary<Guid, StoredImage>? images = null)
     {
         ArgumentNullException.ThrowIfNull(data);
+        _images = images ?? new Dictionary<Guid, StoredImage>();
+        _itemImages = (data.ItemImages ?? []).OrderBy(i => i.DisplayOrder).ToLookup(i => i.MenuItemId);
         Categories = data.Categories.OrderBy(c => c.DisplayOrder).ThenBy(c => c.Id).ToArray();
         var activeCategories = Categories.Select(c => c.Id).ToHashSet();
         Items = data.Items.Where(i => activeCategories.Contains(i.CategoryId)).ToArray();
@@ -37,6 +42,23 @@ public sealed class MenuSnapshot
         _itemGroups[itemId].Select(l => _groups.GetValueOrDefault(l.GroupId)).OfType<OptionGroup>();
 
     public IEnumerable<MenuOption> OptionsOf(int groupId) => _optionsByGroup[groupId];
+
+    // Chỉ ảnh đã xử lý xong mới lên trang khách
+    public StoredImage? ReadyImage(Guid? id) =>
+        id is { } imageId && _images.TryGetValue(imageId, out var image) && image.Status == ImageStatus.Ready ? image : null;
+
+    public IEnumerable<StoredImage> GalleryOf(int itemId) => _itemImages[itemId].Select(i => ReadyImage(i.ImageId)).OfType<StoredImage>();
+
+    public static IReadOnlyCollection<Guid> ImageIds(PublicMenuData data)
+    {
+        ArgumentNullException.ThrowIfNull(data);
+        return data.Items.Select(i => i.MainImageId)
+            .Concat(data.Categories.Select(c => c.ImageId))
+            .OfType<Guid>()
+            .Concat((data.ItemImages ?? []).Select(i => i.ImageId))
+            .Distinct()
+            .ToArray();
+    }
 
     // Dị ứng của món gồm cả tùy chọn mặc định (BR-MNU-24)
     public IReadOnlyList<Allergen> AllergensOf(MenuItem item) =>

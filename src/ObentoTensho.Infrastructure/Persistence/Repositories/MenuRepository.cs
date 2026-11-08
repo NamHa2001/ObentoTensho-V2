@@ -78,6 +78,16 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
             .ToListAsync(cancellationToken);
 
     // Thứ tự nhóm theo thứ tự gửi lên; gọi trong giao dịch của dịch vụ món
+    public async Task<IReadOnlyList<MenuItemImage>> ListItemImagesAsync(int itemId, CancellationToken cancellationToken) =>
+        await db.MenuItemImages.AsNoTracking().Where(i => i.MenuItemId == itemId).OrderBy(i => i.DisplayOrder).ToListAsync(cancellationToken);
+
+    public async Task ReplaceItemImagesAsync(int itemId, IReadOnlyList<Guid> imageIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(imageIds);
+        await db.MenuItemImages.Where(i => i.MenuItemId == itemId).ExecuteDeleteAsync(cancellationToken);
+        db.MenuItemImages.AddRange(imageIds.Select((imageId, index) => new MenuItemImage { MenuItemId = itemId, ImageId = imageId, DisplayOrder = index }));
+    }
+
     public async Task ReplaceItemGroupsAsync(int itemId, IReadOnlyList<int> groupIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(groupIds);
@@ -118,6 +128,9 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
 
     public Task<int> CountExistingGroupsAsync(IReadOnlyCollection<int> ids, CancellationToken cancellationToken) =>
         db.OptionGroups.CountAsync(g => ids.Contains(g.Id), cancellationToken);
+
+    public async Task<bool> AnyOptionOrderedAsync(IReadOnlyCollection<int> optionIds, CancellationToken cancellationToken) =>
+        optionIds.Count > 0 && await db.OrderItemOptions.AnyAsync(o => o.OptionId != null && optionIds.Contains(o.OptionId.Value), cancellationToken);
 
     public Task<bool> GroupInUseAsync(int groupId, CancellationToken cancellationToken) =>
         db.MenuItemOptionGroups.AnyAsync(l => l.GroupId == groupId, cancellationToken);
@@ -190,7 +203,11 @@ internal sealed class MenuRepository(AppDbContext db) : IMenuRepository
         translations.AddRange(await ApprovedAsync<OptionGroupTranslation>(cancellationToken));
         translations.AddRange(await ApprovedAsync<OptionTranslation>(cancellationToken));
 
-        return new PublicMenuData(categories, items, groups, options, links, translations);
+        var itemImages = await db.MenuItemImages.AsNoTracking()
+            .Where(i => db.MenuItems.Any(m => m.Id == i.MenuItemId && !m.IsDeleted && m.Status != SaleStatus.Hidden))
+            .ToListAsync(cancellationToken);
+
+        return new PublicMenuData(categories, items, groups, options, links, translations, itemImages);
     }
 
     private async Task<List<T>> ApprovedAsync<T>(CancellationToken cancellationToken)

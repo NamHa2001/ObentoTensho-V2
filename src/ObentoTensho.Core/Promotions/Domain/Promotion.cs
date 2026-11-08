@@ -11,6 +11,8 @@ public sealed class Promotion
 
     public string? DescriptionHtml { get; set; }
 
+    public Guid? BannerImageId { get; set; }
+
     public required DateOnly StartDate { get; set; }
 
     public required DateOnly EndDate { get; set; }

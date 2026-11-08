@@ -5,6 +5,8 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Media.Abstractions;
+using ObentoTensho.Core.Media.Services;
 using ObentoTensho.Core.Menu.Abstractions;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Time;
@@ -17,6 +19,7 @@ public sealed class MenuCategoryAdminService(
     IUnitOfWork unitOfWork,
     IAuditTrail audit,
     IMenuCache cache,
+    IImageRepository images,
     IClock clock,
     IValidator<CategoryRequest> validator)
 {
@@ -39,11 +42,16 @@ public sealed class MenuCategoryAdminService(
             return validation.ToFailure<AdminCategoryDto>();
         }
 
+        if (await ImageReferences.CheckAsync(images, request.ImageId, "imageId", cancellationToken) is { } imageFailure)
+        {
+            return Result.Failure<AdminCategoryDto>(imageFailure.ErrorCode ?? ErrorCodes.ValidationFailed, imageFailure.FieldErrors);
+        }
+
         var slug = await SlugGenerator.UniqueAsync(request.Slug, request.Name, 150, s => menu.CategorySlugExistsAsync(s, null, cancellationToken));
         var order = (await menu.ListCategoriesAsync(cancellationToken)).Select(c => c.DisplayOrder).DefaultIfEmpty(0).Max() + 1;
         var result = await unitOfWork.TryCreateAsync(async ct =>
         {
-            var category = new MenuCategory { Name = request.Name.Trim(), Slug = slug, IsActive = request.IsActive, DisplayOrder = order, CreatedAtUtc = clock.UtcNow };
+            var category = new MenuCategory { Name = request.Name.Trim(), Slug = slug, IsActive = request.IsActive, ImageId = request.ImageId, DisplayOrder = order, CreatedAtUtc = clock.UtcNow };
             menu.AddCategory(category);
             await unitOfWork.SaveChangesAsync(ct);
             audit.Record(new AuditEntry($"menu.{Entity}.created", Entity, Id(category.Id), After: new { category.Name, category.Slug, category.IsActive }));
@@ -62,6 +70,11 @@ public sealed class MenuCategoryAdminService(
             return validation.ToFailure<AdminCategoryDto>();
         }
 
+        if (await ImageReferences.CheckAsync(images, request.ImageId, "imageId", cancellationToken) is { } imageFailure)
+        {
+            return Result.Failure<AdminCategoryDto>(imageFailure.ErrorCode ?? ErrorCodes.ValidationFailed, imageFailure.FieldErrors);
+        }
+
         if (RowVersions.Decode(ifMatch) is not { } version)
         {
             return Result.Failure<AdminCategoryDto>(ErrorCodes.PreconditionRequired);
@@ -77,12 +90,13 @@ public sealed class MenuCategoryAdminService(
             return Result.Failure<AdminCategoryDto>(ErrorCodes.DuplicateName);
         }
 
-        var before = new { category.Name, category.Slug, category.IsActive };
+        var before = new { category.Name, category.Slug, category.IsActive, category.ImageId };
         unitOfWork.ExpectRowVersion(category, version);
         category.Name = request.Name.Trim();
         category.Slug = request.Slug ?? category.Slug;
         category.IsActive = request.IsActive;
-        audit.Record(new AuditEntry($"menu.{Entity}.updated", Entity, Id(id), before, new { category.Name, category.Slug, category.IsActive }));
+        category.ImageId = request.ImageId;
+        audit.Record(new AuditEntry($"menu.{Entity}.updated", Entity, Id(id), before, new { category.Name, category.Slug, category.IsActive, category.ImageId }));
         var counts = await menu.CountItemsByCategoryAsync(cancellationToken);
         var result = await unitOfWork.TrySaveAsync(() => category.ToAdmin(counts.GetValueOrDefault(id)), ErrorCodes.DuplicateName, cancellationToken);
         cache.Invalidate();

@@ -11,4 +11,5 @@ public sealed record AdminPromotionDto(
     bool PublicTeaser,
     bool IsActive,
     DateTime CreatedAtUtc,
-    string Version);
+    string Version,
+    Guid? BannerImageId);

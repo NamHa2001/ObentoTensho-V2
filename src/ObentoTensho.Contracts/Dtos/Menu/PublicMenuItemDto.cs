@@ -1,3 +1,4 @@
+using ObentoTensho.Contracts.Dtos.Media;
 using ObentoTensho.Contracts.Enums;
 
 namespace ObentoTensho.Contracts.Dtos.Menu;
@@ -15,5 +16,6 @@ public sealed record PublicMenuItemDto(
     bool AllowTakeaway,
     MenuLabels Labels,
     IReadOnlyList<Allergen> Allergens,
+    ImageDto? Image,
     string ContentLang,
     bool IsFallback);

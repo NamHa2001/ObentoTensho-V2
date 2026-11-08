@@ -21,6 +21,9 @@ public sealed class MenuItem
     // Đã làm sạch HTML trước khi lưu (SEC-08)
     public string? FullDescHtml { get; set; }
 
+    // Ảnh chính qua pipeline ảnh (BR-CNT-30)
+    public Guid? MainImageId { get; set; }
+
     public required decimal Price { get; set; }
 
     public decimal? OriginalPrice { get; set; }

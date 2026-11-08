@@ -1,6 +1,7 @@
 using System.Globalization;
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Menu;
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
@@ -93,8 +94,19 @@ public sealed class OptionGroupAdminService(
             return Result.Failure(ErrorCodes.OptionGroupInUse);
         }
 
-        menu.RemoveGroup(group);
-        audit.Record(new AuditEntry($"menu.{GroupEntity}.deleted", GroupEntity, Id(id), Before: new { group.Name }));
+        // BR-MNU-23: tùy chọn của nhóm đã có trong đơn ⇒ chỉ ẩn nhóm, giữ dữ liệu cho thống kê
+        var optionIds = (await menu.ListOptionsAsync([id], cancellationToken)).Select(o => o.Id).ToArray();
+        if (await menu.AnyOptionOrderedAsync(optionIds, cancellationToken))
+        {
+            group.IsActive = false;
+            audit.Record(new AuditEntry($"menu.{GroupEntity}.hidden", GroupEntity, Id(id), Before: new { group.Name }));
+        }
+        else
+        {
+            menu.RemoveGroup(group);
+            audit.Record(new AuditEntry($"menu.{GroupEntity}.deleted", GroupEntity, Id(id), Before: new { group.Name }));
+        }
+
         var result = await unitOfWork.TrySaveAsync(ErrorCodes.OptionGroupInUse, cancellationToken);
         cache.Invalidate();
         return result;
@@ -168,8 +180,18 @@ public sealed class OptionGroupAdminService(
             return Result.Failure(ErrorCodes.NotFound);
         }
 
-        menu.RemoveOption(option);
-        audit.Record(new AuditEntry($"menu.{OptionEntity}.deleted", OptionEntity, Id(id), Before: new { option.Name, option.PriceDelta }));
+        // BR-MNU-23: đã có trong đơn ⇒ chỉ ẩn
+        if (await menu.AnyOptionOrderedAsync([id], cancellationToken))
+        {
+            option.Status = SaleStatus.Hidden;
+            audit.Record(new AuditEntry($"menu.{OptionEntity}.hidden", OptionEntity, Id(id), Before: new { option.Name, option.PriceDelta }));
+        }
+        else
+        {
+            menu.RemoveOption(option);
+            audit.Record(new AuditEntry($"menu.{OptionEntity}.deleted", OptionEntity, Id(id), Before: new { option.Name, option.PriceDelta }));
+        }
+
         var result = await unitOfWork.TrySaveAsync(ErrorCodes.OptionGroupInUse, cancellationToken);
         cache.Invalidate();
         return result;

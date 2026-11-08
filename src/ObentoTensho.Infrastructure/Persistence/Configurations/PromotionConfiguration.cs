@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Promotions.Domain;
 
 namespace ObentoTensho.Infrastructure.Persistence.Configurations;
@@ -21,6 +22,7 @@ internal sealed class PromotionConfiguration : IEntityTypeConfiguration<Promotio
         builder.Property(p => p.RowVersion).IsRowVersion();
 
         builder.HasOne<Staff>().WithMany().HasForeignKey(p => p.CreatedByStaffId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<StoredImage>().WithMany().HasForeignKey(p => p.BannerImageId).OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(p => p.Slug).IsUnique();
         builder.HasIndex(p => new { p.IsActive, p.EndDate });

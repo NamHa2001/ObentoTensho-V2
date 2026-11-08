@@ -92,6 +92,27 @@ public sealed class ClosedXmlMenuSpreadsheetTests
         Assert.Equal(ErrorCodes.FileTooLarge, _sheet.Read(new MemoryStream(bomb)).ErrorCode);
     }
 
+    [Fact]
+    public void Tep_nen_khai_sai_kich_thuoc_van_bi_tu_choi()
+    {
+        // Sửa trường "kích thước giải nén" ở cả header cục bộ và thư mục trung tâm thành 100 byte
+        var forged = ZipWith("xl/worksheets/sheet1.xml", new byte[40 * 1024 * 1024]);
+        Patch(forged, [0x50, 0x4b, 0x03, 0x04], 22);
+        Patch(forged, [0x50, 0x4b, 0x01, 0x02], 24);
+
+        var result = _sheet.Read(new MemoryStream(forged));
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(result.ErrorCode, new[] { ErrorCodes.FileTooLarge, ErrorCodes.FileInvalid }, StringComparer.Ordinal);
+    }
+
+    private static void Patch(byte[] zip, byte[] signature, int offset)
+    {
+        var at = zip.AsSpan().IndexOf(signature);
+        Assert.True(at >= 0);
+        BitConverter.GetBytes(100).CopyTo(zip, at + offset);
+    }
+
     private IReadOnlyList<MenuSheetRow> Read(byte[] bytes)
     {
         var result = _sheet.Read(new MemoryStream(bytes));

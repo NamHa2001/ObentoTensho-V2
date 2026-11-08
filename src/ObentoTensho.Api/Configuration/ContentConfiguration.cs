@@ -26,6 +26,7 @@ public static class ContentConfiguration
         services.AddScoped<BannerAdminService>();
         services.AddScoped<GalleryAdminService>();
         services.AddScoped<PublicContentService>();
+        services.AddScoped<SlugHistory>();
 
         services.AddSingleton<IValidator<NewsCategoryRequest>, NewsCategoryRequestValidator>();
         services.AddSingleton<IValidator<NewsRequest>, NewsRequestValidator>();

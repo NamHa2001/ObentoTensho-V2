@@ -188,6 +188,7 @@ public static class DependencyInjection
         services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddScoped<IContactRepository, ContactRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
+        services.AddScoped<ISlugRedirectRepository, SlugRedirectRepository>();
         services.AddSingleton<ITranslationCache, MemoryTranslationCache>();
         services.AddScoped<IContactEmailOutbox, ContactEmailOutbox>();
         services.AddScoped<INewsletterRepository, NewsletterRepository>();

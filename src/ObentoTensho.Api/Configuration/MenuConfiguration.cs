@@ -19,6 +19,7 @@ public static class MenuConfiguration
         services.AddScoped<PublicMenuService>();
         services.AddScoped<MenuCategoryAdminService>();
         services.AddScoped<MenuItemAdminService>();
+        services.AddScoped<MenuItemImageService>();
         services.AddScoped<OptionGroupAdminService>();
         services.AddScoped<MenuTranslationService>();
         services.AddScoped<MenuSpreadsheetService>();

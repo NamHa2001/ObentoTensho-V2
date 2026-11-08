@@ -1561,6 +1561,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
+                    b.Property<Guid?>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
@@ -1580,6 +1583,8 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(150)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -1678,6 +1683,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsVegetarian")
                         .HasColumnType("bit");
 
+                    b.Property<Guid?>("MainImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("NameSearch")
                         .IsRequired()
                         .HasColumnType("nvarchar(500)");
@@ -1716,6 +1724,8 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MainImageId");
+
                     b.HasIndex("NameSearch");
 
                     b.HasIndex("Slug")
@@ -1729,6 +1739,33 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_MenuItems_Status", "[Status] BETWEEN 0 AND 2");
                         });
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ImageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("MenuItemId", "ImageId")
+                        .IsUnique();
+
+                    b.ToTable("MenuItemImages", (string)null);
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemOptionGroup", b =>
@@ -2336,6 +2373,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<Guid?>("BannerImageId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2(3)");
 
@@ -2379,6 +2419,8 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2(3)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BannerImageId");
 
                     b.HasIndex("CreatedByStaffId");
 
@@ -3497,6 +3539,14 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategory", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuCategoryTranslation", b =>
                 {
                     b.HasOne("ObentoTensho.Core.Menu.Domain.MenuCategory", null)
@@ -3512,6 +3562,26 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("MainImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Menu.Domain.MenuItemImage", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ObentoTensho.Core.Menu.Domain.MenuItem", null)
+                        .WithMany()
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -3618,6 +3688,11 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ObentoTensho.Core.Promotions.Domain.Promotion", b =>
                 {
+                    b.HasOne("ObentoTensho.Core.Media.Domain.StoredImage", null)
+                        .WithMany()
+                        .HasForeignKey("BannerImageId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("ObentoTensho.Core.Auth.Domain.Staff", null)
                         .WithMany()
                         .HasForeignKey("CreatedByStaffId")

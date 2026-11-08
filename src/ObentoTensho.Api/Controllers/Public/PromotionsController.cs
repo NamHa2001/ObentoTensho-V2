@@ -16,6 +16,17 @@ public sealed class PromotionsController(PublicPromotionService promotions) : Co
         this.Data(await promotions.ListAsync(lang, cancellationToken));
 
     [HttpGet("{slug}")]
-    public async Task<IActionResult> Get(string slug, [FromQuery] string? lang, CancellationToken cancellationToken) =>
-        this.DataOrProblem(await promotions.GetAsync(slug, lang, cancellationToken));
+    public async Task<IActionResult> Get(string slug, [FromQuery] string? lang, CancellationToken cancellationToken)
+    {
+        var found = await promotions.GetAsync(slug, lang, cancellationToken);
+        if (found.IsSuccess)
+        {
+            return this.Data(found.Value);
+        }
+
+        // BR-CNT-41: slug cũ ⇒ 301 về địa chỉ mới
+        return await promotions.CurrentSlugAsync(slug, cancellationToken) is { } target
+            ? RedirectPermanent($"/api/v1/promotions/{Uri.EscapeDataString(target)}{(string.IsNullOrWhiteSpace(lang) ? string.Empty : "?lang=" + Uri.EscapeDataString(lang))}")
+            : this.ToProblem(found);
+    }
 }

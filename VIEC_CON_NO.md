@@ -4,7 +4,7 @@ Những việc đã cố ý để lại khi làm từng phần (kèm mã yêu c�
 
 Tổng quan đã làm/chưa làm: xem `TIEN_DO.md`.
 
-Cập nhật lần cuối: 08/11/2026 — sau phần Đa ngôn ngữ (backend).
+Cập nhật lần cuối: 08/11/2026 — đang làm các việc tự làm được trong file này (đợt 1: thực đơn, khuyến mãi).
 
 **Cách đọc:**
 
@@ -126,10 +126,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
 | Nhập/xuất Excel: nhóm tùy chọn, mô tả đầy đủ, nhập danh mục | `BR-MNU-14` | Bản hiện tại chỉ món | Thêm sheet riêng cho danh mục và nhóm tùy chọn, giữ quy trình xem trước rồi mới ghi |
-| Chống zip bomb khai sai kích thước | `SEC-11`, `BR-MNU-14` | Kiểm kích thước khai trong zip + tệp ≤ 2 MB + chỉ Manager/SuperAdmin | Đọc từng phần của tệp qua luồng có đếm byte thật, vượt 30 MB thì dừng ngay. Làm sớm vì chi phí nhỏ |
-| Ảnh món, ảnh danh mục | `BR-MNU-06`, `BR-MNU-12` | Pipeline ảnh đã có | Thêm cột và DTO, làm trước giao diện khách vì trang thực đơn cần ảnh |
-| `GET /menu/items/{slug}/reviews` | `docs/srs/15` §4 | Đánh giá đã có | Làm cùng giao diện khách; có cache ngắn và phân trang |
-| Xóa tùy chọn đã có trong đơn ⇒ chỉ được ẩn | `BR-MNU-23` | Vẫn xóa thẳng (đơn cũ giữ bản chụp) | Tùy chọn đã xuất hiện trong đơn thì trả 409 kèm gợi ý "ẩn"; chưa từng dùng thì xóa được. Giữ được thống kê món |
 | Cache thực đơn nhiều máy | `PERF-10` | `IMemoryCache` một tiến trình | HybridCache + Redis ở phần triển khai |
 | Test đếm truy vấn `GET /menu/items` ≤ 2 | `PERF-51`, `TST-28` | Chưa có | Thêm bộ đếm truy vấn EF trong test tích hợp ở phần kiểm thử cuối |
 
@@ -138,7 +134,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
 | Lợi dụng voucher sinh nhật bằng tài khoản mới | `BR-LOY-20` | Chỉ yêu cầu email đã xác thực | Theo Q3 |
-| Banner khuyến mãi | `docs/srs/08` §6 | Pipeline ảnh đã có | Thêm cột và DTO cùng lúc với ảnh món |
 | Tắt tự động khuyến mãi hết hạn | `docs/srs/14` §3 | Hiệu lực tính khi truy vấn | Không cần làm |
 | Voucher giới hạn theo SĐT/email cho khách vãng lai | `D-16` | Đã chốt bắt buộc đăng nhập | Không làm |
 
@@ -163,7 +158,6 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 
 | Việc | Mã | Hiện trạng | Đề xuất |
 |---|---|---|---|
-| Slug cũ 301 cho món và khuyến mãi | `BR-CNT-41` | Bảng `SlugRedirects` mới dùng cho tin tức | Dùng chung bảng, làm cùng giao diện khách (SSR) |
 | `Location` 301 từ đường dẫn API sang đường dẫn trang | `BR-CNT-41` | Đang trỏ đường dẫn API | Làm ở giao diện khách |
 | Đưa nội dung pháp lý vào trang tĩnh | `FR-CNT-04` | Trang chưa có nội dung trả 404 | Theo Q7 |
 | Header one-click hủy bản tin cần reverse proxy chuyển `/api` về API | `BR-CNT-26` | Chưa có | Cấu hình Nginx ở phần triển khai |
@@ -171,7 +165,7 @@ Trả lời ngắn theo mã, ví dụ: "Q1 đồng ý đề xuất, Q2 chọn Qu
 | Newsletter báo "email đã đăng ký" | `BR-CNT-20` | Làm đúng SRS | Theo Q4 |
 | Thư báo liên hệ nội bộ chịu giới hạn 3 thư/giờ | `BR-CNT-33`, `BR-NTF-08` | Tin vẫn nằm trong danh sách chưa đọc; quản lý đã nhận realtime | Gộp theo Q1 |
 | Cache danh sách đánh giá công khai | `PERF-11/12` | Đọc thẳng DB, có phân trang và chỉ mục | Cache 60 giây theo trang, xóa khi duyệt đánh giá mới |
-| Dọn ảnh mồ côi sau 30 ngày | `BR-CNT-32`, `FR-IMG-10` | Xóa banner/gallery thì ảnh ở lại | Việc định kỳ hằng đêm: ảnh không còn được tham chiếu quá 30 ngày thì xóa gốc + biến thể; ghi log số tệp đã xóa |
+| Dọn ảnh mồ côi sau 30 ngày | `BR-CNT-32`, `FR-IMG-10` | Xóa banner/gallery thì ảnh ở lại | Việc định kỳ hằng đêm: ảnh không còn được tham chiếu quá 30 ngày thì xóa gốc + biến thể; ghi log số tệp đã xóa. Phải xét mọi chỗ tham chiếu: banner, gallery, tin tức, ảnh món chính/phụ, danh mục, banner khuyến mãi, cài đặt (logo, QR, ảnh chia sẻ) |
 | Sinh lại biến thể khi đổi cấu hình, AVIF | `FR-IMG-03/04` | `Version` đã có | Lệnh SuperAdmin chạy nền, xử lý theo lô. AVIF để sau (WebP đã đủ cho mọi trình duyệt phổ biến) |
 | Ảnh xử lý nền bị `Failed` | `FR-IMG-08` | Ảnh gốc vẫn còn | Tự thử lại 3 lần cách nhau 5 phút, vẫn lỗi thì hiện cảnh báo ở thư viện ảnh và có nút "Thử lại" |
 | Làm nét nhẹ khi thu nhỏ ảnh món | `FR-IMG-07` | Chưa có | Tùy chọn, làm khi chỉnh giao diện |

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ObentoTensho.Contracts.Enums;
+using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Menu.Domain;
 
 namespace ObentoTensho.Infrastructure.Persistence.Configurations;
@@ -32,6 +33,7 @@ internal sealed class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(i => i.RowVersion).IsRowVersion();
 
         builder.HasOne<MenuCategory>().WithMany().HasForeignKey(i => i.CategoryId).OnDelete(DeleteBehavior.NoAction);
+        builder.HasOne<StoredImage>().WithMany().HasForeignKey(i => i.MainImageId).OnDelete(DeleteBehavior.NoAction);
 
         builder.HasIndex(i => i.Slug).IsUnique();
         builder.HasIndex(i => new { i.CategoryId, i.Status, i.DisplayOrder });
