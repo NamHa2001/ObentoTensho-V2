@@ -18,6 +18,8 @@ public static class LoyaltyConfiguration
         // Việc định kỳ (docs/srs/20 §4)
         services.AddScoped<LoyaltyJobs>();
         services.AddScoped<IRecurringJob, LoyaltyExpiryJob>();
+        services.AddScoped<IRecurringJob, LoyaltyReconcileJob>();
+        services.AddScoped<IRecurringJob, ObentoTensho.Core.Notifications.Services.EmailQuotaAlertJob>();
         services.AddScoped<IRecurringJob, LoyaltyExpiryNoticeJob>();
         return services;
     }

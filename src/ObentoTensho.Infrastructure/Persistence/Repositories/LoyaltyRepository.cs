@@ -61,6 +61,15 @@ internal sealed class LoyaltyRepository(AppDbContext db) : ILoyaltyRepository
         return (lots.Sum(l => l.RemainingPoints), lots.Count == 0 ? null : lots.Min(l => l.ExpiresAtUtc));
     }
 
+    public async Task<IReadOnlyList<Guid>> FindBalanceMismatchesAsync(int limit, CancellationToken cancellationToken) =>
+        await db.Users.AsNoTracking()
+            .Where(u => u.CurrentPoints != (db.LoyaltyPoints.Where(e => e.UserId == u.Id).Sum(e => (int?)e.Points) ?? 0)
+                || u.CurrentPoints != (db.LoyaltyLots.Where(l => l.UserId == u.Id).Sum(l => (int?)l.RemainingPoints) ?? 0))
+            .OrderBy(u => u.Id)
+            .Select(u => u.Id)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<Guid>> UsersWithExpiredLotsAsync(DateTime nowUtc, int limit, CancellationToken cancellationToken) =>
         await db.LoyaltyLots.AsNoTracking()
             .Where(l => l.RemainingPoints > 0 && l.ExpiresAtUtc <= nowUtc)

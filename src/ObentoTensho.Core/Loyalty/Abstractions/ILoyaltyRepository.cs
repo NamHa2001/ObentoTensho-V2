@@ -9,6 +9,9 @@ public interface ILoyaltyRepository
     // Khóa hàng Users (UPDLOCK) trong transaction hiện tại rồi trả bản được theo dõi: mọi thao tác điểm của một khách chạy tuần tự
     Task<User?> LockUserAsync(Guid userId, CancellationToken cancellationToken);
 
+    // BR-LOY-04: khách có số dư khác tổng sổ cái hoặc khác tổng điểm còn lại của các lô (chỉ đọc)
+    Task<IReadOnlyList<Guid>> FindBalanceMismatchesAsync(int limit, CancellationToken cancellationToken);
+
     Task<User?> FindUserAsync(Guid userId, CancellationToken cancellationToken);
 
     Task<bool> EntryExistsAsync(Guid userId, LoyaltyTransactionType type, string referenceId, CancellationToken cancellationToken);
