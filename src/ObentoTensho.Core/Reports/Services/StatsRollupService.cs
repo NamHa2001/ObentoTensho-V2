@@ -1,4 +1,8 @@
 using System.Globalization;
+using ObentoTensho.Contracts.Dtos.Reports;
+using ObentoTensho.Contracts.Errors;
+using ObentoTensho.Core.Audit.Abstractions;
+using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Customers.Abstractions;
@@ -14,15 +18,41 @@ public sealed class StatsRollupService(
     BusinessCalendar calendar,
     IStaffRepository staff,
     IAdminEmailOutbox adminEmails,
+    IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IClock clock)
 {
     public const int ReconcileDays = 7;
+    public const int MaxRecomputeDays = 92;
 
     public async Task RefreshDayAsync(DateOnly day, CancellationToken cancellationToken)
     {
         var (start, end) = calendar.Bounds(day);
         await ReplaceAsync(day, await stats.ComputeDayAsync(day, start, end, cancellationToken), cancellationToken);
+    }
+
+    // PERF-55: nhập dữ liệu cũ thì tính lại từng ngày từ bảng gốc; tối đa 92 ngày một lần, không quá hôm nay, có audit
+    public async Task<Result<RecomputeStatsDto>> RecomputeAsync(RecomputeStatsRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.ToDate < request.FromDate || request.ToDate > calendar.Today || request.ToDate.DayNumber - request.FromDate.DayNumber >= MaxRecomputeDays)
+        {
+            return Result.Failure<RecomputeStatsDto>(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                ["toDate"] = [FieldErrorCodes.OutOfRange],
+            });
+        }
+
+        var days = 0;
+        for (var day = request.FromDate; day <= request.ToDate; day = day.AddDays(1))
+        {
+            await RefreshDayAsync(day, cancellationToken);
+            days++;
+        }
+
+        audit.Record(new AuditEntry("reports.daily_stats.recomputed", "daily_stats", $"{request.FromDate:yyyy-MM-dd}..{request.ToDate:yyyy-MM-dd}", After: new { days }));
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(new RecomputeStatsDto(days));
     }
 
     public async Task<int> RefreshRecentAsync(CancellationToken cancellationToken)

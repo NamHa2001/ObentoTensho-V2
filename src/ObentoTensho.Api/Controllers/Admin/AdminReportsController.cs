@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Contracts.Dtos.Reports;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Reports.Services;
 
@@ -13,9 +14,14 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireCapability(StaffCapability.Reports)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AdminReportsController(ReportService reports) : ControllerBase
+public sealed class AdminReportsController(ReportService reports, StatsRollupService rollup) : ControllerBase
 {
     private const string Xlsx = "xlsx";
+
+    // PERF-55: tính lại số liệu tổng hợp sau khi nhập dữ liệu cũ
+    [HttpPost("recompute")]
+    public async Task<IActionResult> Recompute(RecomputeStatsRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await rollup.RecomputeAsync(request, cancellationToken));
 
     [HttpGet("revenue")]
     public async Task<IActionResult> Revenue(
