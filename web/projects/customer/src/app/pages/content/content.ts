@@ -1,7 +1,7 @@
 import { Component, computed, DestroyRef, inject, RESPONSE_INIT, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, Meta, Title } from '@angular/platform-browser';
+import { DomSanitizer, Meta, SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, map, of, switchMap } from 'rxjs';
@@ -126,6 +126,8 @@ const GALLERY = [
 export class Gallery {
   private readonly api = inject(Api);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly safeUrls = new Map<string, SafeResourceUrl>();
+  private run = 0;
   protected readonly categories = GALLERY;
   protected readonly category = signal('');
   protected readonly items = signal<Schemas['PublicGalleryItemDto'][]>([]);
@@ -144,7 +146,12 @@ export class Gallery {
 
   protected select(value: string): void {
     this.category.set(value);
-    this.api.getOr<Schemas['PublicGalleryItemDto'][]>('gallery', [], value ? { category: value } : {}).subscribe((i) => this.items.set(i));
+    const run = ++this.run;
+    this.api.getOr<Schemas['PublicGalleryItemDto'][]>('gallery', [], value ? { category: value } : {}).subscribe((i) => {
+      if (run === this.run) {
+        this.items.set(i);
+      }
+    });
   }
 
   protected url(item: Schemas['PublicGalleryItemDto']): string | null {
@@ -152,8 +159,15 @@ export class Gallery {
   }
 
   // BR-CNT-35: server đã kiểm địa chỉ; ở đây chặn thêm lần nữa trước khi cho vào iframe
-  protected safe(url: string) {
-    return this.sanitizer.bypassSecurityTrustResourceUrl(isEmbeddable(url) ? url : 'about:blank');
+  // Giữ nguyên một đối tượng cho mỗi địa chỉ: tạo mới mỗi lần vẽ làm iframe tải lại video đang xem
+  protected safe(url: string): SafeResourceUrl {
+    let safe = this.safeUrls.get(url);
+    if (!safe) {
+      safe = this.sanitizer.bypassSecurityTrustResourceUrl(isEmbeddable(url) ? url : 'about:blank');
+      this.safeUrls.set(url, safe);
+    }
+
+    return safe;
   }
 }
 

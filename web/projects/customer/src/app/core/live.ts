@@ -18,14 +18,16 @@ export class LiveHub {
   private attempts = 0;
   private everOpen = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private run = 0;
 
   constructor(private readonly options: LiveOptions) {}
 
   async start(): Promise<void> {
+    const run = ++this.run;
     try {
       const { HubConnectionBuilder, HttpTransportType, LogLevel } = await import('@microsoft/signalr');
       const url = await this.options.url();
-      if (this.stopped) {
+      if (this.stopped || run !== this.run) {
         return;
       }
 
@@ -34,25 +36,42 @@ export class LiveHub {
         connection.on(name, (payload: unknown) => this.options.onEvent(name, payload));
       }
 
-      connection.onclose(() => this.retry());
-      await connection.start();
+      // Chỉ kết nối đang dùng mới được kích hoạt nối lại; kết nối đã bị thay hoặc dừng thì bỏ qua
+      connection.onclose(() => {
+        if (this.connection === connection) {
+          this.connection = null;
+          this.retry();
+        }
+      });
       this.connection = connection;
+      await connection.start();
+      if (this.stopped || run !== this.run) {
+        void connection.stop();
+        return;
+      }
+
       await this.options.onOpen?.(connection, this.everOpen);
       this.everOpen = true;
       this.attempts = 0;
       this.options.onState?.(true);
     } catch {
+      const failed = this.connection;
+      this.connection = null;
+      void failed?.stop();
       this.retry();
     }
   }
 
   stop(): void {
     this.stopped = true;
+    this.run += 1;
     if (this.timer) {
       clearTimeout(this.timer);
     }
 
-    void this.connection?.stop();
+    const connection = this.connection;
+    this.connection = null;
+    void connection?.stop();
   }
 
   private retry(): void {

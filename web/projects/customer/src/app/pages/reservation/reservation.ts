@@ -119,7 +119,13 @@ export class Reservation {
   }
 
   private refreshSlots(): void {
-    this.api.getOr<Schemas['AvailabilityDto'] | null>('reservations/availability', null, { date: this.model.date }).subscribe((a) => {
+    const date = this.model.date;
+    this.api.getOr<Schemas['AvailabilityDto'] | null>('reservations/availability', null, { date }).subscribe((a) => {
+      // Khách đã đổi ngày trong lúc chờ: kết quả này của ngày cũ
+      if (date !== this.model.date) {
+        return;
+      }
+
       if (this.autoPick && a && !this.hasTimes(a) && this.tries < MAX_AUTO_DAYS) {
         this.tries += 1;
         this.moved.set(true);

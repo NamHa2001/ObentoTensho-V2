@@ -120,7 +120,13 @@ export class Checkout {
   protected loadTimes(): void {
     this.model.pickupTime = '';
     this.loaded.set(false);
-    this.api.getOr<Schemas['PickupTimesDto'] | null>('orders/pickup-times', null, { date: this.model.pickupDate }).subscribe((p) => {
+    const date = this.model.pickupDate;
+    this.api.getOr<Schemas['PickupTimesDto'] | null>('orders/pickup-times', null, { date }).subscribe((p) => {
+      // Khách đã đổi ngày trong lúc chờ: kết quả này của ngày cũ
+      if (date !== this.model.pickupDate) {
+        return;
+      }
+
       const times = p?.times ?? [];
       if (this.autoPick && times.length === 0 && this.tries < MAX_AUTO_DAYS) {
         this.tries += 1;

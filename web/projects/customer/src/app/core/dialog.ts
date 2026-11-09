@@ -10,12 +10,17 @@ interface Ask {
 const current = signal<Ask | null>(null);
 
 // Hộp thoại trong trang thay cho confirm()/prompt() của trình duyệt (trên điện thoại khó dùng và có thể bị chặn)
+function open(ask: Ask): void {
+  current()?.resolve(null);
+  current.set(ask);
+}
+
 export function askConfirm(message: string): Promise<boolean> {
-  return new Promise((resolve) => current.set({ message, input: false, resolve: (v) => resolve(v !== null) }));
+  return new Promise((resolve) => open({ message, input: false, resolve: (v) => resolve(v !== null) }));
 }
 
 export function askText(message: string): Promise<string | null> {
-  return new Promise((resolve) => current.set({ message, input: true, resolve }));
+  return new Promise((resolve) => open({ message, input: true, resolve }));
 }
 
 @Component({

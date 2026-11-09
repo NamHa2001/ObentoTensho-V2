@@ -4,7 +4,7 @@ import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 
 import { Api } from '../../core/api';
 import { askConfirm } from '../../core/dialog';
@@ -180,7 +180,12 @@ export class Track {
 
   constructor() {
     const code = inject(ActivatedRoute).snapshot.queryParamMap.get('code') ?? '';
-    const load = () => this.form.run(this.api.post<Order>('orders/track', { code, token: this.token }), (o) => this.order.set(o));
+    // Tải lại do sự kiện realtime không dùng chung Submit với nút hủy, nếu không sẽ bị bỏ qua khi nút đang chờ
+    let loading: Subscription | null = null;
+    const load = () => {
+      loading?.unsubscribe();
+      loading = this.api.post<Order>('orders/track', { code, token: this.token }).subscribe({ next: (o) => this.order.set(o), error: (e: unknown) => this.form.error.set(errorText(e)) });
+    };
     load();
     const hub = new LiveHub({
       url: () => Promise.resolve('/hubs/v1/public'),
@@ -189,7 +194,10 @@ export class Track {
       onOpen: (c) => c.invoke('WatchOrder', code, this.token),
     });
     void hub.start();
-    inject(DestroyRef).onDestroy(() => hub.stop());
+    inject(DestroyRef).onDestroy(() => {
+      hub.stop();
+      loading?.unsubscribe();
+    });
   }
 
   protected async cancel(order: Order): Promise<void> {
