@@ -82,6 +82,7 @@ export class MenuDetail {
   constructor() {
     const route = inject(ActivatedRoute);
     const response = inject(RESPONSE_INIT, { optional: true });
+    this.title.setTitle('Món ăn — Obento Tensho');
     route.paramMap
       .pipe(
         map((params) => params.get('slug') ?? ''),

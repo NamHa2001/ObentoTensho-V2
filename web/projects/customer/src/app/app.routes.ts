@@ -17,7 +17,7 @@ const verifyEmail = { title: 'Xác thực email', endpoint: 'auth/verify-email' 
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home), title: 'Obento Tensho — Cơm hộp Nhật' },
   { path: 'menu', loadComponent: () => import('./pages/menu/menu').then((m) => m.Menu), title: 'Thực đơn — Obento Tensho' },
-  { path: 'menu/:slug', loadComponent: () => import('./pages/menu-detail/menu-detail').then((m) => m.MenuDetail), title: 'Món ăn — Obento Tensho' },
+  { path: 'menu/:slug', loadComponent: () => import('./pages/menu-detail/menu-detail').then((m) => m.MenuDetail) },
   { path: 'dat-ban', canActivate: [verifiedGuard], loadComponent: () => import('./pages/reservation/reservation').then((m) => m.Reservation), title: 'Đặt bàn — Obento Tensho' },
   { path: 'gio-hang', loadComponent: () => import('./pages/order/cart').then((m) => m.CartPage), title: 'Giỏ hàng — Obento Tensho' },
   { path: 'thanh-toan', canActivate: [verifiedGuard], loadComponent: () => import('./pages/order/checkout').then((m) => m.Checkout), title: 'Thanh toán — Obento Tensho' },
