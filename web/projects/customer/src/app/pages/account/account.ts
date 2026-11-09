@@ -106,6 +106,7 @@ export class Account {
               <button type="button" class="min-h-11 shrink-0 px-2 text-danger" (click)="revoke(s.id)">Đăng xuất</button>
             </div>
           }
+          @if (sessionError(); as e) { <p class="ot-error">{{ e }}</p> }
         </section>
 
         <form class="ot-stack" (ngSubmit)="remove()">
@@ -120,6 +121,7 @@ export class Account {
   `,
 })
 export class AccountProfile {
+  protected readonly sessionError = signal<string | null>(null);
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
   protected readonly tiers = TIERS;
@@ -199,7 +201,8 @@ export class AccountProfile {
   }
 
   protected revoke(id: string): void {
-    this.api.delete(`account/sessions/${id}`).subscribe(() => this.loadSessions());
+    this.sessionError.set(null);
+    this.api.delete(`account/sessions/${id}`).subscribe({ next: () => this.loadSessions(), error: (e: unknown) => this.sessionError.set(errorText(e)) });
   }
 
   protected async remove(): Promise<void> {
@@ -209,7 +212,7 @@ export class AccountProfile {
   }
 
   protected cancelDeletion(): void {
-    this.api.post('account/delete/cancel').pipe(switchMap(() => this.auth.loadProfile())).subscribe();
+    this.deleteForm.run(this.api.post('account/delete/cancel').pipe(switchMap(() => this.auth.loadProfile())), () => undefined);
   }
 }
 
@@ -253,7 +256,7 @@ export class AccountReservations {
   selector: 'ot-account-orders',
   imports: [RouterLink, VndPipe, VnDatePipe],
   template: `
-    @if (items().length === 0) { <p class="text-muted">Chưa có đơn hàng.</p> }
+    @if (error(); as e) { <p class="ot-error mb-3">{{ e }}</p> } @else if (items().length === 0) { <p class="text-muted">Chưa có đơn hàng.</p> }
     <div class="grid gap-3">
       @for (o of items(); track o.code) {
         <a class="ot-card block p-3" [routerLink]="['/tai-khoan/don-hang', o.code]"><b>{{ o.code }}</b> · {{ statuses[o.status] }}<p class="text-sm text-muted">{{ o.createdAtUtc | vnDate }} · {{ o.totalAmount | vnd }}</p></a>
@@ -263,6 +266,7 @@ export class AccountReservations {
   `,
 })
 export class AccountOrders {
+  protected readonly error = signal<string | null>(null);
   private readonly api = inject(Api);
   protected readonly statuses = ORDER_STATUS;
   protected readonly items = signal<Schemas['PublicOrderDto'][]>([]);
@@ -275,9 +279,16 @@ export class AccountOrders {
 
   protected more(): void {
     this.page += 1;
-    this.api.getPage<Schemas['PublicOrderDto']>('account/orders', { page: this.page, pageSize: 20 }).subscribe((r: Page<Schemas['PublicOrderDto']>) => {
-      this.items.update((i) => [...i, ...r.data]);
-      this.total.set(r.meta.total);
+    this.error.set(null);
+    this.api.getPage<Schemas['PublicOrderDto']>('account/orders', { page: this.page, pageSize: 20 }).subscribe({
+      next: (r: Page<Schemas['PublicOrderDto']>) => {
+        this.items.update((i) => [...i, ...r.data]);
+        this.total.set(r.meta.total);
+      },
+      error: (e: unknown) => {
+        this.page -= 1;
+        this.error.set(errorText(e));
+      },
     });
   }
 }
@@ -342,6 +353,7 @@ export class AccountPoints {
   selector: 'ot-account-reviews',
   imports: [VnDatePipe],
   template: `
+    @if (error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     @if (items().length === 0) { <p class="text-muted">Chưa có đánh giá. Bạn có thể đánh giá trong chi tiết đơn đã hoàn thành.</p> }
     <div class="grid gap-3">
       @for (r of items(); track r.id) {
@@ -354,6 +366,7 @@ export class AccountPoints {
   `,
 })
 export class AccountReviews {
+  protected readonly error = signal<string | null>(null);
   private readonly api = inject(Api);
   protected readonly status: Record<string, string> = { pending: 'Chờ duyệt', approved: 'Đã đăng', rejected: 'Từ chối' };
   protected readonly items = signal<Schemas['MyReviewDto'][]>([]);
@@ -368,7 +381,8 @@ export class AccountReviews {
 
   protected async remove(id: number): Promise<void> {
     if (await askConfirm('Xóa đánh giá này?')) {
-      this.api.delete(`reviews/${id}`).subscribe(() => this.load());
+      this.error.set(null);
+      this.api.delete(`reviews/${id}`).subscribe({ next: () => this.load(), error: (e: unknown) => this.error.set(errorText(e)) });
     }
   }
 }

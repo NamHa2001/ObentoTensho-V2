@@ -44,11 +44,24 @@ app.use((_req, res, next) => {
 /**
  * Serve static files from /browser
  */
+// Tệp do Angular sinh có mã băm trong tên (main-AB12CD34.js) nên cache vĩnh viễn an toàn.
+// Tệp giữ nguyên tên (ảnh trang trí, biểu tượng, manifest, tệp của service worker) phải hỏi lại máy chủ để thấy bản mới
+const HASHED = /-[A-Z0-9]{8,}\.(?:js|css|woff2?)$/;
+const ALWAYS_FRESH = /(?:^|\/)(?:ngsw\.json|ngsw-worker\.js|safety-worker\.js|worker-basic\.min\.js|manifest\.webmanifest)$/;
 app.use(
   express.static(browserDistFolder, {
-    maxAge: '1y',
     index: false,
     redirect: false,
+    setHeaders: (res, path) => {
+      const file = path.replaceAll('\\', '/');
+      if (HASHED.test(file)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (ALWAYS_FRESH.test(file)) {
+        res.setHeader('Cache-Control', 'no-cache');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=86400, must-revalidate');
+      }
+    },
   }),
 );
 

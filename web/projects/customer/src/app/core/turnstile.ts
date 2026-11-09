@@ -8,6 +8,7 @@ interface TurnstileApi {
   remove(id: string): void;
 }
 
+const CHALLENGE_TIMEOUT_MS = 120000;
 const SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 // SEC-22: mỗi lần gửi lấy một token mới (token dùng một lần). Chưa cấu hình khóa site thì không gửi gì; server tự quyết theo cấu hình
@@ -60,7 +61,14 @@ export class Turnstile {
         callback: (token: string) => done(() => resolve(token)),
         'error-callback': () => done(() => reject(new Error('turnstile'))),
         'expired-callback': () => done(() => reject(new Error('turnstile'))),
+        'timeout-callback': () => done(() => reject(new Error('turnstile'))),
       });
+      // Khách bỏ dở thử thách: sau một lúc thì gỡ ô và báo lỗi để nút gửi không bị khóa mãi
+      setTimeout(() => {
+        if (box.isConnected) {
+          done(() => reject(new Error('turnstile')));
+        }
+      }, CHALLENGE_TIMEOUT_MS);
     });
   }
 }
