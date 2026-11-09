@@ -1,0 +1,123 @@
+<section class="ot-hero" (mouseenter)="pause(true)" (mouseleave)="pause(false)" (touchstart)="touchStart($event)" (touchend)="touchEnd($event)">
+  <!-- Sóng seigaiha góc trái, chỉ trang trí -->
+  <svg class="pointer-events-none absolute bottom-0 left-0 hidden h-48 w-72 text-accent opacity-30 2xl:block" style="-webkit-mask-image: linear-gradient(to top right, #000 20%, transparent 70%); mask-image: linear-gradient(to top right, #000 20%, transparent 70%)" aria-hidden="true">
+    <defs>
+      <pattern id="seigaiha" width="60" height="30" patternUnits="userSpaceOnUse">
+        @for (r of [30, 22, 14, 6]; track r) {
+          <circle cx="30" cy="30" [attr.r]="r" fill="none" stroke="currentColor" />
+          <circle cx="0" cy="15" [attr.r]="r" fill="none" stroke="currentColor" />
+          <circle cx="60" cy="15" [attr.r]="r" fill="none" stroke="currentColor" />
+        }
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#seigaiha)" />
+  </svg>
+
+  <!-- Cành hoa góc trái -->
+  <div class="pointer-events-none absolute top-0 left-0 hidden size-36 text-sakura 2xl:block" aria-hidden="true">
+    <ot-sakura class="absolute top-1 left-1 size-8 md:size-12" />
+    <ot-sakura class="absolute top-2 left-12 size-6 md:left-20 md:size-9" />
+    <ot-sakura class="absolute top-12 left-3 size-5 md:top-20 md:size-8" />
+  </div>
+
+  <div class="ot-container relative z-10 pt-8 pb-6 md:py-12">
+    <div class="md:max-w-[50%] lg:max-w-[46%]">
+      <p class="flex items-center gap-3 text-muted">
+        <span class="h-px w-8 bg-muted"></span>
+        Ẩm thực Nhật Bản
+        <ot-sakura class="size-5 text-sakura-deep" />
+      </p>
+      @if (banner(); as b) {
+        <h1 class="mt-3 text-[34px] leading-[1.15] md:text-[36px] lg:text-[48px] xl:text-[60px]">{{ b.title }}</h1>
+        @if (b.subtitle) {
+          <p class="mt-4 text-muted md:text-lg lg:text-xl">{{ b.subtitle }}</p>
+        }
+      } @else {
+        <h1 class="mt-3 text-[34px] leading-[1.15] md:text-[36px] lg:text-[48px] xl:text-[60px]">
+          <span class="whitespace-nowrap">Cơm hộp Nhật,</span><br />
+          <span class="whitespace-nowrap">nấu <span class="relative text-primary">mới<span class="absolute inset-x-0 -bottom-1 h-[3px] rounded-full bg-primary"></span></span> mỗi ngày</span>
+        </h1>
+        <p class="mt-4 text-muted md:text-lg lg:text-xl">Đặt món mang về hoặc giữ bàn trước, chỉ vài bước ngay trên điện thoại.</p>
+      }
+      @if (banner()?.ctaText && banner()?.ctaLink) {
+        <a class="ot-btn ot-btn-outline mt-5" [href]="banner()!.ctaLink">{{ banner()!.ctaText }}</a>
+      }
+      <div class="mt-6 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 md:mt-8 lg:max-w-[440px] lg:gap-6">
+        <a routerLink="/menu" class="ot-btn ot-btn-primary">
+          <lucide-icon [img]="icons.order" [size]="20" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
+        </a>
+        <a routerLink="/dat-ban" class="ot-btn ot-btn-outline">
+          <lucide-icon [img]="icons.book" [size]="20" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ảnh do quản trị đăng; chưa có banner thì không hiện ảnh -->
+  @if (banner(); as b) {
+    <picture>
+      @if (b.imageMobile; as mobile) {
+        <source media="(max-width: 767px)" [attr.srcset]="srcset(mobile)" sizes="100vw" />
+      }
+      <img class="ot-hero-image" [src]="b.image.variants.at(-1)?.url" [attr.srcset]="srcset(b.image)" sizes="(max-width: 767px) 100vw, 56vw" [width]="b.image.width" [height]="b.image.height" [alt]="b.image.altText" fetchpriority="high" />
+    </picture>
+  }
+  @if (bannerCount() > 1) {
+    <div class="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+      @for (b of banners(); track b.id; let i = $index) {
+        <button type="button" class="flex size-6 items-center justify-center" [attr.aria-label]="'Banner ' + (i + 1)" (click)="active.set(i)"><span class="size-2.5 rounded-full" [class.bg-primary]="i === active()" [class.bg-surface]="i !== active()"></span></button>
+      }
+    </div>
+  }
+</section>
+
+@if (categories().length > 0) {
+  <section class="ot-container ot-section pt-4 md:pt-6">
+    <ot-section-title title="Danh mục" link="/menu" />
+    <div class="mt-4 grid grid-cols-1 gap-3 md:mt-6 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
+      @for (category of categories(); track category.id) {
+        <a routerLink="/menu" [queryParams]="{ danhMuc: category.slug }" class="ot-card flex items-center gap-3 p-2 pr-3 md:gap-4 md:pr-4">
+          <span class="relative block h-20 w-20 shrink-0 overflow-hidden rounded-md bg-surface-2 min-[400px]:w-28 md:h-24 md:w-36">
+            @if (imageUrl(category.image); as url) {
+              <img [src]="url" [alt]="category.name" loading="lazy" class="absolute inset-0 size-full object-cover" />
+            } @else {
+              <span class="absolute inset-0 flex items-center justify-center text-muted"><lucide-icon [img]="icons.order" [size]="28" /></span>
+            }
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="font-heading block truncate text-xl font-extrabold text-heading">{{ category.name }}</span>
+            <span class="mt-1 block text-sm text-muted">{{ category.itemCount }} món</span>
+          </span>
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-primary md:size-10"><lucide-icon [img]="icons.arrow" [size]="20" /></span>
+        </a>
+      }
+    </div>
+  </section>
+}
+
+@if (featured().length > 0) {
+  <section class="ot-container ot-section pt-0 md:pt-0">
+    <ot-section-title title="Món nổi bật" link="/menu" />
+    <div class="mt-4 grid grid-cols-2 gap-3 md:mt-6 md:grid-cols-4 md:gap-6">
+      @for (item of featured(); track item.id) {
+        <ot-menu-item-card [item]="item" />
+      }
+    </div>
+  </section>
+}
+
+@if (week().length > 0) {
+  <section class="ot-container ot-section pt-0 md:pt-0">
+    <div class="ot-card p-4 md:max-w-md md:p-6">
+      <h2 class="flex items-center gap-2 text-xl"><lucide-icon [img]="icons.clock" [size]="20" /> Giờ mở cửa</h2>
+      <dl class="mt-3">
+        @for (row of week(); track row.day) {
+          <div class="flex items-center justify-between gap-4 border-t border-line py-2 first:border-t-0">
+            <dt class="text-muted">{{ row.day }}</dt>
+            <dd class="font-medium tabular-nums">{{ row.time }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+  </section>
+}
