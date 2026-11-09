@@ -10,9 +10,23 @@ export interface CartLine {
 const KEY = 'ot.cart.v1';
 export const MAX_QUANTITY = 99;
 const MAX_LINES = 50;
+const MAX_OPTIONS = 20;
 
 function sameOptions(a: number[], b: number[]): boolean {
   return a.length === b.length && a.every((id, i) => id === b[i]);
+}
+
+// Giỏ đọc từ bộ nhớ trình duyệt có thể bị sửa tay: bỏ dòng hỏng, ép số lượng về 1–99, giới hạn số dòng như máy chủ
+export function cleanLines(value: unknown): CartLine[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter(isLine)
+    .filter((l) => l.menuItemId > 0 && l.optionIds.length <= MAX_OPTIONS && l.optionIds.every((id) => id > 0))
+    .slice(0, MAX_LINES)
+    .map((l) => ({ menuItemId: l.menuItemId, optionIds: [...l.optionIds].sort((a, b) => a - b), quantity: Math.min(MAX_QUANTITY, Math.max(1, l.quantity)) }));
 }
 
 function isLine(value: unknown): value is CartLine {
@@ -70,7 +84,7 @@ export class Cart {
   private read(): CartLine[] {
     try {
       const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? '[]');
-      return Array.isArray(parsed) ? parsed.filter(isLine) : [];
+      return cleanLines(parsed);
     } catch {
       return [];
     }

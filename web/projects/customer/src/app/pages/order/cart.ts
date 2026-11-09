@@ -49,7 +49,8 @@ export function linesOf(cart: CartStore) {
           <a class="ot-btn ot-btn-primary mt-4 w-full" routerLink="/thanh-toan">Đặt món</a>
         }
       } @else if (failed()) {
-        <p class="ot-error mt-3">Chưa kiểm tra được giá, vui lòng tải lại trang.</p>
+        <p class="ot-error mt-3">Chưa kiểm tra được giá, vui lòng tải lại trang. Nếu vẫn lỗi, hãy xóa giỏ và chọn món lại.</p>
+        <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="cart.clear()">Xóa giỏ hàng</button>
       } @else {
         <p class="mt-3">Đang kiểm tra giá…</p>
       }
