@@ -4,12 +4,14 @@ import { RouterOutlet } from '@angular/router';
 import { Auth } from './core/auth';
 import { DialogHost } from './core/dialog';
 import { BottomNav } from './layout/bottom-nav';
+import { BranchLayer } from './layout/branch-layer';
+import { PageBackground } from './layout/page-background';
 import { SiteFooter } from './layout/site-footer';
 import { SiteHeader } from './layout/site-header';
 
 @Component({
   selector: 'ot-root',
-  imports: [RouterOutlet, SiteHeader, BottomNav, SiteFooter, DialogHost],
+  imports: [RouterOutlet, SiteHeader, BottomNav, SiteFooter, DialogHost, PageBackground, BranchLayer],
   templateUrl: './app.html',
 })
 export class App {
