@@ -103,6 +103,15 @@ public sealed class OptionGroupAdminService(
         }
         else
         {
+            // FK không xóa dây chuyền: xóa tùy chọn cùng lúc, EF ghi tùy chọn trước nhóm
+            foreach (var optionId in optionIds)
+            {
+                if (await menu.FindOptionAsync(optionId, cancellationToken) is { } option)
+                {
+                    menu.RemoveOption(option);
+                }
+            }
+
             menu.RemoveGroup(group);
             audit.Record(new AuditEntry($"menu.{GroupEntity}.deleted", GroupEntity, Id(id), Before: new { group.Name }));
         }

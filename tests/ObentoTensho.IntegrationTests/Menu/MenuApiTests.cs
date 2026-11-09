@@ -175,6 +175,19 @@ public sealed class MenuApiTests : IDisposable
         return (data.GetProperty("id").GetInt32(), data.GetProperty("slug").GetString()!);
     }
 
+    [Fact]
+    public async Task Xoa_nhom_chua_gan_mon_thi_xoa_luon_cac_tuy_chon_ben_trong()
+    {
+        var manager = await _api.SignInAsync(StaffRole.Manager);
+        var groupId = await CreateSizeGroupAsync(manager);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _api.SendAsync(HttpMethod.Delete, $"{Admin}option-groups/{groupId}", manager)).StatusCode);
+
+        await using var db = _fixture.CreateContext();
+        Assert.False(await db.OptionGroups.AnyAsync(g => g.Id == groupId));
+        Assert.False(await db.Options.AnyAsync(o => o.GroupId == groupId));
+    }
+
     private async Task<int> CreateSizeGroupAsync(string token)
     {
         var group = await _api.SendAsync(HttpMethod.Post, Admin + "option-groups", token, new { name = "Size", selectionType = "one", isRequired = true, minSelect = 1, maxSelect = 1, isActive = true });
