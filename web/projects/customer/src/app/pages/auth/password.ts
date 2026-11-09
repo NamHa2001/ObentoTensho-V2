@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { afterNextRender, Component, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute as ActivatedRoutePublic, RouterLink } from '@angular/router';
@@ -15,6 +15,8 @@ export function takeToken(doc: Document): string {
 
   return match ? decodeURIComponent(match[1]) : '';
 }
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'ot-forgot',
@@ -39,7 +41,13 @@ export class Forgot {
   protected email = '';
 
   protected submit(): void {
-    this.form.run(this.api.post('auth/forgot-password', { email: this.email }), () => this.done.set(true));
+    // Server luôn trả thành công để không lộ email, nên phải tự kiểm tra trước khi báo đã gửi
+    if (!EMAIL.test(this.email.trim())) {
+      this.form.error.set('Vui lòng nhập đúng địa chỉ email.');
+      return;
+    }
+
+    this.form.run(this.api.post('auth/forgot-password', { email: this.email.trim() }), () => this.done.set(true));
   }
 }
 
@@ -51,6 +59,9 @@ export class Forgot {
       <h1>Đặt lại mật khẩu</h1>
       @if (done()) {
         <p>Đã đổi mật khẩu.</p><a class="ot-btn ot-btn-primary" routerLink="/dang-nhap">Đăng nhập</a>
+      } @else if (missing()) {
+        <p>Liên kết không hợp lệ hoặc đã hết hạn. Vui lòng yêu cầu gửi lại liên kết đặt lại mật khẩu.</p>
+        <a class="ot-btn ot-btn-primary" routerLink="/quen-mat-khau">Gửi lại liên kết</a>
       } @else {
         <label>Mật khẩu mới (từ 10 ký tự)<input class="ot-input" name="password" type="password" autocomplete="new-password" required minlength="10" [(ngModel)]="password" /></label>
         <label>Nhập lại mật khẩu<input class="ot-input" name="confirm" type="password" autocomplete="new-password" required [(ngModel)]="confirm" /></label>
@@ -65,8 +76,14 @@ export class Reset {
   private readonly token = takeToken(inject(DOCUMENT));
   protected readonly form = new Submit();
   protected readonly done = signal(false);
+  // Mã nằm sau dấu # nên máy chủ không thấy; chỉ kết luận thiếu mã khi đã chạy ở trình duyệt
+  protected readonly missing = signal(false);
   protected password = '';
   protected confirm = '';
+
+  constructor() {
+    afterNextRender(() => this.missing.set(!this.token));
+  }
 
   protected submit(): void {
     if (this.password !== this.confirm) {
