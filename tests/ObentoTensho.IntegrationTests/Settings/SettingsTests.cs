@@ -65,6 +65,41 @@ public sealed class SettingsTests : IDisposable
         return await db.SystemSettings.Where(s => s.Key == key).Select(s => s.Value).SingleAsync();
     }
 
+    // Trang khách cần địa chỉ ảnh để hiện logo, cài đặt chỉ lưu mã ảnh
+    [Fact]
+    public async Task Cai_dat_cong_khai_tra_dia_chi_anh_logo()
+    {
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        using var noise = NetVips.Image.Gaussnoise(400, 400, mean: 120, sigma: 30);
+        using var band = noise.Cast(NetVips.Enums.BandFormat.Uchar);
+        using var rgb = band.Bandjoin(band, band);
+        using var srgb = rgb.Copy(interpretation: NetVips.Enums.Interpretation.Srgb);
+        var file = new ByteArrayContent(srgb.JpegsaveBuffer(q: 60));
+        file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("image/jpeg");
+        using var form = new MultipartFormDataContent { { file, "file", "logo.jpg" }, { new StringContent("Logo"), "altText" } };
+        using var upload = new HttpRequestMessage(HttpMethod.Post, "/api/v1/admin/images") { Content = form };
+        upload.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", manager);
+        var image = await AdminAuthApiClient.ReadDataAsync(await _http.SendAsync(upload));
+        var id = image.GetProperty("id").GetString()!;
+
+        try
+        {
+            using var save = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/settings") { Content = JsonContent.Create(new { values = new Dictionary<string, string>(StringComparer.Ordinal) { ["restaurant.logo"] = id } }) };
+            save.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", manager);
+            (await _http.SendAsync(save)).EnsureSuccessStatusCode();
+
+            var url = (await PublicAsync()).GetProperty("restaurant.logoUrl").GetString();
+            Assert.False(string.IsNullOrEmpty(url));
+            Assert.Equal(image.GetProperty("variants")[image.GetProperty("variants").GetArrayLength() - 1].GetProperty("url").GetString(), url);
+        }
+        finally
+        {
+            using var clear = new HttpRequestMessage(HttpMethod.Put, "/api/v1/admin/settings") { Content = JsonContent.Create(new { values = new Dictionary<string, string>(StringComparer.Ordinal) { ["restaurant.logo"] = string.Empty } }) };
+            clear.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", manager);
+            await _http.SendAsync(clear);
+        }
+    }
+
     private async Task<JsonElement> PublicAsync() =>
         await AdminAuthApiClient.ReadDataAsync(await _http.GetAsync("/api/v1/public/settings"));
 

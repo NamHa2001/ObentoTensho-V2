@@ -78,6 +78,7 @@ public static class SettingsCatalog
         new("i18n.enabledLocales", SettingType.List, "vi", "Ngôn ngữ đang bật cho khách", Choices: ["vi", "en", "ja"], IsPublic: true),
         new("i18n.defaultLocale", SettingType.Choice, "vi", "Ngôn ngữ gốc", Choices: ["vi"], IsPublic: true),
 
+        Text("security.turnstileSiteKey", string.Empty, "Khóa site Cloudflare Turnstile (công khai)", isPublic: true),
         Text("seo.defaultTitle", string.Empty, "Tiêu đề SEO mặc định", isPublic: true),
         Text("seo.defaultDescription", string.Empty, "Mô tả SEO mặc định", isPublic: true),
         new("seo.defaultOgImageId", SettingType.Image, string.Empty, "Ảnh chia sẻ mặc định", IsPublic: true),
