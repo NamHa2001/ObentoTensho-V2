@@ -237,6 +237,10 @@ public sealed class RealtimeTests : IAsyncDisposable
 
         var code = await ReservationApiClient.CodeOf(await new ReservationApiClient(_http).CreateAsync(ReservationApiClient.Booking(TestSchedule.Tomorrow)));
         await reception.NextAsync(RealtimeEventNames.ReservationCreated, Code(code));
+
+        // Số đo ghi sau khi gửi xong, client có thể nhận được sự kiện trước đó
+        await WaitUntilFilledAsync(delays);
+        await WaitUntilFilledAsync(sent);
         lock (delays)
         {
             Assert.Contains(delays, d => string.Equals(d.Event, RealtimeEventNames.ReservationCreated, StringComparison.Ordinal) && d.Ms >= 0 && d.Ms < 5000);
@@ -245,6 +249,22 @@ public sealed class RealtimeTests : IAsyncDisposable
         lock (sent)
         {
             Assert.Contains("obento.realtime.events.sent:" + RealtimeEventNames.ReservationCreated, sent, StringComparer.Ordinal);
+        }
+    }
+
+    private static async Task WaitUntilFilledAsync<T>(List<T> items)
+    {
+        for (var i = 0; i < 100; i++)
+        {
+            lock (items)
+            {
+                if (items.Count > 0)
+                {
+                    return;
+                }
+            }
+
+            await Task.Delay(50);
         }
     }
 
