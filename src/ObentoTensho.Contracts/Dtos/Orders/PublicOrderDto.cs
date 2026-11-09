@@ -20,4 +20,5 @@ public sealed record PublicOrderDto(
     decimal TotalAmount,
     string? Note,
     bool CanCancel,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    Guid Id);

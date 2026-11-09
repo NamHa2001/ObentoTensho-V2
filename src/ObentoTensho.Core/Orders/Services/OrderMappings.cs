@@ -30,7 +30,8 @@ public static class OrderMappings
             o.TotalAmount,
             o.Note,
             o.CanCustomerCancel(),
-            o.CreatedAtUtc);
+            o.CreatedAtUtc,
+            o.Id);
     }
 
     public static AdminOrderDto ToAdmin(this Order o, IClock clock, bool noPickupFlag = false)
