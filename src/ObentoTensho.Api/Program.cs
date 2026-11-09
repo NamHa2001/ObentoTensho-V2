@@ -25,6 +25,8 @@ builder.Services.AddApiControllers();
 builder.Services.AddAppHealthChecks();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddSecurityFoundation(builder.Configuration, builder.Environment.IsProduction());
+builder.Services.AddSingleton(new ObentoTensho.Core.Auth.Domain.StaffTwoFactorPolicy(
+    builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("Security:SkipStaffTwoFactor")));
 builder.Services.AddMessaging(builder.Configuration, builder.Environment.IsProduction());
 builder.Services.AddWebOrigins(builder.Configuration);
 builder.Services.AddForwardedHeadersFromConfig(builder.Configuration);
@@ -41,7 +43,13 @@ builder.Services.AddCustomerServices();
 builder.Services.AddRealtime();
 if (builder.Environment.IsDevelopment())
 {
-    builder.Services.AddOpenApi();
+    // Chỉ để OpenAPI mô tả đúng dữ liệu thật: enum là chuỗi snake_case, số là số
+    builder.Services.ConfigureHttpJsonOptions(o =>
+    {
+        o.SerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict;
+        o.SerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter(System.Text.Json.JsonNamingPolicy.SnakeCaseLower, allowIntegerValues: false));
+    });
+    builder.Services.AddOpenApi(o => o.AddDocumentTransformer<ContractSchemasTransformer>());
 }
 
 var app = builder.Build();

@@ -7,7 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:customer": "node dist/customer/server/server.mjs"
+    "serve:ssr:customer": "node dist/customer/server/server.mjs",
+    "api:types": "openapi-typescript libs/ot-api/openapi.json -o libs/ot-api/schema.d.ts"
   },
   "prettier": {
     "printWidth": 100,
@@ -24,6 +25,7 @@
   "private": true,
   "packageManager": "npm@11.12.1",
   "dependencies": {
+    "@angular/cdk": "^21.2.14",
     "@angular/common": "^21.1.0",
     "@angular/compiler": "^21.1.0",
     "@angular/core": "^21.1.0",
@@ -31,8 +33,14 @@
     "@angular/platform-browser": "^21.1.0",
     "@angular/platform-server": "^21.1.0",
     "@angular/router": "^21.1.0",
+    "@angular/service-worker": "^21.2.26",
     "@angular/ssr": "^21.2.29",
+    "@fontsource/be-vietnam-pro": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
+    "@microsoft/signalr": "^10.0.11",
+    "chart.js": "^4.6.1",
     "express": "^5.1.0",
+    "lucide-angular": "^1.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
   },
@@ -40,9 +48,13 @@
     "@angular/build": "^21.2.29",
     "@angular/cli": "^21.1.0",
     "@angular/compiler-cli": "^21.1.0",
+    "@tailwindcss/postcss": "^4.3.5",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
     "jsdom": "^28.0.0",
+    "openapi-typescript": "^7.13.0",
+    "postcss": "^8.5.32",
+    "tailwindcss": "^4.3.5",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }

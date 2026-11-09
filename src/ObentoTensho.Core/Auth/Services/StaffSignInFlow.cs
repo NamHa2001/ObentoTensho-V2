@@ -13,6 +13,7 @@ namespace ObentoTensho.Core.Auth.Services;
 public sealed class StaffSignInFlow(
     IStaffRepository staff,
     IStaffChallengeTokens challenges,
+    StaffTwoFactorPolicy twoFactorPolicy,
     SessionFactory sessions,
     AuthSecurityEvents securityEvents,
     IRefreshTokenRepository refreshTokens,
@@ -23,6 +24,7 @@ public sealed class StaffSignInFlow(
 {
     public async Task<StaffSignInResult> ContinueAsync(Staff member, bool secondFactorPassed, ClientInfo client, CancellationToken cancellationToken)
     {
+        secondFactorPassed |= twoFactorPolicy.SkipOnSignIn;
         if (!secondFactorPassed && member.TotpEnabled)
         {
             return Challenge(member, StaffChallengeKind.TotpVerify, secondFactorPassed);

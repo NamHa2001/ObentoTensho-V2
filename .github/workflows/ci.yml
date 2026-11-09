@@ -60,6 +60,8 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - name: Cài gói
         run: npm ci
+      - name: Kiểu TypeScript khớp tài liệu OpenAPI
+        run: npm run api:types && git diff --exit-code libs/ot-api/schema.d.ts
       - name: Build customer
         run: npx ng build customer
       - name: Build admin
