@@ -30,7 +30,22 @@
               }
             ],
             "styles": [
-              "projects/customer/src/styles.scss"
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-700.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-700.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-700.css",
+              "node_modules/@fontsource/nunito/vietnamese-800.css",
+              "node_modules/@fontsource/nunito/latin-ext-800.css",
+              "node_modules/@fontsource/nunito/latin-800.css",
+              "projects/customer/src/styles.css"
             ],
             "server": "projects/customer/src/main.server.ts",
             "outputMode": "server",
@@ -55,7 +70,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "projects/customer/ngsw-config.json"
             },
             "development": {
               "optimization": false,
@@ -75,7 +91,10 @@
               "buildTarget": "customer:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json"
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"
@@ -106,7 +125,22 @@
               }
             ],
             "styles": [
-              "projects/admin/src/styles.scss"
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-400.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-500.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-600.css",
+              "node_modules/@fontsource/be-vietnam-pro/vietnamese-700.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-ext-700.css",
+              "node_modules/@fontsource/be-vietnam-pro/latin-700.css",
+              "node_modules/@fontsource/nunito/vietnamese-800.css",
+              "node_modules/@fontsource/nunito/latin-ext-800.css",
+              "node_modules/@fontsource/nunito/latin-800.css",
+              "projects/admin/src/styles.css"
             ]
           },
           "configurations": {
@@ -136,7 +170,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 4201
+            "port": 4201,
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

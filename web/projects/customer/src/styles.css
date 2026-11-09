@@ -1,0 +1,453 @@
+@import 'tailwindcss';
+@import '../../../libs/ot-tokens/tokens.css';
+
+@theme inline {
+  --color-bg: var(--ot-bg);
+  --color-surface: var(--ot-surface);
+  --color-surface-2: var(--ot-surface-2);
+  --color-line: var(--ot-border);
+  --color-ink: var(--ot-text);
+  --color-muted: var(--ot-text-muted);
+  --color-heading: var(--ot-heading);
+  --color-primary: var(--ot-primary);
+  --color-primary-hover: var(--ot-primary-hover);
+  --color-on-primary: var(--ot-primary-contrast);
+  --color-accent: var(--ot-accent);
+  --color-sakura: var(--ot-sakura);
+  --color-sakura-deep: var(--ot-sakura-deep);
+  --color-primary-soft: var(--ot-primary-soft);
+  --color-danger: var(--ot-danger);
+  --radius-lg: var(--ot-radius-lg);
+  --radius-md: var(--ot-radius-md);
+  --radius-sm: var(--ot-radius-sm);
+  --font-sans: var(--ot-font-body);
+  --font-heading: var(--ot-font-heading);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--ot-bg);
+    color: var(--ot-text);
+    font-family: var(--ot-font-body);
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* iOS tự phóng to trang khi ô nhập có chữ nhỏ hơn 16px */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--ot-heading);
+    font-family: var(--ot-font-heading);
+    font-weight: 800;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ot-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Khung chung: mọi khối của mọi trang bắt đầu và kết thúc ở cùng một lề */
+  .ot-container {
+    width: 100%;
+    max-width: var(--ot-container);
+    margin-inline: auto;
+    padding-left: calc(var(--ot-gutter) + var(--ot-safe-left));
+    padding-right: calc(var(--ot-gutter) + var(--ot-safe-right));
+  }
+
+  .ot-section {
+    padding-block: 32px;
+  }
+
+  /* Hàng cuộn ngang tràn ra sát mép màn hình nhưng phần tử đầu vẫn thẳng với lề chung */
+  .ot-scroll-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-left: calc(-1 * (var(--ot-gutter) + var(--ot-safe-left)));
+    margin-right: calc(-1 * (var(--ot-gutter) + var(--ot-safe-right)));
+    padding-left: calc(var(--ot-gutter) + var(--ot-safe-left));
+    padding-right: calc(var(--ot-gutter) + var(--ot-safe-right));
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ot-scroll-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ot-field {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--ot-border);
+    border-radius: 999px;
+    background: var(--ot-surface);
+    color: var(--ot-text);
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .ot-chip {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    height: 44px;
+    padding-inline: 16px;
+    border: 1px solid var(--ot-border);
+    border-radius: 999px;
+    background: var(--ot-surface);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .ot-chip-active {
+    border-color: var(--ot-primary);
+    background: var(--ot-primary);
+    color: var(--ot-primary-contrast);
+  }
+
+  @media (min-width: 1024px) {
+    .ot-category-nav {
+      position: sticky;
+      top: calc(var(--ot-header-h) + 16px);
+      display: block;
+      margin: 0;
+      padding: 8px;
+      overflow: visible;
+      background: var(--ot-surface);
+      border: 1px solid var(--ot-border);
+      border-radius: var(--ot-radius-lg);
+      box-shadow: var(--ot-shadow-1);
+    }
+
+    .ot-category-nav .ot-chip {
+      display: flex;
+      justify-content: space-between;
+      border-radius: var(--ot-radius-md);
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .ot-category-nav .ot-chip + .ot-chip {
+      margin-top: 4px;
+    }
+
+    .ot-category-nav .ot-chip-active {
+      background: var(--ot-primary);
+    }
+  }
+
+  /* Dòng chọn tùy chọn: dấu chọn, tên, giá luôn thẳng ba cột */
+  .ot-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 8px 16px;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-md);
+    background: var(--ot-surface);
+    cursor: pointer;
+  }
+
+  .ot-option:has(input:focus-visible) {
+    outline: 2px solid var(--ot-primary);
+    outline-offset: 2px;
+  }
+
+  .ot-option-on {
+    border-color: var(--ot-primary);
+    background: var(--ot-primary-soft);
+  }
+
+  .ot-option-off {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ot-option-mark {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid var(--ot-text-muted);
+    border-radius: 6px;
+    background: var(--ot-surface);
+  }
+
+  .ot-option-on .ot-option-mark {
+    border-color: var(--ot-primary);
+    background: var(--ot-primary);
+    color: var(--ot-primary-contrast);
+  }
+
+  .ot-buy-bar {
+    position: fixed;
+    z-index: 20;
+    inset-inline: 0;
+    bottom: calc(var(--ot-tabbar-h) + var(--ot-safe-bottom));
+    display: flex;
+    gap: 8px;
+    padding: 8px calc(var(--ot-gutter) + var(--ot-safe-right)) 8px calc(var(--ot-gutter) + var(--ot-safe-left));
+    border-top: 1px solid var(--ot-border);
+    background: var(--ot-surface);
+  }
+
+  .ot-buy-bar-space {
+    height: 64px;
+  }
+
+  @media (min-width: 768px) {
+    .ot-buy-bar {
+      position: static;
+      margin-top: 24px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      gap: 16px;
+    }
+
+    .ot-buy-bar-space {
+      display: none;
+    }
+  }
+
+  .ot-page {
+    width: 100%;
+    max-width: 640px;
+    margin-inline: auto;
+    padding: 24px calc(var(--ot-gutter) + var(--ot-safe-right)) 40px calc(var(--ot-gutter) + var(--ot-safe-left));
+  }
+
+  .ot-page-wide {
+    max-width: var(--ot-container);
+  }
+
+  .ot-page h1,
+  .ot-form h1 {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .ot-form {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+    max-width: 440px;
+    margin-inline: auto;
+    padding: 24px calc(var(--ot-gutter) + var(--ot-safe-right)) 40px calc(var(--ot-gutter) + var(--ot-safe-left));
+  }
+
+  .ot-stack {
+    display: grid;
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .ot-form label,
+  .ot-stack label,
+  fieldset legend {
+    font-weight: 500;
+  }
+
+  .ot-input {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 4px;
+    padding: 10px 14px;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-md);
+    background: var(--ot-surface);
+    color: var(--ot-text);
+    font-weight: 400;
+  }
+
+  .ot-error {
+    color: var(--ot-danger);
+  }
+
+  .ot-prose {
+    margin-top: 16px;
+    line-height: 1.7;
+  }
+
+  .ot-prose p,
+  .ot-prose ul,
+  .ot-prose ol {
+    margin-block: 12px;
+  }
+
+  .ot-prose img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .ot-dialog-back {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgb(46 42 38 / 50%);
+  }
+
+  .ot-dialog {
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    background: var(--ot-surface);
+    border-radius: var(--ot-radius-lg);
+    box-shadow: var(--ot-shadow-2);
+  }
+
+  .ot-skeleton {
+    background: var(--ot-surface-2);
+    animation: ot-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes ot-pulse {
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  .ot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding-inline: 20px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color 0.15s;
+  }
+
+  .ot-btn-primary {
+    background: var(--ot-primary);
+    color: var(--ot-primary-contrast);
+    box-shadow: var(--ot-shadow-2);
+  }
+
+  .ot-btn-outline {
+    background: var(--ot-surface);
+    border-color: var(--ot-text);
+    color: var(--ot-text);
+  }
+
+  /* Banner: điện thoại xếp chữ trên ảnh dưới; từ 768px ảnh nằm bên phải, mờ dần vào nền */
+  .ot-hero {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(100deg, var(--ot-surface) 0%, var(--ot-surface-2) 100%);
+    padding-bottom: 28px;
+  }
+
+  .ot-hero::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 28px;
+    background: var(--ot-bg);
+    border-radius: 28px 28px 0 0;
+  }
+
+  .ot-hero-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1049 / 492;
+    object-fit: cover;
+    object-position: 70% center;
+  }
+
+  @media (min-width: 768px) {
+    .ot-hero {
+      display: flex;
+      align-items: center;
+      min-height: 440px;
+    }
+
+    .ot-hero-image {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 56%;
+      height: 100%;
+      aspect-ratio: auto;
+      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%);
+      mask-image: linear-gradient(to right, transparent 0, #000 16%);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .ot-hero {
+      min-height: 520px;
+    }
+  }
+
+  .ot-card {
+    background: var(--ot-surface);
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-lg);
+    box-shadow: var(--ot-shadow-1);
+  }
+
+  /* Tên món luôn chiếm đúng 2 dòng để giá và nút của các thẻ cùng hàng nằm ngang nhau */
+  .ot-title-2 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    min-height: 2.75em;
+    line-height: 1.375;
+  }
+
+  @media (hover: hover) {
+    .ot-btn-primary:hover {
+      background: var(--ot-primary-hover);
+    }
+
+    .ot-btn-outline:hover {
+      background: var(--ot-surface-2);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .ot-section {
+      padding-block: 56px;
+    }
+  }
+}

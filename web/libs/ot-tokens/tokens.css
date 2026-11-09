@@ -1,0 +1,47 @@
+/* docs/srs/30 §1: nguồn duy nhất về màu, bo góc, khoảng cách cho cả Customer và Admin */
+:root {
+  --ot-bg: #fdf4e9;
+  --ot-surface: #fffaf3;
+  --ot-border: #f0dfca;
+  --ot-surface-2: #f8e8d6;
+  --ot-text: #3a2115;
+  --ot-text-muted: #6d5546;
+  --ot-heading: #35190e;
+  --ot-primary: #a81c1f;
+  --ot-primary-hover: #8d1518;
+  --ot-primary-contrast: #ffffff;
+  --ot-accent: #c98b6a;
+  --ot-success-bg: #dfe8df;
+  --ot-success-text: #3f5a41;
+  --ot-warning-bg: #f3e3cb;
+  --ot-warning-text: #5e4320;
+  --ot-info-bg: #dce8f2;
+  --ot-danger: #9f1d1d;
+  --ot-sakura: #f2a6ac;
+  --ot-sakura-deep: #c93a44;
+  --ot-primary-soft: #fbe6d6;
+  --ot-radius-lg: 16px;
+  --ot-radius-md: 12px;
+  --ot-radius-sm: 8px;
+  --ot-shadow-1: 0 1px 3px rgb(90 70 50 / 12%);
+  --ot-shadow-2: 0 8px 24px rgb(90 70 50 / 16%);
+  --ot-font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --ot-font-heading: 'Nunito', 'Be Vietnam Pro', system-ui, sans-serif;
+
+  /* Một lề và một chiều cao thanh cho mọi trang để các khối luôn thẳng hàng */
+  --ot-gutter: 16px;
+  --ot-container: 1200px;
+  --ot-header-h: 60px;
+  --ot-tabbar-h: 60px;
+  --ot-safe-top: env(safe-area-inset-top, 0px);
+  --ot-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ot-safe-left: env(safe-area-inset-left, 0px);
+  --ot-safe-right: env(safe-area-inset-right, 0px);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --ot-gutter: 24px;
+    --ot-header-h: 88px;
+  }
+}
