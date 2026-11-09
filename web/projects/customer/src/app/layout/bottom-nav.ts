@@ -22,7 +22,7 @@ import { TAB_ITEMS } from './nav-items';
           [routerLink]="item.path"
           routerLinkActive="text-primary"
           [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
-          class="flex flex-col items-center justify-center gap-1 text-muted"
+          class="flex min-w-0 flex-col items-center justify-center gap-1 text-muted"
           style="height: var(--ot-tabbar-h)"
         >
           <span class="relative flex">
@@ -31,7 +31,7 @@ import { TAB_ITEMS } from './nav-items';
               <span class="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-bold text-on-primary">{{ cart.count() }}</span>
             }
           </span>
-          <span class="text-[11px] leading-none font-medium whitespace-nowrap">{{ item.label }}</span>
+          <span class="max-w-full truncate text-[11px] leading-none font-medium whitespace-nowrap">{{ item.label }}</span>
         </a>
       }
     </nav>

@@ -31,6 +31,7 @@
   /* Một lề và một chiều cao thanh cho mọi trang để các khối luôn thẳng hàng */
   --ot-gutter: 16px;
   --ot-container: 1200px;
+  --ot-container-outer: calc(var(--ot-container) + 2 * var(--ot-gutter) + var(--ot-safe-left) + var(--ot-safe-right));
   --ot-header-h: 60px;
   --ot-tabbar-h: 60px;
   --ot-safe-top: env(safe-area-inset-top, 0px);

@@ -22,9 +22,12 @@ export class Auth {
 
   readonly token = signal<string | null>(null);
   readonly profile = signal<Profile | null>(null);
+  // Biết chắc đã đăng nhập hay chưa, để đầu trang không nháy nút Đăng nhập khi tải lại
+  readonly ready = signal(false);
 
   init(): Promise<void> {
     this.started ??= this.browser ? firstValueFrom(this.refresh().pipe(switchMap((t) => (t ? this.loadProfile() : of(null))), map(() => undefined), catchError(() => of(undefined)))) : Promise.resolve();
+    void this.started.finally(() => this.ready.set(true));
     return this.started;
   }
 

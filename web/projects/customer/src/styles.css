@@ -37,6 +37,7 @@
     color: var(--ot-text);
     font-family: var(--ot-font-body);
     overflow-x: hidden;
+    overflow-wrap: anywhere;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -70,10 +71,10 @@
 }
 
 @layer components {
-  /* Khung chung: mọi khối của mọi trang bắt đầu và kết thúc ở cùng một lề */
+  /* Vùng an toàn: nội dung của mọi khối rộng đúng 1200px và cùng hai mép, lề nằm ngoài phần đó */
   .ot-container {
     width: 100%;
-    max-width: var(--ot-container);
+    max-width: var(--ot-container-outer);
     margin-inline: auto;
     padding-left: calc(var(--ot-gutter) + var(--ot-safe-left));
     padding-right: calc(var(--ot-gutter) + var(--ot-safe-right));
@@ -81,6 +82,492 @@
 
   .ot-section {
     padding-block: 32px;
+  }
+
+  /* Trang chủ: một nhịp khoảng cách duy nhất giữa các khối */
+  .ot-block {
+    margin-top: 28px;
+  }
+
+  .ot-block:last-of-type {
+    margin-bottom: 32px;
+  }
+
+  /* Ô nhập và cột lưới không được rộng hơn màn hình khi máy hẹp hoặc chữ phóng to */
+  .ot-input,
+  .ot-field {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ot-stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Trang rộng: ô nhập không kéo dài hết 1200px, mắt dễ theo dõi hơn */
+  .ot-page-wide form.ot-stack {
+    max-width: 640px;
+  }
+
+  ul.grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Đăng nhập, đăng ký: điện thoại một cột; từ 992px form bên trái, ảnh phủ kín nửa phải */
+  .ot-auth-card {
+    overflow: hidden;
+    max-width: 520px;
+    margin-inline: auto;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-lg);
+    background: var(--ot-surface);
+    box-shadow: var(--ot-shadow-2);
+  }
+
+  .ot-auth-panel {
+    padding: 20px;
+  }
+
+  .ot-auth-title {
+    font-size: 38px;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .ot-auth-sub {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    color: var(--ot-text-muted);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .ot-auth-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 16px;
+    border-radius: var(--ot-radius-md);
+    object-fit: cover;
+  }
+
+  .ot-auth-aside {
+    display: none;
+  }
+
+  .ot-auth-form,
+  .ot-auth-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .ot-auth-form label {
+    font-weight: 500;
+  }
+
+  .ot-auth-field {
+    position: relative;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .ot-auth-field .ot-input {
+    margin-top: 0;
+    padding-left: 44px;
+  }
+
+  .ot-auth-field .ot-input[name='password'],
+  .ot-auth-field:has(.ot-auth-eye) .ot-input {
+    padding-right: 48px;
+  }
+
+  .ot-auth-icon {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    width: 20px;
+    height: 20px;
+    color: var(--ot-text-muted);
+    pointer-events: none;
+  }
+
+  .ot-auth-eye {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--ot-text-muted);
+  }
+
+  .ot-auth-link,
+  .ot-auth-panel .ot-btn {
+    font-weight: 500;
+  }
+
+  .ot-auth-link {
+    color: var(--ot-primary);
+  }
+
+  .ot-auth-foot {
+    text-align: center;
+  }
+
+  @media (min-width: 992px) {
+    .ot-auth-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 44%);
+      max-width: none;
+      min-height: 560px;
+    }
+
+    .ot-auth-panel {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px;
+    }
+
+    .ot-auth-title,
+    .ot-auth-sub {
+      text-align: left;
+    }
+
+    .ot-auth-title {
+      font-size: clamp(40px, 3.3vw, 56px);
+    }
+
+    .ot-auth-form label {
+      font-size: 14.4px;
+    }
+
+    .ot-auth-sub {
+      margin-bottom: 24px;
+    }
+
+    .ot-auth-panel .ot-auth-image {
+      display: none;
+    }
+
+    .ot-auth-aside {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px;
+      overflow: hidden;
+      background: var(--ot-primary);
+    }
+
+    .ot-auth-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  /* Chân trang nền nâu đậm, cùng tông với màu chữ tiêu đề */
+  .ot-footer {
+    position: relative;
+    z-index: 30;
+    border-top: 4px solid var(--ot-primary);
+    background: var(--ot-heading);
+    color: #fffaf3;
+  }
+
+  .ot-footer-muted {
+    color: #dcc9b6;
+  }
+
+  .ot-footer-error {
+    color: #ffc9c4;
+  }
+
+  .ot-footer-title {
+    color: #ffffff;
+    font-size: 17px;
+  }
+
+  .ot-footer-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    color: #dcc9b6;
+  }
+
+  .ot-footer-social {
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding-inline: 14px;
+    border: 1px solid rgb(255 255 255 / 30%);
+    border-radius: 999px;
+    font-size: 14px;
+  }
+
+  @media (hover: hover) {
+    .ot-footer-link:hover {
+      color: #ffffff;
+    }
+
+    .ot-footer-social:hover {
+      background: rgb(255 255 255 / 12%);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .ot-footer-link {
+      min-height: 36px;
+    }
+  }
+
+  /* Thực đơn trên máy tính: cỡ gọn theo trang danh sách của Pawsome. Giữ 16px cho thiết bị cảm ứng để iOS không tự phóng to */
+  @media (min-width: 1024px) and (hover: hover) {
+    .ot-menu .ot-field {
+      height: 42px;
+      font-size: 14px;
+    }
+
+    .ot-menu .ot-category-nav {
+      padding: 12px;
+    }
+
+    .ot-menu .ot-category-nav .ot-chip {
+      height: 36px;
+      padding-inline: 10px;
+      border-radius: var(--ot-radius-sm);
+      font-size: 14px;
+    }
+
+    .ot-menu .ot-category-nav .ot-chip + .ot-chip {
+      margin-top: 2px;
+    }
+  }
+
+  /* Tiêu đề khối hai màu, hoa xoay chậm hai bên (tắt khi người dùng chọn giảm chuyển động) */
+  .ot-title-flower {
+    animation: ot-title-spin 14s linear infinite;
+  }
+
+  @keyframes ot-title-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .ot-title-center {
+      justify-content: center;
+    }
+  }
+
+  /* Nền trang trí cố định sau mọi trang (layout/page-background.ts), ảnh trong public/decor */
+  .ot-page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    background: var(--ot-bg) url('/decor/1-nen.webp') center / cover no-repeat;
+  }
+
+  .ot-petal-rain {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Lớp cành hoa nằm trên nội dung, dưới thanh đầu trang (z 30) và hộp thoại */
+  .ot-branch-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  /* Cành rủ dọc theo lề: rộng bằng phần lề ngoài vùng an toàn cộng một chút, cao theo tỉ lệ 420x560 */
+  .ot-branch {
+    position: absolute;
+    display: none;
+    width: clamp(220px, calc((100vw - 1200px) / 2 + 90px), 420px);
+    aspect-ratio: 420 / 560;
+  }
+
+  .ot-branch-top {
+    top: calc(var(--ot-header-h) - 18px);
+    left: -12px;
+  }
+
+  /* Cành dưới là cành trên xoay nửa vòng, mọc lên từ góc phải dưới */
+  .ot-branch-bottom {
+    right: -12px;
+    bottom: -14px;
+    transform: rotate(180deg);
+  }
+
+  .ot-sb-root,
+  .ot-sb-twig {
+    transform-box: view-box;
+  }
+
+  .ot-sb-root {
+    transform-origin: 0 0;
+    animation: ot-branch-sway 9s ease-in-out infinite;
+  }
+
+  .ot-sb-twig {
+    animation: ot-twig-sway 6s ease-in-out infinite;
+  }
+
+  /* Bông hoa rung quanh cuống (phía dưới bông) */
+  .ot-sb-bloom {
+    transform-box: fill-box;
+    transform-origin: 50% 85%;
+    animation: ot-bloom-flutter 3s ease-in-out infinite;
+  }
+
+  .ot-branch-bottom .ot-sb-twig {
+    animation-direction: reverse;
+  }
+
+  /* Gió không đều: lắc, dịu lại, rung nhẹ rồi về chỗ */
+  @keyframes ot-branch-sway {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+
+    22% {
+      transform: rotate(1.4deg);
+    }
+
+    40% {
+      transform: rotate(-0.6deg);
+    }
+
+    60% {
+      transform: rotate(0.9deg);
+    }
+
+    80% {
+      transform: rotate(-0.3deg);
+    }
+  }
+
+  @keyframes ot-twig-sway {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+
+    30% {
+      transform: rotate(2.4deg);
+    }
+
+    55% {
+      transform: rotate(-1.4deg);
+    }
+
+    78% {
+      transform: rotate(1deg);
+    }
+  }
+
+  @keyframes ot-bloom-flutter {
+    0%,
+    100% {
+      transform: rotate(0deg) scale(1);
+    }
+
+    25% {
+      transform: rotate(6deg) scale(1.02);
+    }
+
+    50% {
+      transform: rotate(-3deg) scale(0.99);
+    }
+
+    75% {
+      transform: rotate(4deg) scale(1.01);
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .ot-branch {
+      display: block;
+    }
+  }
+
+  /* Banner: ảnh tĩnh mờ dần sang phần chữ */
+  .ot-hero-scene {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 26%);
+    mask-image: linear-gradient(to right, transparent 0, #000 26%);
+  }
+
+  .ot-drift {
+    animation: ot-drift 16s ease-in-out infinite alternate;
+  }
+
+  .ot-drift-slow {
+    animation-duration: 23s;
+    animation-direction: alternate-reverse;
+  }
+
+  @keyframes ot-drift {
+    from {
+      transform: translateX(-24px);
+    }
+
+    to {
+      transform: translateX(24px);
+    }
+  }
+
+  /* Khung chờ ảnh: chỉ hiện ở máy dev, ảnh thật đăng từ admin */
+  .ot-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px dashed var(--ot-border);
+    background: var(--ot-surface-2);
+    color: var(--ot-text-muted);
+    font-size: 13px;
+    text-align: center;
+  }
+
+  /* Điện thoại vuốt ngang để trang không quá dài; từ 768px thành 3 cột trong vùng an toàn */
+  .ot-rail {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: calc(var(--ot-gutter) + var(--ot-safe-left));
+    margin-left: calc(-1 * (var(--ot-gutter) + var(--ot-safe-left)));
+    margin-right: calc(-1 * (var(--ot-gutter) + var(--ot-safe-right)));
+    padding-left: calc(var(--ot-gutter) + var(--ot-safe-left));
+    padding-right: calc(var(--ot-gutter) + var(--ot-safe-right));
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ot-rail::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ot-rail > * {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
+  }
+
+  .ot-cats {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   /* Hàng cuộn ngang tràn ra sát mép màn hình nhưng phần tử đầu vẫn thẳng với lề chung */
@@ -246,7 +733,7 @@
   }
 
   .ot-page-wide {
-    max-width: var(--ot-container);
+    max-width: var(--ot-container-outer);
   }
 
   .ot-page h1,
@@ -366,22 +853,20 @@
     color: var(--ot-text);
   }
 
-  /* Banner: điện thoại xếp chữ trên ảnh dưới; từ 768px ảnh nằm bên phải, mờ dần vào nền */
+  /* Banner nằm trong vùng an toàn: điện thoại xếp chữ trên ảnh dưới; từ 768px ảnh nằm bên phải, mờ dần vào nền */
   .ot-hero {
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-lg);
     background: linear-gradient(100deg, var(--ot-surface) 0%, var(--ot-surface-2) 100%);
-    padding-bottom: 28px;
+    box-shadow: var(--ot-shadow-1);
   }
 
-  .ot-hero::after {
-    content: '';
-    position: absolute;
-    inset-inline: 0;
-    bottom: -1px;
-    height: 28px;
-    background: var(--ot-bg);
-    border-radius: 28px 28px 0 0;
+  .ot-hero-text {
+    position: relative;
+    z-index: 10;
+    padding: 20px;
   }
 
   .ot-hero-image {
@@ -396,7 +881,12 @@
     .ot-hero {
       display: flex;
       align-items: center;
-      min-height: 440px;
+      min-height: 320px;
+    }
+
+    .ot-hero-text {
+      width: 54%;
+      padding: 32px 0 32px 32px;
     }
 
     .ot-hero-image {
@@ -413,7 +903,11 @@
 
   @media (min-width: 1200px) {
     .ot-hero {
-      min-height: 520px;
+      min-height: 400px;
+    }
+
+    .ot-hero-text {
+      padding: 40px 0 40px 48px;
     }
   }
 
@@ -425,6 +919,14 @@
   }
 
   /* Tên món luôn chiếm đúng 2 dòng để giá và nút của các thẻ cùng hàng nằm ngang nhau */
+  .ot-title-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    overflow: hidden;
+  }
+
   .ot-title-2 {
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -448,6 +950,34 @@
   @media (min-width: 768px) {
     .ot-section {
       padding-block: 56px;
+    }
+
+    .ot-block {
+      margin-top: 40px;
+    }
+
+    .ot-block:last-of-type {
+      margin-bottom: 56px;
+    }
+
+    .ot-cats {
+      gap: 20px;
+      grid-template-columns: repeat(var(--cols-md), minmax(0, 1fr));
+    }
+
+    .ot-rail {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      overflow: visible;
+      margin-inline: 0;
+      padding: 0;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .ot-cats {
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
     }
   }
 }
