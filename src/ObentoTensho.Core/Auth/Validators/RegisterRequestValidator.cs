@@ -3,6 +3,7 @@ using ObentoTensho.Contracts.Dtos.Auth;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Auth.Validators;
@@ -16,7 +17,8 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
     {
         RuleFor(r => r.FullName)
             .Must(v => !string.IsNullOrWhiteSpace(v)).WithErrorCode(FieldErrorCodes.Required)
-            .Must(v => v is null || v.Trim().Length <= FullNameMaxLength).WithErrorCode(FieldErrorCodes.TooLong);
+            .Must(v => v is null || v.Trim().Length <= FullNameMaxLength).WithErrorCode(FieldErrorCodes.TooLong)
+            .NoMarkup();
 
         RuleFor(r => r.Email).ValidEmail();
 

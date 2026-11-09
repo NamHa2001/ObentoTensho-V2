@@ -1,6 +1,7 @@
 using FluentValidation;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Common;
 
 namespace ObentoTensho.Core.Reservations.Validators;
 
@@ -13,7 +14,8 @@ public static class ReservationRules
     public static IRuleBuilderOptions<T, string> GuestName<T>(this IRuleBuilder<T, string> rule) =>
         rule
             .Must(v => !string.IsNullOrWhiteSpace(v)).WithErrorCode(FieldErrorCodes.Required)
-            .Must(v => v is null || v.Trim().Length <= GuestNameMaxLength).WithErrorCode(FieldErrorCodes.TooLong);
+            .Must(v => v is null || v.Trim().Length <= GuestNameMaxLength).WithErrorCode(FieldErrorCodes.TooLong)
+            .NoMarkup();
 
     public static IRuleBuilderOptions<T, string> GuestPhone<T>(this IRuleBuilder<T, string> rule) =>
         rule.Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat);

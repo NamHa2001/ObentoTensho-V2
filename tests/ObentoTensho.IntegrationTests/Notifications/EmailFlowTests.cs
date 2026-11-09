@@ -172,13 +172,25 @@ public sealed partial class EmailFlowTests : IDisposable
         Assert.Empty(_factory.Emails.To(email));
     }
 
+    // Tên có < > bị từ chối từ đầu vào; ký tự & và " vẫn hợp lệ nên vẫn phải được escape trong HTML
     [Fact]
     public async Task Ten_nguoi_dung_duoc_escape_trong_HTML()
     {
         var email = AuthApiClient.NewEmail();
-        var response = await _http.PostAsJsonAsync("/api/v1/auth/register", new
+        var rejected = await _http.PostAsJsonAsync("/api/v1/auth/register", new
         {
             fullName = "<b>An</b>",
+            email,
+            phoneNumber = "0912345678",
+            password = AuthApiClient.DefaultPassword,
+            dateOfBirth = (string?)null,
+            preferredLang = "ja",
+        });
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, rejected.StatusCode);
+
+        var response = await _http.PostAsJsonAsync("/api/v1/auth/register", new
+        {
+            fullName = "An & \"Binh\"",
             email,
             phoneNumber = "0912345678",
             password = AuthApiClient.DefaultPassword,
@@ -190,9 +202,9 @@ public sealed partial class EmailFlowTests : IDisposable
         await _factory.ProcessOutboxAsync();
 
         var mail = Assert.Single(_factory.Emails.To(email));
-        Assert.Contains("&lt;b&gt;An&lt;/b&gt; 様", mail.HtmlBody, StringComparison.Ordinal);
-        Assert.DoesNotContain("<b>An</b>", mail.HtmlBody, StringComparison.Ordinal);
-        Assert.StartsWith("<b>An</b> 様", mail.TextBody, StringComparison.Ordinal);
+        Assert.Contains("An &amp; &quot;Binh&quot; 様", mail.HtmlBody, StringComparison.Ordinal);
+        Assert.DoesNotContain("An & \"Binh\"", mail.HtmlBody, StringComparison.Ordinal);
+        Assert.StartsWith("An & \"Binh\" 様", mail.TextBody, StringComparison.Ordinal);
         Assert.Equal("Obento Tensho アカウントのメールアドレス確認", mail.Subject);
     }
 

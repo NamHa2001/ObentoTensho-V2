@@ -2,6 +2,7 @@ using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Account;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Domain;
+using ObentoTensho.Core.Common;
 using ObentoTensho.Core.Menu.Validators;
 using ObentoTensho.Core.Orders.Validators;
 using ObentoTensho.Core.Time;
@@ -14,7 +15,7 @@ public sealed class UpdateProfileRequestValidator : AbstractValidator<UpdateProf
 
     public UpdateProfileRequestValidator(IClock clock)
     {
-        RuleFor(r => r.FullName).RequiredText(100);
+        RuleFor(r => r.FullName).RequiredText(100).NoMarkup();
         RuleFor(r => r.PhoneNumber)
             .Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat);
         RuleFor(r => r.DateOfBirth)
