@@ -181,3 +181,11 @@ body { font-size: 15px; background: var(--ot-bg); }
 .a-nav-arrow-on { transform: rotate(180deg); }
 .a-nav-sub { margin-left: 28px; padding-left: 4px; border-left: 1px solid var(--ot-border); }
 .a-nav-sub .a-nav-link { min-height: 38px; margin-left: 6px; font-size: 14px; }
+
+.a-cal { display: grid; gap: 6px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.a-cal-head { padding-block: 4px; color: var(--ot-text-muted); font-size: 13px; font-weight: 700; text-align: center; }
+.a-cal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 68px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); }
+.a-cal-day:hover { background: var(--ot-bg); }
+.a-cal-today { border-color: var(--ot-primary); font-weight: 700; }
+.a-cal-on { background: var(--ot-primary-soft); }
+.a-cal-day .a-badge { padding-inline: 5px; font-size: 11px; }
