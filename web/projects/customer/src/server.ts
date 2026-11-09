@@ -12,6 +12,23 @@ const browserDistFolder = join(import.meta.dirname, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+// Không cho nhúng trang vào web khác (chống lừa bấm), không đoán loại tệp, không gửi đường dẫn đầy đủ sang trang ngoài.
+// Chưa siết script-src vì Angular SSR có script nội tuyến; Nginx khi triển khai thêm CSP đầy đủ (VIEC_CON_NO)
+const SECURITY_HEADERS: Record<string, string> = {
+  'Content-Security-Policy': "base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'",
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+  'Cross-Origin-Opener-Policy': 'same-origin',
+};
+
+app.disable('x-powered-by');
+app.use((_req, res, next) => {
+  res.set(SECURITY_HEADERS);
+  next();
+});
+
 /**
  * Example Express Rest API endpoints can be defined here.
  * Uncomment and define endpoints as necessary.

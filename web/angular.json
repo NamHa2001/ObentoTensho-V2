@@ -50,7 +50,7 @@
             "server": "projects/customer/src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": []
+              "allowedHosts": ["localhost", "127.0.0.1"]
             },
             "ssr": {
               "entry": "projects/customer/src/server.ts"
