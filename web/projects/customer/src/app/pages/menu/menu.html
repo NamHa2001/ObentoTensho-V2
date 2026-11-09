@@ -1,0 +1,108 @@
+<div class="ot-container pt-6 pb-8 md:pt-10 md:pb-14">
+  <div class="flex items-baseline justify-between gap-4">
+    <h1 class="text-[28px] leading-tight md:text-[40px]">Thực đơn</h1>
+    @if (!loading() && !failed()) {
+      <p class="text-sm whitespace-nowrap text-muted">{{ total() }} món</p>
+    }
+  </div>
+
+  <div class="mt-4 grid grid-cols-1 gap-4 md:mt-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-6">
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_190px_190px] md:gap-6 lg:col-start-2 lg:row-start-1">
+    <div class="relative">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.search" [size]="20" /></span>
+      <input
+        #searchBox
+        class="ot-field pr-12 pl-12"
+        type="text"
+        inputmode="search"
+        enterkeyhint="search"
+        autocomplete="off"
+        placeholder="Tìm món…"
+        aria-label="Tìm món"
+        maxlength="100"
+        [value]="filter().search"
+        (input)="onSearch(searchBox.value)"
+      />
+      @if (filter().search) {
+        <button type="button" class="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted" aria-label="Xóa tìm kiếm" (click)="clearSearch(searchBox)">
+          <lucide-icon [img]="icons.clear" [size]="18" />
+        </button>
+      }
+    </div>
+    <div class="relative">
+      <select #withoutBox class="ot-field pr-12 pl-4 font-medium" aria-label="Lọc món không chứa chất gây dị ứng" (change)="onWithout(withoutBox.value)">
+        <option value="" [selected]="!filter().without">Không lọc dị ứng</option>
+        @for (a of allergens; track a.value) { <option [value]="a.value" [selected]="a.value === filter().without">Không có {{ a.label.toLowerCase() }}</option> }
+      </select>
+      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="20" /></span>
+    </div>
+    <div class="relative">
+      <select #sortBox class="ot-field pr-12 pl-4 font-medium" aria-label="Sắp xếp" [value]="filter().sort" (change)="onSort(sortBox.value)">
+        @for (option of sorts; track option.value) {
+          <option [value]="option.value" [selected]="option.value === filter().sort">{{ option.label }}</option>
+        }
+      </select>
+      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="20" /></span>
+    </div>
+  </div>
+
+    <!-- Điện thoại: hàng cuộn ngang; máy tính: cột bên trái -->
+    <nav aria-label="Danh mục" class="ot-scroll-row ot-category-nav lg:col-start-1 lg:row-span-2 lg:row-start-1">
+      <a routerLink="/menu" [queryParams]="{ danhMuc: null }" queryParamsHandling="merge" class="ot-chip" [class.ot-chip-active]="!filter().category">Tất cả</a>
+      @for (category of categories(); track category.id) {
+        <a
+          routerLink="/menu"
+          [queryParams]="{ danhMuc: category.slug }"
+          queryParamsHandling="merge"
+          class="ot-chip"
+          [class.ot-chip-active]="filter().category === category.slug"
+        >
+          {{ category.name }}
+          <span class="ml-2 text-sm opacity-70 tabular-nums">{{ category.itemCount }}</span>
+        </a>
+      }
+    </nav>
+
+    <section class="lg:col-start-2 lg:row-start-2" aria-live="polite">
+      @if (loading()) {
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
+          @for (s of skeletons; track s) {
+            <div class="ot-card overflow-hidden">
+              <div class="ot-skeleton aspect-[4/3]"></div>
+              <div class="p-3 md:p-4">
+                <div class="ot-skeleton h-4 rounded-sm"></div>
+                <div class="ot-skeleton mt-2 h-4 w-2/3 rounded-sm"></div>
+                <div class="ot-skeleton mt-6 h-5 w-1/2 rounded-sm"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (failed()) {
+        <div class="ot-card p-8 text-center">
+          <p class="font-semibold">Chưa tải được thực đơn</p>
+          <p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi thử lại.</p>
+          <button type="button" class="ot-btn ot-btn-primary mt-4" (click)="reload()">Thử lại</button>
+        </div>
+      } @else if (items().length === 0) {
+        <div class="ot-card p-8 text-center">
+          <p class="font-semibold">Không tìm thấy món phù hợp</p>
+          <p class="mt-1 text-sm text-muted">Hãy thử từ khóa khác hoặc xem tất cả món.</p>
+          <a routerLink="/menu" class="ot-btn ot-btn-outline mt-4">Xem tất cả</a>
+        </div>
+      } @else {
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
+          @for (item of items(); track item.id) {
+            <ot-menu-item-card [item]="item" />
+          }
+        </div>
+        @if (items().length < total()) {
+          <div class="mt-6 flex justify-center">
+            <button type="button" class="ot-btn ot-btn-outline w-full sm:w-64" [disabled]="loadingMore()" (click)="loadMore()">
+              {{ loadingMore() ? 'Đang tải…' : 'Xem thêm' }}
+            </button>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</div>

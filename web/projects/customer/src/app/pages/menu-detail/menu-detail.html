@@ -1,0 +1,170 @@
+<div class="ot-container pt-3 pb-8 md:pt-6 md:pb-14">
+  <a routerLink="/menu" class="-ml-1 inline-flex min-h-11 items-center gap-1 font-medium text-muted">
+    <lucide-icon [img]="icons.back" [size]="20" /> Thực đơn
+  </a>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8 lg:gap-12" aria-busy="true">
+        <div class="ot-skeleton aspect-[4/3] rounded-lg"></div>
+        <div>
+          <div class="ot-skeleton h-8 w-3/4 rounded-sm"></div>
+          <div class="ot-skeleton mt-4 h-6 w-1/3 rounded-sm"></div>
+          <div class="ot-skeleton mt-6 h-28 rounded-md"></div>
+        </div>
+      </div>
+    }
+    @case ('missing') {
+      <div class="ot-card mt-2 p-8 text-center">
+        <p class="font-semibold">Món này không còn trên thực đơn</p>
+        <a routerLink="/menu" class="ot-btn ot-btn-primary mt-4">Xem thực đơn</a>
+      </div>
+    }
+    @case ('failed') {
+      <div class="ot-card mt-2 p-8 text-center">
+        <p class="font-semibold">Chưa tải được món này</p>
+        <p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi tải lại trang.</p>
+      </div>
+    }
+    @case ('ready') {
+      @if (detail(); as d) {
+        <div class="mt-2 grid grid-cols-1 gap-6 md:grid-cols-2 md:items-start md:gap-8 lg:gap-12">
+          <div class="md:sticky md:top-[calc(var(--ot-header-h)+16px)]">
+            <div class="relative aspect-[4/3] overflow-hidden rounded-lg bg-surface-2">
+              @if (current(); as image) {
+                <button type="button" class="absolute inset-0 size-full cursor-zoom-in" aria-label="Phóng to ảnh" (click)="zoom.set(true)"><img [src]="imageUrl(image)" [attr.srcset]="srcset(image)" sizes="(max-width: 767px) 100vw, 50vw" [alt]="image.altText || d.item.name" class="size-full object-cover" /></button>
+              } @else {
+                <div class="absolute inset-0 flex items-center justify-center text-muted"><lucide-icon [img]="icons.photo" [size]="48" /></div>
+              }
+            </div>
+            @if (gallery().length > 1) {
+              <div class="mt-3 grid grid-cols-5 gap-2">
+                @for (image of gallery(); track image.id; let i = $index) {
+                  <button type="button" class="aspect-square overflow-hidden rounded-sm border-2" [class.border-primary]="i === activeImage()" [class.border-transparent]="i !== activeImage()" [attr.aria-label]="'Ảnh ' + (i + 1)" (click)="activeImage.set(i)">
+                    <img [src]="imageUrl(image)" alt="" loading="lazy" class="size-full object-cover" />
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <div>
+            @if (d.item.labels.isBestseller || d.item.labels.isNew || d.item.labels.isVegetarian || d.item.labels.isSpicy) {
+              <div class="mb-2 flex flex-wrap gap-2 text-xs font-semibold">
+                @if (d.item.labels.isBestseller) { <span class="rounded-sm bg-primary px-2 py-1 text-on-primary">Bán chạy</span> }
+                @if (d.item.labels.isNew) { <span class="rounded-sm bg-primary-soft px-2 py-1 text-primary">Món mới</span> }
+                @if (d.item.labels.isVegetarian) { <span class="rounded-sm bg-surface-2 px-2 py-1">Món chay</span> }
+                @if (d.item.labels.isSpicy) { <span class="rounded-sm bg-surface-2 px-2 py-1">Cay</span> }
+              </div>
+            }
+            <h1 class="text-[28px] leading-tight md:text-[36px]">{{ d.item.name }}</h1>
+            <div class="mt-2 flex items-baseline gap-3">
+              <span class="text-2xl font-bold text-primary">{{ d.item.price | vnd }}</span>
+              @if (d.item.originalPrice; as original) {
+                <span class="text-muted line-through">{{ original | vnd }}</span>
+              }
+            </div>
+            @if (d.item.shortDesc) {
+              <p class="mt-3 text-muted">{{ d.item.shortDesc }}</p>
+            }
+            @if (d.item.allergens.length > 0) {
+              <p class="mt-3 text-sm"><span class="font-semibold">Dị ứng:</span><span class="ml-1 text-muted">@for (a of d.item.allergens; track a; let last = $last) {{{ allergen(a) }}@if (!last) {, }}</span></p>
+            }
+
+            @for (group of d.optionGroups; track group.id) {
+              <fieldset class="mt-6">
+                <legend class="flex w-full items-baseline justify-between gap-3">
+                  <span class="font-heading text-lg font-extrabold text-heading">{{ group.name }}</span>
+                  <span class="text-sm whitespace-nowrap text-muted">{{ rule(group) }}</span>
+                </legend>
+                <div class="mt-2 grid grid-cols-1 gap-2">
+                  @for (option of group.options; track option.id) {
+                    <label class="ot-option" [class.ot-option-on]="selected(group, option)" [class.ot-option-off]="disabled(group, option)">
+                      <input class="sr-only" [type]="group.selectionType === 'one' ? 'radio' : 'checkbox'" [name]="'group-' + group.id" [checked]="selected(group, option)" [disabled]="disabled(group, option)" (change)="choose(group, option)" />
+                      <span class="ot-option-mark" [class.rounded-full]="group.selectionType === 'one'">
+                        @if (selected(group, option)) { <lucide-icon [img]="icons.check" [size]="14" /> }
+                      </span>
+                      <span class="min-w-0 flex-1">{{ option.name }}</span>
+                      <span class="text-sm whitespace-nowrap text-muted tabular-nums">
+                        @if (option.status !== 'available') { Hết } @else if (option.priceDelta > 0) { +{{ option.priceDelta | vnd }} }
+                      </span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
+            }
+
+            <!-- Điện thoại: dính ngay trên thanh điều hướng; từ 768px nằm trong nội dung -->
+            <div class="ot-buy-bar">
+              <div class="flex h-12 shrink-0 items-center rounded-full border border-line bg-surface">
+                <button type="button" class="flex size-11 items-center justify-center disabled:opacity-40" aria-label="Giảm số lượng" [disabled]="quantity() <= 1" (click)="changeQuantity(-1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
+                <span class="w-7 text-center font-semibold tabular-nums" aria-live="polite">{{ quantity() }}</span>
+                <button type="button" class="flex size-11 items-center justify-center disabled:opacity-40" aria-label="Tăng số lượng" [disabled]="quantity() >= maxQuantity" (click)="changeQuantity(1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
+              </div>
+              <button type="button" class="ot-btn ot-btn-primary min-w-0 flex-1 px-3 shadow-none disabled:opacity-50" [disabled]="!canAdd()" (click)="add()">
+                @if (unavailable(); as reason) {
+                  {{ reason }}
+                } @else if (added()) {
+                  <lucide-icon [img]="icons.check" [size]="20" /> Đã thêm vào giỏ
+                } @else if (!complete()) {
+                  Chọn đủ tùy chọn
+                } @else {
+                  <lucide-icon [img]="icons.bag" [size]="20" class="hidden min-[360px]:block" /> <span class="whitespace-nowrap">Thêm · {{ total() | vnd }}</span>
+                }
+              </button>
+            </div>
+
+            @if (added()) { <a routerLink="/gio-hang" class="mt-3 hidden font-semibold text-primary md:inline-block">Xem giỏ hàng</a> }
+
+            @if (d.fullDescHtml) {
+              <div class="mt-6">
+                <h2 class="text-xl">Mô tả</h2>
+                <div class="mt-2 leading-relaxed text-muted" [innerHTML]="d.fullDescHtml"></div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <section class="mt-10 md:mt-14">
+          <ot-section-title title="Đánh giá" />
+          @if (reviews().length === 0) {
+            <p class="mt-3 text-muted">Chưa có đánh giá cho món này.</p>
+          } @else {
+            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6">
+              @for (review of reviews(); track review.id) {
+                <article class="ot-card p-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <span class="truncate font-semibold">{{ review.authorName }}</span>
+                    <span class="flex shrink-0 text-accent" [attr.aria-label]="review.rating + ' trên 5 sao'">
+                      @for (s of stars; track s) {
+                        <lucide-icon [img]="icons.star" [size]="16" [attr.fill]="s <= review.rating ? 'currentColor' : 'none'" />
+                      }
+                    </span>
+                  </div>
+                  @if (review.comment) { <p class="mt-2 text-muted">{{ review.comment }}</p> }
+                  @if (review.replyContent) {
+                    <p class="mt-3 rounded-md bg-surface-2 p-3 text-sm"><span class="font-semibold">Quán trả lời:</span> {{ review.replyContent }}</p>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
+
+        @if (d.related.length > 0) {
+          <section class="mt-10 md:mt-14">
+            <ot-section-title title="Món liên quan" />
+            <div class="mt-4 grid grid-cols-2 gap-3 md:mt-6 md:grid-cols-4 md:gap-6">
+              @for (item of d.related; track item.id) {
+                <ot-menu-item-card [item]="item" />
+              }
+            </div>
+          </section>
+        }
+
+        <div class="ot-buy-bar-space"></div>
+        @if (zoom()) { <ot-lightbox [images]="zoomImages()" [(index)]="activeImage" (closed)="zoom.set(false)" /> }
+      }
+    }
+  }
+</div>
