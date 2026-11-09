@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DOCUMENT } from '@angular/common';
@@ -10,7 +11,7 @@ import { Api, Page } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { askConfirm } from '../../core/dialog';
 import { errorText, Submit } from '../../shared/form';
-import { ORDER_STATUS, RESERVATION_STATUS, TIERS, VnDatePipe } from '../../shared/format';
+import { ORDER_STATUS, RESERVATION_STATUS, TIERS, VnDatePipe, localPhone } from '../../shared/format';
 import { VndPipe } from '../../shared/vnd.pipe';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
@@ -58,8 +59,14 @@ export class Account {
         }
         <p>Hạng {{ tiers[p.memberTier] }} · {{ p.currentPoints }} điểm</p>
         @if (avatar(); as src) { <img class="size-20 rounded-full object-cover" [src]="src" alt="Ảnh đại diện" /> }
-        <label>Ảnh đại diện<input class="ot-input" type="file" accept="image/*" (change)="upload($event)" /></label>
-        @if (avatar()) { <div><button type="button" class="ot-btn ot-btn-outline" (click)="removeAvatar()">Xóa ảnh đại diện</button></div> }
+        <div>
+          <p class="font-medium">Ảnh đại diện</p>
+          <div class="mt-2 flex flex-wrap items-center gap-3">
+            <label class="ot-btn ot-btn-outline cursor-pointer">{{ avatar() ? 'Đổi ảnh' : 'Chọn ảnh' }}<input class="sr-only" type="file" accept="image/*" (change)="upload($event)" /></label>
+            @if (avatar()) { <button type="button" class="ot-btn ot-btn-outline" (click)="removeAvatar()">Xóa ảnh</button> }
+          </div>
+          <p class="mt-1 text-sm text-muted">Ảnh JPG hoặc PNG, tối đa 5 MB.</p>
+        </div>
         @if (avatarForm.error(); as e) { <p class="ot-error">{{ e }}</p> }
 
         <form class="ot-stack" (ngSubmit)="save()">
@@ -96,7 +103,7 @@ export class Account {
           @for (s of sessions(); track s.id) {
             <div class="ot-card flex items-center justify-between gap-3 p-3">
               <span class="min-w-0 text-sm">{{ s.userAgent }}<small class="block text-muted">{{ s.lastActiveAtUtc | vnDate: true }}</small></span>
-              <button type="button" class="text-danger" (click)="revoke(s.id)">Đăng xuất</button>
+              <button type="button" class="min-h-11 shrink-0 px-2 text-danger" (click)="revoke(s.id)">Đăng xuất</button>
             </div>
           }
         </section>
@@ -133,7 +140,7 @@ export class AccountProfile {
 
   constructor() {
     const p = this.auth.profile();
-    this.model = { fullName: p?.fullName ?? '', phoneNumber: p?.phoneNumber ?? '', dateOfBirth: p?.dateOfBirth ?? '' };
+    this.model = { fullName: p?.fullName ?? '', phoneNumber: localPhone(p?.phoneNumber), dateOfBirth: p?.dateOfBirth ?? '' };
     this.loadSessions();
   }
 
@@ -158,6 +165,13 @@ export class AccountProfile {
       this.auth.token.set(r.accessToken);
       this.password = { currentPassword: '', newPassword: '' };
       this.passwordDone.set(true);
+    }, (e) => {
+      if (e instanceof HttpErrorResponse && e.status === 401) {
+        this.passwordForm.error.set('Mật khẩu hiện tại không đúng.');
+        return true;
+      }
+
+      return false;
     });
   }
 

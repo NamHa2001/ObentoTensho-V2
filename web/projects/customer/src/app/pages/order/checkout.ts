@@ -7,9 +7,11 @@ import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { Cart } from '../../core/cart';
 import { Submit } from '../../shared/form';
-import { today } from '../../shared/format';
+import { addDays, localPhone, today } from '../../shared/format';
 import { VndPipe } from '../../shared/vnd.pipe';
 import { linesOf } from './cart';
+
+const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-checkout',
@@ -40,10 +42,11 @@ import { linesOf } from './cart';
           <label>Họ tên<input class="ot-input" name="name" required [(ngModel)]="model.customerName" /></label>
           <label>Số điện thoại<input class="ot-input" name="phone" type="tel" required [(ngModel)]="model.customerPhone" /></label>
           <label>Email<input class="ot-input" name="email" type="email" required [(ngModel)]="model.customerEmail" /></label>
-          <label>Ngày lấy<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.pickupDate" (ngModelChange)="loadTimes()" /></label>
+          <label>Ngày lấy<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.pickupDate" (ngModelChange)="pickDate()" /></label>
           <fieldset>
             <legend>Giờ lấy</legend>
-            @if (times().length === 0) { <p class="ot-error mt-1">Ngày này không còn giờ lấy.</p> }
+            @if (moved()) { <p class="mt-1 text-sm text-muted">Hôm nay đã hết giờ nhận đơn, đã chuyển sang ngày gần nhất quán mở cửa.</p> }
+            @if (loaded() && times().length === 0) { <p class="ot-error mt-1">{{ model.pickupDate === minDate ? 'Hôm nay đã hết giờ nhận đơn.' : 'Ngày này quán không nhận đơn.' }} Vui lòng chọn ngày khác.</p> }
             <div class="mt-2 flex flex-wrap gap-2">
               @for (t of times(); track t) {
                 <button type="button" class="ot-chip" [class.ot-chip-active]="model.pickupTime === t" (click)="model.pickupTime = t">{{ t.slice(0, 5) }}</button>
@@ -86,12 +89,17 @@ export class Checkout {
   protected readonly appliedCode = signal('');
   protected readonly quote = signal<Schemas['OrderQuoteDto'] | null>(null);
   protected voucher = '';
+  protected readonly moved = signal(false);
+  protected readonly loaded = signal(false);
+  // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
+  private autoPick = true;
+  private tries = 0;
   protected model = { customerName: '', customerPhone: '', customerEmail: '', pickupDate: today(), pickupTime: '', paymentMethod: 'cash', note: '' };
 
   constructor() {
     const profile = inject(Auth).profile();
     this.model.customerName = profile?.fullName ?? '';
-    this.model.customerPhone = profile?.phoneNumber ?? '';
+    this.model.customerPhone = localPhone(profile?.phoneNumber);
     this.model.customerEmail = profile?.email ?? '';
     this.loadTimes();
     effect(() => {
@@ -103,9 +111,29 @@ export class Checkout {
     });
   }
 
+  protected pickDate(): void {
+    this.autoPick = false;
+    this.moved.set(false);
+    this.loadTimes();
+  }
+
   protected loadTimes(): void {
     this.model.pickupTime = '';
-    this.api.getOr<Schemas['PickupTimesDto'] | null>('orders/pickup-times', null, { date: this.model.pickupDate }).subscribe((p) => this.times.set(p?.times ?? []));
+    this.loaded.set(false);
+    this.api.getOr<Schemas['PickupTimesDto'] | null>('orders/pickup-times', null, { date: this.model.pickupDate }).subscribe((p) => {
+      const times = p?.times ?? [];
+      if (this.autoPick && times.length === 0 && this.tries < MAX_AUTO_DAYS) {
+        this.tries += 1;
+        this.moved.set(true);
+        this.model.pickupDate = addDays(this.model.pickupDate, 1);
+        this.loadTimes();
+        return;
+      }
+
+      this.autoPick = false;
+      this.times.set(times);
+      this.loaded.set(true);
+    });
   }
 
   protected check(): void {

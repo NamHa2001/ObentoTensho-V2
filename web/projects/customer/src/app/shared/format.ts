@@ -18,7 +18,13 @@ export class VnDatePipe implements PipeTransform {
       return `${d}/${m}/${y}`;
     }
 
-    return new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', dateStyle: 'short', timeStyle: withTime ? 'short' : undefined }).format(new Date(value));
+    const date = new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+    if (!withTime) {
+      return date;
+    }
+
+    const time = new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(value));
+    return `${time} ${date}`;
   }
 }
 
@@ -28,4 +34,13 @@ export function imageUrl(image: Schemas['ImageDto'] | null | undefined): string 
 
 export function today(): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date());
+}
+
+export function addDays(date: string, days: number): string {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+}
+
+// Số lưu dạng +84…, khách quen đọc và gõ dạng 0…
+export function localPhone(phone: string | null | undefined): string {
+  return phone ? phone.replace(/^\+84/, '0') : '';
 }

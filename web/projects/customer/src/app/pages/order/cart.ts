@@ -30,7 +30,7 @@ export function linesOf(cart: CartStore) {
               <p class="font-semibold">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
               @for (o of line?.options ?? []; track $index) { <p class="text-sm text-muted">{{ o.groupName }}: {{ o.optionName }}</p> }
               @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
-              <div class="mt-2 flex items-center justify-between gap-3">
+              <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-1">
                   <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1)">−</button>
                   <span class="w-8 text-center">{{ cart.lines()[row.index]?.quantity }}</span>

@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -141,6 +141,11 @@ export class Lookup {
   }
 
   protected submit(): void {
+    if (!this.code.trim() || !/^\d{4}$/.test(this.last4)) {
+      this.form.error.set('Vui lòng nhập mã và đúng 4 số cuối điện thoại.');
+      return;
+    }
+
     this.order.set(null);
     this.reservation.set(null);
     const body = { code: this.code.trim(), phoneLast4: this.last4 };
@@ -197,13 +202,17 @@ export class Track {
 // Liên kết trong email: hủy đặt bàn bằng token
 @Component({
   selector: 'ot-manage-reservation',
-  imports: [ReservationView],
+  imports: [ReservationView, RouterLink],
   template: `
     <div class="ot-page">
       <h1>Đặt bàn {{ code }}</h1>
       @if (result(); as r) {
         <ot-reservation-view [reservation]="r" class="mt-4 block" />
+      } @else if (!linkOk()) {
+        <p class="mt-3">Liên kết không hợp lệ hoặc đã hết hạn. Bạn có thể tra cứu đặt bàn bằng mã và 4 số cuối điện thoại.</p>
+        <a class="ot-btn ot-btn-outline mt-4" routerLink="/reservations/lookup">Tra cứu đặt bàn</a>
       } @else {
+        <p class="mt-3">Bấm nút dưới đây để hủy lượt đặt bàn này.</p>
         <button type="button" class="ot-btn ot-btn-outline mt-4" [disabled]="form.busy()" (click)="cancel()">Hủy đặt bàn</button>
       }
       @if (form.error(); as e) { <p class="ot-error mt-3">{{ e }}</p> }
@@ -214,8 +223,14 @@ export class ManageReservation {
   private readonly api = inject(Api);
   private readonly token = takeToken(inject(DOCUMENT));
   protected readonly code = inject(ActivatedRoute).snapshot.queryParamMap.get('code') ?? '';
+  // Mã nằm sau dấu # nên máy chủ không thấy; chỉ kết luận liên kết hỏng khi đã chạy ở trình duyệt
+  protected readonly linkOk = signal(true);
   protected readonly form = new Submit();
   protected readonly result = signal<Schemas['PublicReservationDto'] | null>(null);
+
+  constructor() {
+    afterNextRender(() => this.linkOk.set(!!this.code && !!this.token));
+  }
 
   protected async cancel(): Promise<void> {
     if (await askConfirm('Bạn chắc chắn muốn hủy đặt bàn này?')) {

@@ -9,8 +9,10 @@ import { Auth } from '../../core/auth';
 import { LiveHub } from '../../core/live';
 import { Turnstile } from '../../core/turnstile';
 import { errorCode, Submit } from '../../shared/form';
-import { today } from '../../shared/format';
+import { addDays, localPhone, today } from '../../shared/format';
 import { ReservationView } from '../../shared/views';
+
+const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-reservation',
@@ -24,10 +26,15 @@ import { ReservationView } from '../../shared/views';
         <a class="ot-btn ot-btn-outline mt-3" routerLink="/tai-khoan/dat-ban">Xem đặt bàn của tôi</a>
       } @else {
         <form class="ot-stack" (ngSubmit)="submit()">
-          <label>Ngày<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.date" (ngModelChange)="loadSlots()" /></label>
+          <label>Ngày<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.date" (ngModelChange)="pickDate()" /></label>
           @if (availability(); as a) {
-            @if (!a.open || a.slots.length === 0) {
-              <p class="ot-error">Ngày này quán không nhận đặt bàn.</p>
+            @if (moved()) {
+              <p class="text-sm text-muted">Hôm nay đã hết giờ nhận đặt bàn, đã chuyển sang ngày gần nhất còn chỗ.</p>
+            }
+            @if (!a.open) {
+              <p class="ot-error">Quán nghỉ ngày này, vui lòng chọn ngày khác.</p>
+            } @else if (!hasTimes(a)) {
+              <p class="ot-error">{{ model.date === minDate ? 'Hôm nay đã hết giờ nhận đặt bàn.' : 'Ngày này đã kín chỗ.' }} Vui lòng chọn ngày khác.</p>
             }
             @for (slot of a.slots; track slot.slotId) {
               <fieldset>
@@ -65,16 +72,30 @@ export class Reservation {
   protected readonly availability = signal<Schemas['AvailabilityDto'] | null>(null);
   protected readonly created = signal<Schemas['PublicReservationDto'] | null>(null);
   protected readonly needOtp = signal(false);
+  protected readonly moved = signal(false);
+  // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
+  private autoPick = true;
+  private tries = 0;
   protected otp = '';
   protected model = { date: today(), time: '', adultCount: 2, childCount: 0, guestName: '', guestPhone: '', guestEmail: '', specialRequest: '' };
 
   constructor() {
     const profile = inject(Auth).profile();
     this.model.guestName = profile?.fullName ?? '';
-    this.model.guestPhone = profile?.phoneNumber ?? '';
+    this.model.guestPhone = localPhone(profile?.phoneNumber);
     this.model.guestEmail = profile?.email ?? '';
     this.loadSlots();
     inject(DestroyRef).onDestroy(() => this.hub?.stop());
+  }
+
+  protected pickDate(): void {
+    this.autoPick = false;
+    this.moved.set(false);
+    this.loadSlots();
+  }
+
+  protected hasTimes(a: Schemas['AvailabilityDto']): boolean {
+    return a.slots.some((s) => s.times.length > 0);
   }
 
   protected loadSlots(): void {
@@ -98,7 +119,18 @@ export class Reservation {
   }
 
   private refreshSlots(): void {
-    this.api.getOr<Schemas['AvailabilityDto'] | null>('reservations/availability', null, { date: this.model.date }).subscribe((a) => this.availability.set(a));
+    this.api.getOr<Schemas['AvailabilityDto'] | null>('reservations/availability', null, { date: this.model.date }).subscribe((a) => {
+      if (this.autoPick && a && !this.hasTimes(a) && this.tries < MAX_AUTO_DAYS) {
+        this.tries += 1;
+        this.moved.set(true);
+        this.model.date = addDays(this.model.date, 1);
+        this.loadSlots();
+        return;
+      }
+
+      this.autoPick = false;
+      this.availability.set(a);
+    });
   }
 
   protected submit(): void {
