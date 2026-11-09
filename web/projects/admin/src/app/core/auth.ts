@@ -76,16 +76,23 @@ export class Auth {
 export class StepUp {
   readonly open = signal(false);
   private resolve: ((token: string | null) => void) | null = null;
+  private pending: Promise<string | null> | null = null;
 
+  // Nhiều yêu cầu cùng cần xác thực lại thì chờ chung một hộp, không yêu cầu nào bị treo
   ask(): Promise<string | null> {
-    this.open.set(true);
-    return new Promise((r) => (this.resolve = r));
+    if (!this.pending) {
+      this.open.set(true);
+      this.pending = new Promise((r) => (this.resolve = r));
+    }
+
+    return this.pending;
   }
 
   finish(token: string | null): void {
     this.open.set(false);
     this.resolve?.(token);
     this.resolve = null;
+    this.pending = null;
   }
 }
 

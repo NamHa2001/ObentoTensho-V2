@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { BadgeDollarSign, ClipboardList, TrendingUp, Wallet } from 'lucide-angular';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
+import { Subscription } from 'rxjs';
+
 import { Api, saveBlob } from '../core/api';
 import { Auth } from '../core/auth';
 import { StatCard } from '../shared/chart';
@@ -51,13 +53,17 @@ export class Customers {
     this.fetch();
   }
 
+  private loading: Subscription | null = null;
+
   protected more(): void {
     this.page += 1;
     this.fetch();
   }
 
+  // Tìm mới hủy lần tải trước để kết quả cũ về muộn không chen vào danh sách
   private fetch(): void {
-    this.api.raw<any[]>('customers', { q: this.q, page: this.page, pageSize: 30 }).subscribe({
+    this.loading?.unsubscribe();
+    this.loading = this.api.raw<any[]>('customers', { q: this.q, page: this.page, pageSize: 30 }).subscribe({
       next: (r) => {
         this.rows.update((x) => [...x, ...r.data]);
         this.total.set(r.meta?.total ?? 0);

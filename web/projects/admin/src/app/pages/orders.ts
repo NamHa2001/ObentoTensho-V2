@@ -167,14 +167,21 @@ export class Order {
   }
 
   protected async confirmContact(v: any): Promise<void> {
-    this.form.run(this.api.patch(`orders/${v.order.id}/contact-confirmed`, { note: await askText('Ghi chú cuộc gọi') }, v.order.version), () => this.load());
+    const note = await askText('Ghi chú cuộc gọi');
+    if (note !== null) {
+      this.form.run(this.api.patch(`orders/${v.order.id}/contact-confirmed`, { note }, v.order.version), () => this.load());
+    }
   }
 
   protected pay(v: any): void {
     this.form.run(this.api.patch(`orders/${v.order.id}/payment`, {}, v.order.version), () => this.load());
   }
 
+  // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì
   protected async refund(v: any): Promise<void> {
-    this.form.run(this.api.patch(`orders/${v.order.id}/refund`, { note: await askText('Ghi chú hoàn tiền') }, v.order.version), () => this.load());
+    const note = await askText('Ghi chú hoàn tiền');
+    if (note !== null) {
+      this.form.run(this.api.patch(`orders/${v.order.id}/refund`, { note }, v.order.version), () => this.load());
+    }
   }
 }

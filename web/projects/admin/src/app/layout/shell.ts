@@ -89,7 +89,7 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
           <label>Mật khẩu<input class="ot-input" name="p" type="password" autocomplete="current-password" required [(ngModel)]="password" /></label>
           @if (auth.me()?.totpEnabled) { <label>Mã 6 số<input class="ot-input" name="c" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="code" /></label> }
           @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
-          <div class="flex gap-2"><button class="ot-btn ot-btn-primary flex-1" [disabled]="form.busy()">Xác nhận</button><button type="button" class="ot-btn ot-btn-outline flex-1" (click)="stepUp.finish(null)">Hủy</button></div>
+          <div class="flex gap-2"><button class="ot-btn ot-btn-primary flex-1" [disabled]="form.busy()">Xác nhận</button><button type="button" class="ot-btn ot-btn-outline flex-1" (click)="cancelStepUp()">Hủy</button></div>
         </form>
       </div>
     }
@@ -142,6 +142,12 @@ export class Shell {
     this.bellOpen.update((o) => !o);
     this.userOpen.set(false);
     this.live.markRead();
+  }
+
+  protected cancelStepUp(): void {
+    this.password = '';
+    this.code = '';
+    this.stepUp.finish(null);
   }
 
   protected confirm(): void {

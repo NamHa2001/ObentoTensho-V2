@@ -147,12 +147,19 @@ export class Reservation {
     this.form.run(this.api.post(`reservations/${v.reservation.id}/reveal-contact`), (c) => this.contact.set(c));
   }
 
+  // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì
   protected async call(v: any): Promise<void> {
-    this.form.run(this.api.post(`reservations/${v.reservation.id}/call-attempts`, { note: await askText('Ghi chú cuộc gọi') }, v.reservation.version), () => this.load());
+    const note = await askText('Ghi chú cuộc gọi');
+    if (note !== null) {
+      this.form.run(this.api.post(`reservations/${v.reservation.id}/call-attempts`, { note }, v.reservation.version), () => this.load());
+    }
   }
 
   protected async confirmContact(v: any): Promise<void> {
-    this.form.run(this.api.post(`reservations/${v.reservation.id}/contact-confirmation`, { note: await askText('Ghi chú') }, v.reservation.version), () => this.load());
+    const note = await askText('Ghi chú');
+    if (note !== null) {
+      this.form.run(this.api.post(`reservations/${v.reservation.id}/contact-confirmation`, { note }, v.reservation.version), () => this.load());
+    }
   }
 
   protected async move(v: any, status: string): Promise<void> {
