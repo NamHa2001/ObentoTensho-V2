@@ -29,16 +29,13 @@
         <a class="ot-btn ot-btn-outline mt-5" [href]="banner()!.ctaLink">{{ banner()!.ctaText }}</a>
       }
       <div class="mt-5 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:max-w-[400px] lg:gap-5">
-        <a routerLink="/menu" class="ot-btn ot-btn-primary">
+        <a routerLink="/menu" class="ot-btn ot-btn-primary whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
           <lucide-icon [img]="icons.order" [size]="20" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
         </a>
-        <a routerLink="/dat-ban" class="ot-btn ot-btn-outline">
+        <a routerLink="/dat-ban" class="ot-btn ot-btn-outline whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
           <lucide-icon [img]="icons.book" [size]="20" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
         </a>
       </div>
-      @if (status(); as st) {
-        <p class="mt-4 flex items-center gap-2 text-sm font-semibold"><span class="size-2.5 rounded-full" [style.background]="st.open ? 'var(--ot-success-text)' : 'var(--ot-text-muted)'"></span>{{ st.text }}</p>
-      }
       </div>
 
 
@@ -242,14 +239,27 @@
       }
     </div>
     @if (week().length > 0) {
-      <dl class="ot-card px-4 py-2 md:px-6 md:py-4">
-        @for (row of week(); track row.day) {
-          <div class="flex items-center justify-between gap-4 border-t border-line py-2 first:border-t-0">
-            <dt class="text-muted">{{ row.day }}</dt>
-            <dd class="text-right font-medium tabular-nums">{{ row.time }}</dd>
-          </div>
+      <div class="ot-card flex flex-col gap-4 p-4 md:p-6">
+        <p class="flex items-center gap-3 font-semibold"><lucide-icon class="shrink-0 text-primary" [img]="icons.clock" [size]="22" />Giờ mở cửa</p>
+        @if (week().length === 1) {
+          <dl class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-center">
+            <dt class="text-muted">{{ week()[0].day }}</dt>
+            <dd class="font-heading text-[32px] leading-tight font-extrabold text-primary tabular-nums md:text-[40px]">{{ week()[0].time }}</dd>
+          </dl>
+        } @else {
+          <dl>
+            @for (row of week(); track row.day) {
+              <div class="flex items-center justify-between gap-4 border-t border-line py-2 first:border-t-0">
+                <dt class="text-muted">{{ row.day }}</dt>
+                <dd class="text-right font-semibold tabular-nums">{{ row.time }}</dd>
+              </div>
+            }
+          </dl>
         }
-      </dl>
+        @if (status(); as st) {
+          <p class="mt-auto flex items-center gap-2 border-t border-line pt-4 text-sm font-semibold"><span class="size-2.5 shrink-0 rounded-full" [class]="st.open ? 'ot-dot-open' : 'ot-dot-closed'"></span>{{ st.text }}</p>
+        }
+      </div>
     }
   </div>
 </section>

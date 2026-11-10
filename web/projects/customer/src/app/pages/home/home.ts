@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { CalendarDays, ChevronRight, Gift, LucideAngularModule, MapPin, Navigation, PackageSearch, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-angular';
+import { CalendarDays, ChevronRight, Clock, Gift, LucideAngularModule, MapPin, MessageCircle, Navigation, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-angular';
 import { catchError, map, of } from 'rxjs';
 
 import { Api } from '../../core/api';
@@ -35,12 +35,12 @@ function slots<T>(list: readonly T[], count: number): (T | null)[] {
 export class Home {
   private readonly api = inject(Api);
 
-  protected readonly icons = { order: UtensilsCrossed, book: CalendarDays, next: ChevronRight, gift: Gift, pin: MapPin, phone: Phone, map: Navigation };
+  protected readonly icons = { clock: Clock, order: UtensilsCrossed, book: CalendarDays, next: ChevronRight, gift: Gift, pin: MapPin, phone: Phone, map: Navigation };
   protected readonly services = [
     { path: '/menu', icon: ShoppingBag, title: 'Đặt món', note: 'Hẹn giờ đến lấy' },
     { path: '/dat-ban', icon: CalendarDays, title: 'Đặt bàn', note: 'Chọn ngày và ca' },
     { path: '/tai-khoan/diem-thuong', icon: Gift, title: 'Tích điểm', note: 'Đổi lấy ưu đãi' },
-    { path: '/tra-cuu', icon: PackageSearch, title: 'Tra cứu đơn', note: 'Xem tình trạng đơn' },
+    { path: '/lien-he', icon: MessageCircle, title: 'Liên hệ', note: 'Hỏi quán, góp ý' },
   ];
   protected readonly categories = toSignal(this.api.getOr<Schemas['PublicCategoryDto'][]>('menu/categories', []), { initialValue: [] });
   protected readonly featured = toSignal(this.api.getOr<Schemas['PublicMenuItemDto'][]>('menu/items/featured', []), { initialValue: [] });
@@ -147,13 +147,24 @@ export class Home {
     return image.variants.map((v) => `${v.url} ${v.width}w`).join(', ');
   }
 
-  // Thứ hai đứng đầu; dòng nào cũng đúng một cột tên ngày và một cột giờ
-  protected readonly week = computed(() =>
-    [...(this.hours()?.weekly ?? [])]
+  // Thứ hai đứng đầu; các ngày liền nhau cùng giờ gộp một dòng, cả tuần như nhau thì ghi "Mỗi ngày"
+  protected readonly week = computed(() => {
+    const days = [...(this.hours()?.weekly ?? [])]
       .sort((a, b) => ((a.dayOfWeek + 6) % 7) - ((b.dayOfWeek + 6) % 7))
       .map((d) => ({
         day: DAYS[d.dayOfWeek],
         time: d.closed || d.ranges.length === 0 ? 'Nghỉ' : d.ranges.map((r) => `${r.open.slice(0, 5)} – ${r.close.slice(0, 5)}`).join(', '),
-      })),
-  );
+      }));
+    const groups: { from: string; to: string; time: string }[] = [];
+    for (const d of days) {
+      const last = groups.at(-1);
+      if (last?.time === d.time) last.to = d.day;
+      else groups.push({ from: d.day, to: d.day, time: d.time });
+    }
+
+    return groups.map((g) => ({
+      day: groups.length === 1 && days.length === DAYS.length ? 'Mỗi ngày' : g.from === g.to ? g.from : `${g.from} – ${g.to}`,
+      time: g.time,
+    }));
+  });
 }

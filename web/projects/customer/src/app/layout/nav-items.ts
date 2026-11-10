@@ -21,6 +21,5 @@ export const HEADER_LINKS = [
   { label: 'Khuyến mãi', path: '/khuyen-mai' },
   { label: 'Không gian', path: '/khong-gian' },
   { label: 'Tin tức', path: '/tin-tuc' },
-  { label: 'Tra cứu đơn', path: '/tra-cuu' },
   { label: 'Liên hệ', path: '/lien-he' },
 ];

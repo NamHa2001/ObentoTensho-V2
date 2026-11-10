@@ -15,19 +15,20 @@ import { HEADER_LINKS } from './nav-items';
   imports: [RouterLink, RouterLinkActive, LucideAngularModule],
   host: { class: 'sticky top-0 z-30 block rounded-b-lg bg-surface shadow-[var(--ot-shadow-1)]', style: 'padding-top: var(--ot-safe-top)' },
   template: `
-    <div class="ot-container flex items-center justify-between gap-4 lg:max-xl:gap-2" style="height: var(--ot-header-h)">
-      <a routerLink="/" class="flex min-w-0 items-center gap-2 md:gap-3">
+    <!-- Máy tính: ba cột, hai bên bằng nhau nên menu luôn nằm đúng giữa trang -->
+    <div class="ot-container flex items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-6" style="height: var(--ot-header-h)">
+      <a routerLink="/" class="flex min-w-0 items-center gap-2 justify-self-start md:gap-3">
         @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-bold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
         <span class="font-heading truncate text-xl font-extrabold text-primary max-[319px]:text-base lg:max-xl:text-lg xl:text-[26px]">Obento Tensho</span>
       </a>
 
-      <nav class="hidden flex-1 items-center justify-center gap-1 lg:flex" aria-label="Điều hướng chính">
+      <nav class="hidden items-center gap-1 lg:flex xl:gap-2" aria-label="Điều hướng chính">
         @for (link of links; track link.path) {
-          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-11 items-center rounded-full px-2 text-[15px] font-medium whitespace-nowrap xl:px-3 xl:text-base">{{ link.label }}</a>
+          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-10 items-center rounded-full px-3.5 text-[15px] font-medium whitespace-nowrap transition-colors hover:text-primary xl:px-4 xl:text-base [&.bg-primary]:hover:text-on-primary">{{ link.label }}</a>
         }
       </nav>
 
-      <div class="hidden items-center gap-2 md:flex">
+      <div class="hidden items-center gap-3 justify-self-end md:ml-auto md:flex lg:ml-0">
         <a routerLink="/gio-hang" class="relative flex size-11 items-center justify-center" aria-label="Giỏ hàng">
           <lucide-icon [img]="cart" [size]="24" />
           @if (cartState.count() > 0) {
@@ -35,7 +36,7 @@ import { HEADER_LINKS } from './nav-items';
           }
         </a>
         @if (auth.profile(); as me) {
-          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-semibold" [title]="me.fullName"><lucide-icon class="shrink-0 text-primary" [img]="user" [size]="22" /><span class="max-w-[130px] truncate xl:max-w-[200px]">Xin chào, {{ me.fullName }}</span></a>
+          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-semibold" [title]="me.fullName"><lucide-icon class="shrink-0 text-primary" [img]="user" [size]="22" /><span class="max-w-[160px] truncate xl:max-w-[200px]">Xin chào, {{ givenName(me.fullName) }}</span></a>
         } @else {
           <a routerLink="/dang-nhap" class="ot-btn ot-btn-primary whitespace-nowrap" [class.invisible]="!auth.ready()"><lucide-icon class="lg:max-xl:hidden" [img]="user" [size]="20" /> Đăng nhập</a>
         }
@@ -61,4 +62,9 @@ export class SiteHeader {
   protected readonly cart = ShoppingBag;
   protected readonly user = User;
   protected readonly auth = inject(Auth);
+
+  // Người Việt được gọi bằng tên, là từ cuối của họ tên
+  protected givenName(fullName: string): string {
+    return fullName.trim().split(/\s+/).at(-1) ?? fullName;
+  }
 }
