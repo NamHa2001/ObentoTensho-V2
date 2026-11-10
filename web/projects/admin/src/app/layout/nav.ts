@@ -1,4 +1,4 @@
-import { Armchair, BarChart3, CalendarCheck, CalendarDays, CalendarX, ChefHat, ClipboardList, Clock, Clock3, Coins, Download, FileText, FolderTree, Images, Inbox, Languages, LayoutDashboard, ListChecks, LucideIconData, Map, Megaphone, Newspaper, Send, Settings, Star, Tags, Ticket, UserCog, Users, Utensils, ScrollText, Image, BadgePercent } from 'lucide-angular';
+import { Armchair, BadgePercent, BarChart3, CalendarCheck, CalendarDays, CalendarX, ChefHat, ClipboardList, Clock, Clock3, Coins, Download, FileText, FolderTree, Gift, Image, Images, Inbox, Languages, LayoutDashboard, ListChecks, LucideIconData, Map, Megaphone, Newspaper, ScrollText, Send, Settings, Star, Tags, Ticket, UserCog, Users, Utensils } from 'lucide-angular';
 
 export interface NavItem {
   label: string;
@@ -37,6 +37,7 @@ export const NAV: { title: string; icon: LucideIconData; items: NavItem[] }[] = 
       { label: 'Duyệt điểm', path: '/r/loyalty-adjustments', cap: 'customers', icon: Coins },
       { label: 'Khuyến mãi', path: '/r/promotions', cap: 'customers', icon: BadgePercent },
       { label: 'Voucher', path: '/r/vouchers', cap: 'customers', icon: Ticket },
+      { label: 'Phần thưởng đổi điểm', path: '/r/redeem-rewards', cap: 'customers', icon: Gift },
       { label: 'Đánh giá', path: '/r/reviews', cap: 'feedback', icon: Star },
       { label: 'Tin liên hệ', path: '/r/contact-messages', cap: 'feedback', icon: Inbox },
       { label: 'Người nhận bản tin', path: '/r/subscribers', cap: 'feedback', icon: Megaphone },

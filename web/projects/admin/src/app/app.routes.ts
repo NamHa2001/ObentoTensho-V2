@@ -40,7 +40,7 @@ export const routes: Routes = [
       page('exports/download', 'customer_export', () => import('./pages/customers').then((m) => m.ExportDownload)),
       page('account', undefined, () => import('./pages/staff-account').then((m) => m.StaffAccount)),
       res('categories', 'menu'), res('items', 'menu'), res('banners', 'content'), res('gallery', 'content'), res('news', 'content'), res('news-categories', 'content'), res('pages', 'content'),
-      res('promotions', 'customers'), res('vouchers', 'customers'), res('loyalty-adjustments', 'customers'), res('reviews', 'feedback'), res('contact-messages', 'feedback'), res('subscribers', 'feedback'), res('campaigns', 'feedback'),
+      res('promotions', 'customers'), res('vouchers', 'customers'), res('redeem-rewards', 'customers'), res('loyalty-adjustments', 'customers'), res('reviews', 'feedback'), res('contact-messages', 'feedback'), res('subscribers', 'feedback'), res('campaigns', 'feedback'),
       res('table-areas', 'tables_manage'), res('tables', 'tables_manage'), res('service-slots', 'shifts'), res('blocked-dates', 'shifts'), res('staff', 'staff_and_audit'), res('audit', 'staff_and_audit'), res('exports', 'customer_export'),
     ],
   },

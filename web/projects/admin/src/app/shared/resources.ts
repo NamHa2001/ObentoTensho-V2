@@ -130,6 +130,23 @@ export const RESOURCES: Record<string, Resource> = {
       { key: 'promotionId', label: 'Thuộc chương trình', type: 'select', optionsFrom: { path: 'promotions', value: 'id', label: 'title' } },
     ],
   },
+  // Khách bấm "Đổi điểm" sẽ thấy đúng danh sách này; voucher đã đổi giữ nguyên điều kiện lúc đổi
+  'redeem-rewards': {
+    title: 'Phần thưởng đổi điểm', path: 'redeem-rewards', canCreate: true, canEdit: true, canDelete: true,
+    columns: [
+      { key: 'name', label: 'Tên' }, { key: 'pointsCost', label: 'Điểm cần' },
+      { key: 'discountValue', label: 'Mức giảm', map: (r) => (r.discountType === 'percent' ? `${r.discountValue}%` : `${new Intl.NumberFormat('vi-VN').format(r.discountValue)} ₫`) },
+      { key: 'minOrderValue', label: 'Đơn tối thiểu', map: (r) => `${new Intl.NumberFormat('vi-VN').format(r.minOrderValue)} ₫` }, { key: 'validDays', label: 'Hạn dùng (ngày)' }, { key: 'isActive', label: 'Bật' },
+    ],
+    fields: [
+      { key: 'name', label: 'Tên phần thưởng (khách thấy)', required: true }, { key: 'description', label: 'Mô tả ngắn' },
+      { key: 'pointsCost', label: 'Số điểm cần', type: 'number', required: true, default: 100 },
+      { key: 'discountType', label: 'Kiểu giảm', type: 'select', required: true, default: 'fixed', options: [{ value: 'percent', label: 'Phần trăm' }, { value: 'fixed', label: 'Số tiền' }] },
+      { key: 'discountValue', label: 'Giá trị giảm', type: 'number', required: true }, { key: 'maxDiscountAmount', label: 'Giảm tối đa (với phần trăm)', type: 'number' },
+      { key: 'minOrderValue', label: 'Đơn tối thiểu', type: 'number', required: true, default: 0 }, { key: 'validDays', label: 'Voucher dùng trong (ngày)', type: 'number', required: true, default: 30 },
+      { key: 'isActive', label: 'Bật', type: 'bool', default: true },
+    ],
+  },
   reviews: {
     title: 'Đánh giá', path: 'reviews', paged: true,
     filters: [{ key: 'status', label: 'Trạng thái', options: Object.entries(approval).map(([value, l]) => ({ value, label: l })) }],
