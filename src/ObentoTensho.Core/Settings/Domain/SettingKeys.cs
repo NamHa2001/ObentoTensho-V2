@@ -41,8 +41,6 @@ public static class SettingKeys
     public const string LoyaltyPointsPerVnd = "loyalty.pointsPerVnd";
     public const string LoyaltyReservationPoints = "loyalty.reservationPoints";
     public const string LoyaltyReservationPointsPerMonth = "loyalty.reservationPointsPerMonth";
-    public const string LoyaltyRedeemRequiredPoints = "loyalty.redeemRequiredPoints";
-    public const string LoyaltyVoucherValue = "loyalty.voucherValue";
     public const string LoyaltyPointExpiryMonths = "loyalty.pointExpiryMonths";
     public const string LoyaltyBirthdayVoucherValue = "loyalty.birthdayVoucherValue";
     public const string LoyaltyAdjustApprovalThreshold = "loyalty.adjustApprovalThreshold";

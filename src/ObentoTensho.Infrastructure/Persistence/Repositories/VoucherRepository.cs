@@ -28,6 +28,33 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
     public async Task<IReadOnlyList<Voucher>> ListOwnedAsync(Guid userId, CancellationToken cancellationToken) =>
         await db.Vouchers.AsNoTracking().Where(v => v.OwnerUserId == userId).OrderByDescending(v => v.Id).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<(Voucher Voucher, string Title)>> ListPromotedAsync(DateOnly today, CancellationToken cancellationToken)
+    {
+        var rows = await db.Vouchers.AsNoTracking()
+            .Where(v => v.OwnerUserId == null && v.IsActive && v.ApprovalStatus == ApprovalStatus.Approved)
+            .Join(
+                db.Promotions.Where(p => p.IsActive && p.DeletedAtUtc == null && p.StartDate <= today && today <= p.EndDate),
+                v => v.PromotionId,
+                p => (int?)p.Id,
+                (v, p) => new { Voucher = v, p.Title })
+            .OrderByDescending(x => x.Voucher.Id)
+            .ToListAsync(cancellationToken);
+        return rows.Select(x => (x.Voucher, x.Title)).ToArray();
+    }
+
+    public async Task<IReadOnlyList<RedeemReward>> ListRewardsAsync(bool activeOnly, CancellationToken cancellationToken) =>
+        await db.RedeemRewards.AsNoTracking()
+            .Where(r => !activeOnly || r.IsActive)
+            .OrderBy(r => r.DisplayOrder).ThenBy(r => r.PointsCost).ThenBy(r => r.Id)
+            .ToListAsync(cancellationToken);
+
+    public Task<RedeemReward?> FindRewardAsync(int id, CancellationToken cancellationToken) =>
+        db.RedeemRewards.SingleOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+    public void AddReward(RedeemReward reward) => db.RedeemRewards.Add(reward);
+
+    public void RemoveReward(RedeemReward reward) => db.RedeemRewards.Remove(reward);
+
     public async Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken) =>
         await Filter(query).OrderByDescending(v => v.Id).Take(limit).ToListAsync(cancellationToken);
 

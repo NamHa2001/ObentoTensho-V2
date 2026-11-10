@@ -137,6 +137,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
     public DbSet<UserVoucher> UserVouchers => Set<UserVoucher>();
 
+    public DbSet<RedeemReward> RedeemRewards => Set<RedeemReward>();
+
     public DbSet<Order> Orders => Set<Order>();
 
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();

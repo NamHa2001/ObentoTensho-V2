@@ -21,10 +21,6 @@ internal sealed class StoreLoyaltySettings(ISettingsReader s, IOptions<LoyaltyOp
 
     public int AdjustApprovalThreshold => s.GetInt(LoyaltyAdjustApprovalThreshold);
 
-    public int RedeemRequiredPoints => s.GetInt(LoyaltyRedeemRequiredPoints);
-
-    public decimal RedeemVoucherValue => s.GetInt(LoyaltyVoucherValue);
-
     public decimal BirthdayVoucherValue => s.GetInt(LoyaltyBirthdayVoucherValue);
 
     public int SilverPoints => s.GetInt(LoyaltyTierSilver);

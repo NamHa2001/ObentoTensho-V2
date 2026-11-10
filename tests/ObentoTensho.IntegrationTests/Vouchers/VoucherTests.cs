@@ -18,6 +18,7 @@ namespace ObentoTensho.IntegrationTests.Vouchers;
 public sealed class VoucherTests : IDisposable
 {
     private const string Admin = "/api/v1/admin/vouchers";
+    private const string Rewards = "/api/v1/admin/redeem-rewards";
 
     private readonly SqlServerFixture _fixture;
     private readonly ApiFactory _factory;
@@ -91,8 +92,15 @@ public sealed class VoucherTests : IDisposable
         var (owner, ownerToken) = await MemberAsync();
         var (_, otherToken) = await MemberAsync();
         await GivePointsAsync(owner, 150);
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var reward = await RewardAsync(manager, new { name = $"Giảm 30k {Guid.NewGuid():N}", pointsCost = 100, discountType = "fixed", discountValue = 30_000, minOrderValue = 0 });
 
-        var redeems = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => Send(HttpMethod.Post, "/api/v1/account/redeem-points", ownerToken)));
+        // Khách thấy phần thưởng trước khi đổi; phần thưởng không tồn tại thì không đổi được
+        var listed = (await Data(Send(HttpMethod.Get, "/api/v1/account/rewards", ownerToken))).EnumerateArray().Single(r => r.GetProperty("id").GetInt32() == reward);
+        Assert.Equal(100, listed.GetProperty("pointsCost").GetInt32());
+        Assert.Equal(ErrorCodes.NotFound, await ErrorOf(Send(HttpMethod.Post, "/api/v1/account/redeem-points", ownerToken, new { rewardId = int.MaxValue })));
+
+        var redeems = await Task.WhenAll(Enumerable.Range(0, 10).Select(_ => Send(HttpMethod.Post, "/api/v1/account/redeem-points", ownerToken, new { rewardId = reward })));
         Assert.Equal(1, redeems.Count(r => r.StatusCode == HttpStatusCode.Created));
         Assert.All(redeems.Where(r => r.StatusCode != HttpStatusCode.Created), r => Assert.Equal(HttpStatusCode.Conflict, r.StatusCode));
 
@@ -120,6 +128,68 @@ public sealed class VoucherTests : IDisposable
         await _factory.ProcessOutboxAsync();
         var owners = await _fixture.CreateContext().Users.AsNoTracking().Where(u => u.Id == owner).Select(u => u.Email).SingleAsync();
         Assert.Contains(_factory.Emails.To(owners), m => m.TextBody.Contains(code, StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Phan_thuong_doi_diem_quan_tri_dat_va_ma_doi_duoc_chep_dung_dieu_kien()
+    {
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var (owner, token) = await MemberAsync();
+        await GivePointsAsync(owner, 500);
+        var name = $"Giảm 20% {Guid.NewGuid():N}";
+        var id = await RewardAsync(manager, new { name, pointsCost = 200, discountType = "percent", discountValue = 20, maxDiscountAmount = 50_000, minOrderValue = 100_000, validDays = 7 });
+
+        Assert.Equal(ErrorCodes.DuplicateName, await ErrorOf(_admin.SendAsync(HttpMethod.Post, Rewards, manager, Reward(new { name, pointsCost = 1 }))));
+        Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Post, Rewards, manager, Reward(new { name = "<b>x</b>", pointsCost = 1 }))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Post, Rewards, manager, Reward(new { name = "Sai phần trăm", discountType = "percent", discountValue = 150 }))).StatusCode);
+
+        var voucher = await Data(Send(HttpMethod.Post, "/api/v1/account/redeem-points", token, new { rewardId = id }));
+        Assert.Equal(("percent", 20m, 50_000m, 100_000m), (voucher.GetProperty("discountType").GetString(), voucher.GetProperty("discountValue").GetDecimal(), voucher.GetProperty("maxDiscountAmount").GetDecimal(), voucher.GetProperty("minOrderValue").GetDecimal()));
+        Assert.Equal(TestSchedule.TodayVn.AddDays(7), DateOnly.Parse(voucher.GetProperty("endDate").GetString()!, System.Globalization.CultureInfo.InvariantCulture));
+
+        // Tắt phần thưởng: khách không thấy, không đổi được nữa; sửa cần If-Match
+        var row = (await Data(_admin.SendAsync(HttpMethod.Get, Rewards, manager))).EnumerateArray().Single(r => r.GetProperty("id").GetInt32() == id);
+        Assert.Equal(HttpStatusCode.PreconditionRequired, (await _admin.SendAsync(HttpMethod.Put, $"{Rewards}/{id}", manager, Reward(new { name, isActive = false }))).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Put, $"{Rewards}/{id}", manager, Reward(new { name, isActive = false }), ifMatch: $"\"{row.GetProperty("version").GetString()}\"")).StatusCode);
+        Assert.DoesNotContain((await Data(Send(HttpMethod.Get, "/api/v1/account/rewards", token))).EnumerateArray(), r => r.GetProperty("id").GetInt32() == id);
+        Assert.Equal(ErrorCodes.NotFound, await ErrorOf(Send(HttpMethod.Post, "/api/v1/account/redeem-points", token, new { rewardId = id })));
+
+        var reception = await _admin.SignInAsync(StaffRole.Reception);
+        Assert.Equal(HttpStatusCode.Forbidden, (await _admin.SendAsync(HttpMethod.Get, Rewards, reception)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Hop_chon_ma_liet_ke_ma_rieng_va_ma_khuyen_mai_kem_ly_do_chua_dung_duoc()
+    {
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var menu = await OrderTestMenu.CreateAsync(_fixture);
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var (owner, token) = await MemberAsync();
+        var (_, otherToken) = await MemberAsync();
+        await GivePointsAsync(owner, 100);
+        var reward = await RewardAsync(manager, new { name = $"Giảm 5k {Guid.NewGuid():N}", pointsCost = 100, discountType = "fixed", discountValue = 5_000 });
+        var mine = (await Data(Send(HttpMethod.Post, "/api/v1/account/redeem-points", token, new { rewardId = reward }))).GetProperty("code").GetString()!;
+
+        var tag = Guid.NewGuid().ToString("N")[..8];
+        var promotion = await Data(_admin.SendAsync(HttpMethod.Post, "/api/v1/admin/promotions", manager, new { title = $"Khai trương {tag}", slug = $"khai-truong-{tag}", descriptionHtml = (string?)null, startDate = TestSchedule.TodayVn, endDate = TestSchedule.TodayVn.AddDays(3), publicTeaser = true, isActive = true, bannerImageId = (Guid?)null }));
+        var promoted = await CreateVoucherAsync(manager, new { discountType = "fixed", discountValue = 1_000, minOrderValue = 10_000_000, promotionId = promotion.GetProperty("id").GetInt32() });
+        var hidden = await CreateVoucherAsync(manager, new { discountType = "fixed", discountValue = 2_000 });
+
+        var items = new[] { OrderApiClient.Line(menu.Tea, 2) };
+        var options = (await Data(Send(HttpMethod.Post, "/api/v1/account/voucher-options", token, new { items }))).EnumerateArray().ToArray();
+        var codes = options.Select(o => o.GetProperty("code").GetString()).ToArray();
+        Assert.Contains(mine, codes, StringComparer.Ordinal);
+        Assert.DoesNotContain(hidden, codes, StringComparer.Ordinal);
+        var own = options.Single(o => string.Equals(o.GetProperty("code").GetString(), mine, StringComparison.Ordinal));
+        Assert.True(own.GetProperty("usable").GetBoolean());
+        Assert.Equal(5_000m, own.GetProperty("discount").GetDecimal());
+        var promo = options.Single(o => string.Equals(o.GetProperty("code").GetString(), promoted, StringComparison.Ordinal));
+        Assert.Equal((false, ErrorCodes.VoucherMinOrder, $"Khai trương {tag}"), (promo.GetProperty("usable").GetBoolean(), promo.GetProperty("errorCode").GetString(), promo.GetProperty("title").GetString()));
+
+        // Mã riêng của người khác không lọt vào danh sách; chưa đăng nhập thì không gọi được
+        Assert.DoesNotContain((await Data(Send(HttpMethod.Post, "/api/v1/account/voucher-options", otherToken, new { items }))).EnumerateArray(), o => string.Equals(o.GetProperty("code").GetString(), mine, StringComparison.Ordinal));
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _http.PostAsJsonAsync("/api/v1/account/voucher-options", new { items })).StatusCode);
     }
 
     [Fact]
@@ -234,9 +304,34 @@ public sealed class VoucherTests : IDisposable
         return _http.SendAsync(request);
     }
 
-    private Task<HttpResponseMessage> Send(HttpMethod method, string path, string token)
+    private static Dictionary<string, object?> Reward(object overrides)
     {
-        var request = new HttpRequestMessage(method, path);
+        var body = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["name"] = "Phần thưởng",
+            ["description"] = null,
+            ["pointsCost"] = 100,
+            ["discountType"] = "fixed",
+            ["discountValue"] = 10_000,
+            ["maxDiscountAmount"] = null,
+            ["minOrderValue"] = 0,
+            ["validDays"] = 30,
+            ["isActive"] = true,
+        };
+        foreach (var (key, value) in ToDictionary(overrides))
+        {
+            body[key] = value;
+        }
+
+        return body;
+    }
+
+    private async Task<int> RewardAsync(string token, object overrides) =>
+        (await Data(_admin.SendAsync(HttpMethod.Post, Rewards, token, Reward(overrides)))).GetProperty("id").GetInt32();
+
+    private Task<HttpResponseMessage> Send(HttpMethod method, string path, string token, object? body = null)
+    {
+        var request = new HttpRequestMessage(method, path) { Content = body is null ? null : JsonContent.Create(body) };
         request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
         return _http.SendAsync(request);
     }

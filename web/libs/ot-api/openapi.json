@@ -481,11 +481,75 @@
         }
       }
     },
+    "/api/v1/account/rewards": {
+      "get": {
+        "tags": [
+          "AccountVouchers"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/account/redeem-points": {
       "post": {
         "tags": [
           "AccountVouchers"
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemPointsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemPointsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemPointsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/account/voucher-options": {
+      "post": {
+        "tags": [
+          "AccountVouchers"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoucherOptionsRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoucherOptionsRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoucherOptionsRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -1224,6 +1288,7 @@
           {
             "name": "date",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date"
@@ -1490,6 +1555,7 @@
           {
             "name": "date",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date"
@@ -3823,6 +3889,112 @@
       "delete": {
         "tags": [
           "AdminPromotions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/redeem-rewards": {
+      "get": {
+        "tags": [
+          "AdminRedeemRewards"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminRedeemRewards"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/redeem-rewards/{id}": {
+      "put": {
+        "tags": [
+          "AdminRedeemRewards"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RedeemRewardRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminRedeemRewards"
         ],
         "parameters": [
           {
@@ -8908,6 +9080,77 @@
               "string"
             ],
             "format": "uuid"
+          }
+        }
+      },
+      "AdminRedeemRewardDto": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "pointsCost",
+          "discountType",
+          "discountValue",
+          "maxDiscountAmount",
+          "minOrderValue",
+          "validDays",
+          "isActive",
+          "displayOrder",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pointsCost": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discountType": {
+            "enum": [
+              "percent",
+              "fixed"
+            ]
+          },
+          "discountValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDiscountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "minOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "validDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "displayOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string"
           }
         }
       },
@@ -16568,6 +16811,130 @@
           }
         }
       },
+      "RedeemPointsRequest": {
+        "required": [
+          "rewardId"
+        ],
+        "type": "object",
+        "properties": {
+          "rewardId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RedeemRewardDto": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "pointsCost",
+          "discountType",
+          "discountValue",
+          "maxDiscountAmount",
+          "minOrderValue",
+          "validDays"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pointsCost": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discountType": {
+            "enum": [
+              "percent",
+              "fixed"
+            ]
+          },
+          "discountValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDiscountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "minOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "validDays": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RedeemRewardRequest": {
+        "required": [
+          "name",
+          "description",
+          "pointsCost",
+          "discountType",
+          "discountValue",
+          "maxDiscountAmount",
+          "minOrderValue",
+          "validDays",
+          "isActive"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "pointsCost": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discountType": {
+            "$ref": "#/components/schemas/DiscountType"
+          },
+          "discountValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDiscountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "minOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "validDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
       "RefreshTokenRevokedReason": {
         "enum": [
           "rotated",
@@ -18590,6 +18957,96 @@
           }
         }
       },
+      "VoucherOptionDto": {
+        "required": [
+          "code",
+          "title",
+          "discountType",
+          "discountValue",
+          "maxDiscountAmount",
+          "minOrderValue",
+          "endDate",
+          "source",
+          "usable",
+          "discount",
+          "errorCode"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discountType": {
+            "enum": [
+              "percent",
+              "fixed"
+            ]
+          },
+          "discountValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxDiscountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "minOrderValue": {
+            "type": "number",
+            "format": "double"
+          },
+          "endDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "source": {
+            "enum": [
+              "admin",
+              "redeem",
+              "birthday",
+              "game"
+            ]
+          },
+          "usable": {
+            "type": "boolean"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "VoucherOptionsRequest": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineRequest"
+            }
+          }
+        }
+      },
       "VoucherRequest": {
         "required": [
           "code",
@@ -18852,6 +19309,9 @@
     },
     {
       "name": "AdminPromotions"
+    },
+    {
+      "name": "AdminRedeemRewards"
     },
     {
       "name": "AdminReports"

@@ -17,9 +17,12 @@ public static class VoucherConfiguration
         services.AddSingleton<IValidator<VoucherRequest>, VoucherRequestValidator>();
         services.AddSingleton<IValidator<BulkGenerateVouchersRequest>, BulkGenerateVouchersRequestValidator>();
         services.AddSingleton<IValidator<ValidateVoucherRequest>, ValidateVoucherRequestValidator>();
+        services.AddSingleton<IValidator<VoucherOptionsRequest>, VoucherOptionsRequestValidator>();
+        services.AddSingleton<IValidator<RedeemRewardRequest>, RedeemRewardRequestValidator>();
         services.AddScoped<VoucherEvaluator>();
         services.AddScoped<VoucherService>();
         services.AddScoped<VoucherAdminService>();
+        services.AddScoped<RedeemRewardAdminService>();
         services.AddScoped<BirthdayVoucherService>();
         services.AddScoped<IRecurringJob, VoucherBirthdayJob>();
 

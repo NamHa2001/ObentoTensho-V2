@@ -22,11 +22,6 @@ public interface ILoyaltySettings
     // BR-LOY-21
     int AdjustApprovalThreshold { get; }
 
-    // BR-LOY-05/07: số điểm đổi một voucher và giá trị voucher (₫)
-    int RedeemRequiredPoints { get; }
-
-    decimal RedeemVoucherValue { get; }
-
     // BR-LOY-09: giá trị voucher sinh nhật (₫); 0 = tắt
     decimal BirthdayVoucherValue { get; }
 

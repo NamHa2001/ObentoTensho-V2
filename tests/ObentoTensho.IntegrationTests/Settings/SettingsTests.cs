@@ -212,12 +212,12 @@ public sealed class SettingsTests : IDisposable
     {
         var manager = await _admin.SignInAsync(StaffRole.Manager);
         var settings = _factory.Services.GetRequiredService<ILoyaltySettings>();
-        var before = await StoredAsync(SettingKeys.LoyaltyRedeemRequiredPoints);
+        var before = await StoredAsync(SettingKeys.LoyaltyAdjustApprovalThreshold);
 
-        Assert.Equal(HttpStatusCode.NoContent, (await PutAsync(manager, One(SettingKeys.LoyaltyRedeemRequiredPoints, "222"))).StatusCode);
-        Assert.Equal(222, settings.RedeemRequiredPoints);
+        Assert.Equal(HttpStatusCode.NoContent, (await PutAsync(manager, One(SettingKeys.LoyaltyAdjustApprovalThreshold, "222"))).StatusCode);
+        Assert.Equal(222, settings.AdjustApprovalThreshold);
 
-        Assert.Equal(HttpStatusCode.NoContent, (await PutAsync(manager, One(SettingKeys.LoyaltyRedeemRequiredPoints, before))).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await PutAsync(manager, One(SettingKeys.LoyaltyAdjustApprovalThreshold, before))).StatusCode);
     }
 
     [Fact]

@@ -22,13 +22,12 @@ public sealed class VoucherService(
     LoyaltyService loyaltyService,
     ILoyaltyRepository loyalty,
     LoyaltyLedger ledger,
-    ILoyaltySettings loyaltySettings,
-    IVoucherSettings settings,
     IVoucherEmailOutbox emails,
     IActionThrottle throttle,
     IUnitOfWork unitOfWork,
     IClock clock,
-    IValidator<ValidateVoucherRequest> validator)
+    IValidator<ValidateVoucherRequest> validator,
+    IValidator<VoucherOptionsRequest> optionsValidator)
 {
     private const string RedeemPrefix = "DIEM";
 
@@ -90,30 +89,93 @@ public sealed class VoucherService(
         return result;
     }
 
+    // Kiểu ví điện tử: khách thấy trước mình đổi được gì, tốn bao nhiêu điểm
+    public async Task<IReadOnlyList<RedeemRewardDto>> ListRewardsAsync(CancellationToken cancellationToken) =>
+        (await vouchers.ListRewardsAsync(activeOnly: true, cancellationToken))
+            .Select(r => new RedeemRewardDto(r.Id, r.Name, r.Description, r.PointsCost, r.DiscountType, r.DiscountValue, r.MaxDiscountAmount, r.MinOrderValue, r.ValidDays))
+            .ToArray();
+
     // BR-LOY-05: khóa khách rồi mới kiểm và trừ điểm — gửi nhiều lần cùng lúc cũng chỉ tạo đúng số voucher đủ điểm
-    public Task<Result<AccountVoucherDto>> RedeemPointsAsync(Guid userId, CancellationToken cancellationToken) =>
+    public Task<Result<AccountVoucherDto>> RedeemPointsAsync(Guid userId, int rewardId, CancellationToken cancellationToken) =>
         unitOfWork.TryInTransactionAsync(async ct =>
         {
+            if (await vouchers.FindRewardAsync(rewardId, ct) is not { IsActive: true } reward)
+            {
+                return Result.Failure<AccountVoucherDto>(ErrorCodes.NotFound);
+            }
+
             if (await loyalty.LockUserAsync(userId, ct) is not { IsDeleted: false } user)
             {
                 return Result.Failure<AccountVoucherDto>(ErrorCodes.NotFound);
             }
 
-            if (user.CurrentPoints < loyaltySettings.RedeemRequiredPoints)
+            if (user.CurrentPoints < reward.PointsCost)
             {
                 return Result.Failure<AccountVoucherDto>(ErrorCodes.PointsInsufficient);
             }
 
-            var voucher = await NewRedeemVoucherAsync(userId, ct);
+            var voucher = await NewRedeemVoucherAsync(userId, reward, ct);
             vouchers.Add(voucher);
-            await ledger.RedeemAsync(user, loyaltySettings.RedeemRequiredPoints, voucher.Code, ct);
-            emails.EnqueueRedeemed(user, voucher, loyaltySettings.RedeemRequiredPoints);
+            await ledger.RedeemAsync(user, reward.PointsCost, voucher.Code, ct);
+            emails.EnqueueRedeemed(user, voucher, reward.PointsCost);
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(voucher.ToAccount(clock, usedByUser: 0));
         }, cancellationToken);
 
-    // BR-LOY-07: cố định, một lần dùng, của riêng khách, hạn redeemExpiryDays ngày (hết hạn cuối ngày, giờ VN)
-    private async Task<Voucher> NewRedeemVoucherAsync(Guid userId, CancellationToken cancellationToken)
+    // Hộp chọn mã ở bước thanh toán: mã riêng của khách và mã của khuyến mãi đang chạy, mỗi mã kèm kết quả kiểm với giỏ này.
+    // Dùng đúng quy tắc của lúc đặt đơn (VoucherRules) nên mã báo "dùng được" thì đặt đơn cũng nhận
+    public async Task<Result<IReadOnlyList<VoucherOptionDto>>> OptionsAsync(VoucherOptionsRequest request, Guid userId, CancellationToken cancellationToken)
+    {
+        var validation = await optionsValidator.ValidateAsync(request, cancellationToken);
+        if (!validation.IsValid)
+        {
+            return validation.ToFailure<IReadOnlyList<VoucherOptionDto>>();
+        }
+
+        var priced = await cart.PriceAsync(request.Items, AuthPolicy.DefaultLanguage, cancellationToken);
+        if (!priced.IsValid)
+        {
+            return Result.Failure<IReadOnlyList<VoucherOptionDto>>(ErrorCodes.ItemUnavailable);
+        }
+
+        var now = clock.UtcNow;
+        var user = await loyalty.FindUserAsync(userId, cancellationToken);
+        var owned = (await vouchers.ListOwnedAsync(userId, cancellationToken))
+            .Where(v => v.EndUtc is not { } end || now < end)
+            .Select(v => (Voucher: v, Title: (string?)null));
+        var promoted = (await vouchers.ListPromotedAsync(clock.TodayLocal, cancellationToken)).Select(p => (p.Voucher, Title: (string?)p.Title));
+        var options = new List<VoucherOptionDto>();
+        foreach (var (voucher, title) in owned.Concat(promoted).DistinctBy(x => x.Voucher.Id))
+        {
+            var used = await vouchers.UsedByUserAsync(voucher.Id, userId, cancellationToken);
+            var error = VoucherRules.Check(voucher, new VoucherRules.Context(now, priced.SubTotal, userId, user?.MemberTier, used));
+
+            // Mã đã dùng hết lượt của khách thì thôi không hiện, tránh danh sách đầy mã cũ
+            if (string.Equals(error, ErrorCodes.VoucherExhausted, StringComparison.Ordinal) || string.Equals(error, ErrorCodes.VoucherInvalid, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var discount = error is null ? VoucherRules.Discount(voucher, priced.SubTotal) : 0;
+            options.Add(new VoucherOptionDto(
+                voucher.Code,
+                title,
+                voucher.DiscountType,
+                voucher.DiscountValue,
+                voucher.MaxDiscountAmount,
+                voucher.MinOrderValue,
+                VoucherMappings.EndDate(voucher, clock),
+                voucher.Source,
+                error is null,
+                discount,
+                error));
+        }
+
+        return Result.Success<IReadOnlyList<VoucherOptionDto>>(options.OrderByDescending(o => o.Usable).ThenByDescending(o => o.Discount).ThenBy(o => o.MinOrderValue).ToArray());
+    }
+
+    // BR-LOY-07: một lần dùng, của riêng khách, điều kiện chép từ phần thưởng lúc đổi; hết hạn cuối ngày (giờ VN)
+    private async Task<Voucher> NewRedeemVoucherAsync(Guid userId, RedeemReward reward, CancellationToken cancellationToken)
     {
         string code;
         do
@@ -126,15 +188,17 @@ public sealed class VoucherService(
         return new Voucher
         {
             Code = code,
-            DiscountType = DiscountType.Fixed,
-            DiscountValue = loyaltySettings.RedeemVoucherValue,
+            DiscountType = reward.DiscountType,
+            DiscountValue = reward.DiscountValue,
+            MaxDiscountAmount = reward.MaxDiscountAmount,
+            MinOrderValue = reward.MinOrderValue,
             MaxUsageTotal = 1,
             MaxUsagePerUser = 1,
             OwnerUserId = userId,
             RequireLogin = true,
             Source = VoucherSource.Redeem,
             StartUtc = now,
-            EndUtc = clock.ToUtc(clock.TodayLocal.AddDays(settings.RedeemExpiryDays + 1), TimeOnly.MinValue),
+            EndUtc = clock.ToUtc(clock.TodayLocal.AddDays(reward.ValidDays + 1), TimeOnly.MinValue),
             CreatedAtUtc = now,
         };
     }

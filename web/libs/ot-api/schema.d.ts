@@ -767,6 +767,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/account/rewards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/account/redeem-points": {
         parameters: {
             query?: never;
@@ -783,7 +816,52 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RedeemPointsRequest"];
+                    "text/json": components["schemas"]["RedeemPointsRequest"];
+                    "application/*+json": components["schemas"]["RedeemPointsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account/voucher-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VoucherOptionsRequest"];
+                    "text/json": components["schemas"]["VoucherOptionsRequest"];
+                    "application/*+json": components["schemas"]["VoucherOptionsRequest"];
+                };
+            };
             responses: {
                 /** @description OK */
                 200: {
@@ -1704,8 +1782,8 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: {
-                    date?: string;
+                query: {
+                    date: string;
                 };
                 header?: never;
                 path?: never;
@@ -2074,8 +2152,8 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: {
-                    date?: string;
+                query: {
+                    date: string;
                 };
                 header?: never;
                 path?: never;
@@ -4782,6 +4860,122 @@ export interface paths {
                     "application/json": components["schemas"]["PromotionRequest"];
                     "text/json": components["schemas"]["PromotionRequest"];
                     "application/*+json": components["schemas"]["PromotionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/redeem-rewards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RedeemRewardRequest"];
+                    "text/json": components["schemas"]["RedeemRewardRequest"];
+                    "application/*+json": components["schemas"]["RedeemRewardRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/redeem-rewards/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RedeemRewardRequest"];
+                    "text/json": components["schemas"]["RedeemRewardRequest"];
+                    "application/*+json": components["schemas"]["RedeemRewardRequest"];
                 };
             };
             responses: {
@@ -9019,6 +9213,28 @@ export interface components {
             /** Format: uuid */
             bannerImageId: null | string;
         };
+        AdminRedeemRewardDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description: null | string;
+            /** Format: int32 */
+            pointsCost: number;
+            /** @enum {unknown} */
+            discountType: "percent" | "fixed";
+            /** Format: double */
+            discountValue: number;
+            /** Format: double */
+            maxDiscountAmount: null | number;
+            /** Format: double */
+            minOrderValue: number;
+            /** Format: int32 */
+            validDays: number;
+            isActive: boolean;
+            /** Format: int32 */
+            displayOrder: number;
+            version: string;
+        };
         AdminReservationDetailDto: {
             reservation: {
                 /** Format: uuid */
@@ -11056,6 +11272,44 @@ export interface components {
         RecoveryCodesDto: {
             recoveryCodes: string[];
         };
+        RedeemPointsRequest: {
+            /** Format: int32 */
+            rewardId: number;
+        };
+        RedeemRewardDto: {
+            /** Format: int32 */
+            id: number;
+            name: string;
+            description: null | string;
+            /** Format: int32 */
+            pointsCost: number;
+            /** @enum {unknown} */
+            discountType: "percent" | "fixed";
+            /** Format: double */
+            discountValue: number;
+            /** Format: double */
+            maxDiscountAmount: null | number;
+            /** Format: double */
+            minOrderValue: number;
+            /** Format: int32 */
+            validDays: number;
+        };
+        RedeemRewardRequest: {
+            name: string;
+            description: null | string;
+            /** Format: int32 */
+            pointsCost: number;
+            discountType: components["schemas"]["DiscountType"];
+            /** Format: double */
+            discountValue: number;
+            /** Format: double */
+            maxDiscountAmount: null | number;
+            /** Format: double */
+            minOrderValue: number;
+            /** Format: int32 */
+            validDays: number;
+            isActive: boolean;
+        };
         /** @enum {unknown} */
         RefreshTokenRevokedReason: "rotated" | "logout" | "reuse_detected" | "password_changed" | "account_locked" | "session_limit";
         RegenerateImagesResponse: {
@@ -11603,6 +11857,29 @@ export interface components {
             /** Format: double */
             totalWithMemberDiscount: number;
             memberIsBetter: boolean;
+        };
+        VoucherOptionDto: {
+            code: string;
+            title: null | string;
+            /** @enum {unknown} */
+            discountType: "percent" | "fixed";
+            /** Format: double */
+            discountValue: number;
+            /** Format: double */
+            maxDiscountAmount: null | number;
+            /** Format: double */
+            minOrderValue: number;
+            /** Format: date */
+            endDate: null | string;
+            /** @enum {unknown} */
+            source: "admin" | "redeem" | "birthday" | "game";
+            usable: boolean;
+            /** Format: double */
+            discount: number;
+            errorCode: null | string;
+        };
+        VoucherOptionsRequest: {
+            items: components["schemas"]["OrderLineRequest"][];
         };
         VoucherRequest: {
             code: null | string;

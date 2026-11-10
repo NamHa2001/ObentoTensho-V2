@@ -16,6 +16,19 @@ public interface IVoucherRepository
 
     Task<IReadOnlyList<Voucher>> ListOwnedAsync(Guid userId, CancellationToken cancellationToken);
 
+    // Mã chung gắn với khuyến mãi đang chạy hôm nay, kèm tên khuyến mãi để khách nhận ra
+    Task<IReadOnlyList<(Voucher Voucher, string Title)>> ListPromotedAsync(DateOnly today, CancellationToken cancellationToken);
+
+    // Danh mục phần thưởng đổi điểm, theo thứ tự hiển thị
+    Task<IReadOnlyList<RedeemReward>> ListRewardsAsync(bool activeOnly, CancellationToken cancellationToken);
+
+    // Bản được theo dõi để sửa
+    Task<RedeemReward?> FindRewardAsync(int id, CancellationToken cancellationToken);
+
+    void AddReward(RedeemReward reward);
+
+    void RemoveReward(RedeemReward reward);
+
     // Xuất Excel: cùng bộ lọc với danh sách, không phân trang, có trần
     Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken);
 

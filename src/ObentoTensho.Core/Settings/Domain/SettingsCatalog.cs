@@ -56,8 +56,6 @@ public static class SettingsCatalog
         Int(LoyaltyPointsPerVnd, 10_000, 1, IntMax, "Số đồng cho 1 điểm"),
         Int(LoyaltyReservationPoints, 10, 0, 1000, "Điểm mỗi lần check-in đặt bàn"),
         Int(LoyaltyReservationPointsPerMonth, 30, 0, 5000, "Trần điểm đặt bàn mỗi tháng"),
-        Int(LoyaltyRedeemRequiredPoints, 100, 1, IntMax, "Số điểm đổi một voucher"),
-        Int(LoyaltyVoucherValue, 30_000, 1, IntMax, "Giá trị voucher đổi điểm (₫)"),
         Int(LoyaltyPointExpiryMonths, 12, 1, 60, "Điểm hết hạn sau (tháng)"),
         Int(LoyaltyBirthdayVoucherValue, 50_000, 0, 1_000_000, "Giá trị voucher sinh nhật (₫); 0 = tắt"),
         Int(LoyaltyAdjustApprovalThreshold, 1000, 1, 100_000, "Điều chỉnh từ mức này cần người khác duyệt"),
@@ -68,7 +66,7 @@ public static class SettingsCatalog
         Int(LoyaltyTierGoldDiscount, 5, 0, 50, "% giảm hạng Vàng"),
         Int(LoyaltyTierDiamondDiscount, 8, 0, 50, "% giảm hạng Kim cương"),
 
-        Int(VoucherRedeemExpiryDays, 30, 1, 365, "Voucher đổi điểm còn hạn (ngày)"),
+        Int(VoucherRedeemExpiryDays, 30, 1, 365, "Voucher sinh nhật còn hạn (ngày)"),
         Int(VoucherApprovalPercent, 50, 1, 100, "Giảm từ mức % này cần duyệt"),
         Int(VoucherApprovalAmount, 200_000, 1, IntMax, "Giảm từ mức tiền này cần duyệt (₫)"),
 
