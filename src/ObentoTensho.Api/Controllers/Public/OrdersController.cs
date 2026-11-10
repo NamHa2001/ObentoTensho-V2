@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
@@ -16,7 +17,7 @@ public sealed class OrdersController(PublicOrderService orders) : ControllerBase
 {
     [HttpGet("pickup-times")]
     [AllowAnonymous]
-    public async Task<IActionResult> PickupTimes([FromQuery] DateOnly date, CancellationToken cancellationToken) =>
+    public async Task<IActionResult> PickupTimes([FromQuery, BindRequired] DateOnly date, CancellationToken cancellationToken) =>
         this.Data(await orders.PickupTimesAsync(date, cancellationToken));
 
     // Mở giỏ ⇒ kiểm lại giá/tình trạng; không tạo gì nên chỉ theo giới hạn chung

@@ -134,6 +134,10 @@ public sealed class PublicOrderTests : IDisposable
         var list = times.GetProperty("times").EnumerateArray().Select(t => t.GetString()).ToArray();
         Assert.Equal(("06:00", "22:30", 67), (list[0], list[^1], list.Length));
 
+        // Thiếu ngày thì báo lỗi, không lặng lẽ hiểu thành 0001-01-01
+        Assert.Equal(HttpStatusCode.BadRequest, (await _http.GetAsync("/api/v1/orders/pickup-times")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _http.GetAsync("/api/v1/reservations/availability")).StatusCode);
+
         // Khóa nhận đơn 11:00–13:00 ngày mai (BR-TBL-18)
         var (staffId, _) = await new AdminAuthApiClient(_factory, _fixture).CreateStaffAsync(Contracts.Enums.StaffRole.Manager);
         await using (var db = _fixture.CreateContext())

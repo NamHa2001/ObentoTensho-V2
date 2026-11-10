@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
@@ -16,7 +17,7 @@ public sealed class ReservationsController(ReservationSchedule schedule, PublicR
 {
     [HttpGet("availability")]
     [AllowAnonymous]
-    public async Task<IActionResult> Availability([FromQuery] DateOnly date, CancellationToken cancellationToken) =>
+    public async Task<IActionResult> Availability([FromQuery, BindRequired] DateOnly date, CancellationToken cancellationToken) =>
         this.Data(await schedule.GetAvailabilityAsync(date, cancellationToken));
 
     [HttpPost]
