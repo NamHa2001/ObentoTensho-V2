@@ -24,10 +24,6 @@ const PHONE_COUNT = 10;
 const PHONE_WIDTH = 768;
 const MAX_STEP_S = 0.05;
 const EDGE = 60;
-// Từ cỡ màn hình có cành hoa, khoảng một phần ba cánh rụng ra từ cành trên
-const BRANCH_WIDTH = 1280;
-const BRANCH_SHARE = 0.35;
-const CONTENT_WIDTH = 1200;
 
 // Cánh hoa rơi vẽ bằng canvas từ ảnh cánh thật: gió thổi từng đợt, cánh lật khi rơi, cánh gần to và nhòe, cánh xa nhỏ và nhạt.
 // Chỉ chạy ở trình duyệt; tắt khi người dùng chọn giảm chuyển động, dừng vẽ khi tab bị ẩn
@@ -68,11 +64,9 @@ export class PetalRain {
     const spawn = (anywhere: boolean): Petal => {
       const depth = Math.random();
       const flower = Math.random() < FLOWER_CHANCE;
-      const fromBranch = !anywhere && width >= BRANCH_WIDTH && Math.random() < BRANCH_SHARE;
-      const margin = Math.max((width - CONTENT_WIDTH) / 2, 0);
       return {
-        x: fromBranch ? Math.random() * (margin + 60) : Math.random() * width,
-        y: fromBranch ? 90 + Math.random() * 320 : anywhere ? Math.random() * height : -EDGE * Math.random(),
+        x: Math.random() * width,
+        y: anywhere ? Math.random() * height : -EDGE * Math.random(),
         size: (flower ? 22 : 12) + depth * (flower ? 16 : 14),
         speed: 24 + depth * 40,
         sway: 18 + Math.random() * 46,
