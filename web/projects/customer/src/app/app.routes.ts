@@ -62,7 +62,8 @@ export const routes: Routes = [
     loadComponent: () => account().then((m) => m.Account),
     title: 'Tài khoản — Obento Tensho',
     children: [
-      { path: '', redirectTo: 'thong-tin', pathMatch: 'full' },
+      { path: '', redirectTo: 'tong-quan', pathMatch: 'full' },
+      { path: 'tong-quan', loadComponent: () => account().then((m) => m.AccountOverview) },
       { path: 'thong-tin', loadComponent: () => account().then((m) => m.AccountProfile) },
       { path: 'dat-ban', loadComponent: () => account().then((m) => m.AccountReservations) },
       { path: 'don-hang', loadComponent: () => account().then((m) => m.AccountOrders) },

@@ -8,6 +8,7 @@ import { map } from 'rxjs';
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
 import { Cart } from '../core/cart';
+import { givenName } from '../shared/format';
 import { HEADER_LINKS } from './nav-items';
 
 @Component({
@@ -62,9 +63,5 @@ export class SiteHeader {
   protected readonly cart = ShoppingBag;
   protected readonly user = User;
   protected readonly auth = inject(Auth);
-
-  // Người Việt được gọi bằng tên, là từ cuối của họ tên
-  protected givenName(fullName: string): string {
-    return fullName.trim().split(/\s+/).at(-1) ?? fullName;
-  }
+  protected readonly givenName = givenName;
 }

@@ -61,7 +61,7 @@
 <section class="ot-container ot-block">
     <div class="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
       @for (s of services; track s.path) {
-        <a [routerLink]="s.path" class="flex items-center gap-3">
+        <a [routerLink]="s.path" class="ot-service flex items-center gap-3">
           <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary md:size-14"><lucide-icon [img]="s.icon" [size]="24" /></span>
           <span class="min-w-0">
             <span class="font-heading block font-extrabold text-heading md:text-lg">{{ s.title }}</span>
@@ -148,7 +148,7 @@
       <div class="grid grid-cols-2 gap-3 md:gap-5">
         @for (g of gallerySlots(); track $index) {
           @if (g) {
-            <a routerLink="/khong-gian" class="relative block aspect-[4/3] overflow-hidden rounded-[var(--ot-radius-md)] bg-surface-2">
+            <a routerLink="/khong-gian" class="ot-zoom relative block aspect-[4/3] overflow-hidden rounded-[var(--ot-radius-md)] bg-surface-2">
               <img [src]="imageUrl(g.image)" [alt]="g.caption || 'Không gian Tensho'" loading="lazy" class="absolute inset-0 size-full object-cover" />
             </a>
           } @else {

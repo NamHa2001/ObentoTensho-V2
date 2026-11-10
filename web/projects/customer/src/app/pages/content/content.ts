@@ -46,7 +46,6 @@ export class StaticPage {
   template: `
     <div class="ot-page-split">
       <h1>Liên hệ</h1>
-      <p class="ot-page-sub">Góp ý, đặt tiệc hay cần hỏi gì, bạn để lại lời nhắn, quán sẽ phản hồi sớm nhất.</p>
       <div class="ot-split">
         <section class="ot-panel">
           @if (done()) {
@@ -118,7 +117,6 @@ const GALLERY = [
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Không gian</h1>
-      <p class="ot-page-sub">Hình ảnh trong quán, phòng riêng và các món ăn của Tensho.</p>
       <div class="ot-scroll-row mt-3">
         @for (c of categories; track c.value) {
           <button type="button" class="ot-chip" [class.ot-chip-active]="category() === c.value" (click)="select(c.value)">{{ c.label }}</button>
@@ -192,7 +190,6 @@ export class Gallery {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Khuyến mãi</h1>
-      <p class="ot-page-sub">Ưu đãi đang áp dụng tại quán và khi đặt món mang về.</p>
       @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (p of items(); track p.slug) {
@@ -264,7 +261,6 @@ export class Promotion {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Tin tức</h1>
-      <p class="ot-page-sub">Món mới, sự kiện và câu chuyện từ bếp Tensho.</p>
       <div class="ot-scroll-row mt-3">
         <a class="ot-chip" routerLink="/tin-tuc" [class.ot-chip-active]="!category()">Tất cả</a>
         @for (c of categories(); track c.id) {

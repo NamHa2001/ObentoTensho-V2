@@ -20,7 +20,7 @@ const MAX_AUTO_DAYS = 14;
   template: `
     <div class="ot-page-split">
       <h1>Đặt bàn</h1>
-      <p class="ot-page-sub">Chọn ngày, giờ và số khách. Nhà hàng sẽ gọi điện xác nhận lại với bạn.</p>
+      <p class="ot-page-sub">Quán sẽ gọi điện xác nhận lại với bạn.</p>
       @if (created(); as r) {
         <div class="ot-panel mt-5"><ot-reservation-view [reservation]="r" class="block" />
         <p class="mt-3">Nhà hàng sẽ gọi điện xác nhận lại giờ với bạn.</p>
@@ -41,15 +41,20 @@ const MAX_AUTO_DAYS = 14;
                 } @else if (!hasTimes(a)) {
                   <p class="ot-error">{{ model.date === minDate ? 'Hôm nay đã hết giờ nhận đặt bàn.' : 'Ngày này đã kín chỗ.' }} Vui lòng chọn ngày khác.</p>
                 }
-                @for (slot of a.slots; track slot.slotId) {
-                  <fieldset>
-                    <legend>Ca {{ slot.start.slice(0, 5) }} – {{ slot.end.slice(0, 5) }} · còn {{ slot.remainingReservations }} bàn</legend>
-                    <div class="mt-2 flex flex-wrap gap-2">
-                      @for (t of slot.times; track t) {
-                        <button type="button" class="ot-chip" [class.ot-chip-active]="model.time === t" (click)="model.time = t">{{ t.slice(0, 5) }}</button>
+                <!-- Một ô chọn giờ, các giờ chia nhóm theo ca kèm số bàn còn trống -->
+                @if (hasTimes(a)) {
+                  <label>Giờ đến
+                    <select class="ot-input" name="time" required [(ngModel)]="model.time">
+                      <option value="" disabled>Chọn giờ</option>
+                      @for (slot of a.slots; track slot.slotId) {
+                        @if (slot.times.length > 0) {
+                          <optgroup [label]="'Ca ' + slot.start.slice(0, 5) + ' – ' + slot.end.slice(0, 5) + ' · còn ' + slot.remainingReservations + ' bàn'">
+                            @for (t of slot.times; track t) { <option [value]="t">{{ t.slice(0, 5) }}</option> }
+                          </optgroup>
+                        }
                       }
-                    </div>
-                  </fieldset>
+                    </select>
+                  </label>
                 }
               }
               </div>

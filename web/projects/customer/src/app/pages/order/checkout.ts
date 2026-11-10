@@ -1,13 +1,15 @@
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
+import { ChevronRight, LucideAngularModule, TicketPercent, X } from 'lucide-angular';
 
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { Cart } from '../../core/cart';
 import { Submit } from '../../shared/form';
-import { addDays, localPhone, today } from '../../shared/format';
+import { addDays, localPhone, today, VnDatePipe } from '../../shared/format';
+import { discountShort, discountTerms, VOUCHER_REASON, VOUCHER_SOURCE, VoucherOption } from '../../shared/voucher';
 import { VndPipe } from '../../shared/vnd.pipe';
 import { linesOf } from './cart';
 
@@ -15,11 +17,10 @@ const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-checkout',
-  imports: [FormsModule, RouterLink, VndPipe],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule],
   template: `
     <div class="ot-page-split">
       <h1>Thanh toán</h1>
-      <p class="ot-page-sub">Điền thông tin nhận món, chọn giờ lấy và xác nhận đơn.</p>
       @if (cart.lines().length === 0) {
         <div class="ot-panel mt-5"><p>Giỏ hàng đang trống.</p><a class="ot-btn ot-btn-primary mt-3" routerLink="/menu">Xem thực đơn</a></div>
       } @else {
@@ -31,22 +32,21 @@ const MAX_AUTO_DAYS = 14;
               <label>Số điện thoại<input class="ot-input" name="phone" type="tel" required [(ngModel)]="model.customerPhone" /></label>
               <label class="ot-span-2">Email<input class="ot-input" name="email" type="email" required [(ngModel)]="model.customerEmail" /></label>
               <label>Ngày lấy<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.pickupDate" (ngModelChange)="pickDate()" /></label>
-              <label>Hình thức thanh toán
+              <!-- Một ô chọn giờ như các app đặt món, chọn sẵn giờ sớm nhất -->
+              <label>Giờ lấy
+                <select class="ot-input" name="time" required [disabled]="times().length === 0" [(ngModel)]="model.pickupTime">
+                  @if (times().length === 0) { <option value="">{{ loaded() ? 'Không còn giờ trống' : 'Đang tải giờ…' }}</option> }
+                  @for (t of times(); track t; let first = $first) { <option [value]="t">{{ t.slice(0, 5) }}{{ first ? ' (sớm nhất)' : '' }}</option> }
+                </select>
+              </label>
+              @if (moved()) { <p class="ot-span-2 -mt-2 text-sm text-muted">Hôm nay đã hết giờ nhận đơn, đã chuyển sang ngày gần nhất quán mở cửa.</p> }
+              @if (loaded() && times().length === 0) { <p class="ot-error ot-span-2 -mt-2">{{ model.pickupDate === minDate ? 'Hôm nay đã hết giờ nhận đơn.' : 'Ngày này quán không nhận đơn.' }} Vui lòng chọn ngày khác.</p> }
+              <label class="ot-span-2">Hình thức thanh toán
                 <select class="ot-input" name="pay" [(ngModel)]="model.paymentMethod">
                   <option value="cash">Tiền mặt khi lấy món</option>
                   <option value="bank_transfer">Chuyển khoản</option>
                 </select>
               </label>
-              <fieldset class="ot-span-2">
-                <legend>Giờ lấy</legend>
-                @if (moved()) { <p class="mt-1 text-sm text-muted">Hôm nay đã hết giờ nhận đơn, đã chuyển sang ngày gần nhất quán mở cửa.</p> }
-                @if (loaded() && times().length === 0) { <p class="ot-error mt-1">{{ model.pickupDate === minDate ? 'Hôm nay đã hết giờ nhận đơn.' : 'Ngày này quán không nhận đơn.' }} Vui lòng chọn ngày khác.</p> }
-                <div class="mt-2 flex flex-wrap gap-2">
-                  @for (t of times(); track t) {
-                    <button type="button" class="ot-chip" [class.ot-chip-active]="model.pickupTime === t" (click)="model.pickupTime = t">{{ t.slice(0, 5) }}</button>
-                  }
-                </div>
-              </fieldset>
               <label class="ot-span-2">Ghi chú<textarea class="ot-input" name="note" rows="2" [(ngModel)]="model.note"></textarea></label>
             </div>
           </section>
@@ -68,13 +68,21 @@ const MAX_AUTO_DAYS = 14;
               </section>
             }
             <div class="mt-4 border-t border-line pt-4">
-              <label>Mã voucher<input class="ot-input" name="voucher" autocapitalize="characters" [(ngModel)]="voucher" (ngModelChange)="applied.set(null)" /></label>
-              <button type="button" class="ot-btn ot-btn-outline mt-2" [disabled]="!voucher || checker.busy()" (click)="check()">Áp dụng</button>
-              @if (checker.error(); as e) { <p class="ot-error mt-1" role="alert">{{ e }}</p> }
               @if (applied(); as v) {
-                <p class="mt-1">Đã áp dụng mã {{ appliedCode() }}.
-                  @if (v.memberIsBetter) { <small class="block text-muted">Lưu ý: giảm theo hạng thành viên có lợi hơn ({{ v.totalWithMemberDiscount | vnd }}); mỗi đơn chỉ dùng một loại.</small> }
-                </p>
+                <div class="ot-ticket is-picked">
+                  <div class="ot-ticket-stub"><lucide-icon [img]="icons.ticket" [size]="22" /><small class="mt-1">-{{ v.voucherDiscount | vnd }}</small></div>
+                  <div class="flex min-w-0 flex-1 items-center justify-between gap-2 p-3">
+                    <span class="min-w-0"><b class="block truncate">{{ appliedCode() }}</b><small class="text-muted">Đã áp dụng</small></span>
+                    <span class="flex shrink-0 gap-3 text-sm font-semibold"><button type="button" class="text-primary" (click)="openPicker()">Đổi</button><button type="button" class="text-muted" (click)="removeVoucher()">Bỏ</button></span>
+                  </div>
+                </div>
+                @if (v.memberIsBetter) { <p class="mt-2 text-sm text-muted">Lưu ý: giảm theo hạng thành viên có lợi hơn ({{ v.totalWithMemberDiscount | vnd }}); mỗi đơn chỉ dùng một loại.</p> }
+              } @else {
+                <button type="button" class="flex min-h-12 w-full items-center gap-3 rounded-md border border-dashed border-primary px-4 text-left" (click)="openPicker()">
+                  <lucide-icon class="shrink-0 text-primary" [img]="icons.ticket" [size]="22" />
+                  <span class="min-w-0 flex-1"><span class="block font-semibold whitespace-nowrap">Chọn mã giảm giá</span>@if (usableCount() > 0) { <small class="block font-semibold text-success">{{ usableCount() }} mã dùng được cho đơn này</small> }</span>
+                  <lucide-icon class="shrink-0 text-muted" [img]="icons.next" [size]="18" />
+                </button>
               }
             </div>
             @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
@@ -83,6 +91,45 @@ const MAX_AUTO_DAYS = 14;
         </form>
       }
     </div>
+
+    @if (picker()) {
+      <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Chọn mã giảm giá" (click)="picker.set(false)">
+        <div class="ot-sheet" (click)="$event.stopPropagation()">
+          <div class="ot-sheet-head">
+            <p class="font-heading text-lg font-extrabold">Chọn mã giảm giá</p>
+            <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="picker.set(false)"><lucide-icon [img]="icons.close" [size]="22" /></button>
+          </div>
+          <div class="ot-sheet-body">
+            <form class="flex gap-2" (ngSubmit)="check(voucher)">
+              <input class="ot-input flex-1" name="voucher" placeholder="Nhập mã giảm giá" autocapitalize="characters" aria-label="Mã giảm giá" [(ngModel)]="voucher" />
+              <button class="ot-btn ot-btn-outline shrink-0" [disabled]="!voucher.trim() || checker.busy()">Áp dụng</button>
+            </form>
+            @if (checker.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
+            @if (optionsLoading()) {
+              <p class="text-muted">Đang tìm mã cho đơn của bạn…</p>
+            } @else {
+              @for (o of options(); track o.code) {
+                <button type="button" class="ot-ticket w-full text-left" [class.is-off]="!o.usable" [class.is-picked]="o.code === appliedCode() && applied()" [disabled]="!o.usable || checker.busy()" (click)="check(o.code)">
+                  <span class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(o) }}</span><small>giảm</small></span>
+                  <span class="flex min-w-0 flex-1 flex-col gap-0.5 p-3">
+                    <span class="text-xs font-semibold text-muted">{{ o.title || sources[o.source] || 'Voucher' }}</span>
+                    <b class="tracking-wide">{{ o.code }}</b>
+                    <span class="text-sm text-muted">{{ terms(o) }}@if (o.endDate) { · HSD {{ o.endDate | vnDate }} }</span>
+                    @if (o.usable) {
+                      <span class="text-sm font-semibold text-success">Giảm {{ o.discount | vnd }} cho đơn này</span>
+                    } @else {
+                      <span class="text-sm text-danger">{{ reasons[o.errorCode ?? ''] || 'Chưa dùng được cho đơn này' }}</span>
+                    }
+                  </span>
+                </button>
+              } @empty {
+                <p class="text-muted">Bạn chưa có mã nào dùng được. Đổi điểm thưởng lấy voucher trong mục <a class="font-semibold text-primary underline" routerLink="/tai-khoan/diem-thuong" (click)="picker.set(false)">Điểm thưởng</a>.</p>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
   `,
 })
 export class Checkout {
@@ -97,6 +144,15 @@ export class Checkout {
   protected readonly appliedCode = signal('');
   protected readonly quote = signal<Schemas['OrderQuoteDto'] | null>(null);
   protected voucher = '';
+  protected readonly picker = signal(false);
+  protected readonly options = signal<VoucherOption[]>([]);
+  protected readonly optionsLoading = signal(false);
+  protected readonly usableCount = computed(() => this.options().filter((o) => o.usable).length);
+  protected readonly icons = { ticket: TicketPercent, next: ChevronRight, close: X };
+  protected readonly short = discountShort;
+  protected readonly terms = discountTerms;
+  protected readonly sources = VOUCHER_SOURCE;
+  protected readonly reasons = VOUCHER_REASON;
   protected readonly moved = signal(false);
   protected readonly loaded = signal(false);
   // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
@@ -115,6 +171,7 @@ export class Checkout {
       untracked(() => this.applied.set(null));
       if (items.length > 0) {
         this.api.post<Schemas['OrderQuoteDto']>('orders/quote', { items, lang: 'vi' }).subscribe({ next: (q) => this.quote.set(q), error: () => undefined });
+        untracked(() => this.loadOptions());
       }
     });
   }
@@ -146,17 +203,54 @@ export class Checkout {
 
       this.autoPick = false;
       this.times.set(times);
+      this.model.pickupTime = times[0] ?? '';
       this.loaded.set(true);
     });
   }
 
-  protected check(): void {
-    this.applied.set(null);
-    const code = this.voucher.trim();
+  protected openPicker(): void {
+    this.checker.error.set(null);
+    this.picker.set(true);
+    this.loadOptions();
+  }
+
+  // Danh sách mã tính theo đúng giỏ hiện tại: mã nào dùng được, giảm bao nhiêu, mã nào chưa và vì sao
+  private loadOptions(): void {
+    const items = linesOf(this.cart);
+    this.optionsLoading.set(true);
+    this.api.post<VoucherOption[]>('account/voucher-options', { items }).subscribe({
+      next: (o) => {
+        // Giỏ đã đổi trong lúc chờ: kết quả này của giỏ cũ
+        if (JSON.stringify(items) === JSON.stringify(linesOf(this.cart))) {
+          this.options.set(o);
+          this.optionsLoading.set(false);
+        }
+      },
+      error: () => {
+        this.options.set([]);
+        this.optionsLoading.set(false);
+      },
+    });
+  }
+
+  protected check(input: string): void {
+    const code = input.trim();
     this.checker.run(this.api.post<Schemas['VoucherCheckDto']>('vouchers/validate', { code, items: linesOf(this.cart) }), (v) => {
       this.appliedCode.set(code);
       this.applied.set(v);
+      this.voucher = '';
+      this.picker.set(false);
     });
+  }
+
+  protected removeVoucher(): void {
+    this.applied.set(null);
+    this.appliedCode.set('');
+  }
+
+  @HostListener('document:keydown.escape')
+  protected escape(): void {
+    this.picker.set(false);
   }
 
   protected submit(): void {

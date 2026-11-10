@@ -44,3 +44,8 @@ export function addDays(date: string, days: number): string {
 export function localPhone(phone: string | null | undefined): string {
   return phone ? phone.replace(/^\+84/, '0') : '';
 }
+
+// Người Việt được gọi bằng tên, là từ cuối của họ tên
+export function givenName(fullName: string): string {
+  return fullName.trim().split(/\s+/).at(-1) ?? fullName;
+}
