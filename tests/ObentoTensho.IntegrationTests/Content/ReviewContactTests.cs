@@ -167,7 +167,7 @@ public sealed class ReviewContactTests : IDisposable
         var raw = await (await _http.GetAsync($"{Reviews}?menuItemId={menu.Rice}&pageSize=50")).Content.ReadAsStringAsync();
         Assert.DoesNotContain("Nguyễn Văn An", raw, StringComparison.Ordinal);
         var shown = (await ListAsync(await _http.GetAsync($"{Reviews}?menuItemId={menu.Rice}&pageSize=50"))).EnumerateArray().Single(r => r.GetProperty("id").GetInt32() == id);
-        Assert.Equal("Nguyễn A.", shown.GetProperty("authorName").GetString());
+        Assert.Equal("An N.", shown.GetProperty("authorName").GetString());
         Assert.Equal("Cảm ơn bạn", shown.GetProperty("replyContent").GetString());
         Assert.Equal("<b>Ngon</b>", shown.GetProperty("comment").GetString());
         Assert.False(shown.TryGetProperty("userId", out _));

@@ -9,8 +9,9 @@ public sealed class ReviewTests
     private static readonly DateTime Now = new(2026, 11, 7, 3, 0, 0, DateTimeKind.Utc);
 
     [Theory]
-    [InlineData("Nguyễn Văn An", "Nguyễn A.")]
-    [InlineData("  Trần   bình ", "Trần B.")]
+    [InlineData("Nguyễn Văn An", "An N.")]
+    [InlineData("  Trần   bình ", "Bình T.")]
+    [InlineData("Lê Thị Thu Hà", "Hà L.")]
     [InlineData("An", "An")]
     [InlineData("Khách đã xóa tài khoản", "Khách đã xóa tài khoản")]
     [InlineData("", "")]

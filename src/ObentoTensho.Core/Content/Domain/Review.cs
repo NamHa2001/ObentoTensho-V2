@@ -41,7 +41,7 @@ public sealed class Review
     // BR-CNT-16: 24 giờ đầu hoặc khi còn chờ duyệt
     public bool CanEdit(DateTime nowUtc) => Status == ReviewStatus.Pending || nowUtc < CreatedAtUtc + EditWindow;
 
-    // BR-CNT-14: "Nguyễn Văn An" → "Nguyễn A."; không lộ họ tên đầy đủ
+    // BR-CNT-14: người Việt gọi bằng tên nên "Nguyễn Văn An" → "An N."; không lộ họ tên đầy đủ
     public static string ShortAuthorName(string fullName)
     {
         ArgumentNullException.ThrowIfNull(fullName);
@@ -51,6 +51,12 @@ public sealed class Review
         }
 
         var parts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return parts.Length < 2 ? string.Concat(parts) : $"{parts[0]} {char.ToUpperInvariant(parts[^1][0])}.";
+        if (parts.Length < 2)
+        {
+            return string.Concat(parts);
+        }
+
+        var given = parts[^1];
+        return $"{char.ToUpperInvariant(given[0])}{given[1..]} {char.ToUpperInvariant(parts[0][0])}.";
     }
 }
