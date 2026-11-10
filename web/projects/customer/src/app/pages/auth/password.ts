@@ -5,6 +5,7 @@ import { ActivatedRoute as ActivatedRoutePublic, RouterLink } from '@angular/rou
 
 import { Api } from '../../core/api';
 import { Submit } from '../../shared/form';
+import { AuthCard } from './auth-card';
 
 // SEC-46: token trong #fragment của liên kết email, đọc xong xóa khỏi thanh địa chỉ
 export function takeToken(doc: Document): string {
@@ -20,10 +21,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 @Component({
   selector: 'ot-forgot',
-  imports: [FormsModule],
+  imports: [FormsModule, AuthCard],
   template: `
-    <form class="ot-form" (ngSubmit)="submit()">
-      <h1>Quên mật khẩu</h1>
+    <ot-auth-card heading="Quên mật khẩu" subtitle="Nhập email đã đăng ký, quán sẽ gửi liên kết đặt lại mật khẩu cho bạn.">
+      <form class="ot-auth-form" (ngSubmit)="submit()">
       @if (done()) {
         <p>Nếu email có tài khoản, liên kết đặt lại mật khẩu đã được gửi tới hộp thư của bạn.</p>
       } @else {
@@ -31,7 +32,8 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
         <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Gửi liên kết</button>
       }
-    </form>
+      </form>
+    </ot-auth-card>
   `,
 })
 export class Forgot {
@@ -53,10 +55,10 @@ export class Forgot {
 
 @Component({
   selector: 'ot-reset',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AuthCard],
   template: `
-    <form class="ot-form" (ngSubmit)="submit()">
-      <h1>Đặt lại mật khẩu</h1>
+    <ot-auth-card heading="Đặt lại mật khẩu" subtitle="Tạo mật khẩu mới từ 10 ký tự cho tài khoản của bạn.">
+      <form class="ot-auth-form" (ngSubmit)="submit()">
       @if (done()) {
         <p>Đã đổi mật khẩu.</p><a class="ot-btn ot-btn-primary" routerLink="/dang-nhap">Đăng nhập</a>
       } @else if (missing()) {
@@ -68,7 +70,8 @@ export class Forgot {
         @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
         <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Lưu</button>
       }
-    </form>
+      </form>
+    </ot-auth-card>
   `,
 })
 export class Reset {
@@ -98,14 +101,15 @@ export class Reset {
 // Xác nhận bằng một lần POST token: dùng cho xác thực email, đổi email, xác nhận bản tin
 @Component({
   selector: 'ot-token-action',
-  imports: [RouterLink],
+  imports: [RouterLink, AuthCard],
   template: `
-    <div class="ot-form">
-      <h1>{{ title }}</h1>
+    <ot-auth-card [heading]="title" subtitle="Đang xác nhận liên kết bạn mở từ email.">
+      <div class="ot-auth-form">
       @if (form.busy()) { <p>Đang xử lý…</p> }
       @if (done()) { <p>Thành công.</p><a class="ot-btn ot-btn-primary" routerLink="/">Về trang chủ</a> }
       @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
-    </div>
+      </div>
+    </ot-auth-card>
   `,
 })
 export class TokenAction {

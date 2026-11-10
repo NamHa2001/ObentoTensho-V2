@@ -44,23 +44,37 @@ export class StaticPage {
   selector: 'ot-contact',
   imports: [FormsModule],
   template: `
-    <div class="ot-page">
+    <div class="ot-page-split">
       <h1>Liên hệ</h1>
-      @if (settings()['restaurant.phone']) { <p class="mt-2">Điện thoại: <a class="text-primary" [href]="'tel:' + settings()['restaurant.phone']">{{ settings()['restaurant.phone'] }}</a></p> }
-      @if (settings()['restaurant.address']) { <p>Địa chỉ: {{ settings()['restaurant.address'] }}</p> }
-      @if (done()) {
-        <p class="mt-4">Đã gửi. Quán sẽ phản hồi sớm nhất.</p>
-      } @else {
-        <form class="ot-stack" (ngSubmit)="submit()">
-          <label>Họ tên<input class="ot-input" name="name" required [(ngModel)]="model.fullName" /></label>
-          <label>Email<input class="ot-input" name="email" type="email" required [(ngModel)]="model.email" /></label>
-          <label>Số điện thoại<input class="ot-input" name="phone" type="tel" required [(ngModel)]="model.phoneNumber" /></label>
-          <label>Tiêu đề<input class="ot-input" name="subject" [(ngModel)]="model.subject" /></label>
-          <label>Nội dung<textarea class="ot-input" name="message" rows="4" required [(ngModel)]="model.message"></textarea></label>
-          @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
-          <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Gửi</button>
-        </form>
-      }
+      <p class="ot-page-sub">Góp ý, đặt tiệc hay cần hỏi gì, bạn để lại lời nhắn, quán sẽ phản hồi sớm nhất.</p>
+      <div class="ot-split">
+        <section class="ot-panel">
+          @if (done()) {
+            <h2>Đã gửi lời nhắn</h2>
+            <p class="mt-2">Cảm ơn bạn. Quán sẽ phản hồi qua email hoặc điện thoại sớm nhất.</p>
+          } @else {
+            <h2>Gửi lời nhắn</h2>
+            <form class="ot-form-grid mt-4" (ngSubmit)="submit()">
+              <label>Họ tên<input class="ot-input" name="name" autocomplete="name" required [(ngModel)]="model.fullName" /></label>
+              <label>Số điện thoại<input class="ot-input" name="phone" type="tel" autocomplete="tel" required [(ngModel)]="model.phoneNumber" /></label>
+              <label class="ot-span-2">Email<input class="ot-input" name="email" type="email" autocomplete="email" required [(ngModel)]="model.email" /></label>
+              <label class="ot-span-2">Tiêu đề<input class="ot-input" name="subject" [(ngModel)]="model.subject" /></label>
+              <label class="ot-span-2">Nội dung<textarea class="ot-input" name="message" rows="5" required [(ngModel)]="model.message"></textarea></label>
+              @if (form.error(); as e) { <p class="ot-error ot-span-2" role="alert">{{ e }}</p> }
+              <div class="ot-span-2"><button class="ot-btn ot-btn-primary w-full sm:w-auto sm:px-10" [disabled]="form.busy()">Gửi lời nhắn</button></div>
+            </form>
+          }
+        </section>
+        <aside class="ot-panel">
+          <h2>Thông tin quán</h2>
+          <div class="mt-3 grid gap-3">
+            @if (settings()['restaurant.address']; as address) { <p><span class="block text-sm text-muted">Địa chỉ</span>{{ address }}</p> }
+            @if (settings()['restaurant.phone']; as phone) { <p><span class="block text-sm text-muted">Điện thoại</span><a class="font-semibold text-primary" [href]="'tel:' + phone">{{ phone }}</a></p> }
+            @if (settings()['restaurant.email']; as mail) { <p><span class="block text-sm text-muted">Email</span><a class="text-primary" [href]="'mailto:' + mail">{{ mail }}</a></p> }
+            @if (!settings()['restaurant.address'] && !settings()['restaurant.phone']) { <p class="text-muted">Thông tin quán đang được cập nhật.</p> }
+          </div>
+        </aside>
+      </div>
     </div>
   `,
 })
@@ -104,12 +118,13 @@ const GALLERY = [
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Không gian</h1>
+      <p class="ot-page-sub">Hình ảnh trong quán, phòng riêng và các món ăn của Tensho.</p>
       <div class="ot-scroll-row mt-3">
         @for (c of categories; track c.value) {
           <button type="button" class="ot-chip" [class.ot-chip-active]="category() === c.value" (click)="select(c.value)">{{ c.label }}</button>
         }
       </div>
-      @if (items().length === 0) { <p class="mt-4 text-muted">Chưa có nội dung.</p> }
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Chưa có hình ảnh</p><p class="mt-1 text-sm text-muted">Quán sẽ cập nhật hình ảnh không gian sớm.</p></div> }
       <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         @for (item of items(); track item.id) {
           @if (item.mediaType === 'video' && item.embedUrl) {
@@ -177,7 +192,8 @@ export class Gallery {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Khuyến mãi</h1>
-      @if (items().length === 0) { <p class="mt-4 text-muted">Hiện chưa có khuyến mãi.</p> }
+      <p class="ot-page-sub">Ưu đãi đang áp dụng tại quán và khi đặt món mang về.</p>
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (p of items(); track p.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/khuyen-mai', p.slug]">
@@ -248,13 +264,14 @@ export class Promotion {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Tin tức</h1>
+      <p class="ot-page-sub">Món mới, sự kiện và câu chuyện từ bếp Tensho.</p>
       <div class="ot-scroll-row mt-3">
         <a class="ot-chip" routerLink="/tin-tuc" [class.ot-chip-active]="!category()">Tất cả</a>
         @for (c of categories(); track c.id) {
           <a class="ot-chip" routerLink="/tin-tuc" [queryParams]="{ danhMuc: c.slug }" [class.ot-chip-active]="category() === c.slug">{{ c.name }}</a>
         }
       </div>
-      @if (items().length === 0) { <p class="mt-4 text-muted">Chưa có bài viết.</p> }
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Chưa có bài viết</p><p class="mt-1 text-sm text-muted">Quán sẽ đăng tin tức và sự kiện sớm.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (n of items(); track n.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/tin-tuc', n.slug]">

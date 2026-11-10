@@ -379,128 +379,6 @@
     inset: 0;
   }
 
-  /* Lớp cành hoa nằm trên nội dung, dưới thanh đầu trang (z 30) và hộp thoại */
-  .ot-branch-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 25;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  /* Cành rủ dọc theo lề: rộng bằng phần lề ngoài vùng an toàn cộng một chút, cao theo tỉ lệ 420x560 */
-  .ot-branch {
-    position: absolute;
-    display: none;
-    width: clamp(220px, calc((100vw - 1200px) / 2 + 90px), 420px);
-    aspect-ratio: 420 / 560;
-  }
-
-  .ot-branch-top {
-    top: calc(var(--ot-header-h) - 18px);
-    left: -12px;
-  }
-
-  /* Cành dưới là cành trên xoay nửa vòng, mọc lên từ góc phải dưới */
-  .ot-branch-bottom {
-    right: -12px;
-    bottom: -14px;
-    transform: rotate(180deg);
-  }
-
-  .ot-sb-root,
-  .ot-sb-twig {
-    transform-box: view-box;
-  }
-
-  .ot-sb-root {
-    transform-origin: 0 0;
-    animation: ot-branch-sway 9s ease-in-out infinite;
-  }
-
-  .ot-sb-twig {
-    animation: ot-twig-sway 6s ease-in-out infinite;
-  }
-
-  /* Bông hoa rung quanh cuống (phía dưới bông) */
-  .ot-sb-bloom {
-    transform-box: fill-box;
-    transform-origin: 50% 85%;
-    animation: ot-bloom-flutter 3s ease-in-out infinite;
-  }
-
-  .ot-branch-bottom .ot-sb-twig {
-    animation-direction: reverse;
-  }
-
-  /* Gió không đều: lắc, dịu lại, rung nhẹ rồi về chỗ */
-  @keyframes ot-branch-sway {
-    0%,
-    100% {
-      transform: rotate(0deg);
-    }
-
-    22% {
-      transform: rotate(1.4deg);
-    }
-
-    40% {
-      transform: rotate(-0.6deg);
-    }
-
-    60% {
-      transform: rotate(0.9deg);
-    }
-
-    80% {
-      transform: rotate(-0.3deg);
-    }
-  }
-
-  @keyframes ot-twig-sway {
-    0%,
-    100% {
-      transform: rotate(0deg);
-    }
-
-    30% {
-      transform: rotate(2.4deg);
-    }
-
-    55% {
-      transform: rotate(-1.4deg);
-    }
-
-    78% {
-      transform: rotate(1deg);
-    }
-  }
-
-  @keyframes ot-bloom-flutter {
-    0%,
-    100% {
-      transform: rotate(0deg) scale(1);
-    }
-
-    25% {
-      transform: rotate(6deg) scale(1.02);
-    }
-
-    50% {
-      transform: rotate(-3deg) scale(0.99);
-    }
-
-    75% {
-      transform: rotate(4deg) scale(1.01);
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .ot-branch {
-      display: block;
-    }
-  }
-
   /* Banner: ảnh tĩnh mờ dần sang phần chữ */
   .ot-hero-scene {
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 26%);
@@ -523,6 +401,128 @@
 
     to {
       transform: translateX(24px);
+    }
+  }
+
+  /* Bố cục trang con theo dự án Meeting: tiêu đề kèm dòng mô tả, nội dung trong thẻ trắng bo góc.
+     Điện thoại một cột sát lề; máy tính trang ngắn nằm trong thẻ giữa trang, trang nhiều nội dung chia 2 cột */
+  .ot-page-sub {
+    margin-top: 6px;
+    color: var(--ot-text-muted);
+    text-wrap: balance;
+  }
+
+  .ot-panel {
+    padding: 20px;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-lg);
+    background: var(--ot-surface);
+    box-shadow: var(--ot-shadow-1);
+  }
+
+  .ot-panel h2 {
+    font-size: 20px;
+  }
+
+  .ot-page-split {
+    width: 100%;
+    max-width: var(--ot-container-outer);
+    margin-inline: auto;
+    padding: 24px calc(var(--ot-gutter) + var(--ot-safe-right)) 40px calc(var(--ot-gutter) + var(--ot-safe-left));
+  }
+
+  .ot-page-split h1 {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+
+  .ot-split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    margin-top: 20px;
+  }
+
+  .ot-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .ot-form-grid label,
+  .ot-split label {
+    font-weight: 500;
+  }
+
+  .ot-sum {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 6px;
+  }
+
+  @media (min-width: 768px) {
+    .ot-page:not(.ot-page-wide) {
+      width: min(760px, calc(100% - 2 * var(--ot-gutter)));
+      margin: 28px auto 56px;
+      padding: 40px 48px;
+      border: 1px solid var(--ot-border);
+      border-radius: var(--ot-radius-lg);
+      background: var(--ot-surface);
+      box-shadow: var(--ot-shadow-2);
+    }
+
+    .ot-page h1,
+    .ot-page-split h1 {
+      font-size: 36px;
+    }
+
+    .ot-panel {
+      padding: 28px 32px;
+    }
+
+    .ot-form-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ot-span-2 {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .ot-split {
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 24px;
+    }
+
+    .ot-split > aside {
+      position: sticky;
+      top: calc(var(--ot-header-h) + 16px);
+    }
+  }
+
+  /* Tab thông tin tài khoản: các phần chia 2 cột trên máy tính, ngăn bằng đường kẻ mảnh */
+  .ot-profile {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .ot-profile > form,
+  .ot-profile > section {
+    margin-top: 0;
+    align-content: start;
+    padding-top: 20px;
+    border-top: 1px solid var(--ot-border);
+  }
+
+  @media (min-width: 1024px) {
+    .ot-profile {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 48px;
     }
   }
 
@@ -884,16 +884,17 @@
       min-height: 320px;
     }
 
+    /* Chữ dừng trước chỗ ảnh bắt đầu hiện, ảnh tối cũng không đè lên chữ */
     .ot-hero-text {
-      width: 54%;
-      padding: 32px 0 32px 32px;
+      width: 48%;
+      padding: 32px 24px 32px 32px;
     }
 
     .ot-hero-image {
       position: absolute;
       top: 0;
       right: 0;
-      width: 56%;
+      width: 52%;
       height: 100%;
       aspect-ratio: auto;
       -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%);
@@ -907,8 +908,18 @@
     }
 
     .ot-hero-text {
-      padding: 40px 0 40px 48px;
+      padding: 40px 32px 40px 48px;
     }
+  }
+
+  /* Chấm trạng thái quán: xanh lá sáng khi mở, xám khi đóng */
+  .ot-dot-open {
+    background: #22c55e;
+    box-shadow: 0 0 0 3px rgb(34 197 94 / 0.22);
+  }
+
+  .ot-dot-closed {
+    background: #a3a3a3;
   }
 
   .ot-card {

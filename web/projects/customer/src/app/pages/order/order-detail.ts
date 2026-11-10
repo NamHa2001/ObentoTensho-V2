@@ -11,6 +11,7 @@ import { askConfirm } from '../../core/dialog';
 import { LiveHub } from '../../core/live';
 import { errorText, Submit } from '../../shared/form';
 import { OrderView, ReservationView } from '../../shared/views';
+import { AuthCard } from '../auth/auth-card';
 import { takeToken } from '../auth/password';
 
 type Order = Schemas['PublicOrderDto'];
@@ -104,11 +105,10 @@ export class OrderDetail {
 // Tra cứu bằng mã + 4 số cuối SĐT
 @Component({
   selector: 'ot-lookup',
-  imports: [FormsModule, OrderView, ReservationView],
+  imports: [FormsModule, OrderView, ReservationView, AuthCard],
   template: `
-    <div class="ot-page">
-      <h1>Tra cứu</h1>
-      <form class="ot-stack" (ngSubmit)="submit()">
+    <ot-auth-card heading="Tra cứu" subtitle="Nhập mã đơn hoặc mã đặt bàn cùng 4 số cuối số điện thoại bạn đã dùng khi đặt.">
+      <form class="ot-auth-form" (ngSubmit)="submit()">
         <label>Loại
           <select class="ot-input" name="kind" [(ngModel)]="kind">
             <option value="order">Đơn món</option>
@@ -120,9 +120,9 @@ export class OrderDetail {
         @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
         <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Tra cứu</button>
       </form>
-      @if (order(); as o) { <ot-order-view [order]="o" class="mt-4 block" /> }
-      @if (reservation(); as r) { <ot-reservation-view [reservation]="r" class="mt-4 block" /> }
-    </div>
+      @if (order(); as o) { <ot-order-view [order]="o" class="mt-6 block" /> }
+      @if (reservation(); as r) { <ot-reservation-view [reservation]="r" class="mt-6 block" /> }
+    </ot-auth-card>
   `,
 })
 export class Lookup {

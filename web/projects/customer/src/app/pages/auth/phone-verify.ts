@@ -9,15 +9,16 @@ import { safeNext } from '../../core/safe-next';
 import { Turnstile } from '../../core/turnstile';
 import { Submit } from '../../shared/form';
 import { localPhone } from '../../shared/format';
+import { AuthCard } from './auth-card';
 
 const RESEND_SECONDS = 60;
 
 @Component({
   selector: 'ot-phone-verify',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, AuthCard],
   template: `
-    <form class="ot-form" (ngSubmit)="verify()">
-      <h1>Xác minh số điện thoại</h1>
+    <ot-auth-card heading="Xác minh số điện thoại" subtitle="Bước cuối để đặt bàn, đặt món và nhận voucher sinh nhật.">
+      <form class="ot-auth-form" (ngSubmit)="verify()">
       @if (auth.profile()?.isPhoneVerified) {
         <p>Số điện thoại đã được xác minh.</p>
         <a class="ot-btn ot-btn-primary" routerLink="/tai-khoan">Về tài khoản</a>
@@ -32,7 +33,8 @@ const RESEND_SECONDS = 60;
         }
         <p class="text-sm"><a class="text-primary" routerLink="/tai-khoan/thong-tin">Sai số điện thoại? Sửa trong tài khoản</a></p>
       }
-    </form>
+      </form>
+    </ot-auth-card>
   `,
 })
 export class PhoneVerify {

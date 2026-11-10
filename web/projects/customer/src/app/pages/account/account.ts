@@ -22,11 +22,12 @@ const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Tài khoản</h1>
+      <p class="ot-page-sub">Thông tin cá nhân, lịch sử đặt bàn, đơn hàng và điểm thưởng của bạn.</p>
       <nav class="ot-scroll-row mt-3" aria-label="Tài khoản">
         @for (t of tabs; track t.path) { <a class="ot-chip" [routerLink]="t.path" routerLinkActive="ot-chip-active">{{ t.label }}</a> }
         <button type="button" class="ot-chip" (click)="logout()">Đăng xuất</button>
       </nav>
-      <div class="mt-4"><router-outlet /></div>
+      <div class="ot-panel mt-4"><router-outlet /></div>
     </div>
   `,
 })
@@ -51,23 +52,25 @@ export class Account {
   imports: [FormsModule, RouterLink, VnDatePipe],
   template: `
     @if (auth.profile(); as p) {
-      <div class="ot-stack mt-0">
-        @if (!p.isPhoneVerified) { <p class="ot-error">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
-        @if (!p.isEmailVerified) { <p class="ot-error">Email chưa xác thực, hãy kiểm tra hộp thư. <button type="button" class="underline" [disabled]="resent()" (click)="resend(p.email)">{{ resent() ? 'Đã gửi lại' : 'Gửi lại thư' }}</button></p> }
-        @if (p.deletionScheduledAtUtc) {
-          <p class="ot-error">Tài khoản sẽ bị xóa ngày {{ p.deletionScheduledAtUtc | vnDate }}. <button type="button" class="underline" (click)="cancelDeletion()">Hủy xóa</button></p>
-        }
-        <p>Hạng {{ tiers[p.memberTier] }} · {{ p.currentPoints }} điểm</p>
-        @if (avatar(); as src) { <img class="size-20 rounded-full object-cover" [src]="src" alt="Ảnh đại diện" /> }
-        <div>
-          <p class="font-medium">Ảnh đại diện</p>
-          <div class="mt-2 flex flex-wrap items-center gap-3">
-            <label class="ot-btn ot-btn-outline cursor-pointer">{{ avatar() ? 'Đổi ảnh' : 'Chọn ảnh' }}<input class="sr-only" type="file" accept="image/*" (change)="upload($event)" /></label>
-            @if (avatar()) { <button type="button" class="ot-btn ot-btn-outline" (click)="removeAvatar()">Xóa ảnh</button> }
+      <div class="ot-profile">
+        <div class="ot-stack mt-0 lg:col-span-2">
+          @if (!p.isPhoneVerified) { <p class="ot-error">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
+          @if (!p.isEmailVerified) { <p class="ot-error">Email chưa xác thực, hãy kiểm tra hộp thư. <button type="button" class="underline" [disabled]="resent()" (click)="resend(p.email)">{{ resent() ? 'Đã gửi lại' : 'Gửi lại thư' }}</button></p> }
+          @if (p.deletionScheduledAtUtc) {
+            <p class="ot-error">Tài khoản sẽ bị xóa ngày {{ p.deletionScheduledAtUtc | vnDate }}. <button type="button" class="underline" (click)="cancelDeletion()">Hủy xóa</button></p>
+          }
+          <p>Hạng {{ tiers[p.memberTier] }} · {{ p.currentPoints }} điểm</p>
+          @if (avatar(); as src) { <img class="size-20 rounded-full object-cover" [src]="src" alt="Ảnh đại diện" /> }
+          <div>
+            <p class="font-medium">Ảnh đại diện</p>
+            <div class="mt-2 flex flex-wrap items-center gap-3">
+              <label class="ot-btn ot-btn-outline cursor-pointer">{{ avatar() ? 'Đổi ảnh' : 'Chọn ảnh' }}<input class="sr-only" type="file" accept="image/*" (change)="upload($event)" /></label>
+              @if (avatar()) { <button type="button" class="ot-btn ot-btn-outline" (click)="removeAvatar()">Xóa ảnh</button> }
+            </div>
+            <p class="mt-1 text-sm text-muted">Ảnh JPG hoặc PNG, tối đa 5 MB.</p>
           </div>
-          <p class="mt-1 text-sm text-muted">Ảnh JPG hoặc PNG, tối đa 5 MB.</p>
+          @if (avatarForm.error(); as e) { <p class="ot-error">{{ e }}</p> }
         </div>
-        @if (avatarForm.error(); as e) { <p class="ot-error">{{ e }}</p> }
 
         <form class="ot-stack" (ngSubmit)="save()">
           <h2 class="text-xl">Thông tin</h2>

@@ -17,37 +17,53 @@ export function linesOf(cart: CartStore) {
   selector: 'ot-cart',
   imports: [RouterLink, VndPipe],
   template: `
-    <div class="ot-page">
+    <div class="ot-page-split">
       <h1>Giỏ hàng</h1>
+      <p class="ot-page-sub">Giá luôn được kiểm tra lại với quán trước khi đặt.</p>
       @if (cart.lines().length === 0) {
-        <p class="mt-3">Giỏ hàng đang trống.</p>
-        <a class="ot-btn ot-btn-primary mt-3" routerLink="/menu">Xem thực đơn</a>
+        <div class="ot-panel mt-5">
+          <p>Giỏ hàng đang trống.</p>
+          <a class="ot-btn ot-btn-primary mt-3" routerLink="/menu">Xem thực đơn</a>
+        </div>
       } @else if (quote(); as q) {
-        <ul class="ot-stack">
-          @for (row of q.lines; track row.index) {
-            <li class="ot-card p-3">
-              @let line = lineOf(row);
-              <p class="font-semibold">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
-              @for (o of line?.options ?? []; track $index) { <p class="text-sm text-muted">{{ o.groupName }}: {{ o.optionName }}</p> }
-              @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
-              <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-1">
-                  <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1)">−</button>
-                  <span class="w-8 text-center">{{ cart.lines()[row.index]?.quantity }}</span>
-                  <button class="ot-chip" type="button" aria-label="Tăng" (click)="change(row.index, 1)">+</button>
-                </div>
-                @if (line; as l) { <b>{{ l.lineTotal | vnd }}</b> }
-                <button class="text-danger" type="button" (click)="cart.remove(row.index)">Xóa</button>
-              </div>
-            </li>
-          }
-        </ul>
-        <p class="mt-4 flex justify-between"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
-        @if (q.memberDiscount > 0) { <p class="flex justify-between"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
-        <p class="flex justify-between font-bold"><span>Tổng</span><span class="text-primary">{{ q.totalAmount | vnd }}</span></p>
-        @if (q.isValid) {
-          <a class="ot-btn ot-btn-primary mt-4 w-full" routerLink="/thanh-toan">Đặt món</a>
-        }
+        <div class="ot-split">
+          <section class="ot-panel">
+            <h2>Món đã chọn</h2>
+            <div class="mt-4">
+            <ul class="grid gap-3">
+              @for (row of q.lines; track row.index) {
+                <li class="ot-card p-3">
+                  @let line = lineOf(row);
+                  <p class="font-semibold">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
+                  @for (o of line?.options ?? []; track $index) { <p class="text-sm text-muted">{{ o.groupName }}: {{ o.optionName }}</p> }
+                  @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
+                  <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-1">
+                      <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1)">−</button>
+                      <span class="w-8 text-center">{{ cart.lines()[row.index]?.quantity }}</span>
+                      <button class="ot-chip" type="button" aria-label="Tăng" (click)="change(row.index, 1)">+</button>
+                    </div>
+                    @if (line; as l) { <b>{{ l.lineTotal | vnd }}</b> }
+                    <button class="text-danger" type="button" (click)="cart.remove(row.index)">Xóa</button>
+                  </div>
+                </li>
+              }
+            </ul>
+            </div>
+          </section>
+          <aside class="ot-panel">
+            <h2>Tóm tắt</h2>
+            <div class="mt-3">
+            <p class="ot-sum"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
+            @if (q.memberDiscount > 0) { <p class="ot-sum"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
+            <p class="ot-sum border-t border-line pt-3 text-lg font-bold"><span>Tổng</span><span class="text-primary">{{ q.totalAmount | vnd }}</span></p>
+            @if (q.isValid) {
+              <a class="ot-btn ot-btn-primary mt-4 w-full" routerLink="/thanh-toan">Đặt món</a>
+            }
+            </div>
+            <a class="ot-btn ot-btn-outline mt-2 w-full" routerLink="/menu">Chọn thêm món</a>
+          </aside>
+        </div>
       } @else if (failed()) {
         <p class="ot-error mt-3">Chưa kiểm tra được giá, vui lòng tải lại trang. Nếu vẫn lỗi, hãy xóa giỏ và chọn món lại.</p>
         <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="cart.clear()">Xóa giỏ hàng</button>
