@@ -54,9 +54,9 @@ export const RESOURCES: Record<string, Resource> = {
     title: 'Banner', path: 'banners', reorder: true, canCreate: true, canEdit: true, canDelete: true,
     columns: [{ key: 'image', label: 'Ảnh', thumb: (r) => r.image?.variants?.at(-1)?.url }, { key: 'title', label: 'Tiêu đề' }, { key: 'showFromDate', label: 'Từ ngày' }, { key: 'showToDate', label: 'Đến ngày' }, { key: 'isActive', label: 'Hiện' }],
     fields: [
-      { key: 'imageId', label: 'Ảnh (máy tính)', type: 'image', required: true, read: (r) => r.image?.id },
-      { key: 'imageMobileId', label: 'Ảnh (điện thoại)', type: 'image', read: (r) => r.imageMobile?.id },
-      { key: 'title', label: 'Tiêu đề', required: true }, { key: 'subtitle', label: 'Dòng phụ' }, { key: 'ctaText', label: 'Chữ trên nút' }, { key: 'ctaLink', label: 'Liên kết nút' },
+      { key: 'imageId', label: 'Ảnh máy tính: 1920 × 666 px (tỉ lệ 75:26), chữ và nút vẽ sẵn trong ảnh', type: 'image', required: true, read: (r) => r.image?.id },
+      { key: 'imageMobileId', label: 'Ảnh điện thoại: 1080 × 1620 px (tỉ lệ 2:3)', type: 'image', read: (r) => r.imageMobile?.id },
+      { key: 'title', label: 'Tên banner (đọc cho người khiếm thị và Google, không hiện ra)', required: true }, { key: 'subtitle', label: 'Ghi chú nội bộ' }, { key: 'ctaText', label: 'Chữ trên nút (không dùng)' }, { key: 'ctaLink', label: 'Bấm vào banner thì mở (vd /khuyen-mai)' },
       { key: 'showFromDate', label: 'Hiện từ ngày', type: 'date' }, { key: 'showToDate', label: 'Hiện đến ngày', type: 'date' }, { key: 'isActive', label: 'Hiện', type: 'bool', default: true },
     ],
   },
