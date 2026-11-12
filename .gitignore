@@ -45,3 +45,7 @@ Thumbs.db
 
 # Thư email ghi ra tệp ở máy dev (Email:Mode = pickup)
 mail-pickup/
+
+# Gói triển khai và cấu hình thật của máy chủ thử
+artifacts/
+appsettings.Staging.json

@@ -86,5 +86,10 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference().AllowAnonymous();
 }
 
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    await ObentoTensho.Infrastructure.Persistence.DatabaseMigrator.MigrateAsync(app.Services, CancellationToken.None);
+}
+
 await app.SeedSuperAdminAsync();
 await app.RunAsync();

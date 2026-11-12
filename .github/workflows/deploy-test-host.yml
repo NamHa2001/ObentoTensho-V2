@@ -1,0 +1,119 @@
+name: Deploy test host
+
+# Đưa bản master lên host thử: API → MonsterASP (Web Deploy), giao diện → Cloudflare Pages.
+# Mặc định chạy tay: Actions → Deploy test host → Run workflow. Đặt biến repo DEPLOY_AUTO = true thì tự chạy sau mỗi lần
+# push master có CI xanh. Cả hai cách chỉ chạy khi DEPLOY_TEST_HOST = true (đặt sau khi đã tạo site và điền secret).
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+
+# Hai lần push sát nhau: bản sau chờ bản trước xong, không hủy giữa chừng (tránh để host ở trạng thái app_offline)
+concurrency:
+  group: deploy-test-host
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API → MonsterASP
+    if: >-
+      vars.DEPLOY_TEST_HOST == 'true' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (vars.DEPLOY_AUTO == 'true' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+      - name: Đóng gói API cho IIS
+        shell: pwsh
+        env:
+          SELF_CONTAINED: ${{ vars.API_FRAMEWORK_DEPENDENT == 'true' && 'false' || 'true' }}
+        run: |
+          dotnet publish src/ObentoTensho.Api -c Release -r win-x64 --self-contained $env:SELF_CONTAINED /p:EnvironmentName=Staging -o publish/api
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # Host không hiện log màn hình; bản thử ghi mã OTP vào log
+          (Get-Content publish/api/web.config -Raw) -replace 'stdoutLogEnabled="false"', 'stdoutLogEnabled="true"' | Set-Content publish/api/web.config -Encoding utf8
+      - name: Web Deploy lên MonsterASP
+        shell: pwsh
+        env:
+          SITE: ${{ secrets.MONSTERASP_SITE }}
+          PASSWORD: ${{ secrets.MONSTERASP_DEPLOY_PASSWORD }}
+        run: |
+          $msdeploy = "${env:ProgramFiles(x86)}\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          if (-not (Test-Path $msdeploy)) { $msdeploy = "$env:ProgramFiles\IIS\Microsoft Web Deploy V3\msdeploy.exe" }
+          if (-not (Test-Path $msdeploy)) {
+            choco install webdeploy -y --no-progress
+            $msdeploy = "$env:ProgramFiles\IIS\Microsoft Web Deploy V3\msdeploy.exe"
+          }
+          $source = (Resolve-Path publish/api).Path
+          $dest = "contentPath=$env:SITE,computerName=https://$env:SITE.siteasp.net:8172/msdeploy.axd?site=$env:SITE,userName=$env:SITE,password=$env:PASSWORD,authtype=Basic,includeAcls=False"
+          # AppOffline: IIS dừng app trong lúc chép để nhả khóa DLL; DoNotDeleteRule: không bao giờ xóa tệp chỉ có trên host
+          # (appsettings.Staging.json, App_Data với ảnh và khóa, logs)
+          & $msdeploy -verb:sync "-source:contentPath=$source" "-dest:$dest" -allowUntrusted `
+            -disableLink:AppPoolExtension -disableLink:ContentExtension -disableLink:CertificateExtension `
+            -enableRule:AppOffline -enableRule:DoNotDeleteRule
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Chờ API khởi động (migration tự chạy)
+        shell: pwsh
+        env:
+          API_ORIGIN: ${{ vars.API_ORIGIN }}
+        run: |
+          for ($i = 1; $i -le 20; $i++) {
+            try {
+              $r = Invoke-WebRequest "$env:API_ORIGIN/health/ready" -TimeoutSec 30 -UseBasicParsing
+              if ($r.StatusCode -eq 200) { Write-Host "API sẵn sàng sau $i lần thử"; exit 0 }
+            } catch { Write-Host "Lần ${i}: chưa sẵn sàng ($($_.Exception.Message))" }
+            Start-Sleep -Seconds 15
+          }
+          Write-Error 'API không lên sau 5 phút: xem wwwroot/logs/stdout_*.log trên MonsterASP'
+          exit 1
+
+  pages:
+    name: Giao diện → Cloudflare Pages
+    needs: api
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Cài gói
+        run: npm ci
+      - name: Build giao diện khách (tệp tĩnh) và trang quản trị
+        run: |
+          npx ng build customer --configuration production,pages
+          npx ng build admin
+      - name: Deploy lên Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CUSTOMER_PROJECT: ${{ vars.PAGES_CUSTOMER_PROJECT }}
+          ADMIN_PROJECT: ${{ vars.PAGES_ADMIN_PROJECT }}
+        run: |
+          set -euo pipefail
+          deploy() {
+            local app="$1" project="$2" dir="../publish/pages/$1"
+            mkdir -p "$dir"
+            cp -r "dist/$app/browser" "$dir/site"
+            cp -r ../deploy/cloudflare/functions "$dir/functions"
+            # wrangler tìm thư mục functions ở thư mục đang đứng
+            (cd "$dir" && npx --yes wrangler@4.152.0 pages deploy site --project-name "$project" --branch main --commit-dirty=true)
+          }
+          deploy customer "$CUSTOMER_PROJECT"
+          deploy admin "$ADMIN_PROJECT"
