@@ -1,23 +1,24 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, EMPTY, from, map, of, switchMap } from 'rxjs';
 
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
-import { Cart as CartStore } from '../../core/cart';
+import { Cart as CartStore, NOTE_MAX_LENGTH } from '../../core/cart';
 import { VndPipe } from '../../shared/vnd.pipe';
 
 const MENU_PAGE = 100;
 
 export function linesOf(cart: CartStore) {
-  return cart.lines().map((l) => ({ menuItemId: l.menuItemId, quantity: l.quantity, optionIds: l.optionIds, note: null }));
+  return cart.lines().map((l) => ({ menuItemId: l.menuItemId, quantity: l.quantity, optionIds: l.optionIds, note: l.note || null }));
 }
 
 @Component({
   selector: 'ot-cart',
-  imports: [RouterLink, VndPipe],
+  imports: [FormsModule, RouterLink, VndPipe],
   template: `
     <div class="ot-page-split">
       <h1>Giỏ hàng</h1>
@@ -44,6 +45,18 @@ export function linesOf(cart: CartStore) {
                   <div class="min-w-0 flex-1">
                     <p class="font-semibold">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
                     @for (o of line?.options ?? []; track $index) { <p class="text-sm text-muted">{{ o.groupName }}: {{ o.optionName }}</p> }
+                    @let note = cart.lines()[row.index]?.note;
+                    @if (editing() === row.index) {
+                      <form class="mt-2 flex flex-wrap items-center gap-2" (ngSubmit)="saveNote(row.index)">
+                        <input class="ot-input min-w-0 flex-1" name="note" [maxlength]="noteMax" placeholder="Ví dụ: ít cay, không hành" aria-label="Ghi chú cho món" [(ngModel)]="draft" />
+                        <button class="ot-btn ot-btn-primary min-h-11 px-4">Lưu</button>
+                        <button type="button" class="px-2 font-semibold text-muted" (click)="editing.set(null)">Hủy</button>
+                      </form>
+                    } @else if (note) {
+                      <p class="mt-1 text-sm"><span class="text-muted">Ghi chú:</span> {{ note }} <button type="button" class="ml-1 font-semibold text-primary" (click)="editNote(row.index)">Sửa</button></p>
+                    } @else {
+                      <button type="button" class="mt-1 text-sm font-semibold text-primary" (click)="editNote(row.index)">+ Thêm ghi chú</button>
+                    }
                     @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
                     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
                       <div class="flex items-center gap-1">
@@ -96,6 +109,9 @@ export class CartPage {
   );
   protected readonly quote = signal<Schemas['OrderQuoteDto'] | null>(null);
   protected readonly failed = signal(false);
+  protected readonly editing = signal<number | null>(null);
+  protected readonly noteMax = NOTE_MAX_LENGTH;
+  protected draft = '';
   protected readonly items = computed(() => linesOf(this.cart));
 
   constructor() {
@@ -123,6 +139,16 @@ export class CartPage {
   // API trả line = null với món lỗi, dù kiểu sinh từ OpenAPI chưa ghi nhận
   protected lineOf(row: Schemas['QuoteLineDto']): Schemas['OrderLineDto'] | null {
     return row.line ?? null;
+  }
+
+  protected editNote(index: number): void {
+    this.draft = this.cart.lines()[index]?.note ?? '';
+    this.editing.set(index);
+  }
+
+  protected saveNote(index: number): void {
+    this.cart.setNote(index, this.draft);
+    this.editing.set(null);
   }
 
   protected change(index: number, delta: number): void {

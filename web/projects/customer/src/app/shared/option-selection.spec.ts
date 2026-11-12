@@ -1,6 +1,6 @@
 import { Schemas } from '@ot/api';
 
-import { addLine } from '../../core/cart';
+import { addLine } from '../core/cart';
 import { defaultSelection, isComplete, requiredCount, toggle, unitPrice } from './option-selection';
 
 type Group = Schemas['PublicOptionGroupDto'];

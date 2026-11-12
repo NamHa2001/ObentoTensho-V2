@@ -47,7 +47,7 @@ const MAX_AUTO_DAYS = 14;
                   <option value="bank_transfer">Chuyển khoản</option>
                 </select>
               </label>
-              <label class="ot-span-2">Ghi chú<textarea class="ot-input" name="note" rows="2" [(ngModel)]="model.note"></textarea></label>
+              <label class="ot-span-2">Ghi chú cho cả đơn<textarea class="ot-input" name="note" rows="2" placeholder="Ví dụ: lấy thêm đũa, gọi trước khi làm món" [(ngModel)]="model.note"></textarea></label>
             </div>
           </section>
           <aside class="ot-panel">
@@ -55,7 +55,15 @@ const MAX_AUTO_DAYS = 14;
               <section>
                 <h2>Đơn của bạn</h2>
                 @for (row of q.lines; track row.index) {
-                  @if (row.line; as l) { <p class="mt-2 flex justify-between gap-3"><span>{{ l.quantity }} × {{ l.name }}</span><span class="whitespace-nowrap">{{ l.lineTotal | vnd }}</span></p> }
+                  @if (row.line; as l) {
+                    <div class="mt-2 flex justify-between gap-3">
+                      <span class="min-w-0">{{ l.quantity }} × {{ l.name }}
+                        @for (o of l.options; track $index) { <small class="block text-muted">{{ o.groupName }}: {{ o.optionName }}</small> }
+                        @if (l.note) { <small class="block text-muted">Ghi chú: {{ l.note }}</small> }
+                      </span>
+                      <span class="whitespace-nowrap">{{ l.lineTotal | vnd }}</span>
+                    </div>
+                  }
                 }
                 <p class="mt-2 flex justify-between border-t border-line pt-2"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
                 @if (applied(); as v) {

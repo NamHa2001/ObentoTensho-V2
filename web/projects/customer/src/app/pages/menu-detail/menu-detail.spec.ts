@@ -32,23 +32,33 @@ describe('Trang chi tiết món', () => {
     return fixture;
   }
 
-  it('khóa nút tới khi chọn đủ, chọn rồi cộng giá và thêm đúng vào giỏ', async () => {
+  it('trang chỉ để xem; bấm thêm mới mở bảng chọn, chọn đủ mới thêm được, kèm ghi chú', async () => {
     const fixture = await open();
     const root: HTMLElement = fixture.nativeElement;
-    const button = () => root.querySelector<HTMLButtonElement>('.ot-buy-bar .ot-btn')!;
-    expect(button().disabled).toBe(true);
-    expect(button().textContent).toContain('Chọn đủ');
+    const step = async () => {
+      await fixture.whenStable();
+      fixture.detectChanges();
+    };
+    expect(root.querySelector('input[type=radio]')).toBeNull();
 
-    root.querySelectorAll<HTMLInputElement>('input[type=radio]')[1].dispatchEvent(new Event('change'));
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(button().disabled).toBe(false);
-    expect(button().textContent).toContain('80.000');
+    root.querySelector<HTMLButtonElement>('.ot-buy-bar button')!.click();
+    await step();
+    const submit = () => root.querySelector<HTMLButtonElement>('.ot-sheet button.ot-btn-primary')!;
+    expect(submit().disabled).toBe(true);
+    expect(submit().textContent).toContain('Chọn đủ');
 
-    button().click();
-    await fixture.whenStable();
-    fixture.detectChanges();
-    expect(TestBed.inject(Cart).lines()).toEqual([{ menuItemId: 7, optionIds: [2], quantity: 1 }]);
-    expect(button().textContent).toContain('Đã thêm');
+    root.querySelectorAll<HTMLInputElement>('.ot-sheet input[type=radio]')[1].dispatchEvent(new Event('change'));
+    const note = root.querySelector<HTMLTextAreaElement>('.ot-sheet textarea')!;
+    note.value = '  ít cay ';
+    note.dispatchEvent(new Event('input'));
+    await step();
+    expect(submit().disabled).toBe(false);
+    expect(submit().textContent).toContain('80.000');
+
+    submit().click();
+    await step();
+    expect(TestBed.inject(Cart).lines()).toEqual([{ menuItemId: 7, optionIds: [2], quantity: 1, note: 'ít cay' }]);
+    expect(root.querySelector('.ot-sheet')).toBeNull();
+    expect(root.querySelector('.ot-buy-bar')!.textContent).toContain('Đã thêm');
   });
 });
