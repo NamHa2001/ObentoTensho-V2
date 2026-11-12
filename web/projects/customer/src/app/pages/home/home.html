@@ -1,62 +1,65 @@
 <section class="ot-container pt-4 md:pt-5">
-  <div class="ot-hero" (mouseenter)="pause(true)" (mouseleave)="pause(false)" (touchstart)="touchStart($event)" (touchend)="touchEnd($event)">
-      <!-- Chưa có banner: ảnh tĩnh núi Phú Sĩ, mờ dần sang phần chữ -->
-      @if (!banner()) {
-        <div class="ot-hero-scene pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden md:block" aria-hidden="true">
-          <img class="absolute inset-0 size-full object-cover object-right" src="/decor/4-fuji.webp" alt="" width="688" height="343" fetchpriority="high" />
+  @if (banner(); as b) {
+    <!-- Banner là nguyên một ảnh do team thiết kế làm sẵn (chữ, nút nằm trong ảnh): máy tính 3:1 (1920×640), điện thoại 2:1 (1200×600) -->
+    <div class="ot-banner" (mouseenter)="pause(true)" (mouseleave)="pause(false)" (touchstart)="touchStart($event)" (touchend)="touchEnd($event)">
+      <h1 class="sr-only">{{ b.title }}</h1>
+      @if (internalLink(b.ctaLink); as path) {
+        <a class="ot-banner-link" [routerLink]="path" [attr.aria-label]="b.title">
+          <ng-container *ngTemplateOutlet="art; context: { $implicit: b }" />
+        </a>
+      } @else if (b.ctaLink) {
+        <a class="ot-banner-link" [href]="b.ctaLink" target="_blank" rel="noopener" [attr.aria-label]="b.title">
+          <ng-container *ngTemplateOutlet="art; context: { $implicit: b }" />
+        </a>
+      } @else {
+        <div class="ot-banner-link"><ng-container *ngTemplateOutlet="art; context: { $implicit: b }" /></div>
+      }
+      @if (bannerCount() > 1) {
+        <div class="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
+          @for (x of banners(); track x.id; let i = $index) {
+            <button type="button" class="flex size-6 items-center justify-center" [attr.aria-label]="'Banner ' + (i + 1)" (click)="active.set(i)"><span class="size-2.5 rounded-full shadow-sm" [class.bg-primary]="i === active()" [class.bg-surface]="i !== active()"></span></button>
+          }
         </div>
       }
-
+    </div>
+  } @else {
+    <!-- Chưa có banner: khung chữ mặc định với ảnh tĩnh núi Phú Sĩ -->
+    <div class="ot-hero">
+      <div class="ot-hero-scene pointer-events-none absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden md:block" aria-hidden="true">
+        <img class="absolute inset-0 size-full object-cover object-right" src="/decor/4-fuji.webp" alt="" width="688" height="343" fetchpriority="high" />
+      </div>
       <div class="ot-hero-text">
-      <p class="flex items-center gap-3 text-muted">
-        <span class="h-px w-8 bg-muted"></span>
-        Ẩm thực Nhật Bản
-        <ot-sakura class="size-5 text-sakura-deep" />
-      </p>
-      @if (banner(); as b) {
-        <h1 class="mt-3 text-[28px] leading-[1.15] min-[400px]:text-[32px] lg:text-[40px] xl:text-[48px]">{{ b.title }}</h1>
-        @if (b.subtitle) {
-          <p class="mt-3 text-muted lg:text-lg">{{ b.subtitle }}</p>
-        }
-      } @else {
+        <p class="flex items-center gap-3 text-muted">
+          <span class="h-px w-8 bg-muted"></span>
+          Ẩm thực Nhật Bản
+          <ot-sakura class="size-5 text-sakura-deep" />
+        </p>
         <h1 class="mt-3 text-[28px] leading-[1.15] min-[400px]:text-[32px] lg:text-[40px] xl:text-[48px]">
           <span class="min-[340px]:whitespace-nowrap">Cơm hộp Nhật,</span><br />
           <span class="min-[340px]:whitespace-nowrap">nấu <span class="relative text-primary">mới<span class="absolute inset-x-0 -bottom-1 h-[3px] rounded-full bg-primary"></span></span> mỗi ngày</span>
         </h1>
         <p class="mt-3 text-muted lg:text-lg">Đặt món mang về hoặc giữ bàn trước, chỉ vài bước ngay trên điện thoại.</p>
-      }
-      @if (banner()?.ctaText && banner()?.ctaLink) {
-        <a class="ot-btn ot-btn-outline mt-5" [href]="banner()!.ctaLink">{{ banner()!.ctaText }}</a>
-      }
-      <div class="mt-5 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:max-w-[400px] lg:gap-5">
-        <a routerLink="/menu" class="ot-btn ot-btn-primary whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
-          <lucide-icon [img]="icons.order" [size]="20" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
-        </a>
-        <a routerLink="/dat-ban" class="ot-btn ot-btn-outline whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
-          <lucide-icon [img]="icons.book" [size]="20" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
-        </a>
-      </div>
-      </div>
-
-
-      <!-- Ảnh do quản trị đăng; chưa có banner thì không hiện ảnh -->
-      @if (banner(); as b) {
-        <picture>
-          @if (b.imageMobile; as mobile) {
-            <source media="(max-width: 767px)" [attr.srcset]="srcset(mobile)" sizes="100vw" />
-          }
-          <img class="ot-hero-image" [src]="b.image.variants.at(-1)?.url" [attr.srcset]="srcset(b.image)" sizes="(max-width: 767px) 100vw, 672px" [width]="b.image.width" [height]="b.image.height" [alt]="b.image.altText" fetchpriority="high" />
-        </picture>
-      }
-      @if (bannerCount() > 1) {
-        <div class="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
-          @for (b of banners(); track b.id; let i = $index) {
-            <button type="button" class="flex size-6 items-center justify-center" [attr.aria-label]="'Banner ' + (i + 1)" (click)="active.set(i)"><span class="size-2.5 rounded-full" [class.bg-primary]="i === active()" [class.bg-surface]="i !== active()"></span></button>
-          }
+        <div class="mt-5 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:max-w-[400px] lg:gap-5">
+          <a routerLink="/menu" class="ot-btn ot-btn-primary whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
+            <lucide-icon [img]="icons.order" [size]="20" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
+          </a>
+          <a routerLink="/dat-ban" class="ot-btn ot-btn-outline whitespace-nowrap md:max-lg:gap-1.5 md:max-lg:px-3">
+            <lucide-icon [img]="icons.book" [size]="20" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
+          </a>
         </div>
-      }
-  </div>
+      </div>
+    </div>
+  }
 </section>
+
+<ng-template #art let-b>
+  <picture>
+    @if (b.imageMobile; as mobile) {
+      <source media="(max-width: 767px)" [attr.srcset]="srcset(mobile)" sizes="100vw" />
+    }
+    <img class="ot-banner-image" [src]="b.image.variants.at(-1)?.url" [attr.srcset]="srcset(b.image)" sizes="(max-width: 767px) 100vw, 1200px" [width]="b.image.width" [height]="b.image.height" [alt]="b.image.altText || b.title" fetchpriority="high" />
+  </picture>
+</ng-template>
 
 <section class="ot-container ot-block">
     <div class="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
@@ -121,7 +124,7 @@
 @if (featuredSlots().length > 0) {
   <section class="ot-container ot-block">
     <ot-section-title accent="Món" title="nổi bật" link="/menu" />
-    <div class="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:grid-cols-4 md:gap-5">
+    <div class="mt-3 grid grid-cols-2 gap-3 md:mt-4 md:grid-cols-4 md:gap-4">
       @for (item of featuredSlots(); track $index) {
         @if (item) {
           <ot-menu-item-card [item]="item" />

@@ -6,8 +6,8 @@
     }
   </div>
 
-  <div class="mt-3 grid grid-cols-1 gap-3 md:mt-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-x-[30px] lg:gap-y-5">
-  <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_190px_190px] md:gap-5 lg:col-start-2 lg:row-start-1">
+  <div class="mt-3 grid grid-cols-1 gap-3 md:mt-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-4">
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_190px_190px] md:gap-4 lg:col-start-2 lg:row-start-1">
     <div class="relative">
       <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.search" [size]="20" /></span>
       <input
@@ -65,7 +65,7 @@
 
     <section class="lg:col-start-2 lg:row-start-2" aria-live="polite">
       @if (loading()) {
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
           @for (s of skeletons; track s) {
             <div class="ot-card overflow-hidden p-2 md:p-[13px]">
               <div class="ot-skeleton aspect-[4/3] rounded-lg"></div>
@@ -90,7 +90,7 @@
           <a routerLink="/menu" class="ot-btn ot-btn-outline mt-4">Xem tất cả</a>
         </div>
       } @else {
-        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5">
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
           @for (item of items(); track item.id; let i = $index) {
             <ot-menu-item-card [item]="item" [eager]="i < 3" />
           }

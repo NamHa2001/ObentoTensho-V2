@@ -1,6 +1,18 @@
 @import 'tailwindcss';
 @import '../../../libs/ot-tokens/tokens.css';
 
+/* Giao diện khách: thẻ trắng nổi trên nền kem để nội dung tách khỏi nền; chữ phụ xám ấm thay vì nâu cho đỡ mỏi mắt */
+:root {
+  /* Trắng ngà ấm hơi ngả xám: ít vàng hơn kem cũ nên đỡ chói, vẫn đủ tối hơn thẻ trắng để thẻ tách khỏi nền */
+  --ot-bg: #f6f2ec;
+  --ot-surface: #ffffff;
+  --ot-surface-2: #f6efe6;
+  --ot-border: #eadccb;
+  --ot-text-muted: #6b625b;
+  --ot-shadow-1: 0 1px 3px rgb(60 40 25 / 10%), 0 1px 2px rgb(60 40 25 / 6%);
+  --ot-shadow-2: 0 10px 28px rgb(60 40 25 / 14%);
+}
+
 @theme inline {
   --color-bg: var(--ot-bg);
   --color-surface: var(--ot-surface);
@@ -388,7 +400,8 @@
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
-    background: var(--ot-bg) url('/decor/1-nen.webp') center / cover no-repeat;
+    /* Nền trơn một màu, chỉ còn cánh hoa rơi phía trên */
+    background: var(--ot-bg);
   }
 
   .ot-petal-rain {
@@ -1097,6 +1110,11 @@
     }
   }
 
+  /* Sao đánh giá: lucide vẽ hình rỗng, thuộc tính fill đặt ở thẻ bọc nên phải truyền xuống hình bên trong */
+  lucide-icon[fill='currentColor'] svg {
+    fill: currentColor;
+  }
+
   /* Thẻ voucher dạng vé: cuống màu bên trái ghi mức giảm, đường cắt răng cưa ở giữa */
   .ot-ticket {
     display: flex;
@@ -1173,7 +1191,38 @@
     color: var(--ot-text);
   }
 
-  /* Banner nằm trong vùng an toàn: điện thoại xếp chữ trên ảnh dưới; từ 768px ảnh nằm bên phải, mờ dần vào nền */
+  /* Banner là nguyên một ảnh do team thiết kế làm (chữ, nút nằm sẵn trong ảnh), khung giữ đúng kích thước cũ:
+     máy tính 75:26 (1200 × 416 trong vùng an toàn), điện thoại 2:3 (ảnh dọc riêng) */
+  .ot-banner {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 2 / 3;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-lg);
+    background: var(--ot-surface-2);
+    box-shadow: var(--ot-shadow-1);
+  }
+
+  .ot-banner-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .ot-banner-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (min-width: 768px) {
+    .ot-banner {
+      aspect-ratio: 75 / 26;
+    }
+  }
+
+  /* Chưa đăng banner nào: khung chữ mặc định, ảnh núi Phú Sĩ mờ dần sang phần chữ */
   .ot-hero {
     position: relative;
     overflow: hidden;
@@ -1189,14 +1238,6 @@
     padding: 20px;
   }
 
-  .ot-hero-image {
-    display: block;
-    width: 100%;
-    aspect-ratio: 1049 / 492;
-    object-fit: cover;
-    object-position: 70% center;
-  }
-
   @media (min-width: 768px) {
     .ot-hero {
       display: flex;
@@ -1204,27 +1245,15 @@
       min-height: 320px;
     }
 
-    /* Chữ dừng trước chỗ ảnh bắt đầu hiện, ảnh tối cũng không đè lên chữ */
     .ot-hero-text {
       width: 48%;
       padding: 32px 24px 32px 32px;
-    }
-
-    .ot-hero-image {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 52%;
-      height: 100%;
-      aspect-ratio: auto;
-      -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16%);
-      mask-image: linear-gradient(to right, transparent 0, #000 16%);
     }
   }
 
   @media (min-width: 1200px) {
     .ot-hero {
-      min-height: 400px;
+      min-height: 416px;
     }
 
     .ot-hero-text {
@@ -1256,6 +1285,59 @@
     -webkit-line-clamp: 3;
     line-clamp: 3;
     overflow: hidden;
+  }
+
+  /* Nút "+" thêm nhanh trên thẻ món */
+  .ot-add-btn {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: var(--ot-primary);
+    color: var(--ot-primary-contrast);
+    box-shadow: var(--ot-shadow-1);
+    transition: background-color 0.18s, transform 0.18s, box-shadow 0.18s;
+  }
+
+  .ot-add-btn.is-added {
+    background: var(--ot-success-text);
+  }
+
+  .ot-add-btn:active {
+    transform: scale(0.92);
+  }
+
+  .ot-dish {
+    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+  }
+
+  .ot-dish img {
+    transition: transform 0.4s ease;
+  }
+
+  @media (hover: hover) {
+    .ot-dish:hover {
+      border-color: color-mix(in srgb, var(--ot-primary) 35%, var(--ot-border));
+      box-shadow: var(--ot-shadow-2);
+      transform: translateY(-3px);
+    }
+
+    .ot-dish:hover img {
+      transform: scale(1.05);
+    }
+
+    .ot-add-btn:hover {
+      background: var(--ot-primary-hover);
+      box-shadow: 0 6px 16px color-mix(in srgb, var(--ot-primary) 30%, transparent);
+      transform: scale(1.08);
+    }
+
+    .ot-dish a:hover h3 {
+      color: var(--ot-primary);
+    }
   }
 
   .ot-title-2 {

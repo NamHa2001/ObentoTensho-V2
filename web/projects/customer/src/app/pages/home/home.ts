@@ -1,5 +1,6 @@
 import { afterNextRender, Component, computed, DestroyRef, inject, isDevMode, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
 import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
@@ -29,7 +30,7 @@ function slots<T>(list: readonly T[], count: number): (T | null)[] {
 
 @Component({
   selector: 'ot-home',
-  imports: [RouterLink, LucideAngularModule, MenuItemCard, Sakura, SectionTitle, VnDatePipe],
+  imports: [NgTemplateOutlet, RouterLink, LucideAngularModule, MenuItemCard, Sakura, SectionTitle, VnDatePipe],
   templateUrl: './home.html',
 })
 export class Home {
@@ -143,7 +144,12 @@ export class Home {
     return image?.variants.at(-1)?.url ?? null;
   }
 
-  protected srcset(image: Schemas['ImageDto']): string {
+  // Liên kết trong web đi bằng router (không tải lại trang); liên kết ngoài mở tab mới
+  protected internalLink(link: string | null | undefined): string | null {
+    return link && link.startsWith('/') && !link.startsWith('//') ? link : null;
+  }
+
+    protected srcset(image: Schemas['ImageDto']): string {
     return image.variants.map((v) => `${v.url} ${v.width}w`).join(', ');
   }
 
