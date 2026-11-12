@@ -66,10 +66,11 @@ jobs:
         shell: pwsh
         env:
           API_ORIGIN: ${{ vars.API_ORIGIN }}
+        # /health/ready chỉ trả lời mạng nội bộ; /health/live lên được nghĩa là migration đã chạy xong (chạy trước khi nhận request)
         run: |
           for ($i = 1; $i -le 20; $i++) {
             try {
-              $r = Invoke-WebRequest "$env:API_ORIGIN/health/ready" -TimeoutSec 30 -UseBasicParsing
+              $r = Invoke-WebRequest "$env:API_ORIGIN/health/live" -TimeoutSec 30 -UseBasicParsing
               if ($r.StatusCode -eq 200) { Write-Host "API sẵn sàng sau $i lần thử"; exit 0 }
             } catch { Write-Host "Lần ${i}: chưa sẵn sàng ($($_.Exception.Message))" }
             Start-Sleep -Seconds 15
