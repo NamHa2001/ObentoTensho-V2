@@ -2,6 +2,7 @@ using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Invoices;
 using ObentoTensho.Contracts.Dtos.Orders;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Delivery.Services;
 using ObentoTensho.Core.Invoices.Services;
 using ObentoTensho.Core.Invoices.Validators;
 using ObentoTensho.Core.Orders.Services;
@@ -27,6 +28,9 @@ public static class OrdersConfiguration
         // Yêu cầu xuất hóa đơn đi kèm đơn (chủ quán 2026-11-13)
         services.AddSingleton<IValidator<InvoiceBuyerRequest>, InvoiceBuyerRequestValidator>();
         services.AddScoped<InvoiceService>();
+
+        // Giao hàng (chủ quán 2026-11-13)
+        services.AddScoped<DeliveryQuoteService>();
 
         // Việc định kỳ (docs/srs/20 §4)
         services.AddScoped<OrderJobs>();

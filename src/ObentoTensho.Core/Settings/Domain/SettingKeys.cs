@@ -32,6 +32,12 @@ public static class SettingKeys
     public const string OtpMaxAttempts = "otp.maxAttempts";
     public const string OtpDailyQuota = "otp.dailyQuota";
 
+    public const string DeliveryEnabled = "delivery.enabled";
+    public const string DeliveryOrigin = "delivery.origin";
+    public const string DeliveryFreeKm = "delivery.freeKm";
+    public const string DeliveryFeePerKm = "delivery.feePerKm";
+    public const string DeliveryMaxKm = "delivery.maxKm";
+
     public const string OrderMinLeadMinutes = "order.minLeadMinutes";
     public const string OrderMaxLeadDays = "order.maxLeadDays";
     public const string OrderMaxActivePerPhone = "order.maxActivePerPhone";

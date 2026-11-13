@@ -2,9 +2,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Delivery.Abstractions;
 using ObentoTensho.Core.Notifications.Abstractions;
 using ObentoTensho.Core.Notifications.Services;
 using ObentoTensho.Core.Verification.Abstractions;
+using ObentoTensho.Infrastructure.Delivery;
 using ObentoTensho.Infrastructure.Email;
 using ObentoTensho.Infrastructure.Jobs;
 using ObentoTensho.Infrastructure.Messaging;
@@ -64,6 +66,10 @@ public static class MessagingRegistration
             .Validate(o => o.Validate(isProduction) is null, "Cấu hình Turnstile không hợp lệ (xem TurnstileOptions.Validate).")
             .ValidateOnStart();
         services.AddHttpClient<ITurnstileVerifier, CloudflareTurnstileVerifier>(c => c.Timeout = TimeSpan.FromSeconds(5));
+
+        // Giao hàng: quãng đường qua Google Routes; chưa có khóa thì báo chưa tính được phí
+        services.AddOptions<MapsOptions>().Bind(configuration.GetSection(MapsOptions.SectionName));
+        services.AddHttpClient<IRouteDistance, GoogleRouteDistance>(c => c.Timeout = TimeSpan.FromSeconds(8));
 
         // Việc định kỳ (docs/srs/20 §4)
         services.AddOptions<JobOptions>()

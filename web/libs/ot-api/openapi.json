@@ -1279,6 +1279,38 @@
         }
       }
     },
+    "/api/v1/orders/delivery-quote": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryQuoteRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryQuoteRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryQuoteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/orders/pickup-times": {
       "get": {
         "tags": [
@@ -12301,6 +12333,48 @@
           "value": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "DeliveryQuoteDto": {
+        "required": [
+          "address",
+          "distanceKm",
+          "fee",
+          "freeKm",
+          "feePerKm"
+        ],
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double"
+          },
+          "fee": {
+            "type": "number",
+            "format": "double"
+          },
+          "freeKm": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "feePerKm": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DeliveryQuoteRequest": {
+        "required": [
+          "address"
+        ],
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
           }
         }
       },

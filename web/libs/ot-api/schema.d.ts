@@ -1773,6 +1773,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/delivery-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DeliveryQuoteRequest"];
+                    "text/json": components["schemas"]["DeliveryQuoteRequest"];
+                    "application/*+json": components["schemas"]["DeliveryQuoteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/pickup-times": {
         parameters: {
             query?: never;
@@ -10643,6 +10682,20 @@ export interface components {
             date: string;
             /** Format: double */
             value: number;
+        };
+        DeliveryQuoteDto: {
+            address: string;
+            /** Format: double */
+            distanceKm: number;
+            /** Format: double */
+            fee: number;
+            /** Format: int32 */
+            freeKm: number;
+            /** Format: int32 */
+            feePerKm: number;
+        };
+        DeliveryQuoteRequest: {
+            address: string;
         };
         DineInBillDto: {
             /** Format: uuid */

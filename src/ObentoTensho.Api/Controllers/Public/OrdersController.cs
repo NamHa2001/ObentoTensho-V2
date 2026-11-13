@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using ObentoTensho.Api.Configuration;
 using ObentoTensho.Api.Http;
+using ObentoTensho.Contracts.Dtos.Delivery;
 using ObentoTensho.Contracts.Dtos.Orders;
+using ObentoTensho.Core.Delivery.Services;
 using ObentoTensho.Core.Orders.Services;
 
 namespace ObentoTensho.Api.Controllers.Public;
@@ -13,8 +15,15 @@ namespace ObentoTensho.Api.Controllers.Public;
 [ApiController]
 [Route("api/v1/orders")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class OrdersController(PublicOrderService orders) : ControllerBase
+public sealed class OrdersController(PublicOrderService orders, DeliveryQuoteService delivery) : ControllerBase
 {
+    // Phí ship theo quãng đường thật; mỗi lần gọi có thể tốn phí Google nên giới hạn như tra cứu
+    [HttpPost("delivery-quote")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
+    public async Task<IActionResult> DeliveryQuote(DeliveryQuoteRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await delivery.QuoteAsync(request.Address, cancellationToken));
+
     [HttpGet("pickup-times")]
     [AllowAnonymous]
     public async Task<IActionResult> PickupTimes([FromQuery, BindRequired] DateOnly date, CancellationToken cancellationToken) =>

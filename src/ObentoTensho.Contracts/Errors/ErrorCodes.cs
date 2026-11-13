@@ -65,6 +65,10 @@ public static class ErrorCodes
     public const string MemberNotFound = "MEMBER_NOT_FOUND";
     public const string BillNotEmpty = "BILL_NOT_EMPTY";
     public const string InvoiceExists = "INVOICE_EXISTS";
+    public const string DeliveryDisabled = "DELIVERY_DISABLED";
+    public const string DeliveryTooFar = "DELIVERY_TOO_FAR";
+    public const string AddressNotFound = "ADDRESS_NOT_FOUND";
+    public const string DeliveryUnavailable = "DELIVERY_UNAVAILABLE";
     // Điểm thưởng (docs/srs/13)
     public const string PointsInsufficient = "POINTS_INSUFFICIENT";
     public const string FourEyesRequired = "FOUR_EYES_REQUIRED";

@@ -47,6 +47,13 @@ public static class SettingsCatalog
         Int(OtpMaxAttempts, 5, 3, 10, "Số lần nhập sai tối đa"),
         Int(OtpDailyQuota, 200, 10, 100_000, "Số mã OTP mỗi ngày"),
 
+        // Giao hàng (chủ quán 2026-11-13): quán tự giao, phí theo quãng đường lái xe thật
+        new(DeliveryEnabled, SettingType.Bool, "false", "Nhận đơn giao tận nơi", IsPublic: true),
+        Text(DeliveryOrigin, string.Empty, "Điểm xuất phát giao hàng (để trống = địa chỉ quán; hoặc vĩ độ,kinh độ)", isPublic: false),
+        new(DeliveryFreeKm, SettingType.Number, "2", "Miễn phí ship trong bán kính (km)", 0, 50, IsPublic: true),
+        new(DeliveryFeePerKm, SettingType.Number, "15000", "Phí ship mỗi km vượt bán kính miễn phí (₫)", 0, 500_000, IsPublic: true),
+        new(DeliveryMaxKm, SettingType.Number, "7", "Giao xa tối đa (km)", 1, 100, IsPublic: true),
+
         Int(OrderMinLeadMinutes, 30, 10, 240, "Giờ lấy sớm nhất sau lúc đặt (phút)"),
         Int(OrderMaxLeadDays, 7, 1, 30, "Đặt trước tối đa (ngày)"),
         Int(OrderMaxActivePerPhone, 3, 1, 10, "Số đơn đang mở mỗi SĐT"),
