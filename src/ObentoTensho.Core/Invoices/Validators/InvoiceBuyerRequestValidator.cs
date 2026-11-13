@@ -31,11 +31,15 @@ public sealed class InvoiceBuyerRequestValidator : AbstractValidator<InvoiceBuye
             .Must(v => v is null || v.Trim().Length <= InvoiceRules.AddressMaxLength).WithErrorCode(FieldErrorCodes.TooLong)
             .NoMarkup();
 
-        // Doanh nghiệp nhận hóa đơn điện tử qua email nên bắt buộc; cá nhân có thì phải đúng định dạng
-        RuleFor(r => r.Email!).ValidEmail().When(r => r.BuyerType == InvoiceBuyerType.Company || !string.IsNullOrWhiteSpace(r.Email));
+        // Chủ quán 2026-11-13: mọi ô trên form hóa đơn đều bắt buộc — email nhận hóa đơn (cả hai loại), SĐT người mua cá nhân
+        RuleFor(r => r.Email!).ValidEmail();
+        RuleFor(r => r.Phone)
+            .Must(v => !string.IsNullOrWhiteSpace(v)).WithErrorCode(FieldErrorCodes.Required)
+            .Must(v => string.IsNullOrWhiteSpace(v) || VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat)
+            .When(r => r.BuyerType == InvoiceBuyerType.Individual);
         RuleFor(r => r.Phone)
             .Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat)
-            .When(r => !string.IsNullOrWhiteSpace(r.Phone));
+            .When(r => r.BuyerType == InvoiceBuyerType.Company && !string.IsNullOrWhiteSpace(r.Phone));
         RuleFor(r => r.Note!)
             .Must(v => v is null || v.Trim().Length <= InvoiceRules.NoteMaxLength).WithErrorCode(FieldErrorCodes.TooLong)
             .NoMarkup();

@@ -42,7 +42,7 @@ public sealed class InvoiceRequestTests : IDisposable
         new { buyerType = "company", buyerName = "Công ty TNHH Ăn Ngon", nationalId = (string?)null, taxCode, address = "12 Lê Lợi, Quận 1, TP.HCM", email = "ketoan@anngon.vn", phone = (string?)null, note = (string?)null };
 
     private static object Person(string nationalId = "079200001234") =>
-        new { buyerType = "individual", buyerName = "Nguyễn Văn An", nationalId, taxCode = (string?)null, address = (string?)null, email = (string?)null, phone = "0912345678", note = (string?)null };
+        new { buyerType = "individual", buyerName = "Nguyễn Văn An", nationalId, taxCode = (string?)null, address = (string?)null, email = "an.nguyen@example.com", phone = "0912345678", note = (string?)null };
 
     private static async Task<JsonElement> OkAsync(Task<HttpResponseMessage> response)
     {
@@ -115,6 +115,12 @@ public sealed class InvoiceRequestTests : IDisposable
         body["invoice"] = Person("12345");
         var bad = await _orders.CreateAsync(body);
         Assert.Contains("invoice.nationalId", await bad.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+
+        // Chủ quán 2026-11-13: mọi ô trên form hóa đơn đều bắt buộc, kể cả SĐT và email của người mua cá nhân
+        body["invoice"] = new { buyerType = "individual", buyerName = "Nguyễn Văn An", nationalId = "079200001234", taxCode = (string?)null, address = (string?)null, email = (string?)null, phone = (string?)null, note = (string?)null };
+        var missing = await (await _orders.CreateAsync(body)).Content.ReadAsStringAsync();
+        Assert.Contains("invoice.email", missing, StringComparison.Ordinal);
+        Assert.Contains("invoice.phone", missing, StringComparison.Ordinal);
 
         body["invoice"] = Person();
         var created = await OkAsync(_orders.CreateAsync(body));
