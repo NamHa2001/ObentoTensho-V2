@@ -9,7 +9,7 @@ using ObentoTensho.Core.Orders.Services;
 namespace ObentoTensho.Api.Controllers.Admin;
 
 // Gọi món tại bàn (chủ quán 2026-11-13): lễ tân, thu ngân, quản lý phục vụ bàn; bếp xem phiếu và báo ra món;
-// thanh toán cần quyền thu ngân; hủy món đã gửi bếp chỉ quản lý.
+// ai phục vụ bàn cũng thanh toán được; hủy món đã gửi bếp chỉ quản lý.
 [ApiController]
 [Route("api/v1/admin/dine-in")]
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
@@ -78,8 +78,9 @@ public sealed class AdminDineInController(DineInService dineIn) : ControllerBase
     public async Task<IActionResult> Quote(Guid id, DineInQuoteRequest request, CancellationToken cancellationToken) =>
         this.DataOrProblem(await dineIn.QuoteAsync(id, request, cancellationToken));
 
+    // Chủ quán 2026-11-13: ai phục vụ bàn cũng bấm thanh toán được (không cần quyền thu ngân của đơn online)
     [HttpPost("{id:guid}/checkout")]
-    [RequireCapability(StaffCapability.OrdersCashier)]
+    [RequireCapability(StaffCapability.DineIn)]
     public async Task<IActionResult> Checkout(Guid id, DineInCheckoutRequest request, CancellationToken cancellationToken) =>
         this.DataOrProblem(await dineIn.CheckoutAsync(id, request, User.StaffId(), cancellationToken));
 

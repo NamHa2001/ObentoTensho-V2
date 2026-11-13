@@ -113,11 +113,11 @@ public sealed class DineInTests : IDisposable
         Assert.Equal(250_000, bill.GetProperty("subTotal").GetDecimal());
         Assert.True(bill.GetProperty("items")[2].GetProperty("voided").GetBoolean());
 
-        // Còn món thì không hủy phiếu được; lễ tân không thu tiền được
+        // Còn món thì không hủy phiếu được; bếp không thanh toán, lễ tân phục vụ bàn thì thanh toán được
         Assert.Equal(ErrorCodes.BillNotEmpty, await ErrorOf(Post($"/{id}/cancel", reception, new { reason = "Mở nhầm" })));
-        Assert.Equal(HttpStatusCode.Forbidden, (await Post($"/{id}/checkout", reception, new { paymentMethod = "cash" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await Post($"/{id}/checkout", kitchen, new { paymentMethod = "cash" })).StatusCode);
 
-        var receipt = await OkAsync(Post($"/{id}/checkout", cashier, new { paymentMethod = "bank_transfer" }));
+        var receipt = await OkAsync(Post($"/{id}/checkout", reception, new { paymentMethod = "bank_transfer" }));
         Assert.Equal(250_000, receipt.GetProperty("totalAmount").GetDecimal());
         Assert.Equal(TableStatus.Cleaning, await TableStatusAsync(tables[0]));
         Assert.Equal(HttpStatusCode.NotFound, (await _admin.SendAsync(HttpMethod.Get, $"{Api}/{id}", cashier)).StatusCode);
