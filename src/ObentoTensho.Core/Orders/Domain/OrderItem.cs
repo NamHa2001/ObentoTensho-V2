@@ -24,5 +24,20 @@ public sealed class OrderItem
 
     public ICollection<OrderItemOption> Options { get; init; } = [];
 
-    public decimal LineTotal => (ItemPrice + OptionsPrice) * Quantity;
+    // Tại bàn: đợt gọi món (đơn online = 0), lúc gửi bếp, lúc bếp ra món, hủy món (lý do, người hủy)
+    public int Round { get; init; }
+
+    public DateTime? SentAtUtc { get; init; }
+
+    public DateTime? ServedAtUtc { get; set; }
+
+    public DateTime? VoidedAtUtc { get; set; }
+
+    public string? VoidReason { get; set; }
+
+    public Guid? VoidedByStaffId { get; set; }
+
+    public bool IsVoided => VoidedAtUtc is not null;
+
+    public decimal LineTotal => IsVoided ? 0 : (ItemPrice + OptionsPrice) * Quantity;
 }

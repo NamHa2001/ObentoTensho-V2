@@ -2125,6 +2125,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<string>("CancelledByType")
                         .HasColumnType("varchar(10)");
 
+                    b.Property<byte>("Channel")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
                     b.Property<DateTime?>("CompletedAtUtc")
                         .HasColumnType("datetime2(3)");
 
@@ -2150,6 +2154,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(15)");
 
                     b.Property<int>("DailySeq")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("GuestCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Lang")
@@ -2212,6 +2219,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<decimal>("SubTotal")
                         .HasColumnType("decimal(18,0)");
 
+                    b.Property<int?>("TableId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,0)");
 
@@ -2248,13 +2258,21 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("Status", "PickupAtUtc");
 
+                    b.HasIndex(new[] { "TableId" }, "UX_Orders_OpenTable")
+                        .IsUnique()
+                        .HasFilter("[Channel] = 1 AND [Status] IN (0, 1, 2)");
+
                     b.ToTable("Orders", null, t =>
                         {
                             t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0");
 
                             t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
 
+                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 1");
+
                             t.HasCheckConstraint("CK_Orders_CompletedPaid", "[Status] <> 3 OR [PaymentStatus] = 1");
+
+                            t.HasCheckConstraint("CK_Orders_DineIn", "[Channel] <> 1 OR ([GuestCount] BETWEEN 1 AND 50)");
 
                             t.HasCheckConstraint("CK_Orders_PaymentMethod", "[PaymentMethod] BETWEEN 0 AND 1");
 
@@ -2297,6 +2315,25 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<int>("Round")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime?>("ServedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<string>("VoidReason")
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("VoidedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("VoidedByStaffId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
@@ -3770,6 +3807,11 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.Order", b =>
                 {
+                    b.HasOne("ObentoTensho.Core.Tables.Domain.DiningTable", null)
+                        .WithMany()
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ObentoTensho.Core.Auth.Domain.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")

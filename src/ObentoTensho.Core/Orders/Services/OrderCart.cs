@@ -18,6 +18,9 @@ public sealed class OrderCart(IMenuRepository menu, PublicMenuService publicMenu
 
     public sealed record Line(int Index, OrderItem? Item, string? ErrorCode);
 
+    // Tại bàn: đợt gọi và lúc gửi bếp; món không bán mang về vẫn gọi được khi ăn tại quán
+    public sealed record DineInRound(int Round, DateTime SentAtUtc);
+
     public sealed record Priced(IReadOnlyList<Line> Lines)
     {
         public bool IsValid => Lines.Count > 0 && Lines.All(l => l.ErrorCode is null);
@@ -27,12 +30,12 @@ public sealed class OrderCart(IMenuRepository menu, PublicMenuService publicMenu
         public decimal SubTotal => OrderPricing.SubTotal(Items.Select(i => (i.ItemPrice, i.OptionsPrice, i.Quantity)));
     }
 
-    public async Task<Priced> PriceAsync(IReadOnlyList<OrderLineRequest> requests, string language, CancellationToken cancellationToken)
+    public async Task<Priced> PriceAsync(IReadOnlyList<OrderLineRequest> requests, string language, CancellationToken cancellationToken, DineInRound? dineIn = null)
     {
         ArgumentNullException.ThrowIfNull(requests);
         var data = await menu.LoadOrderableAsync(requests.Select(r => r.MenuItemId).Distinct().ToArray(), cancellationToken);
         var snapshot = await publicMenu.SnapshotAsync(cancellationToken);
-        var context = new BuildContext(data, snapshot, language, clock.UtcNow);
+        var context = new BuildContext(data, snapshot, language, clock.UtcNow, dineIn);
         return new Priced(requests.Select((r, i) => Build(i, r, context)).ToArray());
     }
 
@@ -43,7 +46,7 @@ public sealed class OrderCart(IMenuRepository menu, PublicMenuService publicMenu
             return new Line(index, null, ErrorCodes.ValidationFailed);
         }
 
-        if (context.Items.GetValueOrDefault(request.MenuItemId) is not { } item || !item.AllowTakeaway
+        if (context.Items.GetValueOrDefault(request.MenuItemId) is not { } item || (context.DineIn is null && !item.AllowTakeaway)
             || MenuRules.Effective(item.Status, item.SoldOutUntilUtc, context.NowUtc) != SaleStatus.Available)
         {
             return new Line(index, null, ErrorCodes.ItemUnavailable);
@@ -80,11 +83,15 @@ public sealed class OrderCart(IMenuRepository menu, PublicMenuService publicMenu
             Quantity = request.Quantity,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             Options = selected,
+            Round = context.DineIn?.Round ?? 0,
+            SentAtUtc = context.DineIn?.SentAtUtc,
         }, null);
     }
 
-    private sealed class BuildContext(OrderableMenu data, MenuSnapshot snapshot, string language, DateTime nowUtc)
+    private sealed class BuildContext(OrderableMenu data, MenuSnapshot snapshot, string language, DateTime nowUtc, DineInRound? dineIn)
     {
+        public DineInRound? DineIn { get; } = dineIn;
+
         private readonly Dictionary<int, OptionGroup> _groups = data.Groups.ToDictionary(g => g.Id);
         private readonly ILookup<int, MenuOption> _options = data.Options.OrderBy(o => o.DisplayOrder).ThenBy(o => o.Id).ToLookup(o => o.GroupId);
         private readonly ILookup<int, MenuItemOptionGroup> _links = data.Links.OrderBy(l => l.DisplayOrder).ToLookup(l => l.MenuItemId);

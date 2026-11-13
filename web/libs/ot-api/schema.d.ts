@@ -3597,6 +3597,541 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/dine-in/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/tables/{tableId}/clean": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    tableId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/kitchen-view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["OpenTableRequest"];
+                    "text/json": components["schemas"]["OpenTableRequest"];
+                    "application/*+json": components["schemas"]["OpenTableRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AddDineInItemsRequest"];
+                    "text/json": components["schemas"]["AddDineInItemsRequest"];
+                    "application/*+json": components["schemas"]["AddDineInItemsRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/items/{itemId}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: number;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DineInReasonRequest"];
+                    "text/json": components["schemas"]["DineInReasonRequest"];
+                    "application/*+json": components["schemas"]["DineInReasonRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/items/{itemId}/served": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/items/{itemId}/served-at-table": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    itemId: number;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MoveTableRequest"];
+                    "text/json": components["schemas"]["MoveTableRequest"];
+                    "application/*+json": components["schemas"]["MoveTableRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MergeBillRequest"];
+                    "text/json": components["schemas"]["MergeBillRequest"];
+                    "application/*+json": components["schemas"]["MergeBillRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DineInQuoteRequest"];
+                    "text/json": components["schemas"]["DineInQuoteRequest"];
+                    "application/*+json": components["schemas"]["DineInQuoteRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DineInCheckoutRequest"];
+                    "text/json": components["schemas"]["DineInCheckoutRequest"];
+                    "application/*+json": components["schemas"]["DineInCheckoutRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/dine-in/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DineInReasonRequest"];
+                    "text/json": components["schemas"]["DineInReasonRequest"];
+                    "application/*+json": components["schemas"]["DineInReasonRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/exports": {
         parameters: {
             query?: never;
@@ -8842,6 +9377,9 @@ export interface components {
             /** Format: date-time */
             createdAtUtc: string;
         };
+        AddDineInItemsRequest: {
+            items: components["schemas"]["OrderLineRequest"][];
+        };
         AdjustPointsRequest: {
             /** Format: int32 */
             points: number;
@@ -9866,6 +10404,184 @@ export interface components {
             /** Format: double */
             value: number;
         };
+        DineInBillDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            /** Format: int32 */
+            tableId: number;
+            tableName: string;
+            /** Format: int32 */
+            guestCount: number;
+            /** Format: date-time */
+            openedAtUtc: string;
+            items: {
+                /** Format: int64 */
+                id: number;
+                /** Format: int32 */
+                round: number;
+                name: string;
+                /** Format: double */
+                unitPrice: number;
+                /** Format: int32 */
+                quantity: number;
+                /** Format: double */
+                lineTotal: number;
+                options: string[];
+                note: null | string;
+                /** Format: date-time */
+                sentAtUtc: string;
+                /** Format: date-time */
+                servedAtUtc: null | string;
+                voided: boolean;
+                voidReason: null | string;
+            }[];
+            /** Format: double */
+            subTotal: number;
+            note: null | string;
+            version: string;
+        };
+        DineInCheckoutRequest: {
+            paymentMethod: components["schemas"]["PaymentMethod"];
+            voucherCode: null | string;
+            memberPhone: null | string;
+        };
+        DineInKitchenLineDto: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int32 */
+            round: number;
+            name: string;
+            /** Format: int32 */
+            quantity: number;
+            options: string[];
+            note: null | string;
+            /** Format: date-time */
+            sentAtUtc: string;
+        };
+        DineInKitchenTicketDto: {
+            /** Format: uuid */
+            billId: string;
+            code: string;
+            tableName: string;
+            items: {
+                /** Format: int64 */
+                id: number;
+                /** Format: int32 */
+                round: number;
+                name: string;
+                /** Format: int32 */
+                quantity: number;
+                options: string[];
+                note: null | string;
+                /** Format: date-time */
+                sentAtUtc: string;
+            }[];
+        };
+        DineInLineDto: {
+            /** Format: int64 */
+            id: number;
+            /** Format: int32 */
+            round: number;
+            name: string;
+            /** Format: double */
+            unitPrice: number;
+            /** Format: int32 */
+            quantity: number;
+            /** Format: double */
+            lineTotal: number;
+            options: string[];
+            note: null | string;
+            /** Format: date-time */
+            sentAtUtc: string;
+            /** Format: date-time */
+            servedAtUtc: null | string;
+            voided: boolean;
+            voidReason: null | string;
+        };
+        DineInQuoteDto: {
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            memberDiscount: number;
+            /** Format: double */
+            voucherDiscount: number;
+            /** Format: double */
+            totalAmount: number;
+            memberName: null | string;
+        };
+        DineInQuoteRequest: {
+            voucherCode: null | string;
+            memberPhone: null | string;
+        };
+        DineInReasonRequest: {
+            reason: string;
+        };
+        DineInReceiptDto: {
+            code: string;
+            tableName: string;
+            /** Format: int32 */
+            guestCount: number;
+            items: {
+                /** Format: int64 */
+                id: number;
+                /** Format: int32 */
+                round: number;
+                name: string;
+                /** Format: double */
+                unitPrice: number;
+                /** Format: int32 */
+                quantity: number;
+                /** Format: double */
+                lineTotal: number;
+                options: string[];
+                note: null | string;
+                /** Format: date-time */
+                sentAtUtc: string;
+                /** Format: date-time */
+                servedAtUtc: null | string;
+                voided: boolean;
+                voidReason: null | string;
+            }[];
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            memberDiscount: number;
+            /** Format: double */
+            voucherDiscount: number;
+            /** Format: double */
+            totalAmount: number;
+            /** @enum {unknown} */
+            paymentMethod: "cash" | "bank_transfer";
+            /** Format: date-time */
+            paidAtUtc: string;
+            memberName: null | string;
+            /** Format: int32 */
+            pointsEarned: number;
+        };
+        DineInTableDto: {
+            /** Format: int32 */
+            tableId: number;
+            tableName: string;
+            /** Format: int32 */
+            areaId: number;
+            areaName: string;
+            /** Format: int32 */
+            maxCapacity: number;
+            /** @enum {unknown} */
+            status: "available" | "reserved" | "occupied" | "cleaning";
+            /** Format: uuid */
+            billId: null | string;
+            billCode: null | string;
+            /** Format: int32 */
+            guestCount: null | number;
+            /** Format: date-time */
+            openedAtUtc: null | string;
+            /** Format: double */
+            subTotal: null | number;
+            /** Format: int32 */
+            unservedCount: number;
+        };
         /** @enum {unknown} */
         DiscountType: "percent" | "fixed";
         EmailOnlyRequest: {
@@ -10241,6 +10957,14 @@ export interface components {
             isVegetarian: boolean;
             isSpicy: boolean;
         };
+        MergeBillRequest: {
+            /** Format: uuid */
+            fromBillId: string;
+        };
+        MoveTableRequest: {
+            /** Format: int32 */
+            tableId: number;
+        };
         MyReviewDto: {
             /** Format: int32 */
             id: number;
@@ -10374,6 +11098,13 @@ export interface components {
             close: string;
             crossesMidnight: boolean;
         };
+        OpenTableRequest: {
+            /** Format: int32 */
+            tableId: number;
+            /** Format: int32 */
+            guestCount: number;
+            note: null | string;
+        };
         OptionGroupRequest: {
             name: string;
             selectionType: components["schemas"]["OptionSelectionType"];
@@ -10485,6 +11216,8 @@ export interface components {
                 version: string;
             }[];
         };
+        /** @enum {unknown} */
+        OrderChannel: "pickup" | "dine_in";
         OrderContactDto: {
             phone: string;
             email: string;
@@ -11528,7 +12261,7 @@ export interface components {
             note: null | string;
         };
         /** @enum {unknown} */
-        StaffCapability: "dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit";
+        StaffCapability: "dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void";
         /** @enum {unknown} */
         StaffChallengeKind: "password_change" | "totp_verify" | "totp_setup" | "step_up" | "not_me";
         StaffChallengeResponse: {
@@ -11597,7 +12330,7 @@ export interface components {
             email: string;
             /** @enum {unknown} */
             role: "super_admin" | "manager" | "reception" | "kitchen" | "cashier" | "content_editor";
-            capabilities: ("dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit")[];
+            capabilities: ("dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void")[];
             totpEnabled: boolean;
         };
         /** @enum {unknown} */

@@ -80,6 +80,16 @@ internal sealed class UserRepository(AppDbContext db, IMemoryCache cache) : IUse
     public Task<bool> IsEmailVerifiedAsync(Guid id, CancellationToken cancellationToken) =>
         db.Users.AnyAsync(u => u.Id == id && u.IsEmailVerified && u.IsActive && !u.IsDeleted, cancellationToken);
 
+    public async Task<User?> FindMemberByPhoneAsync(string phoneNumber, CancellationToken cancellationToken)
+    {
+        var matches = await db.Users.AsNoTracking()
+            .Where(u => u.PhoneNumber == phoneNumber && u.IsActive && !u.IsDeleted)
+            .OrderByDescending(u => u.IsPhoneVerified)
+            .Take(2)
+            .ToListAsync(cancellationToken);
+        return matches.Count == 1 || (matches.Count > 1 && matches[0].IsPhoneVerified) ? matches[0] : null;
+    }
+
     public Task<bool> PhoneVerifiedByOtherAsync(string phoneNumber, Guid exceptUserId, CancellationToken cancellationToken) =>
         db.Users.AnyAsync(u => u.PhoneNumber == phoneNumber && u.IsPhoneVerified && !u.IsDeleted && u.Id != exceptUserId, cancellationToken);
 }

@@ -22,6 +22,9 @@ internal sealed class OrderItemConfiguration : IEntityTypeConfiguration<OrderIte
         builder.Property(i => i.OptionsPrice).HasColumnType("decimal(18,0)").HasDefaultValue(0m).ValueGeneratedNever();
         builder.Property(i => i.Note).HasColumnType("nvarchar(200)");
         builder.Ignore(i => i.LineTotal);
+        builder.Ignore(i => i.IsVoided);
+        builder.Property(i => i.Round).HasDefaultValue(0).ValueGeneratedNever();
+        builder.Property(i => i.VoidReason).HasColumnType("nvarchar(200)");
 
         // Món bị xóa thật (hiếm, món chỉ xóa mềm) thì dòng đơn giữ tên/giá đã chụp
         builder.HasOne<MenuItem>().WithMany().HasForeignKey(i => i.MenuItemId).OnDelete(DeleteBehavior.SetNull);

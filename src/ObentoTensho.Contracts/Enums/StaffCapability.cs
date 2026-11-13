@@ -22,5 +22,11 @@ public enum StaffCapability
     CustomerExport,
     RegularHours,
     SpecialHours,
-    StaffAndAudit
+    StaffAndAudit,
+
+    // Gọi món tại bàn: mở bàn, gọi món, chuyển/gộp bàn
+    DineIn,
+
+    // Hủy món đã gửi bếp (chủ quán 2026-11-13: cần quản lý)
+    OrdersVoid
 }

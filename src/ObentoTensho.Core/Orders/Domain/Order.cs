@@ -16,31 +16,40 @@ public sealed class Order
     // BR-AUTH-17: đơn vãng lai có thể được gắn vào tài khoản sau
     public Guid? UserId { get; set; }
 
-    public required string CustomerName { get; init; }
+    // Tại bàn: tên/SĐT thành viên gắn lúc thanh toán (để tích điểm), còn lại để trống
+    public required string CustomerName { get; set; }
 
-    public required string CustomerPhone { get; init; }
+    public required string CustomerPhone { get; set; }
 
     public required string CustomerEmail { get; init; }
 
     public required string Lang { get; init; }
 
+    // Tại bàn: giờ mở bàn
     public required DateTime PickupAtUtc { get; init; }
+
+    public OrderChannel Channel { get; init; } = OrderChannel.Pickup;
+
+    // Tại bàn: bàn đang ngồi (đổi khi chuyển bàn) và số khách
+    public int? TableId { get; set; }
+
+    public int? GuestCount { get; set; }
 
     public string? Note { get; init; }
 
-    public required decimal SubTotal { get; init; }
+    public required decimal SubTotal { get; set; }
 
-    public decimal MemberDiscount { get; init; }
+    public decimal MemberDiscount { get; set; }
 
-    public decimal VoucherDiscount { get; init; }
+    public decimal VoucherDiscount { get; set; }
 
-    public required decimal TotalAmount { get; init; }
+    public required decimal TotalAmount { get; set; }
 
-    public int? VoucherId { get; init; }
+    public int? VoucherId { get; set; }
 
-    public string? VoucherCodeSnapshot { get; init; }
+    public string? VoucherCodeSnapshot { get; set; }
 
-    public PaymentMethod PaymentMethod { get; init; }
+    public PaymentMethod PaymentMethod { get; set; }
 
     public PaymentStatus PaymentStatus { get; set; }
 

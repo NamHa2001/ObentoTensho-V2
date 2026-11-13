@@ -39,6 +39,9 @@ public interface IUserRepository
 
     Task<bool> IsEmailVerifiedAsync(Guid id, CancellationToken cancellationToken);
 
+    // Thành viên theo SĐT đã chuẩn hóa (gọi món tại bàn): ưu tiên tài khoản đã xác minh SĐT; nhiều tài khoản chưa xác minh trùng số ⇒ null
+    Task<User?> FindMemberByPhoneAsync(string phoneNumber, CancellationToken cancellationToken);
+
     // Có tài khoản khác (chưa xóa) đã xác minh SĐT này
     Task<bool> PhoneVerifiedByOtherAsync(string phoneNumber, Guid exceptUserId, CancellationToken cancellationToken);
 }

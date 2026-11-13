@@ -94,7 +94,7 @@ public sealed class OrderTransitions(
 
     private static Result? CheckAllowed(Order order, OrderStatus to, OrderActor actor, string? reason)
     {
-        if (!OrderStateMachine.CanTransition(order.Status, to, actor)
+        if (!OrderStateMachine.CanTransition(order.Status, to, actor, order.Channel)
             || (actor == OrderActor.Customer && !order.CanCustomerCancel()))
         {
             return Result.Failure(ErrorCodes.InvalidTransition);
@@ -116,8 +116,14 @@ public sealed class OrderTransitions(
         };
     }
 
+    // Tại bàn không gửi thư (khách đang ở quán, phiếu không có email)
     private void Notify(Order order, OrderStatus to, OrderActor actor, string? reason)
     {
+        if (order.Channel == OrderChannel.DineIn)
+        {
+            return;
+        }
+
         switch (to)
         {
             case OrderStatus.Ready:

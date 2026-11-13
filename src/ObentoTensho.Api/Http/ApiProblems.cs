@@ -51,6 +51,8 @@ public static class ApiProblems
         [ErrorCodes.ItemUnavailable] = (StatusCodes.Status400BadRequest, "Có món không đặt được"),
         [ErrorCodes.OrderLimit] = (StatusCodes.Status409Conflict, "Số điện thoại đã có đủ đơn đang xử lý"),
         [ErrorCodes.PaymentRequired] = (StatusCodes.Status409Conflict, "Đơn chưa thanh toán"),
+        [ErrorCodes.MemberNotFound] = (StatusCodes.Status404NotFound, "Không tìm thấy thành viên với số điện thoại này"),
+        [ErrorCodes.BillNotEmpty] = (StatusCodes.Status409Conflict, "Bàn còn món chưa hủy"),
         [ErrorCodes.PointsInsufficient] = (StatusCodes.Status409Conflict, "Không đủ điểm"),
         [ErrorCodes.FourEyesRequired] = (StatusCodes.Status409Conflict, "Cần người khác duyệt"),
         [ErrorCodes.VoucherInvalid] = (StatusCodes.Status400BadRequest, "Mã không hợp lệ"),

@@ -21,6 +21,14 @@ public interface IOrderRepository
     // Màn hình bếp: đơn đang mở, sắp theo giờ lấy, kèm dòng món
     Task<IReadOnlyList<Order>> ListOpenAsync(int limit, CancellationToken cancellationToken);
 
+    // Tại bàn: phiếu đang mở (được theo dõi, kèm món và tùy chọn)
+    Task<Order?> FindOpenDineInAsync(Guid id, CancellationToken cancellationToken);
+
+    Task<bool> TableHasOpenBillAsync(int tableId, CancellationToken cancellationToken);
+
+    // Tại bàn: mọi phiếu đang mở, kèm món (sơ đồ gọi món, màn hình bếp)
+    Task<IReadOnlyList<Order>> ListOpenDineInAsync(CancellationToken cancellationToken);
+
     Task<(IReadOnlyList<Order> Items, int Total)> ListForUserAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken);
 
     // BR-ORD-20: đơn đang xử lý của một SĐT

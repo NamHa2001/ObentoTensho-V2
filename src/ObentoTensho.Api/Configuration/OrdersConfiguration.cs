@@ -18,6 +18,7 @@ public static class OrdersConfiguration
         services.AddScoped<OrderPickup>();
         services.AddScoped<OrderTransitions>();
         services.AddScoped<PublicOrderService>();
+        services.AddScoped<DineInService>();
         services.AddScoped<OrderDeskService>();
 
         // Việc định kỳ (docs/srs/20 §4)

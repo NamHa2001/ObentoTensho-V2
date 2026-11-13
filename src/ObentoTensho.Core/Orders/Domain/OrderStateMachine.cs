@@ -5,8 +5,10 @@ namespace ObentoTensho.Core.Orders.Domain;
 // BR-ORD-06, bảng trạng thái docs/srs/12 §6: chỉ các bước dưới đây hợp lệ; Completed và Cancelled là trạng thái cuối
 public static class OrderStateMachine
 {
-    public static bool CanTransition(OrderStatus from, OrderStatus to, OrderActor actor) => (from, to) switch
+    // Tại bàn không qua "Sẵn sàng" cả phiếu (bếp ra từng món): đang phục vụ ⇒ thanh toán xong là hoàn thành
+    public static bool CanTransition(OrderStatus from, OrderStatus to, OrderActor actor, OrderChannel channel = OrderChannel.Pickup) => (from, to) switch
     {
+        (OrderStatus.Preparing, OrderStatus.Completed) when channel == OrderChannel.DineIn => actor == OrderActor.Staff,
         (OrderStatus.Pending, OrderStatus.Preparing) => actor == OrderActor.Staff,
         (OrderStatus.Preparing, OrderStatus.Ready) => actor == OrderActor.Staff,
         (OrderStatus.Ready, OrderStatus.Completed) => actor == OrderActor.Staff,

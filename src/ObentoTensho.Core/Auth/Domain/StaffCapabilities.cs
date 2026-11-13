@@ -36,6 +36,9 @@ public static class StaffCapabilities
         [StaffCapability.RegularHours] = [SA],
         [StaffCapability.SpecialHours] = [SA, MG],
         [StaffCapability.StaffAndAudit] = [SA],
+        // Chủ quán 2026-11-13: lễ tân, thu ngân phục vụ bàn; hủy món đã gửi bếp chỉ quản lý
+        [StaffCapability.DineIn] = [SA, MG, RC, CS],
+        [StaffCapability.OrdersVoid] = [SA, MG],
     }.ToFrozenDictionary();
 
     public static IReadOnlyList<StaffRole> RolesFor(StaffCapability capability) =>

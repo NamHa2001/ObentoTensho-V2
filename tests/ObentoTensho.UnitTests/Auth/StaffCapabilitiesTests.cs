@@ -29,6 +29,8 @@ public sealed class StaffCapabilitiesTests
         { StaffCapability.RegularHours, "✓-----" },
         { StaffCapability.SpecialHours, "✓✓----" },
         { StaffCapability.StaffAndAudit, "✓-----" },
+        { StaffCapability.DineIn, "✓✓✓-✓-" },
+        { StaffCapability.OrdersVoid, "✓✓----" },
     };
 
     private static readonly StaffRole[] Columns =
