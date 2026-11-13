@@ -9,6 +9,7 @@ import { Auth } from '../../core/auth';
 import { Cart } from '../../core/cart';
 import { Submit } from '../../shared/form';
 import { addDays, localPhone, today, VnDatePipe } from '../../shared/format';
+import { buyerBody, emptyBuyer, InvoiceForm } from '../../shared/invoice-form';
 import { discountShort, discountTerms, VOUCHER_REASON, VOUCHER_SOURCE, VoucherOption } from '../../shared/voucher';
 import { VndPipe } from '../../shared/vnd.pipe';
 import { linesOf } from './cart';
@@ -17,7 +18,7 @@ const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-checkout',
-  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule, InvoiceForm],
   template: `
     <div class="ot-page-split">
       <h1>Thanh toán</h1>
@@ -48,6 +49,8 @@ const MAX_AUTO_DAYS = 14;
                 </select>
               </label>
               <label class="ot-span-2">Ghi chú cho cả đơn<textarea class="ot-input" name="note" rows="2" placeholder="Ví dụ: lấy thêm đũa, gọi trước khi làm món" [(ngModel)]="model.note"></textarea></label>
+              <label class="ot-span-2 flex items-center gap-2 font-normal"><input type="checkbox" name="wantInvoice" [(ngModel)]="wantInvoice" /> Xuất hóa đơn</label>
+              @if (wantInvoice) { <div class="ot-span-2"><ot-invoice-form [model]="invoice" /></div> }
             </div>
           </section>
           <aside class="ot-panel">
@@ -166,6 +169,8 @@ export class Checkout {
   // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
   private autoPick = true;
   private tries = 0;
+  protected wantInvoice = false;
+  protected readonly invoice = emptyBuyer();
   protected model = { customerName: '', customerPhone: '', customerEmail: '', pickupDate: today(), pickupTime: '', paymentMethod: 'cash', note: '' };
 
   constructor() {
@@ -262,7 +267,7 @@ export class Checkout {
   }
 
   protected submit(): void {
-    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null };
+    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null, invoice: this.wantInvoice ? buyerBody(this.invoice) : null };
     this.form.run(this.api.post<Schemas['CreatedOrderDto']>('orders', body), (created) => {
       this.cart.clear();
       void this.router.navigate(['/xac-nhan', created.order.code]);

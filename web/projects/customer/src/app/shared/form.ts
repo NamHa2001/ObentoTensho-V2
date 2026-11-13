@@ -27,6 +27,16 @@ const FIELD_NAMES: Record<string, string> = {
   password: 'Mật khẩu',
   newpassword: 'Mật khẩu mới',
   message: 'Nội dung',
+  'invoice.buyername': 'Tên người mua / công ty',
+  'invoice.nationalid': 'Số CCCD',
+  'invoice.taxcode': 'Mã số thuế',
+  'invoice.address': 'Địa chỉ',
+  'invoice.email': 'Email nhận hóa đơn',
+  'invoice.phone': 'SĐT người mua',
+  invoicenumber: 'Số hóa đơn',
+  reason: 'Lý do',
+  memberphone: 'SĐT thành viên',
+  guestcount: 'Số khách',
 };
 
 export function errorText(e: unknown): string {
