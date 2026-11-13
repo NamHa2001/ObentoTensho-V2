@@ -1,3 +1,5 @@
+using ObentoTensho.Contracts.Enums;
+
 namespace ObentoTensho.Contracts.Dtos.Vouchers;
 
 /// <summary>
@@ -11,4 +13,6 @@ public sealed record VoucherCheckDto(
     decimal TotalWithVoucher,
     decimal MemberDiscount,
     decimal TotalWithMemberDiscount,
-    bool MemberIsBetter);
+    bool MemberIsBetter,
+    decimal ShippingDiscount = 0,
+    VoucherTarget AppliesTo = VoucherTarget.Items);

@@ -42,6 +42,9 @@ public sealed class Order
 
     public decimal DeliveryFee { get; init; }
 
+    // Mã giảm phí ship: phần giảm trên phí ship (không vượt phí ship)
+    public decimal ShippingDiscount { get; init; }
+
     public string? Note { get; init; }
 
     public required decimal SubTotal { get; set; }

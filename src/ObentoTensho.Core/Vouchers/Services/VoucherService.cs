@@ -59,13 +59,17 @@ public sealed class VoucherService(
             return Result.Failure<VoucherCheckDto>(ErrorCodes.ItemUnavailable);
         }
 
-        var evaluated = await evaluator.EvaluateAsync(request.Code, priced.SubTotal, userId, cancellationToken);
+        var fee = request.DeliveryFee ?? 0;
+        var evaluated = await evaluator.EvaluateAsync(request.Code, priced.SubTotal, userId, cancellationToken, fee);
         if (!evaluated.IsSuccess)
         {
             return Result.Failure<VoucherCheckDto>(VoucherEvaluator.ErrorOrInvalid(evaluated));
         }
 
-        var withVoucher = OrderPricing.Compute(priced.SubTotal, memberRate: 0, evaluated.Value.Discount);
+        // Mã giảm ship: tiền món giữ nguyên, phần giảm nằm ở ShippingDiscount; các tổng ở đây chưa gồm phí ship
+        var shipping = evaluated.Value.Voucher.AppliesTo == VoucherTarget.Shipping;
+        var withVoucher = OrderPricing.Compute(priced.SubTotal, memberRate: 0, shipping ? 0 : evaluated.Value.Discount);
+        var shippingDiscount = shipping ? evaluated.Value.Discount : 0;
         var withMember = OrderPricing.Compute(priced.SubTotal, await loyaltyService.MemberDiscountRateAsync(userId, cancellationToken), voucherDiscount: 0);
         return Result.Success(new VoucherCheckDto(
             evaluated.Value.Voucher.Code,
@@ -74,7 +78,9 @@ public sealed class VoucherService(
             withVoucher.TotalAmount,
             withMember.MemberDiscount,
             withMember.TotalAmount,
-            withMember.TotalAmount < withVoucher.TotalAmount));
+            withMember.TotalAmount < withVoucher.TotalAmount - shippingDiscount,
+            shippingDiscount,
+            evaluated.Value.Voucher.AppliesTo));
     }
 
     public async Task<IReadOnlyList<AccountVoucherDto>> ListMineAsync(Guid userId, CancellationToken cancellationToken)
@@ -148,7 +154,7 @@ public sealed class VoucherService(
         foreach (var (voucher, title) in owned.Concat(promoted).DistinctBy(x => x.Voucher.Id))
         {
             var used = await vouchers.UsedByUserAsync(voucher.Id, userId, cancellationToken);
-            var error = VoucherRules.Check(voucher, new VoucherRules.Context(now, priced.SubTotal, userId, user?.MemberTier, used));
+            var error = VoucherRules.Check(voucher, new VoucherRules.Context(now, priced.SubTotal, userId, user?.MemberTier, used, request.DeliveryFee ?? 0));
 
             // Mã đã dùng hết lượt của khách thì thôi không hiện, tránh danh sách đầy mã cũ
             if (string.Equals(error, ErrorCodes.VoucherExhausted, StringComparison.Ordinal) || string.Equals(error, ErrorCodes.VoucherInvalid, StringComparison.Ordinal))
@@ -156,7 +162,7 @@ public sealed class VoucherService(
                 continue;
             }
 
-            var discount = error is null ? VoucherRules.Discount(voucher, priced.SubTotal) : 0;
+            var discount = error is null ? VoucherRules.Discount(voucher, priced.SubTotal, request.DeliveryFee ?? 0) : 0;
             options.Add(new VoucherOptionDto(
                 voucher.Code,
                 title,
@@ -168,7 +174,8 @@ public sealed class VoucherService(
                 voucher.Source,
                 error is null,
                 discount,
-                error));
+                error,
+                voucher.AppliesTo));
         }
 
         return Result.Success<IReadOnlyList<VoucherOptionDto>>(options.OrderByDescending(o => o.Usable).ThenByDescending(o => o.Discount).ThenBy(o => o.MinOrderValue).ToArray());

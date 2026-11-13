@@ -84,7 +84,7 @@ public sealed class VoucherAdminService(
         }
 
         var voucher = New(code, request, staffId, batchId: null);
-        voucher.ApprovalStatus = VoucherRules.NeedsApproval(request.DiscountType, request.DiscountValue, request.MaxUsageTotal, settings)
+        voucher.ApprovalStatus = VoucherRules.NeedsApproval(request.DiscountType, request.DiscountValue, request.MaxUsageTotal, settings, request.AppliesTo)
             ? ApprovalStatus.Pending
             : ApprovalStatus.Approved;
         promotionCache.Invalidate();
@@ -129,9 +129,9 @@ public sealed class VoucherAdminService(
 
         unitOfWork.ExpectRowVersion(voucher, version);
         var before = Snapshot(voucher);
-        var termsChanged = voucher.DiscountType != request.DiscountType || voucher.DiscountValue != request.DiscountValue || voucher.MaxUsageTotal != request.MaxUsageTotal;
+        var termsChanged = voucher.DiscountType != request.DiscountType || voucher.DiscountValue != request.DiscountValue || voucher.MaxUsageTotal != request.MaxUsageTotal || voucher.AppliesTo != request.AppliesTo;
         Apply(voucher, request);
-        if (termsChanged && VoucherRules.NeedsApproval(request.DiscountType, request.DiscountValue, request.MaxUsageTotal, settings))
+        if (termsChanged && VoucherRules.NeedsApproval(request.DiscountType, request.DiscountValue, request.MaxUsageTotal, settings, request.AppliesTo))
         {
             voucher.ApprovalStatus = ApprovalStatus.Pending;
             voucher.ReviewedByStaffId = null;
@@ -186,7 +186,7 @@ public sealed class VoucherAdminService(
         var codes = await UniqueCodesAsync(request.Prefix, request.Quantity, cancellationToken);
         var batchId = Guid.CreateVersion7();
         var template = request.Template;
-        var status = request.Quantity > settings.BulkApprovalQuantity || VoucherRules.NeedsApproval(template.DiscountType, template.DiscountValue, template.MaxUsageTotal, settings)
+        var status = request.Quantity > settings.BulkApprovalQuantity || VoucherRules.NeedsApproval(template.DiscountType, template.DiscountValue, template.MaxUsageTotal, settings, template.AppliesTo)
             ? ApprovalStatus.Pending
             : ApprovalStatus.Approved;
         var created = codes.Select(code =>
@@ -292,6 +292,7 @@ public sealed class VoucherAdminService(
     private void Apply(Voucher voucher, VoucherRequest request)
     {
         voucher.DiscountType = request.DiscountType;
+        voucher.AppliesTo = request.AppliesTo;
         voucher.DiscountValue = request.DiscountValue;
         voucher.MaxDiscountAmount = request.DiscountType == DiscountType.Percent ? request.MaxDiscountAmount : null;
         voucher.MinOrderValue = request.MinOrderValue;

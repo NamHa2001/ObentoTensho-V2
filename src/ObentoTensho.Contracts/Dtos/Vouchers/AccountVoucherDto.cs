@@ -12,4 +12,5 @@ public sealed record AccountVoucherDto(
     DateOnly? EndDate,
     VoucherSource Source,
     bool Usable,
-    DateTime CreatedAtUtc);
+    DateTime CreatedAtUtc,
+    VoucherTarget AppliesTo = VoucherTarget.Items);

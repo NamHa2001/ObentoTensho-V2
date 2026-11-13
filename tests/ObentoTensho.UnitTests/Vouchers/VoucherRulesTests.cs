@@ -134,6 +134,32 @@ public sealed class VoucherRulesTests
     public void Voucher_gia_tri_cao_hoac_khong_gioi_han_luot_can_duyet(DiscountType type, int value, int? maxTotal, bool needs) =>
         Assert.Equal(needs, VoucherRules.NeedsApproval(type, value, maxTotal, new Settings()));
 
+    // Mã giảm ship: chỉ dùng khi đơn có phí ship; giảm trên phí ship, không vượt phí ship
+    [Fact]
+    public void Ma_giam_ship_chi_dung_khi_co_phi_ship_va_khong_vuot_phi_ship()
+    {
+        var freeShip = Valid();
+        freeShip.AppliesTo = VoucherTarget.Shipping;
+        freeShip.DiscountValue = 100;
+        freeShip.MaxDiscountAmount = null;
+
+        Assert.Equal(ErrorCodes.VoucherShippingOnly, VoucherRules.Check(freeShip, Ctx()));
+        Assert.Null(VoucherRules.Check(freeShip, Ctx() with { ShippingFee = 45_000 }));
+        Assert.Equal(45_000, VoucherRules.Discount(freeShip, subTotal: 100_000, shippingFee: 45_000));
+
+        freeShip.DiscountType = DiscountType.Fixed;
+        freeShip.DiscountValue = 20_000;
+        Assert.Equal(20_000, VoucherRules.Discount(freeShip, subTotal: 100_000, shippingFee: 45_000));
+        Assert.Equal(15_000, VoucherRules.Discount(freeShip, subTotal: 100_000, shippingFee: 15_000));
+    }
+
+    [Theory]
+    [InlineData(DiscountType.Percent, 100, 100, false)]
+    [InlineData(DiscountType.Fixed, 500_000, 100, false)]
+    [InlineData(DiscountType.Percent, 100, null, true)]
+    public void Ma_giam_ship_chi_can_duyet_khi_khong_gioi_han_luot(DiscountType type, int value, int? maxTotal, bool needs) =>
+        Assert.Equal(needs, VoucherRules.NeedsApproval(type, value, maxTotal, new Settings(), VoucherTarget.Shipping));
+
     private sealed class Settings : IVoucherSettings
     {
         public int RedeemExpiryDays => 30;

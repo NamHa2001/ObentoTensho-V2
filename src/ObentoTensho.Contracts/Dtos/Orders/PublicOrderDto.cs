@@ -24,4 +24,5 @@ public sealed record PublicOrderDto(
     Guid Id,
     OrderChannel Channel = OrderChannel.Pickup,
     string? DeliveryAddress = null,
-    decimal DeliveryFee = 0);
+    decimal DeliveryFee = 0,
+    decimal ShippingDiscount = 0);

@@ -30,7 +30,8 @@ public static class VoucherMappings
             v.PromotionId,
             v.ApprovalStatus,
             v.CreatedAtUtc,
-            RowVersions.Encode(v.RowVersion));
+            RowVersions.Encode(v.RowVersion),
+            v.AppliesTo);
 
     public static AccountVoucherDto ToAccount(this Voucher v, IClock clock, int usedByUser)
     {
@@ -39,7 +40,7 @@ public static class VoucherMappings
             && (v.EndUtc is not { } end || clock.UtcNow < end)
             && (v.MaxUsageTotal is not { } max || v.UsedCount < max)
             && usedByUser < v.MaxUsagePerUser;
-        return new AccountVoucherDto(v.Code, v.DiscountType, v.DiscountValue, v.MaxDiscountAmount, v.MinOrderValue, EndDate(v, clock), v.Source, usable, v.CreatedAtUtc);
+        return new AccountVoucherDto(v.Code, v.DiscountType, v.DiscountValue, v.MaxDiscountAmount, v.MinOrderValue, EndDate(v, clock), v.Source, usable, v.CreatedAtUtc, v.AppliesTo);
     }
 
     // Ngày VN: bắt đầu = ngày của StartUtc; kết thúc = ngày trước EndUtc (EndUtc là đầu ngày hôm sau)

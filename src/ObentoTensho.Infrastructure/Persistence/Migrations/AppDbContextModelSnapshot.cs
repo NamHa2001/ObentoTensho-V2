@@ -2306,6 +2306,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<decimal>("ShippingDiscount")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint");
 
@@ -2357,7 +2361,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Orders", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0");
+                            t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0 AND [ShippingDiscount] >= 0 AND [ShippingDiscount] <= [DeliveryFee]");
 
                             t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
 
@@ -3312,6 +3316,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.Property<byte?>("ApplicableTier")
                         .HasColumnType("tinyint");
+
+                    b.Property<byte>("AppliesTo")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
 
                     b.Property<byte>("ApprovalStatus")
                         .HasColumnType("tinyint");

@@ -57,6 +57,7 @@ public static class ApiProblems
         [ErrorCodes.DeliveryDisabled] = (StatusCodes.Status409Conflict, "Quán chưa nhận giao tận nơi"),
         [ErrorCodes.DeliveryTooFar] = (StatusCodes.Status422UnprocessableEntity, "Địa chỉ ngoài phạm vi giao hàng"),
         [ErrorCodes.AddressNotFound] = (StatusCodes.Status422UnprocessableEntity, "Không tìm thấy địa chỉ, vui lòng ghi rõ hơn"),
+        [ErrorCodes.VoucherShippingOnly] = (StatusCodes.Status422UnprocessableEntity, "Mã này chỉ giảm phí ship cho đơn giao tận nơi"),
         [ErrorCodes.DeliveryUnavailable] = (StatusCodes.Status503ServiceUnavailable, "Chưa tính được phí giao hàng, vui lòng thử lại sau"),
         [ErrorCodes.PointsInsufficient] = (StatusCodes.Status409Conflict, "Không đủ điểm"),
         [ErrorCodes.FourEyesRequired] = (StatusCodes.Status409Conflict, "Cần người khác duyệt"),

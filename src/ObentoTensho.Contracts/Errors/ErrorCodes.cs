@@ -69,6 +69,7 @@ public static class ErrorCodes
     public const string DeliveryTooFar = "DELIVERY_TOO_FAR";
     public const string AddressNotFound = "ADDRESS_NOT_FOUND";
     public const string DeliveryUnavailable = "DELIVERY_UNAVAILABLE";
+    public const string VoucherShippingOnly = "VOUCHER_SHIPPING_ONLY";
     // Điểm thưởng (docs/srs/13)
     public const string PointsInsufficient = "POINTS_INSUFFICIENT";
     public const string FourEyesRequired = "FOUR_EYES_REQUIRED";

@@ -20,4 +20,5 @@ public sealed record VoucherRequest(
     DateOnly? StartDate,
     DateOnly? EndDate,
     bool IsActive,
-    int? PromotionId = null);
+    int? PromotionId = null,
+    VoucherTarget AppliesTo = VoucherTarget.Items);

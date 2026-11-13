@@ -24,4 +24,5 @@ public sealed record AdminVoucherDto(
     int? PromotionId,
     ApprovalStatus ApprovalStatus,
     DateTime CreatedAtUtc,
-    string Version);
+    string Version,
+    VoucherTarget AppliesTo = VoucherTarget.Items);

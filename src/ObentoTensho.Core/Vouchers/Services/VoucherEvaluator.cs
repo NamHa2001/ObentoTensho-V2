@@ -12,15 +12,15 @@ public sealed class VoucherEvaluator(IVoucherRepository vouchers, ILoyaltyReposi
 {
     public sealed record Evaluation(Voucher Voucher, decimal Discount);
 
-    public async Task<Result<Evaluation>> EvaluateAsync(string? code, decimal subTotal, Guid? userId, CancellationToken cancellationToken)
+    public async Task<Result<Evaluation>> EvaluateAsync(string? code, decimal subTotal, Guid? userId, CancellationToken cancellationToken, decimal shippingFee = 0)
     {
         var normalized = VoucherCodes.Normalize(code);
         var voucher = normalized.Length == 0 ? null : await vouchers.FindByCodeAsync(normalized, cancellationToken);
         var user = userId is { } id ? await loyalty.FindUserAsync(id, cancellationToken) : null;
         var used = voucher is not null && userId is { } uid ? await vouchers.UsedByUserAsync(voucher.Id, uid, cancellationToken) : 0;
-        var error = VoucherRules.Check(voucher, new VoucherRules.Context(clock.UtcNow, subTotal, userId, user?.MemberTier, used));
+        var error = VoucherRules.Check(voucher, new VoucherRules.Context(clock.UtcNow, subTotal, userId, user?.MemberTier, used, shippingFee));
         return error is null
-            ? Result.Success(new Evaluation(voucher!, VoucherRules.Discount(voucher!, subTotal)))
+            ? Result.Success(new Evaluation(voucher!, VoucherRules.Discount(voucher!, subTotal, shippingFee)))
             : Result.Failure<Evaluation>(error);
     }
 

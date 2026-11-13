@@ -13,6 +13,8 @@ public sealed class Voucher
 
     public DiscountType DiscountType { get; set; }
 
+    public VoucherTarget AppliesTo { get; set; } = VoucherTarget.Items;
+
     public decimal DiscountValue { get; set; }
 
     public decimal? MaxDiscountAmount { get; set; }

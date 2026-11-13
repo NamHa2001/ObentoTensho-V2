@@ -26,6 +26,7 @@ internal sealed class VoucherConfiguration : IEntityTypeConfiguration<Voucher>
         builder.HasKey(v => v.Id);
         builder.Property(v => v.Code).HasColumnType("varchar(50)").IsRequired();
         builder.Property(v => v.DiscountType).HasConversion<byte>().HasColumnType("tinyint");
+        builder.Property(v => v.AppliesTo).HasConversion<byte>().HasColumnType("tinyint").HasDefaultValue(VoucherTarget.Items).ValueGeneratedNever();
         builder.Property(v => v.DiscountValue).HasColumnType("decimal(18,2)");
         builder.Property(v => v.MaxDiscountAmount).HasColumnType("decimal(18,0)");
         builder.Property(v => v.MinOrderValue).HasColumnType("decimal(18,0)");

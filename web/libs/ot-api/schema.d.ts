@@ -9651,6 +9651,11 @@ export interface components {
             usable: boolean;
             /** Format: date-time */
             createdAtUtc: string;
+            /**
+             * @default items
+             * @enum {unknown}
+             */
+            appliesTo: "items" | "shipping";
         };
         AddDineInItemsRequest: {
             items: components["schemas"]["OrderLineRequest"][];
@@ -9991,6 +9996,11 @@ export interface components {
              * @default 0
              */
             deliveryFee: number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            shippingDiscount: number;
         };
         AdminOrderDto: {
             /** Format: uuid */
@@ -10206,6 +10216,11 @@ export interface components {
             /** Format: date-time */
             createdAtUtc: string;
             version: string;
+            /**
+             * @default items
+             * @enum {unknown}
+             */
+            appliesTo: "items" | "shipping";
         };
         /** @enum {unknown} */
         Allergen: "egg" | "milk" | "soy" | "wheat" | "shellfish" | "fish" | "peanut" | "tree_nut" | "sesame";
@@ -10500,6 +10515,11 @@ export interface components {
                  * @default 0
                  */
                 deliveryFee: number;
+                /**
+                 * Format: double
+                 * @default 0
+                 */
+                shippingDiscount: number;
             };
             accessToken: string;
         };
@@ -12283,6 +12303,11 @@ export interface components {
              * @default 0
              */
             deliveryFee: number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            shippingDiscount: number;
         };
         PublicPromotionDto: {
             slug: string;
@@ -12984,6 +13009,8 @@ export interface components {
         ValidateVoucherRequest: {
             code: string;
             items: components["schemas"]["OrderLineRequest"][];
+            /** Format: double */
+            deliveryFee?: null | number;
         };
         VerifyPhoneRequest: {
             code: string;
@@ -13001,6 +13028,16 @@ export interface components {
             /** Format: double */
             totalWithMemberDiscount: number;
             memberIsBetter: boolean;
+            /**
+             * Format: double
+             * @default 0
+             */
+            shippingDiscount: number;
+            /**
+             * @default items
+             * @enum {unknown}
+             */
+            appliesTo: "items" | "shipping";
         };
         VoucherOptionDto: {
             code: string;
@@ -13021,9 +13058,16 @@ export interface components {
             /** Format: double */
             discount: number;
             errorCode: null | string;
+            /**
+             * @default items
+             * @enum {unknown}
+             */
+            appliesTo: "items" | "shipping";
         };
         VoucherOptionsRequest: {
             items: components["schemas"]["OrderLineRequest"][];
+            /** Format: double */
+            deliveryFee?: null | number;
         };
         VoucherRequest: {
             code: null | string;
@@ -13047,9 +13091,15 @@ export interface components {
             isActive: boolean;
             /** Format: int32 */
             promotionId?: null | number;
+            appliesTo?: components["schemas"]["VoucherTarget"];
         };
         /** @enum {unknown} */
         VoucherSource: "admin" | "redeem" | "birthday" | "game" | null;
+        /**
+         * @default items
+         * @enum {unknown}
+         */
+        VoucherTarget: "items" | "shipping";
         WeeklyHoursDto: {
             days: {
                 /** Format: int32 */

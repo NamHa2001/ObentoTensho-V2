@@ -17,4 +17,5 @@ public sealed record VoucherOptionDto(
     VoucherSource Source,
     bool Usable,
     decimal Discount,
-    string? ErrorCode);
+    string? ErrorCode,
+    VoucherTarget AppliesTo = VoucherTarget.Items);

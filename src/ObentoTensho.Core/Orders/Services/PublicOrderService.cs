@@ -125,15 +125,15 @@ public sealed class PublicOrderService(
             return Result.Failure<CreatedOrderDto>(ErrorCodes.OrderLimit);
         }
 
-        var pricing = await TotalsAsync(request.VoucherCode, priced.SubTotal, userId, cancellationToken);
+        var pricing = await TotalsAsync(request.VoucherCode, priced.SubTotal, userId, shipping.Value.Quote?.Fee ?? 0, cancellationToken);
         if (!pricing.IsSuccess)
         {
             return Result.Failure<CreatedOrderDto>(pricing.ErrorCode ?? ErrorCodes.VoucherInvalid);
         }
 
-        var (totals, voucher) = pricing.Value;
-        var needsCall = await NeedsCallAsync(phone, request.PaymentMethod, totals.TotalAmount + (shipping.Value.Quote?.Fee ?? 0), cancellationToken);
-        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, voucher, needsCall, userId, shipping.Value.Quote);
+        var (totals, voucher, shippingDiscount) = pricing.Value;
+        var needsCall = await NeedsCallAsync(phone, request.PaymentMethod, totals.TotalAmount + (shipping.Value.Quote?.Fee ?? 0) - shippingDiscount, cancellationToken);
+        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, voucher, needsCall, userId, shipping.Value.Quote, shippingDiscount);
         return await PersistAsync(draft, cancellationToken);
     }
 
@@ -185,18 +185,25 @@ public sealed class PublicOrderService(
     }
 
     // BR-ORD-03, BR-VCH-04: có mã ⇒ giảm theo voucher (không giảm theo hạng); không mã ⇒ thành viên giảm theo hạng
-    private async Task<Result<(OrderPricing.Totals Totals, Voucher? Voucher)>> TotalsAsync(string? voucherCode, decimal subTotal, Guid? userId, CancellationToken cancellationToken)
+    // Mã giảm ship: giảm trên phí ship, tiền món giữ nguyên (vẫn không cộng giảm theo hạng — mỗi đơn một loại giảm)
+    private async Task<Result<(OrderPricing.Totals Totals, Voucher? Voucher, decimal ShippingDiscount)>> TotalsAsync(string? voucherCode, decimal subTotal, Guid? userId, decimal shippingFee, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(voucherCode))
         {
             var rate = await loyalty.MemberDiscountRateAsync(userId, cancellationToken);
-            return Result.Success<(OrderPricing.Totals, Voucher?)>((OrderPricing.Compute(subTotal, rate, voucherDiscount: 0), null));
+            return Result.Success<(OrderPricing.Totals, Voucher?, decimal)>((OrderPricing.Compute(subTotal, rate, voucherDiscount: 0), null, 0));
         }
 
-        var evaluated = await vouchers.EvaluateAsync(voucherCode, subTotal, userId, cancellationToken);
-        return evaluated.IsSuccess
-            ? Result.Success<(OrderPricing.Totals, Voucher?)>((OrderPricing.Compute(subTotal, memberRate: 0, evaluated.Value.Discount), evaluated.Value.Voucher))
-            : Result.Failure<(OrderPricing.Totals, Voucher?)>(evaluated.ErrorCode ?? ErrorCodes.VoucherInvalid);
+        var evaluated = await vouchers.EvaluateAsync(voucherCode, subTotal, userId, cancellationToken, shippingFee);
+        if (!evaluated.IsSuccess)
+        {
+            return Result.Failure<(OrderPricing.Totals, Voucher?, decimal)>(evaluated.ErrorCode ?? ErrorCodes.VoucherInvalid);
+        }
+
+        var (voucher, discount) = (evaluated.Value.Voucher, evaluated.Value.Discount);
+        return voucher.AppliesTo == VoucherTarget.Shipping
+            ? Result.Success<(OrderPricing.Totals, Voucher?, decimal)>((OrderPricing.Compute(subTotal, memberRate: 0, voucherDiscount: 0), voucher, discount))
+            : Result.Success<(OrderPricing.Totals, Voucher?, decimal)>((OrderPricing.Compute(subTotal, memberRate: 0, discount), voucher, 0));
     }
 
     // BR-ORD-21: khách lần đầu, đơn tiền mặt lớn, hoặc SĐT nhiều lần không đến lấy (BR-ORD-18) phải gọi xác nhận trước khi bếp làm
@@ -221,11 +228,12 @@ public sealed class PublicOrderService(
             SubTotal = draft.Totals.SubTotal,
             MemberDiscount = draft.Totals.MemberDiscount,
             VoucherDiscount = draft.Totals.VoucherDiscount,
-            TotalAmount = draft.Totals.TotalAmount + (draft.Shipping?.Fee ?? 0),
+            TotalAmount = draft.Totals.TotalAmount + (draft.Shipping?.Fee ?? 0) - draft.ShippingDiscount,
             Channel = draft.Shipping is null ? OrderChannel.Pickup : OrderChannel.Delivery,
             DeliveryAddress = draft.Shipping?.Address,
             DeliveryDistanceKm = draft.Shipping?.DistanceKm,
             DeliveryFee = draft.Shipping?.Fee ?? 0,
+            ShippingDiscount = draft.ShippingDiscount,
             VoucherId = draft.Voucher?.Id,
             VoucherCodeSnapshot = draft.Voucher?.Code,
             PaymentMethod = draft.Request.PaymentMethod,
@@ -339,5 +347,6 @@ public sealed class PublicOrderService(
         Voucher? Voucher,
         bool NeedsContactConfirm,
         Guid? UserId,
-        DeliveryQuoteDto? Shipping);
+        DeliveryQuoteDto? Shipping,
+        decimal ShippingDiscount);
 }

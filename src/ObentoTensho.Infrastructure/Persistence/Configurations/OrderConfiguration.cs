@@ -34,6 +34,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.DeliveryAddress).HasColumnType("nvarchar(300)");
         builder.Property(o => o.DeliveryDistanceKm).HasColumnType("decimal(6,1)");
         builder.Property(o => o.DeliveryFee).HasColumnType("decimal(18,0)").HasDefaultValue(0m).ValueGeneratedNever();
+        builder.Property(o => o.ShippingDiscount).HasColumnType("decimal(18,0)").HasDefaultValue(0m).ValueGeneratedNever();
         builder.Property(o => o.Channel).HasConversion<byte>().HasColumnType("tinyint").HasDefaultValue(OrderChannel.Pickup).ValueGeneratedNever();
         builder.Property(o => o.CancelReason).HasColumnType("nvarchar(300)");
         builder.Property(o => o.CancelledByType).HasConversion(new SnakeCaseEnumConverter<OrderActor>()).HasColumnType("varchar(10)");
@@ -70,7 +71,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             // BR-ORD-04: giảm không âm, không vượt tạm tính; tổng tiền không âm
             table.HasCheckConstraint(
                 "CK_Orders_Amounts",
-                "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0");
+                "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0 AND [ShippingDiscount] >= 0 AND [ShippingDiscount] <= [DeliveryFee]");
             // Giao hàng: phải có địa chỉ
             table.HasCheckConstraint("CK_Orders_Delivery", "[Channel] <> 2 OR [DeliveryAddress] IS NOT NULL");
 

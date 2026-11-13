@@ -15,4 +15,5 @@ public sealed record AdminOrderDetailDto(
     IReadOnlyList<OrderHistoryDto> History,
     string? DeliveryAddress = null,
     decimal? DeliveryDistanceKm = null,
-    decimal DeliveryFee = 0);
+    decimal DeliveryFee = 0,
+    decimal ShippingDiscount = 0);

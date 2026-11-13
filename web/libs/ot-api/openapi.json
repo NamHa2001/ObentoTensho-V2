@@ -8449,6 +8449,13 @@
           "createdAtUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "appliesTo": {
+            "enum": [
+              "items",
+              "shipping"
+            ],
+            "default": "items"
           }
         }
       },
@@ -9730,6 +9737,11 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "shippingDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -10511,6 +10523,13 @@
           },
           "version": {
             "type": "string"
+          },
+          "appliesTo": {
+            "enum": [
+              "items",
+              "shipping"
+            ],
+            "default": "items"
           }
         }
       },
@@ -11630,6 +11649,11 @@
                 ]
               },
               "deliveryFee": {
+                "type": "number",
+                "format": "double",
+                "default": 0
+              },
+              "shippingDiscount": {
                 "type": "number",
                 "format": "double",
                 "default": 0
@@ -18223,6 +18247,11 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "shippingDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -20818,6 +20847,13 @@
             "items": {
               "$ref": "#/components/schemas/OrderLineRequest"
             }
+          },
+          "deliveryFee": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -20869,6 +20905,18 @@
           },
           "memberIsBetter": {
             "type": "boolean"
+          },
+          "shippingDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
+          },
+          "appliesTo": {
+            "enum": [
+              "items",
+              "shipping"
+            ],
+            "default": "items"
           }
         }
       },
@@ -20945,6 +20993,13 @@
               "null",
               "string"
             ]
+          },
+          "appliesTo": {
+            "enum": [
+              "items",
+              "shipping"
+            ],
+            "default": "items"
           }
         }
       },
@@ -20959,6 +21014,13 @@
             "items": {
               "$ref": "#/components/schemas/OrderLineRequest"
             }
+          },
+          "deliveryFee": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -21050,6 +21112,9 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "appliesTo": {
+            "$ref": "#/components/schemas/VoucherTarget"
           }
         }
       },
@@ -21061,6 +21126,13 @@
           "game",
           null
         ]
+      },
+      "VoucherTarget": {
+        "enum": [
+          "items",
+          "shipping"
+        ],
+        "default": "items"
       },
       "WeeklyHoursDto": {
         "required": [

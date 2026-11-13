@@ -84,7 +84,7 @@ public sealed class OrderTransitions(
         if (to == OrderStatus.Completed)
         {
             // Tiền ship không tính điểm
-            var points = LoyaltyRules.OrderPoints(order.TotalAmount - order.DeliveryFee, loyaltySettings.VndPerPoint);
+            var points = LoyaltyRules.OrderPoints(order.TotalAmount - (order.DeliveryFee - order.ShippingDiscount), loyaltySettings.VndPerPoint);
             order.PointsEarned = await ledger.EarnAsync(userId, LoyaltyTransactionType.OrderEarn, order.OrderCode, points, note: null, cancellationToken);
         }
         else if (to == OrderStatus.Cancelled && order.PointsEarned > 0)

@@ -34,7 +34,8 @@ public static class OrderMappings
             o.Id,
             o.Channel,
             o.DeliveryAddress,
-            o.DeliveryFee);
+            o.DeliveryFee,
+            o.ShippingDiscount);
     }
 
     public static AdminOrderDto ToAdmin(this Order o, IClock clock, bool noPickupFlag = false)
@@ -78,7 +79,8 @@ public static class OrderMappings
             history.Select(h => new OrderHistoryDto(h.FromStatus, h.ToStatus, h.ChangedByType, h.ChangedById, h.Reason, h.ChangedAtUtc)).ToArray(),
             o.DeliveryAddress,
             o.DeliveryDistanceKm,
-            o.DeliveryFee);
+            o.DeliveryFee,
+            o.ShippingDiscount);
 
     public static KitchenOrderDto ToKitchen(this Order o, IClock clock)
     {
