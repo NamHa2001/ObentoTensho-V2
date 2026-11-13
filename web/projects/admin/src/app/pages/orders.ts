@@ -10,7 +10,7 @@ import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
 
 const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'], delivering: ['completed', 'cancelled'] };
-const CHANNEL: Record<string, string> = { pickup: 'Mang về', delivery: 'Giao hàng', dine_in: 'Tại quán' };
+const CHANNEL: Record<string, string> = { pickup: 'Đặt online', delivery: 'Giao hàng', dine_in: 'Tại bàn', counter: 'Mua tại quầy' };
 
 // Đơn giao hàng: sẵn sàng thì chuyển "Đang giao" (không hoàn thành thẳng)
 function nextSteps(order: any): string[] {

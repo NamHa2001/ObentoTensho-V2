@@ -29,10 +29,28 @@ function clock(utc: string): string {
   template: `
     <div class="a-head">
       <h1>Gọi món tại bàn</h1>
-      <div class="a-btns"><button type="button" class="ot-chip" (click)="load()">Tải lại</button></div>
+      <div class="a-btns">
+        <button type="button" class="ot-btn ot-btn-primary" (click)="startCounter()">+ Đơn mang về tại quầy</button>
+        <button type="button" class="ot-chip" (click)="load()">Tải lại</button>
+      </div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán.</p>
+    @if (counter().length > 0) {
+      <section class="a-card mb-6">
+        <header class="a-card-h"><span>Mua mang về tại quầy <small class="ml-1 font-normal text-muted">{{ counter().length }} đơn</small></span></header>
+        <div class="a-card-b grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+          @for (c of counter(); track c.id) {
+            <button type="button" class="a-dine-table" [attr.data-status]="c.paid ? 'reserved' : 'occupied'" (click)="openBill(c.id)">
+              <b class="text-lg">{{ c.customerName }}</b>
+              <span class="text-sm">{{ since(c.openedAtUtc) }} phút · {{ c.subTotal | vnd }}</span>
+              @if (c.paid) { <span class="a-badge self-start">Đã trả tiền, chờ món</span> }
+              @else if (c.unservedCount > 0) { <span class="a-badge self-start">{{ c.unservedCount }} món chờ bếp</span> }
+            </button>
+          }
+        </div>
+      </section>
+    }
+    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "+ Đơn mang về tại quầy".</p>
     @for (g of groups(); track g.name) {
       <section class="a-card mb-6">
         <header class="a-card-h"><span>{{ g.name }} <small class="ml-1 font-normal text-muted">{{ g.tables.length }} bàn</small></span></header>
@@ -53,6 +71,23 @@ function clock(utc: string): string {
       </section>
     } @empty {
       @if (loaded()) { <div class="a-card a-card-b text-center text-muted">Chưa có bàn nào. Quản lý thêm bàn ở <a class="text-primary" routerLink="/floor">Sơ đồ bàn</a>.</div> }
+    }
+
+    @if (counterForm()) {
+      <div class="a-drawer" role="dialog" aria-modal="true">
+        <form class="a-drawer-panel" (ngSubmit)="openCounter()">
+          <div class="a-drawer-h">Đơn mang về tại quầy</div>
+          <div class="a-drawer-b">
+            <label>Tên gọi khách khi xong món (không bắt buộc)<input class="ot-input" name="counterName" maxlength="50" placeholder="Ví dụ: Chị Lan, số 12" [(ngModel)]="counterName" /></label>
+            <label>Ghi chú (không bắt buộc)<input class="ot-input" name="counterNote" maxlength="500" [(ngModel)]="note" /></label>
+            @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
+          </div>
+          <div class="a-drawer-f">
+            <button type="button" class="ot-btn ot-btn-outline" (click)="counterForm.set(false)">Đóng</button>
+            <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Tạo đơn</button>
+          </div>
+        </form>
+      </div>
     }
 
     @if (opening(); as t) {
@@ -77,6 +112,9 @@ export class DineIn {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   protected readonly tables = signal<any[]>([]);
+  protected readonly counter = signal<any[]>([]);
+  protected readonly counterForm = signal(false);
+  protected counterName = '';
   protected readonly loaded = signal(false);
   protected readonly opening = signal<any>(null);
   protected readonly form = new Submit();
@@ -102,6 +140,7 @@ export class DineIn {
       this.tables.set(t);
       this.loaded.set(true);
     });
+    this.api.get<any[]>('dine-in/counter').subscribe({ next: (c) => this.counter.set(c), error: () => undefined });
   }
 
   protected label(status: string): string {
@@ -110,6 +149,24 @@ export class DineIn {
 
   protected since(utc: string): number {
     return minutesSince(utc);
+  }
+
+  protected openBill(id: string): void {
+    void this.router.navigate(['/dine-in', id]);
+  }
+
+  protected startCounter(): void {
+    this.form.error.set(null);
+    this.counterName = '';
+    this.note = '';
+    this.counterForm.set(true);
+  }
+
+  protected openCounter(): void {
+    this.form.run(this.api.post<any>('dine-in/counter', { customerName: this.counterName.trim() || null, note: this.note.trim() || null }), (bill) => {
+      this.counterForm.set(false);
+      this.openBill(bill.id);
+    });
   }
 
   protected async pick(t: any): Promise<void> {
@@ -158,7 +215,7 @@ interface DraftLine {
   imports: [FormsModule, RouterLink, VndPipe, InvoiceForm],
   template: `
     <div class="a-head">
-      <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">· {{ b.guestCount }} khách · mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
+      <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
       <div class="a-btns"><a class="ot-btn ot-btn-outline" routerLink="/dine-in">‹ Sơ đồ bàn</a></div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3" role="alert">{{ e }}</p> }
@@ -167,6 +224,7 @@ interface DraftLine {
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section class="a-card">
           <header class="a-card-h">Chọn món</header>
+          @if (b.paid) { <p class="a-card-b font-semibold">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
             <div class="flex flex-wrap gap-2">
               <button type="button" class="ot-chip" [class.ot-chip-active]="category() === null" (click)="category.set(null)">Tất cả</button>
@@ -201,6 +259,7 @@ interface DraftLine {
               </div>
             }
           </div>
+          }
         </section>
 
         <section class="a-card self-start">
@@ -224,7 +283,7 @@ interface DraftLine {
                       <span class="a-badge">Chờ bếp</span>
                       <button type="button" class="text-primary" (click)="served(b, i)">Đã bưng ra</button>
                     }
-                    @if (!i.voided && canVoid()) { <button type="button" class="text-danger" (click)="voidItem(b, i)">Hủy món</button> }
+                    @if (!i.voided && canVoid() && !b.paid) { <button type="button" class="text-danger" (click)="voidItem(b, i)">Hủy món</button> }
                   </div>
                 </div>
               }
@@ -233,11 +292,13 @@ interface DraftLine {
             <div class="mt-4 flex justify-between text-lg font-bold"><span>Tạm tính</span><span>{{ b.subTotal | vnd }}</span></div>
             <div class="mt-3 grid grid-cols-2 gap-2">
               <button type="button" class="ot-btn ot-btn-outline" [disabled]="activeCount() === 0" (click)="printBill(b)">In tạm tính</button>
-              <button type="button" class="ot-btn ot-btn-outline" (click)="startMove()">Chuyển bàn</button>
-              <button type="button" class="ot-btn ot-btn-outline" (click)="startMerge()">Gộp bàn</button>
+              @if (b.channel === 'dine_in') {
+                <button type="button" class="ot-btn ot-btn-outline" (click)="startMove()">Chuyển bàn</button>
+                <button type="button" class="ot-btn ot-btn-outline" (click)="startMerge()">Gộp bàn</button>
+              }
               @if (activeCount() === 0) { <button type="button" class="ot-btn ot-btn-outline text-danger" (click)="cancelBill(b)">Hủy phiếu</button> }
             </div>
-            @if (canPay()) { <button type="button" class="ot-btn ot-btn-primary mt-2 w-full" [disabled]="activeCount() === 0" (click)="startCheckout(b)">Thanh toán</button> }
+            @if (canPay() && !b.paid) { <button type="button" class="ot-btn ot-btn-primary mt-2 w-full" [disabled]="activeCount() === 0" (click)="startCheckout(b)">Thanh toán</button> }
           </div>
         </section>
       </div>
@@ -338,7 +399,7 @@ interface DraftLine {
         @if (shop().phone) { <p>ĐT: {{ shop().phone }}</p> }
         <hr />
         <p><b>{{ p.title }}</b></p>
-        <p>{{ p.tableName }} · {{ p.guestCount }} khách · {{ p.code }}</p>
+        <p>{{ p.tableName }}@if (p.guestCount) { · {{ p.guestCount }} khách } · {{ p.code }}</p>
         <p>{{ p.at }}</p>
         <hr />
         @for (i of p.items; track i.id) {

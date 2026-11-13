@@ -6,7 +6,7 @@ import { Api, saveBlob } from '../core/api';
 import { ChartCard, ChartPoint, dayPoints, namedPoints, StatCard } from '../shared/chart';
 import { Latest, Submit, VndPipe, today } from '../shared/ui';
 
-const CHANNELS: Record<string, string> = { pickup: 'Mang về', dine_in: 'Tại quán', delivery: 'Giao hàng' };
+const CHANNELS: Record<string, string> = { pickup: 'Đặt online đến lấy', dine_in: 'Tại bàn', delivery: 'Giao hàng', counter: 'Mua tại quầy' };
 
 const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
 
