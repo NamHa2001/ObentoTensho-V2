@@ -9,7 +9,14 @@ import { Latest, ORDER_STATUS, Submit, VnDatePipe, VndPipe } from '../shared/ui'
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
 
-const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'] };
+const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'], delivering: ['completed', 'cancelled'] };
+const CHANNEL: Record<string, string> = { pickup: 'Mang về', delivery: 'Giao hàng', dine_in: 'Tại quán' };
+
+// Đơn giao hàng: sẵn sàng thì chuyển "Đang giao" (không hoàn thành thẳng)
+function nextSteps(order: any): string[] {
+  const steps = ORDER_NEXT[order.status] ?? [];
+  return order.channel === 'delivery' && order.status === 'ready' ? ['delivering', 'cancelled'] : steps;
+}
 
 @Component({
   selector: 'ot-orders',
@@ -30,13 +37,14 @@ const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled
     @if (list.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     <div class="a-table"><table class="w-full text-sm"><thead><tr class="bg-surface-2 text-left"><th class="p-2">Mã</th><th class="p-2">Khách</th><th class="p-2">Lấy lúc</th><th class="p-2">Tổng</th><th class="p-2">Trạng thái</th><th class="p-2">Thanh toán</th></tr></thead>
       <tbody>@for (o of rows(); track o.id) {
-        <tr class="border-b border-line"><td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a></td><td class="p-2">{{ o.customerName }}<small class="block text-muted">{{ o.maskedPhone }}</small></td><td class="p-2 whitespace-nowrap">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }}</td><td class="p-2">{{ o.totalAmount | vnd }}</td><td class="p-2">{{ labels[o.status] }}</td><td class="p-2">{{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</td></tr>
+        <tr class="border-b border-line"><td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a><small class="block text-muted">{{ channel[o.channel] }}</small></td><td class="p-2">{{ o.customerName }}<small class="block text-muted">{{ o.maskedPhone }}</small></td><td class="p-2 whitespace-nowrap">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }}</td><td class="p-2">{{ o.totalAmount | vnd }}</td><td class="p-2">{{ labels[o.status] }}</td><td class="p-2">{{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</td></tr>
       } @empty { <tr><td colspan="6" class="p-4 text-muted">Không có đơn.</td></tr> }</tbody></table></div>
     @if (rows().length < total()) { <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="more()">Xem thêm</button> }
   `,
 })
 export class Orders {
   private readonly api = inject(Api);
+  protected readonly channel = CHANNEL;
   protected readonly labels = ORDER_STATUS;
   protected readonly statusKeys = Object.keys(ORDER_STATUS);
   protected readonly rows = signal<any[]>([]);
@@ -89,6 +97,7 @@ export class Orders {
             <div class="a-line"><span>Tạm tính</span><span class="tabular-nums">{{ v.subTotal | vnd }}</span></div>
             @if (v.memberDiscount > 0) { <div class="a-line"><span>Giảm hạng</span><span class="tabular-nums">-{{ v.memberDiscount | vnd }}</span></div> }
             @if (v.voucherDiscount > 0) { <div class="a-line"><span>Voucher</span><span class="tabular-nums">-{{ v.voucherDiscount | vnd }}</span></div> }
+            @if (v.order.channel === 'delivery') { <div class="a-line"><span>Phí ship</span><span class="tabular-nums">{{ v.deliveryFee | vnd }}</span></div> }
             <div class="a-line font-bold"><span>Tổng cộng</span><span class="text-primary tabular-nums">{{ v.order.totalAmount | vnd }}</span></div>
             @if (v.note) { <p class="mt-2 text-muted">Ghi chú: {{ v.note }}</p> }
           </div>
@@ -100,7 +109,11 @@ export class Orders {
               <dt>Khách</dt><dd>{{ v.order.customerName }}</dd>
               <dt>Điện thoại</dt><dd>{{ contact()?.phone ?? v.order.maskedPhone }}</dd>
               <dt>Email</dt><dd>{{ contact()?.email ?? v.order.maskedEmail }}</dd>
-              <dt>Giờ lấy</dt><dd>{{ v.order.pickupTime.slice(0, 5) }} {{ v.order.pickupDate | vnDate }}</dd>
+              <dt>Kênh</dt><dd>{{ channel[v.order.channel] }}</dd>
+              <dt>{{ v.order.channel === 'delivery' ? 'Giờ giao' : 'Giờ lấy' }}</dt><dd>{{ v.order.pickupTime.slice(0, 5) }} {{ v.order.pickupDate | vnDate }}</dd>
+              @if (v.deliveryAddress) {
+                <dt>Giao tới</dt><dd>{{ v.deliveryAddress }} <small class="block text-muted">{{ v.deliveryDistanceKm }} km</small><a class="text-primary" target="_blank" rel="noopener" [href]="mapLink(v.deliveryAddress)">Mở Google Maps</a></dd>
+              }
               <dt>Thanh toán</dt><dd>{{ v.order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ v.order.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</dd>
             </dl></div>
           </section>
@@ -146,6 +159,7 @@ export class Order {
   protected readonly auth = inject(Auth);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly labels = ORDER_STATUS;
+  protected readonly channel = CHANNEL;
   protected readonly d = signal<any>(null);
   protected readonly contact = signal<any>(null);
   protected readonly form = new Submit();
@@ -178,7 +192,11 @@ export class Order {
   // Chỉ hiện bước mà vai trò này được làm và đã đủ điều kiện (đơn cần gọi xác nhận thì gọi trước)
   protected next(order: any): string[] {
     const blocked = order.status === 'pending' && order.needsContactConfirm && !order.contactConfirmed;
-    return (ORDER_NEXT[order.status] ?? []).filter((s) => (s === 'cancelled' ? this.auth.has('orders_cancel') : s === 'completed' ? this.auth.has('orders_cashier') : this.auth.has('orders_kitchen') && !blocked));
+    return nextSteps(order).filter((s) => (s === 'cancelled' ? this.auth.has('orders_cancel') : s === 'completed' || s === 'delivering' ? this.auth.has('orders_cashier') : this.auth.has('orders_kitchen') && !blocked));
+  }
+
+  protected mapLink(address: string): string {
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
   }
 
   protected async noPickup(v: any): Promise<void> {

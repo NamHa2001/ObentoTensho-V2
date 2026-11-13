@@ -41,11 +41,11 @@ import { Latest, ORDER_STATUS, Submit } from '../shared/ui';
       @for (lane of lanes; track lane) {
         <section class="a-card min-h-60 p-3" cdkDropList [cdkDropListData]="lane" (cdkDropListDropped)="dropped($event)"><h2 class="flex justify-between">{{ labels[lane] }} <span class="a-badge">{{ of(lane).length }}</span></h2>
           @for (o of of(lane); track o.id) {
-            <article class="ot-card mt-2 cursor-move p-3" cdkDrag [cdkDragData]="o"><b>{{ o.code }}</b> · {{ o.pickupTime.slice(0, 5) }} · {{ o.shortName }}
+            <article class="ot-card mt-2 cursor-move p-3" cdkDrag [cdkDragData]="o"><b>{{ o.code }}</b> · {{ o.pickupTime.slice(0, 5) }} · {{ o.shortName }}@if (o.channel === 'delivery') { <span class="a-badge ml-1">Giao hàng</span> }
               <ul class="mt-1">@for (i of o.items; track $index) { <li>{{ i.quantity }} × {{ i.name }}@for (x of i.options; track $index) { <small class="block text-muted">{{ x }}</small> }@if (i.note) { <small class="block">{{ i.note }}</small> }</li> }</ul>
               @if (o.note) { <p class="text-sm">{{ o.note }}</p> }
               <div class="mt-2 flex gap-2">
-                @if (nextFor(o.status); as n) { <button type="button" class="ot-btn ot-btn-primary flex-1" (click)="move(o, n)">{{ labels[n] }}</button> }
+                @if (nextFor(o); as n) { <button type="button" class="ot-btn ot-btn-primary flex-1" (click)="move(o, n)">{{ labels[n] }}</button> }
                 <button type="button" class="ot-btn ot-btn-outline" (click)="print(o)">In</button>
               </div>
             </article>
@@ -93,9 +93,9 @@ export class Kitchen {
   }
 
   // Bếp nấu xong tới "Sẵn sàng"; giao cho khách là việc của thu ngân
-  protected nextFor(status: string): string | null {
-    const next = this.nextOf[status];
-    return next === 'completed' && !this.auth.has('orders_cashier') ? null : next;
+  protected nextFor(o: any): string | null {
+    const next = o.channel === 'delivery' && o.status === 'ready' ? 'delivering' : this.nextOf[o.status];
+    return (next === 'completed' || next === 'delivering') && !this.auth.has('orders_cashier') ? null : next;
   }
 
   protected of(status: string): any[] {
@@ -109,7 +109,7 @@ export class Kitchen {
   // Chỉ nhận kéo sang cột kế tiếp; máy trạng thái ở server vẫn là chốt chặn
   protected dropped(event: CdkDragDrop<string>): void {
     const order = event.item.data;
-    if (event.previousContainer !== event.container && this.nextFor(order.status) === event.container.data) {
+    if (event.previousContainer !== event.container && this.nextFor(order) === event.container.data) {
       this.move(order, event.container.data);
     }
   }
