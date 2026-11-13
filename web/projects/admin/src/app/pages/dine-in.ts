@@ -152,7 +152,7 @@ interface DraftLine {
 }
 
 // Phiếu bàn: chọn món (bên trái) thành một đợt, gửi bếp; xem món theo đợt, đánh dấu đã bưng ra, hủy món (quản lý),
-// chuyển/gộp bàn, in tạm tính, thanh toán (thu ngân)
+// chuyển/gộp bàn, in tạm tính, thanh toán (mọi nhân viên phục vụ bàn)
 @Component({
   selector: 'ot-dine-in-bill',
   imports: [FormsModule, RouterLink, VndPipe, InvoiceForm],
@@ -386,7 +386,7 @@ export class DineInBill {
   protected wantInvoice = false;
   protected buyer = emptyBuyer();
   protected readonly canVoid = computed(() => this.auth.has('orders_void'));
-  protected readonly canPay = computed(() => this.auth.has('orders_cashier'));
+  protected readonly canPay = computed(() => this.auth.has('dine_in'));
   protected readonly shop = toSignal(
     this.api.publicSettings().pipe(
       map((s) => ({ name: s['restaurant.name'] || 'Obento Tensho', address: s['restaurant.address'] || '', phone: s['restaurant.phone'] || '' })),
