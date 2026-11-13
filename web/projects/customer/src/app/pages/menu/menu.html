@@ -46,20 +46,21 @@
     </div>
   </div>
 
-    <!-- Điện thoại: hàng cuộn ngang; máy tính: cột bên trái -->
+    <!-- Điện thoại: hàng cuộn ngang dính dưới thanh tiêu đề; máy tính: cột bên trái dính khi cuộn -->
     <nav aria-label="Danh mục" class="ot-scroll-row ot-category-nav lg:col-start-1 lg:row-span-2 lg:row-start-1">
-      <a routerLink="/menu" [queryParams]="{ danhMuc: null }" queryParamsHandling="merge" class="ot-chip" [class.ot-chip-active]="!filter().category">Tất cả</a>
+      <button type="button" class="ot-chip" [class.ot-chip-active]="grouped() ? !active() : !filter().category" (click)="pick(null)">Tất cả</button>
       @for (category of categories(); track category.id) {
-        <a
-          routerLink="/menu"
-          [queryParams]="{ danhMuc: category.slug }"
-          queryParamsHandling="merge"
+        <button
+          type="button"
           class="ot-chip"
-          [class.ot-chip-active]="filter().category === category.slug"
+          [id]="'dm-chip-' + category.slug"
+          [class.ot-chip-active]="grouped() ? active() === category.slug : filter().category === category.slug"
+          [attr.aria-current]="(grouped() ? active() === category.slug : filter().category === category.slug) ? 'true' : null"
+          (click)="pick(category.slug)"
         >
           {{ category.name }}
           <span class="ml-2 text-sm opacity-70 tabular-nums">{{ category.itemCount }}</span>
-        </a>
+        </button>
       }
     </nav>
 
@@ -89,6 +90,17 @@
           <p class="mt-1 text-sm text-muted">Hãy thử từ khóa khác hoặc xem tất cả món.</p>
           <a routerLink="/menu" class="ot-btn ot-btn-outline mt-4">Xem tất cả</a>
         </div>
+      } @else if (grouped()) {
+        @for (section of sections(); track section.slug; let s = $index) {
+          <div class="ot-menu-section" [id]="'dm-' + section.slug">
+            <h2 class="ot-menu-section-title">{{ section.name }} <span class="text-sm font-normal text-muted">{{ section.items.length }} món</span></h2>
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+              @for (item of section.items; track item.id; let i = $index) {
+                <ot-menu-item-card [item]="item" [eager]="s === 0 && i < 3" />
+              }
+            </div>
+          </div>
+        }
       } @else {
         <div class="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
           @for (item of items(); track item.id; let i = $index) {
