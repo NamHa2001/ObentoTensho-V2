@@ -68,6 +68,15 @@ public sealed class RegisterRequestValidatorTests
         Assert.Contains(FieldErrorCodes.OutOfRange, ErrorsFor(Valid with { PreferredLang = "fr" }, nameof(RegisterRequest.PreferredLang)), StringComparer.Ordinal);
     }
 
+    [Theory]
+    [InlineData("12345")]
+    [InlineData("+1 415 555 0100")]
+    public void So_dien_thoai_khong_bat_buoc_nhung_nhap_sai_thi_bi_tu_choi(string phone)
+    {
+        Assert.Empty(ErrorsFor(Valid with { PhoneNumber = null }, nameof(RegisterRequest.PhoneNumber)));
+        Assert.Contains(FieldErrorCodes.InvalidFormat, ErrorsFor(Valid with { PhoneNumber = phone }, nameof(RegisterRequest.PhoneNumber)), StringComparer.Ordinal);
+    }
+
     [Fact]
     public void Truong_bat_buoc_bi_bo_trong()
     {
@@ -75,7 +84,7 @@ public sealed class RegisterRequestValidatorTests
 
         Assert.Contains(FieldErrorCodes.Required, ErrorsFor(empty, nameof(RegisterRequest.FullName)), StringComparer.Ordinal);
         Assert.Contains(FieldErrorCodes.Required, ErrorsFor(empty, nameof(RegisterRequest.Email)), StringComparer.Ordinal);
-        Assert.Contains(FieldErrorCodes.InvalidFormat, ErrorsFor(empty, nameof(RegisterRequest.PhoneNumber)), StringComparer.Ordinal);
+        Assert.Empty(ErrorsFor(empty, nameof(RegisterRequest.PhoneNumber)));
         Assert.Contains(FieldErrorCodes.Required, ErrorsFor(empty, nameof(RegisterRequest.Password)), StringComparer.Ordinal);
     }
 }

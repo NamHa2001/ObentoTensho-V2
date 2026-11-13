@@ -37,6 +37,8 @@ public interface IUserRepository
     // Đặt bàn/đặt món/voucher sinh nhật chỉ cho tài khoản đang hoạt động đã xác minh SĐT
     Task<bool> IsPhoneVerifiedAsync(Guid id, CancellationToken cancellationToken);
 
+    Task<bool> IsEmailVerifiedAsync(Guid id, CancellationToken cancellationToken);
+
     // Có tài khoản khác (chưa xóa) đã xác minh SĐT này
     Task<bool> PhoneVerifiedByOtherAsync(string phoneNumber, Guid exceptUserId, CancellationToken cancellationToken);
 }

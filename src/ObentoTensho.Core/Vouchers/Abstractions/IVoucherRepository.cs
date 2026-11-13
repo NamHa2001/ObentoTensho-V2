@@ -33,7 +33,7 @@ public interface IVoucherRepository
     Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken);
 
     // BR-LOY-09/20: khách có sinh nhật ngày này, email đã xác thực, chưa có voucher sinh nhật năm nay; đọc theo lô, sau afterId
-    Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, Guid? afterId, int limit, CancellationToken cancellationToken);
+    Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, bool requirePhoneVerified, Guid? afterId, int limit, CancellationToken cancellationToken);
 
     Task<bool> PromotionExistsAsync(int promotionId, CancellationToken cancellationToken);
 

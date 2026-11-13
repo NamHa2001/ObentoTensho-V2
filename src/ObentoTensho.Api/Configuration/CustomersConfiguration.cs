@@ -23,6 +23,7 @@ public static class CustomersConfiguration
         services.AddSingleton<IValidator<ChangeEmailRequest>, ChangeEmailRequestValidator>();
         services.AddScoped<AccountService>();
         services.AddScoped<PhoneVerificationService>();
+        services.AddScoped<ContactVerificationPolicy>();
         services.AddScoped<AvatarService>();
         services.AddScoped<AccountDeletionService>();
         services.AddScoped<IRecurringJob, AccountDeletionJob>();

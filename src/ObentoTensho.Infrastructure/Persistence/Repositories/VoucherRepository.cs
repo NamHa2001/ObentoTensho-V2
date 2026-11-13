@@ -58,9 +58,9 @@ internal sealed class VoucherRepository(AppDbContext db) : IVoucherRepository
     public async Task<IReadOnlyList<Voucher>> ListForExportAsync(VoucherQuery query, int limit, CancellationToken cancellationToken) =>
         await Filter(query).OrderByDescending(v => v.Id).Take(limit).ToListAsync(cancellationToken);
 
-    public async Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, Guid? afterId, int limit, CancellationToken cancellationToken) =>
+    public async Task<IReadOnlyList<User>> ListBirthdayDueAsync(int month, int day, bool includeLeapDay, int year, bool requirePhoneVerified, Guid? afterId, int limit, CancellationToken cancellationToken) =>
         await db.Users.AsNoTracking()
-            .Where(u => u.IsActive && !u.IsDeleted && u.IsEmailVerified && u.IsPhoneVerified && u.DateOfBirth != null
+            .Where(u => u.IsActive && !u.IsDeleted && u.IsEmailVerified && (!requirePhoneVerified || u.IsPhoneVerified) && u.DateOfBirth != null
                 && ((u.DateOfBirth.Value.Month == month && u.DateOfBirth.Value.Day == day)
                     || (includeLeapDay && u.DateOfBirth.Value.Month == 2 && u.DateOfBirth.Value.Day == 29))
                 && !db.Vouchers.Any(v => v.OwnerUserId == u.Id && v.BirthdayYear == year)

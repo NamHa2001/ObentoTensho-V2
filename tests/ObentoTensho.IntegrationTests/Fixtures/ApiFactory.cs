@@ -15,8 +15,8 @@ using ObentoTensho.Infrastructure.Persistence;
 namespace ObentoTensho.IntegrationTests.Fixtures;
 
 // Chạy toàn bộ API trong bộ nhớ trên CSDL test; khóa ký JWT sinh ngẫu nhiên mỗi lần chạy.
-// settings ghi đè cấu hình (vd hạ giới hạn tần suất cho test 429).
-public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<string, string>? settings = null)
+// settings ghi đè cấu hình (vd hạ giới hạn tần suất cho test 429); services thay dịch vụ cho riêng một test.
+public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<string, string>? settings = null, Action<IServiceCollection>? services = null)
     : WebApplicationFactory<Program>
 {
     public const string CustomerOrigin = "https://www.obento.test";
@@ -65,15 +65,16 @@ public sealed class ApiFactory(string connectionString, IReadOnlyDictionary<stri
             builder.UseSetting(key, value);
         }
 
-        builder.ConfigureTestServices(services =>
+        builder.ConfigureTestServices(s =>
         {
-            services.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly);
-            services.AddTransient<Microsoft.AspNetCore.Hosting.IStartupFilter, TestRemoteIpStartupFilter>();
-            services.AddSingleton<IEmailSender>(Emails);
-            services.AddSingleton<ISmsSender>(Sms);
+            s.AddControllers().AddApplicationPart(typeof(ApiFactory).Assembly);
+            s.AddTransient<Microsoft.AspNetCore.Hosting.IStartupFilter, TestRemoteIpStartupFilter>();
+            s.AddSingleton<IEmailSender>(Emails);
+            s.AddSingleton<ISmsSender>(Sms);
 
             // Chỉ đếm khi test mở QueryCounter.Begin(); còn lại không ảnh hưởng gì
-            services.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(QueryCounter.Instance));
+            s.ConfigureDbContext<AppDbContext>(o => o.AddInterceptors(QueryCounter.Instance));
+            services?.Invoke(s);
         });
     }
 

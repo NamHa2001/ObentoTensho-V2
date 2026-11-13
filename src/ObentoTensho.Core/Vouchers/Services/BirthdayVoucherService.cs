@@ -2,6 +2,7 @@ using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Loyalty.Abstractions;
 using ObentoTensho.Core.Time;
 using ObentoTensho.Core.Vouchers.Abstractions;
@@ -9,11 +10,12 @@ using ObentoTensho.Core.Vouchers.Domain;
 
 namespace ObentoTensho.Core.Vouchers.Services;
 
-// BR-LOY-09/20: mỗi năm một voucher sinh nhật cho khách đã xác thực email và SĐT (Q3: SĐT chỉ một tài khoản xác minh,
+// BR-LOY-09/20: mỗi năm một voucher sinh nhật cho khách đã xác thực email và SĐT — SĐT chỉ khi bật otp.requirePhoneVerify (Q3: SĐT chỉ một tài khoản xác minh,
 // chặn tạo nhiều tài khoản để nhận voucher), theo ngày VN; chỉ mục UNIQUE giữ idempotent khi chạy lại.
 // Sinh 29/2 thì năm thường nhận vào 28/2. Hạn dùng theo voucher.redeemExpiryDays.
 public sealed class BirthdayVoucherService(
     IVoucherRepository vouchers,
+    ContactVerificationPolicy contactVerification,
     ILoyaltySettings loyaltySettings,
     IVoucherSettings settings,
     IVoucherEmailOutbox emails,
@@ -40,7 +42,7 @@ public sealed class BirthdayVoucherService(
         Guid? after = null;
         while (true)
         {
-            var batch = await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, after, BatchSize, cancellationToken);
+            var batch = await vouchers.ListBirthdayDueAsync(today.Month, today.Day, includeLeapDay, today.Year, contactVerification.RequirePhone, after, BatchSize, cancellationToken);
 
             // BR-AUTH-16: email dùng một lần không nhận ưu đãi
             foreach (var user in batch.Where(u => !disposableEmails.IsDisposable(u.Email)))

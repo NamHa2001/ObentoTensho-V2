@@ -22,8 +22,10 @@ public sealed class RegisterRequestValidator : AbstractValidator<RegisterRequest
 
         RuleFor(r => r.Email).ValidEmail();
 
+        // Không bắt buộc (chủ dự án 2026-11-13: đăng ký chỉ cần email); có nhập thì phải đúng SĐT Việt Nam
         RuleFor(r => r.PhoneNumber)
-            .Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat);
+            .Must(v => VietnamesePhoneNumber.TryNormalize(v, out _)).WithErrorCode(FieldErrorCodes.InvalidFormat)
+            .When(r => !string.IsNullOrWhiteSpace(r.PhoneNumber));
 
         RuleFor(r => r.Password)
             .StrongPassword(commonPasswords)

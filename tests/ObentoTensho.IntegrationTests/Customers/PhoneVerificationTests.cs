@@ -2,7 +2,10 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ObentoTensho.Contracts.Errors;
+using ObentoTensho.Core.Settings.Abstractions;
+using ObentoTensho.Core.Settings.Domain;
 using ObentoTensho.IntegrationTests.Auth;
 using ObentoTensho.IntegrationTests.Fixtures;
 using ObentoTensho.IntegrationTests.Orders;
@@ -53,7 +56,11 @@ public sealed class PhoneVerificationTests : IDisposable
     }
 
     // Gửi đúng như trình duyệt, không qua VerifiedCustomerHandler
-    private Task<HttpResponseMessage> RawBookingAsync(string? token)
+    private Task<HttpResponseMessage> RawBookingAsync(string? token) => RawBookingAsync(_http, token);
+
+    private Task<HttpResponseMessage> RawOrderAsync(string? token, object[] items) => RawOrderAsync(_http, token, items);
+
+    private static Task<HttpResponseMessage> RawBookingAsync(HttpClient http, string? token)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/reservations") { Content = JsonContent.Create(ReservationApiClient.Booking(TestSchedule.Tomorrow)) };
         request.Headers.Add(VerifiedCustomerHandler.RawHeader, "1");
@@ -62,10 +69,10 @@ public sealed class PhoneVerificationTests : IDisposable
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        return _http.SendAsync(request);
+        return http.SendAsync(request);
     }
 
-    private Task<HttpResponseMessage> RawOrderAsync(string? token, object[] items)
+    private static Task<HttpResponseMessage> RawOrderAsync(HttpClient http, string? token, object[] items)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/orders") { Content = JsonContent.Create(OrderApiClient.Order(items)) };
         request.Headers.Add(VerifiedCustomerHandler.RawHeader, "1");
@@ -74,7 +81,7 @@ public sealed class PhoneVerificationTests : IDisposable
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        return _http.SendAsync(request);
+        return http.SendAsync(request);
     }
 
     [Fact]
@@ -130,5 +137,44 @@ public sealed class PhoneVerificationTests : IDisposable
 
         Assert.Equal(ErrorCodes.PhoneTaken, await AuthApiClient.ReadErrorCodeAsync(await PostAsync(Send, second)));
         Assert.Single(_factory.Sms.To(International(phone)));
+    }
+
+    // Chưa có kinh phí SMS: tắt otp.requirePhoneVerify thì đăng ký không cần SĐT, đặt bàn/đặt món chỉ cần email đã xác thực
+    [Fact]
+    public async Task Tat_bat_buoc_xac_minh_SDT_thi_chi_can_email_da_xac_thuc()
+    {
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var menu = await OrderTestMenu.CreateAsync(_fixture);
+        object[] items = [OrderApiClient.Line(menu.Rice, 1, menu.Small)];
+        using var factory = new ApiFactory(_fixture.ConnectionString, services: s =>
+            s.AddSingleton<ISettingsReader>(sp => new PhoneVerifyOff((ISettingsReader)sp.GetRequiredService<ISettingsSnapshot>())));
+        using var http = factory.CreateApiClient();
+        var auth = new AuthApiClient(http);
+        var email = AuthApiClient.NewEmail();
+
+        (await auth.RegisterAsync(email, phone: "")).EnsureSuccessStatusCode();
+        var token = await AuthApiClient.ReadAccessTokenAsync(await auth.LoginAsync(email));
+        Assert.Equal(ErrorCodes.EmailNotVerified, await AuthApiClient.ReadErrorCodeAsync(await RawBookingAsync(http, token)));
+        Assert.Equal(ErrorCodes.EmailNotVerified, await AuthApiClient.ReadErrorCodeAsync(await RawOrderAsync(http, token, items)));
+
+        await using (var db = _fixture.CreateContext())
+        {
+            Assert.Null(await db.Users.Where(u => u.Email == email).Select(u => u.PhoneNumber).SingleAsync());
+            await db.Users.Where(u => u.Email == email).ExecuteUpdateAsync(u => u.SetProperty(x => x.IsEmailVerified, true));
+        }
+
+        Assert.Equal(HttpStatusCode.Created, (await RawBookingAsync(http, token)).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await RawOrderAsync(http, token, items)).StatusCode);
+    }
+
+    private sealed class PhoneVerifyOff(ISettingsReader inner) : ISettingsReader
+    {
+        public string Get(string key) => string.Equals(key, SettingKeys.OtpRequirePhoneVerify, StringComparison.Ordinal) ? "false" : inner.Get(key);
+
+        public int GetInt(string key) => inner.GetInt(key);
+
+        public bool GetBool(string key) => !string.Equals(key, SettingKeys.OtpRequirePhoneVerify, StringComparison.Ordinal) && inner.GetBool(key);
+
+        public IReadOnlyDictionary<string, string> Public() => inner.Public();
     }
 }

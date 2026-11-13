@@ -41,6 +41,7 @@ public static class SettingsCatalog
         Int(ReservationPendingCutoffMinutes, 60, 5, 240, "Còn bấy nhiêu phút tới giờ hẹn mà vẫn chờ thì tự hủy"),
 
         new(OtpChannel, SettingType.Choice, "email", "Kênh gửi OTP", Choices: ["email", "sms", "zalo"]),
+        new(OtpRequirePhoneVerify, SettingType.Bool, "true", "Bắt buộc xác minh SĐT bằng OTP SMS trước khi đặt món, đặt bàn (tắt: chỉ cần email đã xác minh)", IsPublic: true),
         Int(OtpTtlSeconds, 300, 60, 900, "Hiệu lực mã OTP (giây)"),
         Int(OtpResendSeconds, 60, 30, 600, "Chờ trước khi gửi lại mã (giây)"),
         Int(OtpMaxAttempts, 5, 3, 10, "Số lần nhập sai tối đa"),

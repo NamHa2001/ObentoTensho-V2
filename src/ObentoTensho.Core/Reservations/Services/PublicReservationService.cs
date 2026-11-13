@@ -7,6 +7,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Reservations.Abstractions;
 using ObentoTensho.Core.Reservations.Domain;
 using ObentoTensho.Core.Time;
@@ -21,7 +22,7 @@ public sealed class PublicReservationService(
     ReservationSchedule schedule,
     ReservationBooking booking,
     ReservationTransitions transitions,
-    IUserRepository users,
+    ContactVerificationPolicy contactVerification,
     OtpService otp,
     ISecureTokenService secureTokens,
     IActionThrottle throttle,
@@ -37,9 +38,9 @@ public sealed class PublicReservationService(
 
     public async Task<Result<PublicReservationDto>> CreateAsync(CreateReservationRequest request, Guid userId, CancellationToken cancellationToken)
     {
-        if (!await users.IsPhoneVerifiedAsync(userId, cancellationToken))
+        if (await contactVerification.CheckAsync(userId, cancellationToken) is { } notVerified)
         {
-            return Result.Failure<PublicReservationDto>(ErrorCodes.PhoneNotVerified);
+            return Result.Failure<PublicReservationDto>(notVerified);
         }
 
         var validation = await validator.ValidateAsync(request, cancellationToken);

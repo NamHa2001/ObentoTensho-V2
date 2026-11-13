@@ -11319,7 +11319,7 @@ export interface components {
         RegisterRequest: {
             fullName: string;
             email: string;
-            phoneNumber: string;
+            phoneNumber: null | string;
             password: string;
             /** Format: date */
             dateOfBirth: null | string;

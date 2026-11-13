@@ -4,7 +4,7 @@ namespace ObentoTensho.Contracts.Dtos.Auth;
 public sealed record RegisterRequest(
     string FullName,
     string Email,
-    string PhoneNumber,
+    string? PhoneNumber,
     string Password,
     DateOnly? DateOfBirth,
     string? PreferredLang);

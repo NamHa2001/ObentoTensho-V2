@@ -16975,7 +16975,10 @@
             "type": "string"
           },
           "phoneNumber": {
-            "type": "string"
+            "type": [
+              "null",
+              "string"
+            ]
           },
           "password": {
             "type": "string"

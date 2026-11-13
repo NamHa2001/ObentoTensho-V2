@@ -26,6 +26,7 @@ public static class SettingKeys
     public const string ReservationPendingCutoffMinutes = "reservation.pendingCutoffMinutes";
 
     public const string OtpChannel = "otp.channel";
+    public const string OtpRequirePhoneVerify = "otp.requirePhoneVerify";
     public const string OtpTtlSeconds = "otp.ttlSeconds";
     public const string OtpResendSeconds = "otp.resendSeconds";
     public const string OtpMaxAttempts = "otp.maxAttempts";

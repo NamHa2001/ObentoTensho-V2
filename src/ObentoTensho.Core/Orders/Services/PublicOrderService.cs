@@ -8,6 +8,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
@@ -23,7 +24,7 @@ namespace ObentoTensho.Core.Orders.Services;
 // (chủ dự án 2026-11-08); theo dõi/hủy bằng mã + token trong thư vẫn mở.
 public sealed class PublicOrderService(
     IOrderRepository orders,
-    IUserRepository users,
+    ContactVerificationPolicy contactVerification,
     OrderCart cart,
     OrderPickup pickup,
     OrderTransitions transitions,
@@ -71,9 +72,9 @@ public sealed class PublicOrderService(
 
     public async Task<Result<CreatedOrderDto>> CreateAsync(CreateOrderRequest request, Guid userId, CancellationToken cancellationToken)
     {
-        if (!await users.IsPhoneVerifiedAsync(userId, cancellationToken))
+        if (await contactVerification.CheckAsync(userId, cancellationToken) is { } notVerified)
         {
-            return Result.Failure<CreatedOrderDto>(ErrorCodes.PhoneNotVerified);
+            return Result.Failure<CreatedOrderDto>(notVerified);
         }
 
         var validation = await validator.ValidateAsync(request, cancellationToken);

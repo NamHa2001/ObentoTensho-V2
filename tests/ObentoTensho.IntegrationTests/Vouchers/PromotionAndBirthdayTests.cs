@@ -146,8 +146,8 @@ public sealed class PromotionAndBirthdayTests : IDisposable
         var vouchers = scope.ServiceProvider.GetRequiredService<IVoucherRepository>();
 
         // Năm chưa cấp voucher nào nên chỉ phụ thuộc điều kiện ngày
-        Assert.Contains(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: true, 2099, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
-        Assert.DoesNotContain(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: false, 2099, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
+        Assert.Contains(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: true, 2099, requirePhoneVerified: true, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
+        Assert.DoesNotContain(await vouchers.ListBirthdayDueAsync(2, 28, includeLeapDay: false, 2099, requirePhoneVerified: true, afterId: null, 100_000, CancellationToken.None), u => u.Id == leap);
     }
 
     [Fact]
