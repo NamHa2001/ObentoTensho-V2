@@ -121,7 +121,7 @@ public sealed class OrderTransitions(
     private void Notify(Order order, OrderStatus to, OrderActor actor, string? reason)
     {
         // Đơn giao hàng không báo "đến lấy" khi sẵn sàng
-        if (order.Channel == OrderChannel.DineIn || (order.Channel == OrderChannel.Delivery && to == OrderStatus.Ready))
+        if (order.Channel is OrderChannel.DineIn or OrderChannel.Counter || (order.Channel == OrderChannel.Delivery && to == OrderStatus.Ready))
         {
             return;
         }

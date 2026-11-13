@@ -210,7 +210,8 @@ public sealed class ReportService(
     {
         OrderChannel.DineIn => "Tại quán",
         OrderChannel.Delivery => "Giao hàng",
-        _ => "Mang về",
+        OrderChannel.Counter => "Mua tại quầy",
+        _ => "Đặt online đến lấy",
     };
 
     private async Task<Result<(string[] Columns, string[][] Rows)>> ReservationTableAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)

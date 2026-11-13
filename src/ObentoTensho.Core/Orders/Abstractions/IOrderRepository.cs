@@ -21,7 +21,7 @@ public interface IOrderRepository
     // Màn hình bếp: đơn đang mở, sắp theo giờ lấy, kèm dòng món
     Task<IReadOnlyList<Order>> ListOpenAsync(int limit, CancellationToken cancellationToken);
 
-    // Tại bàn: phiếu đang mở (được theo dõi, kèm món và tùy chọn)
+    // Tại bàn / mang về tại quầy: phiếu đang mở (được theo dõi, kèm món và tùy chọn)
     Task<Order?> FindOpenDineInAsync(Guid id, CancellationToken cancellationToken);
 
     Task<bool> TableHasOpenBillAsync(int tableId, CancellationToken cancellationToken);

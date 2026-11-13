@@ -2365,7 +2365,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
 
-                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 2");
+                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 3");
 
                             t.HasCheckConstraint("CK_Orders_CompletedPaid", "[Status] <> 3 OR [PaymentStatus] = 1");
 

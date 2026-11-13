@@ -2717,6 +2717,48 @@
         }
       }
     },
+    "/api/v1/admin/dine-in/counter": {
+      "get": {
+        "tags": [
+          "AdminDineIn"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminDineIn"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCounterRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCounterRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenCounterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/dine-in/tables/{tableId}/clean": {
       "post": {
         "tags": [
@@ -9536,7 +9578,8 @@
                 "enum": [
                   "pickup",
                   "dine_in",
-                  "delivery"
+                  "delivery",
+                  "counter"
                 ],
                 "default": "pickup"
               }
@@ -9845,7 +9888,8 @@
             "enum": [
               "pickup",
               "dine_in",
-              "delivery"
+              "delivery",
+              "counter"
             ],
             "default": "pickup"
           }
@@ -11238,7 +11282,8 @@
             "enum": [
               "pickup",
               "dine_in",
-              "delivery"
+              "delivery",
+              "counter"
             ]
           },
           "orders": {
@@ -11491,6 +11536,45 @@
           }
         }
       },
+      "CounterBillDto": {
+        "required": [
+          "id",
+          "code",
+          "customerName",
+          "openedAtUtc",
+          "subTotal",
+          "unservedCount",
+          "paid"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "openedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "unservedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paid": {
+            "type": "boolean"
+          }
+        }
+      },
       "CreatedOrderDto": {
         "required": [
           "order",
@@ -11673,7 +11757,8 @@
                 "enum": [
                   "pickup",
                   "dine_in",
-                  "delivery"
+                  "delivery",
+                  "counter"
                 ],
                 "default": "pickup"
               },
@@ -12632,6 +12717,19 @@
           },
           "version": {
             "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in",
+              "delivery",
+              "counter"
+            ],
+            "default": "dine_in"
+          },
+          "paid": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -13560,7 +13658,8 @@
             "enum": [
               "pickup",
               "dine_in",
-              "delivery"
+              "delivery",
+              "counter"
             ]
           },
           "totalAmount": {
@@ -13788,7 +13887,8 @@
             "enum": [
               "pickup",
               "dine_in",
-              "delivery"
+              "delivery",
+              "counter"
             ],
             "default": "pickup"
           }
@@ -15277,6 +15377,27 @@
           null
         ]
       },
+      "OpenCounterRequest": {
+        "required": [
+          "customerName",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "OpeningDayDto": {
         "required": [
           "dayOfWeek",
@@ -15532,7 +15653,8 @@
                   "enum": [
                     "pickup",
                     "dine_in",
-                    "delivery"
+                    "delivery",
+                    "counter"
                   ],
                   "default": "pickup"
                 }
@@ -15641,7 +15763,8 @@
                   "enum": [
                     "pickup",
                     "dine_in",
-                    "delivery"
+                    "delivery",
+                    "counter"
                   ],
                   "default": "pickup"
                 }
@@ -15750,7 +15873,8 @@
                   "enum": [
                     "pickup",
                     "dine_in",
-                    "delivery"
+                    "delivery",
+                    "counter"
                   ],
                   "default": "pickup"
                 }
@@ -15763,7 +15887,8 @@
         "enum": [
           "pickup",
           "dine_in",
-          "delivery"
+          "delivery",
+          "counter"
         ],
         "default": "pickup"
       },
@@ -18268,7 +18393,8 @@
             "enum": [
               "pickup",
               "dine_in",
-              "delivery"
+              "delivery",
+              "counter"
             ],
             "default": "pickup"
           },
@@ -19365,7 +19491,8 @@
                   "enum": [
                     "pickup",
                     "dine_in",
-                    "delivery"
+                    "delivery",
+                    "counter"
                   ]
                 },
                 "orders": {

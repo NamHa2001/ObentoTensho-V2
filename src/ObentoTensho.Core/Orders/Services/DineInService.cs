@@ -43,6 +43,9 @@ public sealed class DineInService(
     public const int MaxLinesPerRound = 30;
     public const int NoteMaxLength = 500;
     public const int ReasonMaxLength = 200;
+    public const int CounterNameMaxLength = 50;
+    private const string CounterGuest = "Khách mang về";
+    private static readonly char[] Markup = ['<', '>'];
     private const string Entity = "order";
     private const string Language = "vi";
 
@@ -81,12 +84,39 @@ public sealed class DineInService(
             ? Result.Success(await ToBillAsync(bill, cancellationToken))
             : Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
 
+    // Đơn mang về tại quầy đang mở: chưa thanh toán, hoặc đã trả tiền mà bếp chưa ra hết món
+    public async Task<IReadOnlyList<CounterBillDto>> CounterAsync(CancellationToken cancellationToken) =>
+        (await orders.ListOpenDineInAsync(cancellationToken))
+            .Where(o => o.Channel == OrderChannel.Counter)
+            .Select(o => new CounterBillDto(o.Id, o.OrderCode, o.CustomerName, o.CreatedAtUtc, o.SubTotal, Unserved(o).Count(), o.PaymentStatus == PaymentStatus.Paid))
+            .ToArray();
+
+    // Khách mua mang đi tại quầy: phiếu không gắn bàn, gọi món và thanh toán như tại bàn
+    public async Task<Result<DineInBillDto>> OpenCounterAsync(OpenCounterRequest request, Guid staffId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var name = request.CustomerName?.Trim() ?? string.Empty;
+        if (name.Length > CounterNameMaxLength || name.IndexOfAny(Markup) >= 0 || request.Note is { Length: > NoteMaxLength })
+        {
+            return Result.Failure<DineInBillDto>(ErrorCodes.ValidationFailed, Field(request.Note is { Length: > NoteMaxLength } ? "note" : "customerName", FieldErrorCodes.InvalidFormat));
+        }
+
+        var now = clock.UtcNow;
+        var bill = NewBill(null, request.Note, await orders.NextDailySeqAsync(clock.TodayLocal, cancellationToken), now);
+        bill.CustomerName = name.Length > 0 ? name : CounterGuest;
+        orders.Add(bill);
+        orders.AddHistory(new OrderStatusHistory { OrderId = bill.Id, ToStatus = OrderStatus.Preparing, ChangedByType = OrderActor.Staff, ChangedById = staffId, ChangedAtUtc = now });
+        realtime.Stage(RealtimeMessages.OrderCreated(bill));
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success(ToBill(bill, Label(bill, [])));
+    }
+
     // Bếp: phiếu còn món chưa ra (chỉ món chưa ra, chưa hủy)
     public async Task<IReadOnlyList<DineInKitchenTicketDto>> KitchenAsync(CancellationToken cancellationToken)
     {
         var names = await TableNamesAsync(cancellationToken);
         return (await orders.ListOpenDineInAsync(cancellationToken))
-            .Select(o => new DineInKitchenTicketDto(o.Id, o.OrderCode, TableName(names, o.TableId), Unserved(o)
+            .Select(o => new DineInKitchenTicketDto(o.Id, o.OrderCode, Label(o, names), Unserved(o)
                 .OrderBy(i => i.SentAtUtc).ThenBy(i => i.Id)
                 .Select(i => new DineInKitchenLineDto(i.Id, i.Round, i.ItemName, i.Quantity, OptionLabels(i), i.Note, i.SentAtUtc ?? o.CreatedAtUtc))
                 .ToArray()))
@@ -113,7 +143,8 @@ public sealed class DineInService(
         }
 
         var now = clock.UtcNow;
-        var bill = NewBill(request, table, await orders.NextDailySeqAsync(clock.TodayLocal, cancellationToken), now);
+        var bill = NewBill(table, request.Note, await orders.NextDailySeqAsync(clock.TodayLocal, cancellationToken), now);
+        bill.GuestCount = request.GuestCount;
         orders.Add(bill);
         orders.AddHistory(new OrderStatusHistory
         {
@@ -145,21 +176,21 @@ public sealed class DineInService(
         return errors;
     }
 
-    private Order NewBill(OpenTableRequest request, DiningTable table, int dailySeq, DateTime now) =>
+    // table = null ⇒ đơn mang về tại quầy
+    private Order NewBill(DiningTable? table, string? note, int dailySeq, DateTime now) =>
         new()
         {
             OrderCode = OrderCodes.New(),
             DailySeq = dailySeq,
             AccessTokenHash = secureTokens.Create().Hash,
-            CustomerName = TableLabel(table.Name),
+            CustomerName = table is null ? CounterGuest : TableLabel(table.Name),
             CustomerPhone = string.Empty,
             CustomerEmail = string.Empty,
             Lang = Language,
             PickupAtUtc = now,
-            Channel = OrderChannel.DineIn,
-            TableId = table.Id,
-            GuestCount = request.GuestCount,
-            Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
+            Channel = table is null ? OrderChannel.Counter : OrderChannel.DineIn,
+            TableId = table?.Id,
+            Note = string.IsNullOrWhiteSpace(note) ? null : note.Trim(),
             SubTotal = 0,
             TotalAmount = 0,
             PaymentMethod = PaymentMethod.Cash,
@@ -179,6 +210,11 @@ public sealed class DineInService(
         if (await orders.FindOpenDineInAsync(billId, cancellationToken) is not { } bill)
         {
             return Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
+        }
+
+        if (bill.PaymentStatus == PaymentStatus.Paid)
+        {
+            return Result.Failure<DineInBillDto>(ErrorCodes.InvalidTransition);
         }
 
         var now = clock.UtcNow;
@@ -215,6 +251,11 @@ public sealed class DineInService(
             return Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
         }
 
+        if (bill.PaymentStatus == PaymentStatus.Paid)
+        {
+            return Result.Failure<DineInBillDto>(ErrorCodes.InvalidTransition);
+        }
+
         var now = clock.UtcNow;
         item.VoidedAtUtc = now;
         item.VoidReason = reason;
@@ -239,6 +280,10 @@ public sealed class DineInService(
             item.ServedAtUtc = clock.UtcNow;
             bill.UpdatedAtUtc = item.ServedAtUtc;
             realtime.Stage(RealtimeMessages.OrderChanged(bill));
+            if (bill.Channel == OrderChannel.Counter && bill.PaymentStatus == PaymentStatus.Paid && !Unserved(bill).Any())
+            {
+                await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, actorId: null, reason: null, cancellationToken);
+            }
         }
 
         return await SaveBillAsync(bill, cancellationToken);
@@ -252,6 +297,11 @@ public sealed class DineInService(
             || await tables.FindTableAsync(request.TableId, cancellationToken) is not { IsActive: true } target)
         {
             return Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
+        }
+
+        if (bill.Channel != OrderChannel.DineIn)
+        {
+            return Result.Failure<DineInBillDto>(ErrorCodes.InvalidTransition);
         }
 
         if (target.Id == bill.TableId || await orders.TableHasOpenBillAsync(target.Id, cancellationToken))
@@ -288,6 +338,11 @@ public sealed class DineInService(
                 return Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
             }
 
+            if (bill.Channel != OrderChannel.DineIn || source.Channel != OrderChannel.DineIn)
+            {
+                return Result.Failure<DineInBillDto>(ErrorCodes.InvalidTransition);
+            }
+
             var names = await TableNamesAsync(ct);
             foreach (var item in source.Items.ToArray())
             {
@@ -299,7 +354,7 @@ public sealed class DineInService(
             bill.GuestCount = (bill.GuestCount ?? 0) + (source.GuestCount ?? 0);
             Recalculate(bill, now);
             Recalculate(source, now);
-            var cancelled = await transitions.ApplyAsync(source, OrderStatus.Cancelled, OrderActor.Staff, staffId, $"Gộp vào {TableName(names, bill.TableId)}", ct);
+            var cancelled = await transitions.ApplyAsync(source, OrderStatus.Cancelled, OrderActor.Staff, staffId, $"Gộp vào {Label(bill, names)}", ct);
             if (!cancelled.IsSuccess)
             {
                 return Result.Failure<DineInBillDto>(cancelled.ErrorCode ?? ErrorCodes.InvalidTransition);
@@ -312,7 +367,7 @@ public sealed class DineInService(
 
             realtime.Stage(RealtimeMessages.OrderChanged(bill));
             await unitOfWork.SaveChangesAsync(ct);
-            return Result.Success(ToBill(bill, TableName(names, bill.TableId)));
+            return Result.Success(ToBill(bill, Label(bill, names)));
         }, cancellationToken);
     }
 
@@ -346,7 +401,7 @@ public sealed class DineInService(
                 return Result.Failure<DineInReceiptDto>(ErrorCodes.NotFound);
             }
 
-            if (!bill.Items.Any(i => !i.IsVoided))
+            if (!bill.Items.Any(i => !i.IsVoided) || bill.PaymentStatus == PaymentStatus.Paid)
             {
                 return Result.Failure<DineInReceiptDto>(ErrorCodes.InvalidTransition);
             }
@@ -365,11 +420,14 @@ public sealed class DineInService(
 
             var now = clock.UtcNow;
             ApplyPayment(bill, priced.Value, request.PaymentMethod, staffId, now);
-            var completed = await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, staffId, reason: null, ct);
+            var waiting = bill.Channel == OrderChannel.Counter && Unserved(bill).Any();
+            var completed = waiting ? Result.Success() : await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, staffId, reason: null, ct);
             if (!completed.IsSuccess)
             {
                 return Result.Failure<DineInReceiptDto>(completed.ErrorCode ?? ErrorCodes.InvalidTransition);
             }
+
+            realtime.Stage(RealtimeMessages.OrderChanged(bill));
 
             var names = await TableNamesAsync(ct);
             if (bill.TableId is { } tableId && await tables.FindTableAsync(tableId, ct) is { } table)
@@ -385,7 +443,7 @@ public sealed class DineInService(
 
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(new DineInReceiptDto(
-                bill.OrderCode, TableName(names, bill.TableId), bill.GuestCount ?? 0, Lines(bill), bill.SubTotal, bill.MemberDiscount,
+                bill.OrderCode, Label(bill, names), bill.GuestCount ?? 0, Lines(bill), bill.SubTotal, bill.MemberDiscount,
                 bill.VoucherDiscount, bill.TotalAmount, bill.PaymentMethod, now, member?.FullName, bill.PointsEarned));
         }, cancellationToken);
     }
@@ -519,10 +577,10 @@ public sealed class DineInService(
     }
 
     private async Task<DineInBillDto> ToBillAsync(Order bill, CancellationToken cancellationToken) =>
-        ToBill(bill, TableName(await TableNamesAsync(cancellationToken), bill.TableId));
+        ToBill(bill, Label(bill, await TableNamesAsync(cancellationToken)));
 
     private static DineInBillDto ToBill(Order bill, string tableName) =>
-        new(bill.Id, bill.OrderCode, bill.TableId ?? 0, tableName, bill.GuestCount ?? 0, bill.CreatedAtUtc, Lines(bill), bill.SubTotal, bill.Note, RowVersions.Encode(bill.RowVersion));
+        new(bill.Id, bill.OrderCode, bill.TableId ?? 0, tableName, bill.GuestCount ?? 0, bill.CreatedAtUtc, Lines(bill), bill.SubTotal, bill.Note, RowVersions.Encode(bill.RowVersion), bill.Channel, bill.PaymentStatus == PaymentStatus.Paid);
 
     private static DineInLineDto[] Lines(Order bill) =>
         bill.Items
@@ -553,6 +611,10 @@ public sealed class DineInService(
         tableId is { } id && names.TryGetValue(id, out var name) ? TableLabel(name) : string.Empty;
 
     private static string TableLabel(string name) => $"Bàn {name}";
+
+    // Tên hiển thị của phiếu: "Bàn A1", hoặc "Mang về · Lan" với đơn tại quầy
+    private static string Label(Order bill, Dictionary<int, string> names) =>
+        bill.Channel == OrderChannel.Counter ? $"Mang về · {bill.CustomerName}" : TableName(names, bill.TableId);
 
     private static string? Reason(string? raw) =>
         string.IsNullOrWhiteSpace(raw) || raw.Trim().Length > ReasonMaxLength ? null : raw.Trim();

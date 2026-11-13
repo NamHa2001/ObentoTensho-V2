@@ -7,5 +7,8 @@ public enum OrderChannel : byte
     DineIn = 1,
 
     // Quán tự giao tận nơi, phí ship theo quãng đường (chủ quán 2026-11-13)
-    Delivery = 2
+    Delivery = 2,
+
+    // Khách vào quán mua mang đi, nhân viên lên đơn tại quầy (chủ quán 2026-11-13)
+    Counter = 3
 }

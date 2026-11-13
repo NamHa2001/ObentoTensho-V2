@@ -21,6 +21,17 @@ public sealed class AdminDineInController(DineInService dineIn) : ControllerBase
     public async Task<IActionResult> Tables(CancellationToken cancellationToken) =>
         this.Data(await dineIn.TablesAsync(cancellationToken));
 
+    // Mua mang về tại quầy (khách không ngồi bàn)
+    [HttpGet("counter")]
+    [RequireCapability(StaffCapability.DineIn)]
+    public async Task<IActionResult> Counter(CancellationToken cancellationToken) =>
+        this.Data(await dineIn.CounterAsync(cancellationToken));
+
+    [HttpPost("counter")]
+    [RequireCapability(StaffCapability.DineIn)]
+    public async Task<IActionResult> OpenCounter(OpenCounterRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await dineIn.OpenCounterAsync(request, User.StaffId(), cancellationToken));
+
     [HttpPost("tables/{tableId:int}/clean")]
     [RequireCapability(StaffCapability.DineIn)]
     public async Task<IActionResult> MarkClean(int tableId, CancellationToken cancellationToken) =>
