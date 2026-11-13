@@ -1,8 +1,10 @@
 import { Component, computed, effect, HostListener, inject, signal, untracked } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { ChevronRight, LucideAngularModule, TicketPercent, X } from 'lucide-angular';
+import { map } from 'rxjs';
 
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
@@ -29,12 +31,26 @@ const MAX_AUTO_DAYS = 14;
           <section class="ot-panel">
             <h2>Thông tin nhận món</h2>
             <div class="ot-form-grid mt-4">
+              @if (deliveryOn()) {
+                <div class="ot-span-2 flex gap-2" role="radiogroup" aria-label="Cách nhận món">
+                  <button type="button" class="ot-chip" role="radio" [attr.aria-checked]="!delivering()" [class.ot-chip-active]="!delivering()" (click)="delivering.set(false)">Đến quán lấy</button>
+                  <button type="button" class="ot-chip" role="radio" [attr.aria-checked]="delivering()" [class.ot-chip-active]="delivering()" (click)="delivering.set(true)">Giao tận nơi</button>
+                </div>
+                @if (delivering()) {
+                  <label class="ot-span-2">Địa chỉ giao hàng<textarea class="ot-input" name="address" rows="2" maxlength="300" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" [(ngModel)]="address" (ngModelChange)="ship.set(null)" (change)="checkShip()"></textarea></label>
+                  <div class="ot-span-2 -mt-2 flex flex-wrap items-center gap-3">
+                    <button type="button" class="ot-btn ot-btn-outline" [disabled]="shipper.busy() || address.trim().length < 8" (click)="checkShip()">Tính phí ship</button>
+                    @if (ship(); as s) { <span>Cách quán {{ s.distanceKm }} km · Phí ship <b>{{ s.fee === 0 ? 'Miễn phí' : (s.fee | vnd) }}</b></span> }
+                    @if (shipper.error(); as e) { <span class="ot-error">{{ e }}</span> }
+                  </div>
+                }
+              }
               <label>Họ tên<input class="ot-input" name="name" required [(ngModel)]="model.customerName" /></label>
               <label>Số điện thoại<input class="ot-input" name="phone" type="tel" required [(ngModel)]="model.customerPhone" /></label>
               <label class="ot-span-2">Email<input class="ot-input" name="email" type="email" required [(ngModel)]="model.customerEmail" /></label>
-              <label>Ngày lấy<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.pickupDate" (ngModelChange)="pickDate()" /></label>
+              <label>{{ delivering() ? 'Ngày nhận hàng' : 'Ngày lấy' }}<input class="ot-input" name="date" type="date" required [min]="minDate" [(ngModel)]="model.pickupDate" (ngModelChange)="pickDate()" /></label>
               <!-- Một ô chọn giờ như các app đặt món, chọn sẵn giờ sớm nhất -->
-              <label>Giờ lấy
+              <label>{{ delivering() ? 'Giờ nhận hàng' : 'Giờ lấy' }}
                 <select class="ot-input" name="time" required [disabled]="times().length === 0" [(ngModel)]="model.pickupTime">
                   @if (times().length === 0) { <option value="">{{ loaded() ? 'Không còn giờ trống' : 'Đang tải giờ…' }}</option> }
                   @for (t of times(); track t; let first = $first) { <option [value]="t">{{ t.slice(0, 5) }}{{ first ? ' (sớm nhất)' : '' }}</option> }
@@ -44,7 +60,7 @@ const MAX_AUTO_DAYS = 14;
               @if (loaded() && times().length === 0) { <p class="ot-error ot-span-2 -mt-2">{{ model.pickupDate === minDate ? 'Hôm nay đã hết giờ nhận đơn.' : 'Ngày này quán không nhận đơn.' }} Vui lòng chọn ngày khác.</p> }
               <label class="ot-span-2">Hình thức thanh toán
                 <select class="ot-input" name="pay" [(ngModel)]="model.paymentMethod">
-                  <option value="cash">Tiền mặt khi lấy món</option>
+                  <option value="cash">{{ delivering() ? 'Tiền mặt khi nhận hàng' : 'Tiền mặt khi lấy món' }}</option>
                   <option value="bank_transfer">Chuyển khoản</option>
                 </select>
               </label>
@@ -69,12 +85,13 @@ const MAX_AUTO_DAYS = 14;
                   }
                 }
                 <p class="mt-2 flex justify-between border-t border-line pt-2"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
+                @if (delivering()) { <p class="flex justify-between"><span>Phí ship</span><span>{{ ship() ? (shipFee() === 0 ? 'Miễn phí' : (shipFee() | vnd)) : 'Chưa tính' }}</span></p> }
                 @if (applied(); as v) {
                   <p class="flex justify-between"><span>Voucher {{ appliedCode() }}</span><span>-{{ v.voucherDiscount | vnd }}</span></p>
-                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher | vnd }}</span></p>
+                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher + shipFee() | vnd }}</span></p>
                 } @else {
                   @if (q.memberDiscount > 0) { <p class="flex justify-between"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
-                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ q.totalAmount | vnd }}</span></p>
+                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ q.totalAmount + shipFee() | vnd }}</span></p>
                 }
               </section>
             }
@@ -97,7 +114,7 @@ const MAX_AUTO_DAYS = 14;
               }
             </div>
             @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
-            <button class="ot-btn ot-btn-primary mt-4 w-full" [disabled]="form.busy() || !model.pickupTime">Đặt món</button>
+            <button class="ot-btn ot-btn-primary mt-4 w-full" [disabled]="form.busy() || !model.pickupTime || (delivering() && !ship())">Đặt món</button>
           </aside>
         </form>
       }
@@ -169,6 +186,12 @@ export class Checkout {
   // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
   private autoPick = true;
   private tries = 0;
+  protected readonly deliveryOn = toSignal(this.api.getOr<Record<string, string>>('public/settings', {}).pipe(map((s) => s['delivery.enabled'] === 'true')), { initialValue: false });
+  protected readonly delivering = signal(false);
+  protected readonly ship = signal<Schemas['DeliveryQuoteDto'] | null>(null);
+  protected readonly shipFee = computed(() => (this.delivering() ? (this.ship()?.fee ?? 0) : 0));
+  protected readonly shipper = new Submit();
+  protected address = '';
   protected wantInvoice = false;
   protected readonly invoice = emptyBuyer();
   protected model = { customerName: '', customerPhone: '', customerEmail: '', pickupDate: today(), pickupTime: '', paymentMethod: 'cash', note: '' };
@@ -187,6 +210,14 @@ export class Checkout {
         untracked(() => this.loadOptions());
       }
     });
+  }
+
+  // Phí ship do server tính từ quãng đường thật; lúc đặt đơn server tính lại lần nữa
+  protected checkShip(): void {
+    const address = this.address.trim();
+    if (address.length >= 8 && !this.shipper.busy()) {
+      this.shipper.run(this.api.post<Schemas['DeliveryQuoteDto']>('orders/delivery-quote', { address }), (s) => this.ship.set(s));
+    }
   }
 
   protected pickDate(): void {
@@ -267,7 +298,7 @@ export class Checkout {
   }
 
   protected submit(): void {
-    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null, invoice: this.wantInvoice ? buyerBody(this.invoice) : null };
+    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null, invoice: this.wantInvoice ? buyerBody(this.invoice) : null, channel: this.delivering() ? 'delivery' : 'pickup', deliveryAddress: this.delivering() ? this.address.trim() : null };
     this.form.run(this.api.post<Schemas['CreatedOrderDto']>('orders', body), (created) => {
       this.cart.clear();
       void this.router.navigate(['/xac-nhan', created.order.code]);

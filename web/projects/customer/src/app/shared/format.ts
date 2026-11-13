@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { Schemas } from '@ot/api';
 
-export const ORDER_STATUS: Record<string, string> = { pending: 'Chờ xác nhận', preparing: 'Đang chuẩn bị', ready: 'Sẵn sàng lấy', completed: 'Hoàn thành', cancelled: 'Đã hủy' };
+export const ORDER_STATUS: Record<string, string> = { pending: 'Chờ xác nhận', preparing: 'Đang chuẩn bị', ready: 'Sẵn sàng', delivering: 'Đang giao', completed: 'Hoàn thành', cancelled: 'Đã hủy' };
 export const RESERVATION_STATUS: Record<string, string> = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', checked_in: 'Đã đến', completed: 'Hoàn thành', cancelled: 'Đã hủy', no_show: 'Không đến' };
 export const TIERS: Record<string, string> = { bronze: 'Đồng', silver: 'Bạc', gold: 'Vàng', diamond: 'Kim cương' };
 
