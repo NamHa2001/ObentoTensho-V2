@@ -1,6 +1,7 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CanActivateFn, Router } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, finalize, firstValueFrom, map, Observable, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
@@ -9,6 +10,22 @@ import { Api } from './api';
 import { Turnstile } from './turnstile';
 
 export type Profile = Schemas['ProfileDto'];
+
+// Công tắc otp.requirePhoneVerify trong Cài đặt: bật thì đặt bàn, đặt món cần SĐT đã xác minh; tắt (chưa có SMS) thì chỉ cần email đã xác thực
+@Injectable({ providedIn: 'root' })
+export class ContactPolicy {
+  readonly requirePhone$ = inject(Api).getOr<Record<string, string>>('public/settings', {}).pipe(map((s) => s['otp.requirePhoneVerify'] !== 'false'), shareReplay(1));
+  readonly requirePhone = toSignal(this.requirePhone$, { initialValue: true });
+
+  // Trang bước xác minh còn thiếu; null khi đã đủ điều kiện
+  async pending(profile: Profile): Promise<string | null> {
+    if (await firstValueFrom(this.requirePhone$)) {
+      return profile.isPhoneVerified ? null : '/xac-minh-sdt';
+    }
+
+    return profile.isEmailVerified ? null : '/xac-minh-email';
+  }
+}
 const CLIENT = { 'X-OT-Client': 'web' };
 
 // SEC-03: access token chỉ giữ trong bộ nhớ; phiên được khôi phục bằng cookie refresh HttpOnly
@@ -97,7 +114,6 @@ export const authGuard: CanActivateFn = async (_, state) => {
   return auth.profile() ? true : router.createUrlTree(['/dang-nhap'], { queryParams: { next: state.url } });
 };
 
-// Đặt bàn, đặt món: bắt buộc tài khoản đã xác minh SĐT
 // Đã đăng nhập thì không vào lại trang đăng nhập/đăng ký
 export const guestGuard: CanActivateFn = async () => {
   const auth = inject(Auth);
@@ -106,6 +122,7 @@ export const guestGuard: CanActivateFn = async () => {
   return auth.profile() ? router.createUrlTree(['/tai-khoan']) : true;
 };
 
+// Đặt bàn, đặt món: bắt buộc tài khoản đã xác minh (SĐT hoặc email, theo ContactPolicy)
 export const verifiedGuard: CanActivateFn = async (_, state) => {
   const auth = inject(Auth);
   const router = inject(Router);
@@ -115,5 +132,6 @@ export const verifiedGuard: CanActivateFn = async (_, state) => {
     return router.createUrlTree(['/dang-nhap'], { queryParams: { next: state.url } });
   }
 
-  return profile.isPhoneVerified ? true : router.createUrlTree(['/xac-minh-sdt'], { queryParams: { next: state.url } });
+  const pending = await inject(ContactPolicy).pending(profile);
+  return pending ? router.createUrlTree([pending], { queryParams: { next: state.url } }) : true;
 };

@@ -49,6 +49,7 @@ export const routes: Routes = [
   { path: 'xac-thuc-email', data: verifyEmail, loadComponent: tokenAction, title: 'Xác thực email — Obento Tensho' },
   { path: 'auth/verify-email', data: verifyEmail, loadComponent: tokenAction, title: 'Xác thực email — Obento Tensho' },
   { path: 'xac-minh-sdt', canActivate: [authGuard], loadComponent: () => import('./pages/auth/phone-verify').then((m) => m.PhoneVerify), title: 'Xác minh số điện thoại — Obento Tensho' },
+  { path: 'xac-minh-email', canActivate: [authGuard], loadComponent: () => import('./pages/auth/phone-verify').then((m) => m.EmailVerify), title: 'Xác thực email — Obento Tensho' },
   { path: 'account/confirm-email', canActivate: [authGuard], data: { title: 'Xác nhận đổi email', endpoint: 'account/confirm-email' }, loadComponent: tokenAction, title: 'Xác nhận đổi email — Obento Tensho' },
   { path: 'newsletter/confirm', data: { title: 'Xác nhận đăng ký bản tin', endpoint: 'newsletter/confirm' }, loadComponent: tokenAction, title: 'Bản tin — Obento Tensho' },
   { path: 'newsletter/unsubscribe', data: { title: 'Hủy nhận bản tin', endpoint: 'newsletter/unsubscribe' }, loadComponent: tokenAction, title: 'Bản tin — Obento Tensho' },

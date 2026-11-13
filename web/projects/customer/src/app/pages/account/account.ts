@@ -7,7 +7,7 @@ import { CalendarDays, Gift, LayoutDashboard, LogOut, LucideAngularModule, Recei
 import { switchMap } from 'rxjs';
 
 import { Api, Page } from '../../core/api';
-import { Auth } from '../../core/auth';
+import { Auth, ContactPolicy } from '../../core/auth';
 import { askConfirm } from '../../core/dialog';
 import { errorText, Submit } from '../../shared/form';
 import { givenName, localPhone, ORDER_STATUS, RESERVATION_STATUS, TIERS, today, VnDatePipe } from '../../shared/format';
@@ -89,7 +89,9 @@ export class Account {
   template: `
     @if (auth.profile(); as p) {
       <h2 class="ot-acc-title">Chào mừng trở lại, {{ name(p.fullName) }}!</h2>
-      @if (!p.isPhoneVerified) { <p class="ot-error mb-4">Số điện thoại chưa xác minh nên chưa đặt món, đặt bàn được. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
+      @if (policy.requirePhone()) {
+        @if (!p.isPhoneVerified) { <p class="ot-error mb-4">Số điện thoại chưa xác minh nên chưa đặt món, đặt bàn được. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
+      } @else if (!p.isEmailVerified) { <p class="ot-error mb-4">Email chưa xác thực nên chưa đặt món, đặt bàn được. <a class="underline" routerLink="/xac-minh-email">Xác thực ngay</a></p> }
 
       <div class="grid grid-cols-2 gap-3 md:gap-4 xl:grid-cols-4">
         <div class="ot-stat">
@@ -148,6 +150,7 @@ export class Account {
 export class AccountOverview {
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
+  protected readonly policy = inject(ContactPolicy);
   protected readonly tiers = TIERS;
   protected readonly statuses = ORDER_STATUS;
   protected readonly name = givenName;
@@ -182,7 +185,7 @@ export class AccountOverview {
     @if (auth.profile(); as p) {
       <h2 class="ot-acc-title">Thông tin tài khoản</h2>
       <div class="grid gap-3">
-        @if (!p.isPhoneVerified) { <p class="ot-error">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
+        @if (policy.requirePhone() && !p.isPhoneVerified) { <p class="ot-error">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
         @if (!p.isEmailVerified) { <p class="ot-error">Email chưa xác thực, hãy kiểm tra hộp thư. <button type="button" class="underline" [disabled]="resent()" (click)="resend(p.email)">{{ resent() ? 'Đã gửi lại' : 'Gửi lại thư' }}</button></p> }
         @if (p.deletionScheduledAtUtc) {
           <p class="ot-error">Tài khoản sẽ bị xóa ngày {{ p.deletionScheduledAtUtc | vnDate }}. <button type="button" class="underline" (click)="cancelDeletion()">Hủy xóa</button></p>
@@ -314,6 +317,7 @@ export class AccountProfile {
   protected readonly sessionError = signal<string | null>(null);
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
+  protected readonly policy = inject(ContactPolicy);
   protected readonly tiers = TIERS;
   protected readonly phone = localPhone;
   protected readonly profileForm = new Submit();

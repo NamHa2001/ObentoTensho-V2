@@ -23,6 +23,10 @@ const RESEND_SECONDS = 60;
         <p>Số điện thoại đã được xác minh.</p>
         <a class="ot-btn ot-btn-primary" routerLink="/tai-khoan">Về tài khoản</a>
       } @else {
+        @if (!phone()) {
+          <p>Tài khoản chưa có số điện thoại. Hãy thêm số trong tài khoản rồi quay lại để xác minh.</p>
+          <a class="ot-btn ot-btn-primary" routerLink="/tai-khoan/thong-tin">Thêm số điện thoại</a>
+        } @else {
         <p>Mã 6 số sẽ gửi qua SMS tới <b>{{ phone() }}</b>. Cần xác minh để đặt bàn, đặt món và nhận voucher sinh nhật.</p>
         <button type="button" class="ot-btn ot-btn-outline" [disabled]="sender.busy() || wait() > 0" (click)="send()">{{ wait() > 0 ? 'Gửi lại sau ' + wait() + ' giây' : sent() ? 'Gửi lại mã' : 'Gửi mã' }}</button>
         @if (sender.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
@@ -32,6 +36,7 @@ const RESEND_SECONDS = 60;
           <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Xác minh</button>
         }
         <p class="text-sm"><a class="text-primary" routerLink="/tai-khoan/thong-tin">Sai số điện thoại? Sửa trong tài khoản</a></p>
+        }
       }
       </form>
     </ot-auth-card>
@@ -72,5 +77,54 @@ export class PhoneVerify {
 
   protected verify(): void {
     this.form.run(this.api.post('account/phone/verify', { code: this.code }).pipe(switchMap(() => this.auth.loadProfile())), () => void this.router.navigateByUrl(safeNext(this.next)));
+  }
+}
+
+// Khi tắt bắt buộc xác minh SĐT: đặt bàn, đặt món chỉ cần email đã xác thực qua liên kết trong thư
+@Component({
+  selector: 'ot-email-verify',
+  imports: [RouterLink, AuthCard],
+  template: `
+    <ot-auth-card heading="Xác thực email" subtitle="Bước cuối để đặt bàn, đặt món và nhận voucher sinh nhật.">
+      <div class="ot-auth-form">
+        @if (auth.profile()?.isEmailVerified) {
+          <p>Email đã được xác thực.</p>
+          <button type="button" class="ot-btn ot-btn-primary" (click)="continue()">Tiếp tục</button>
+        } @else {
+          <p>Quán đã gửi liên kết xác thực tới <b>{{ auth.profile()?.email }}</b>. Mở thư, bấm liên kết rồi quay lại đây bấm "Tôi đã xác thực". Không thấy thư thì xem cả mục Spam.</p>
+          <button type="button" class="ot-btn ot-btn-primary" [disabled]="form.busy()" (click)="check()">Tôi đã xác thực</button>
+          @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
+          <button type="button" class="ot-btn ot-btn-outline" [disabled]="sender.busy() || resent()" (click)="resend()">{{ resent() ? 'Đã gửi lại thư' : 'Gửi lại thư' }}</button>
+          <p class="text-sm"><a class="text-primary" routerLink="/tai-khoan/thong-tin">Sai email? Sửa trong tài khoản</a></p>
+        }
+      </div>
+    </ot-auth-card>
+  `,
+})
+export class EmailVerify {
+  private readonly api = inject(Api);
+  private readonly router = inject(Router);
+  private readonly next = inject(ActivatedRoute).snapshot.queryParamMap.get('next');
+  protected readonly auth = inject(Auth);
+  protected readonly form = new Submit();
+  protected readonly sender = new Submit();
+  protected readonly resent = signal(false);
+
+  protected check(): void {
+    this.form.run(this.auth.loadProfile(), (p) => {
+      if (p.isEmailVerified) {
+        this.continue();
+      } else {
+        this.form.error.set('Email chưa được xác thực. Hãy bấm liên kết trong thư trước.');
+      }
+    });
+  }
+
+  protected resend(): void {
+    this.sender.run(this.api.post('auth/resend-verification', { email: this.auth.profile()?.email }), () => this.resent.set(true));
+  }
+
+  protected continue(): void {
+    void this.router.navigateByUrl(safeNext(this.next));
   }
 }
