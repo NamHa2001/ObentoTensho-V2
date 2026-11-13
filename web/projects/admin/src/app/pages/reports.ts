@@ -6,6 +6,8 @@ import { Api, saveBlob } from '../core/api';
 import { ChartCard, ChartPoint, dayPoints, namedPoints, StatCard } from '../shared/chart';
 import { Latest, Submit, VndPipe, today } from '../shared/ui';
 
+const CHANNELS: Record<string, string> = { pickup: 'Mang về', dine_in: 'Tại quán', delivery: 'Giao hàng' };
+
 const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
 
 @Component({
@@ -34,6 +36,20 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
             <ot-chart title="Doanh thu theo kỳ" kind="line" [points]="series(v.series)" [money]="true" />
             <ot-chart title="Theo danh mục" kind="doughnut" [points]="named(v.byCategory)" [money]="true" />
           </div>
+          @if (v.byChannel?.length) {
+            <section class="a-card mt-4">
+              <header class="a-card-h"><span>Theo kênh bán</span><button type="button" class="a-link" (click)="saveChannels()">Xuất Excel theo kênh</button></header>
+              <div class="a-table"><table class="w-full text-sm">
+                <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Tiền thu</th><th class="p-2 text-right">Hoàn tiền</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
+                <tbody>
+                  @for (c of v.byChannel; track c.channel) {
+                    <tr class="border-t border-line"><td class="p-2">{{ channels[c.channel] ?? c.channel }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-semibold tabular-nums">{{ c.net | vnd }}</td></tr>
+                  }
+                </tbody>
+              </table></div>
+              <p class="px-4 py-3 text-sm text-muted">Trong doanh thu giao hàng có {{ v.shippingCollected | vnd }} tiền ship thực thu (đã trừ mã giảm ship).</p>
+            </section>
+          }
         }
         @case ('reservations') {
           <div class="a-row4">
@@ -84,6 +100,7 @@ export class Reports {
   protected readonly days = dayPoints;
   protected readonly named = namedPoints;
   protected readonly report = signal('revenue');
+  protected readonly channels = CHANNELS;
   protected readonly d = signal<any>(null);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
@@ -129,6 +146,10 @@ export class Reports {
   protected load(): void {
     this.d.set(null);
     this.loader.run(this.api.get<any>(`reports/${this.report()}`, { from: this.from, to: this.to, groupBy: this.report() === 'revenue' ? 'day' : null, limit: this.report() === 'revenue' || this.report() === 'reservations' ? null : 20 }), (v) => this.d.set(v));
+  }
+
+  protected saveChannels(): void {
+    this.form.run(this.api.download('reports/channels/export', { from: this.from, to: this.to, format: 'xlsx' }), (r) => saveBlob(r, 'bao-cao-theo-kenh.xlsx'));
   }
 
   protected save(format: string): void {
