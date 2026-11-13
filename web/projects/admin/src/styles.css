@@ -147,6 +147,19 @@ body { font-size: 15px; background: var(--ot-bg); }
 .a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 10px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
 .a-dine-item:hover:not(:disabled) { border-color: var(--ot-primary); }
 .a-dine-item:disabled { opacity: 0.5; }
+/* Chọn món: danh mục dính khi cuộn (dưới thanh trên cùng cao 70px); nút gửi bếp dính đáy khi đang chọn món */
+.a-pos-cats { position: sticky; top: 70px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; margin-inline: -4px; padding: 8px 4px; background: var(--ot-surface); scrollbar-width: none; }
+.a-pos-cats::-webkit-scrollbar { display: none; }
+.a-pos-cats .ot-chip { flex: 0 0 auto; white-space: nowrap; }
+.a-pos-section { scroll-margin-top: 130px; }
+.a-pos-section + .a-pos-section { margin-top: 16px; }
+.a-pos-send { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-inline: -4px; padding: 10px 4px calc(10px + var(--ot-safe-bottom)); background: var(--ot-surface); box-shadow: 0 -6px 8px -8px rgb(90 70 50 / 35%); }
+@media (min-width: 768px) {
+  .a-pos-menu { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .a-pos-cats { top: 86px; flex-direction: column; overflow: visible; margin: 0; padding: 0; }
+  .a-pos-cats .ot-chip { justify-content: flex-start; width: 100%; white-space: normal; text-align: left; }
+  .a-pos-section { scroll-margin-top: 86px; }
+}
 
 /* Trang đăng nhập: một thẻ giữa màn hình như trang khách. Điện thoại: thương hiệu gọn ở đầu thẻ; từ 992px form trái, khung đỏ phải */
 .a-auth { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 100dvh; padding: calc(16px + var(--ot-safe-top)) 16px calc(16px + var(--ot-safe-bottom)); background: var(--ot-bg); }

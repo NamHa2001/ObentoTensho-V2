@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -226,22 +226,53 @@ interface DraftLine {
           <header class="a-card-h">Chọn món</header>
           @if (b.paid) { <p class="a-card-b font-semibold">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
-            <div class="flex flex-wrap gap-2">
-              <button type="button" class="ot-chip" [class.ot-chip-active]="category() === null" (click)="category.set(null)">Tất cả</button>
-              @for (c of categories(); track c.id) { <button type="button" class="ot-chip" [class.ot-chip-active]="category() === c.id" (click)="category.set(c.id)">{{ c.name }}</button> }
-            </div>
             <input class="ot-input" name="q" placeholder="Tìm món…" [ngModel]="query()" (ngModelChange)="query.set($event)" />
-            <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
-              @for (m of shown(); track m.id) {
-                <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                  <span class="font-semibold">{{ m.name }}</span>
-                  <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
-                </button>
-              } @empty { <p class="text-muted">Không có món phù hợp.</p> }
+            <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
+            <div class="a-pos-menu">
+              @if (!query().trim()) {
+                <nav class="a-pos-cats" aria-label="Danh mục">
+                  @for (g of groups(); track g.id) {
+                    <button type="button" class="ot-chip" [id]="'pos-chip-' + g.id" [class.ot-chip-active]="activeCat() === g.id" (click)="jumpCat(g.id)">{{ g.name }}</button>
+                  }
+                </nav>
+              }
+              <div class="min-w-0">
+                @if (query().trim()) {
+                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
+                    @for (m of shown(); track m.id) {
+                      <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
+                        <span class="font-semibold">{{ m.name }}</span>
+                        <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
+                      </button>
+                    } @empty { <p class="text-muted">Không có món phù hợp.</p> }
+                  </div>
+                } @else {
+                  @for (g of groups(); track g.id) {
+                    <section class="a-pos-section" [id]="'pos-cat-' + g.id">
+                      <h3 class="mb-2 font-semibold">{{ g.name }}</h3>
+                      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
+                        @for (m of g.items; track m.id) {
+                          <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
+                            <span class="font-semibold">{{ m.name }}</span>
+                            <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
+                          </button>
+                        }
+                      </div>
+                    </section>
+                  } @empty { <p class="text-muted">Chưa có món.</p> }
+                }
+              </div>
             </div>
 
             @if (draft().length > 0) {
-              <div class="rounded-md border border-line p-3">
+              <div class="a-pos-send">
+                <button type="button" class="ot-btn ot-btn-outline" (click)="showDraft()">Xem {{ draftCount() }} món đang chọn</button>
+                <button type="button" class="ot-btn ot-btn-primary" [disabled]="form.busy()" (click)="send(b)">Gửi bếp</button>
+              </div>
+            }
+
+            @if (draft().length > 0) {
+              <div id="pos-draft" class="rounded-md border border-line p-3">
                 <h2 class="mb-2 font-semibold">Món đang chọn (chưa gửi bếp)</h2>
                 @for (d of draft(); track d.key) {
                   <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
@@ -429,8 +460,10 @@ export class DineInBill {
   protected readonly bill = signal<any>(null);
   protected readonly menu = signal<any[]>([]);
   protected readonly categories = signal<any[]>([]);
-  protected readonly category = signal<number | null>(null);
+  protected readonly activeCat = signal<number | null>(null);
   protected readonly query = signal('');
+  private spyFrame = 0;
+  private jumpingUntil = 0;
   protected readonly draft = signal<DraftLine[]>([]);
   protected readonly picking = signal<any>(null);
   protected readonly pickError = signal<string | null>(null);
@@ -457,8 +490,14 @@ export class DineInBill {
   );
   protected readonly shown = computed(() => {
     const q = this.query().trim().toLowerCase();
-    return this.menu().filter((m) => (this.category() === null || m.categoryId === this.category()) && (!q || m.name.toLowerCase().includes(q)));
+    return this.menu().filter((m) => !q || m.name.toLowerCase().includes(q));
   });
+  // Món chia nhóm theo thứ tự danh mục của thực đơn
+  protected readonly groups = computed(() =>
+    this.categories()
+      .map((c) => ({ id: c.id as number, name: c.name as string, items: this.menu().filter((m) => m.categoryId === c.id) }))
+      .filter((g) => g.items.length > 0),
+  );
   protected readonly draftCount = computed(() => this.draft().reduce((n, d) => n + d.quantity, 0));
   protected readonly activeCount = computed(() => (this.bill()?.items ?? []).filter((i: any) => !i.voided).length);
   protected readonly rounds = computed(() => {
@@ -479,6 +518,43 @@ export class DineInBill {
 
   protected load(): void {
     this.loader.run(this.api.get<any>(`dine-in/${this.id}`), (b) => this.bill.set(b));
+  }
+
+  protected jumpCat(id: number): void {
+    this.activeCat.set(id);
+    this.jumpingUntil = Date.now() + 800;
+    document.getElementById(`pos-chip-${id}`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    document.getElementById(`pos-cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  protected showDraft(): void {
+    document.getElementById('pos-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Nhóm đang xem = nhóm cuối có tiêu đề đã chạm mép dưới thanh danh mục dính
+  @HostListener('window:scroll')
+  protected onScroll(): void {
+    if (this.spyFrame || Date.now() < this.jumpingUntil || this.query().trim()) {
+      return;
+    }
+
+    this.spyFrame = requestAnimationFrame(() => {
+      this.spyFrame = 0;
+      const nav = document.querySelector('.a-pos-cats');
+      const edge = (window.innerWidth < 768 && nav ? nav.getBoundingClientRect().bottom : 86) + 8;
+      let current: number | null = null;
+      for (const g of this.groups()) {
+        if ((document.getElementById(`pos-cat-${g.id}`)?.getBoundingClientRect().top ?? Infinity) <= edge) {
+          current = g.id;
+        }
+      }
+
+      const next = current ?? this.groups()[0]?.id ?? null;
+      if (next !== this.activeCat()) {
+        this.activeCat.set(next);
+        document.getElementById(`pos-chip-${next}`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+      }
+    });
   }
 
   protected time(utc: string): string {
