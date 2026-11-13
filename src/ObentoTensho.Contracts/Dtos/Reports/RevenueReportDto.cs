@@ -8,4 +8,6 @@ public sealed record RevenueReportDto(
     decimal PreviousNet,
     IReadOnlyList<RevenuePointDto> Series,
     IReadOnlyList<NamedValueDto> ByCategory,
-    string Definition);
+    string Definition,
+    IReadOnlyList<ChannelRevenueDto>? ByChannel = null,
+    decimal ShippingCollected = 0);

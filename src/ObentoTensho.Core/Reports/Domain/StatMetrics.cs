@@ -18,9 +18,13 @@ public static class StatMetrics
     public const string ReservationGuests = "reservation_guests";
     public const string NewCustomers = "new_customers";
 
+    // Tiền ship thực thu (phí ship trừ phần mã giảm ship) theo ngày thanh toán
+    public const string ShippingCollected = "shipping_collected";
+
     public const string CategoryPrefix = "category:";
     public const string ItemPrefix = "item:";
     public const string HourPrefix = "hour:";
     public const string AreaPrefix = "area:";
     public const string StatusPrefix = "status:";
+    public const string ChannelPrefix = "channel:";
 }

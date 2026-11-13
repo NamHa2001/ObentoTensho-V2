@@ -37,7 +37,9 @@ public sealed class ReportService(
         ["orders"] = "Báo cáo đơn hàng",
         ["customers"] = "Báo cáo khách hàng",
         ["top-dishes"] = "Báo cáo món bán chạy",
+        ["channels"] = "Báo cáo doanh thu theo kênh",
     };
+    private static readonly string[] ChannelColumns = ["Kênh", "Số đơn", "Tiền thu", "Hoàn tiền", "Doanh thu"];
     private static readonly string[] CustomerColumns = ["Khách", "Số đơn", "Đã chi"];
     private static readonly string[] DishColumns = ["Món", "Số lượng", "Doanh thu"];
 
@@ -70,7 +72,9 @@ public sealed class ReportService(
             })
             .ToArray();
         var names = await stats.LoadNamesAsync(cancellationToken);
-        return Result.Success(new RevenueReportDto(paid, refunds, paid - refunds, previousNet, series, Named(current, StatMetrics.RevenuePaid, StatMetrics.CategoryPrefix, names.Categories), RevenueDefinition));
+        return Result.Success(new RevenueReportDto(
+            paid, refunds, paid - refunds, previousNet, series, Named(current, StatMetrics.RevenuePaid, StatMetrics.CategoryPrefix, names.Categories), RevenueDefinition,
+            Channels(current), Total(current, StatMetrics.ShippingCollected)));
     }
 
     public async Task<Result<ReservationReportDto>> ReservationsAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)
@@ -159,6 +163,7 @@ public sealed class ReportService(
             "orders" => await OrderTableAsync(from, to, cancellationToken),
             "customers" => await CustomerTableAsync(from, to, cancellationToken),
             "top-dishes" => await DishTableAsync(from, to, cancellationToken),
+            "channels" => await ChannelTableAsync(from, to, cancellationToken),
             _ => Result.Failure<(string[] Columns, string[][] Rows)>(ErrorCodes.NotFound),
         };
         if (!table.IsSuccess)
@@ -185,6 +190,28 @@ public sealed class ReportService(
             ? Result.Success((RevenueColumns, report.Value.Series.Select(p => new[] { p.Period, Number(p.Paid), Number(p.Refunds), Number(p.Net) }).ToArray()))
             : Result.Failure<(string[], string[][])>(report.ErrorCode ?? ErrorCodes.ValidationFailed);
     }
+
+    private async Task<Result<(string[] Columns, string[][] Rows)>> ChannelTableAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)
+    {
+        var report = await RevenueAsync(from, to, ReportGrouping.Day, cancellationToken);
+        if (!report.IsSuccess)
+        {
+            return Result.Failure<(string[], string[][])>(report.ErrorCode ?? ErrorCodes.ValidationFailed);
+        }
+
+        var rows = (report.Value.ByChannel ?? [])
+            .Select(c => new[] { ChannelName(c.Channel), Number(c.Orders), Number(c.Paid), Number(c.Refunds), Number(c.Net) })
+            .Append(["Trong đó tiền ship thực thu", string.Empty, Number(report.Value.ShippingCollected), string.Empty, string.Empty])
+            .ToArray();
+        return Result.Success((ChannelColumns, rows));
+    }
+
+    private static string ChannelName(OrderChannel channel) => channel switch
+    {
+        OrderChannel.DineIn => "Tại quán",
+        OrderChannel.Delivery => "Giao hàng",
+        _ => "Mang về",
+    };
 
     private async Task<Result<(string[] Columns, string[][] Rows)>> ReservationTableAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)
     {
@@ -249,6 +276,19 @@ public sealed class ReportService(
 
     private static decimal Total(IEnumerable<DailyStat> rows, string metric) =>
         rows.Where(r => r.Dimension.Length == 0 && Is(r, metric)).Sum(r => r.Value);
+
+    // Mang về / tại quán / giao hàng; kênh không có đơn trong kỳ vẫn hiện với số 0
+    private static ChannelRevenueDto[] Channels(IReadOnlyCollection<DailyStat> rows) =>
+        Enum.GetValues<OrderChannel>()
+            .Select(channel =>
+            {
+                var dimension = string.Create(CultureInfo.InvariantCulture, $"{StatMetrics.ChannelPrefix}{(byte)channel}");
+                decimal Of(string metric) => rows.Where(r => Is(r, metric) && string.Equals(r.Dimension, dimension, StringComparison.Ordinal)).Sum(r => r.Value);
+                var paid = Of(StatMetrics.RevenuePaid);
+                var refunds = Of(StatMetrics.RefundsAmount);
+                return new ChannelRevenueDto(channel, (int)Of(StatMetrics.OrdersPaid), paid, refunds, paid - refunds);
+            })
+            .ToArray();
 
     private static decimal Percent(int part, int total) =>
         total == 0 ? 0 : Math.Round(part * 100m / total, 1, MidpointRounding.AwayFromZero);

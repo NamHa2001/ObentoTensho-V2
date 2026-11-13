@@ -10406,6 +10406,18 @@ export interface components {
             status: components["schemas"]["ReservationStatus"];
             reason: null | string;
         };
+        ChannelRevenueDto: {
+            /** @enum {unknown} */
+            channel: "pickup" | "dine_in" | "delivery";
+            /** Format: int32 */
+            orders: number;
+            /** Format: double */
+            paid: number;
+            /** Format: double */
+            refunds: number;
+            /** Format: double */
+            net: number;
+        };
         ContactMessageDto: {
             /** Format: int32 */
             id: number;
@@ -12600,6 +12612,23 @@ export interface components {
                 value: number;
             }[];
             definition: string;
+            byChannel?: null | {
+                /** @enum {unknown} */
+                channel: "pickup" | "dine_in" | "delivery";
+                /** Format: int32 */
+                orders: number;
+                /** Format: double */
+                paid: number;
+                /** Format: double */
+                refunds: number;
+                /** Format: double */
+                net: number;
+            }[];
+            /**
+             * Format: double
+             * @default 0
+             */
+            shippingCollected: number;
         };
         ReviewAdjustmentRequest: {
             note: null | string;

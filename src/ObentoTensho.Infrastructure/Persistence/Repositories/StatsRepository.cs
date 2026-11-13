@@ -26,15 +26,15 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
             UNION ALL
             SELECT 'revenue_paid', CONCAT('category:', m.CategoryId), CAST(SUM((i.ItemPrice + i.OptionsPrice) * i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id JOIN MenuItems m ON m.Id = i.MenuItemId
-            WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} GROUP BY m.CategoryId
+            WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} AND i.VoidedAtUtc IS NULL GROUP BY m.CategoryId
             UNION ALL
             SELECT 'item_quantity', CONCAT('item:', i.MenuItemId), CAST(SUM(i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id
-            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL GROUP BY i.MenuItemId
+            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
             UNION ALL
             SELECT 'item_revenue', CONCAT('item:', i.MenuItemId), CAST(SUM((i.ItemPrice + i.OptionsPrice) * i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id
-            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL GROUP BY i.MenuItemId
+            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
             UNION ALL
             SELECT 'orders_created', '', COUNT(*) FROM Orders o WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} HAVING COUNT(*) > 0
             UNION ALL
@@ -69,8 +69,24 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
             UNION ALL
             SELECT 'new_customers', '', COUNT(*) FROM Users u WHERE u.CreatedAtUtc >= {startUtc} AND u.CreatedAtUtc < {endUtc} HAVING COUNT(*) > 0
             """).ToListAsync(cancellationToken);
-        return rows.Select(r => new StatRow(r.Metric, r.Dimension, r.Value)).ToArray();
+        return rows.Concat(await ComputeChannelsAsync(startUtc, endUtc, cancellationToken)).Select(r => new StatRow(r.Metric, r.Dimension, r.Value)).ToArray();
     }
+
+    // Theo kênh bán (mang về / tại quán / giao hàng) và tiền ship thực thu, cùng mốc ngày thanh toán/hoàn tiền như tổng
+    private async Task<List<StatSqlRow>> ComputeChannelsAsync(DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken) =>
+        await db.Database.SqlQuery<StatSqlRow>($"""
+            SELECT 'revenue_paid' AS Metric, CONCAT('channel:', o.Channel) AS Dimension, CAST(SUM(o.TotalAmount) AS decimal(18,2)) AS Value
+            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} GROUP BY o.Channel
+            UNION ALL
+            SELECT 'refunds_amount', CONCAT('channel:', o.Channel), CAST(SUM(o.TotalAmount) AS decimal(18,2))
+            FROM Orders o WHERE o.RefundedAtUtc >= {startUtc} AND o.RefundedAtUtc < {endUtc} GROUP BY o.Channel
+            UNION ALL
+            SELECT 'orders_paid', CONCAT('channel:', o.Channel), COUNT(*)
+            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} GROUP BY o.Channel
+            UNION ALL
+            SELECT 'shipping_collected', '', CAST(SUM(o.DeliveryFee - o.ShippingDiscount) AS decimal(18,2))
+            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} AND o.Channel = 2 HAVING COUNT(*) > 0
+            """).ToListAsync(cancellationToken);
 
     public async Task ReplaceDayAsync(DateOnly day, IReadOnlyList<StatRow> rows, DateTime nowUtc, CancellationToken cancellationToken)
     {

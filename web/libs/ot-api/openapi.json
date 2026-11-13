@@ -11224,6 +11224,41 @@
           }
         }
       },
+      "ChannelRevenueDto": {
+        "required": [
+          "channel",
+          "orders",
+          "paid",
+          "refunds",
+          "net"
+        ],
+        "type": "object",
+        "properties": {
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in",
+              "delivery"
+            ]
+          },
+          "orders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paid": {
+            "type": "number",
+            "format": "double"
+          },
+          "refunds": {
+            "type": "number",
+            "format": "double"
+          },
+          "net": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ContactMessageDto": {
         "required": [
           "id",
@@ -19310,6 +19345,52 @@
           },
           "definition": {
             "type": "string"
+          },
+          "byChannel": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "required": [
+                "channel",
+                "orders",
+                "paid",
+                "refunds",
+                "net"
+              ],
+              "type": "object",
+              "properties": {
+                "channel": {
+                  "enum": [
+                    "pickup",
+                    "dine_in",
+                    "delivery"
+                  ]
+                },
+                "orders": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "paid": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "refunds": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "net": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "shippingCollected": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
