@@ -1,9 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { catchError, Observable, switchMap, throwError } from 'rxjs';
+import { Eye, EyeOff, KeyRound, Lock, LucideAngularModule, Mail, ShieldCheck } from 'lucide-angular';
+import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -12,43 +14,78 @@ import { errorCode, Submit } from '../shared/ui';
 
 type LoginResult = Schemas['StaffLoginResponse'];
 
+// Khung chung của các trang chưa đăng nhập: nửa thương hiệu (logo từ Cài đặt) và thẻ form
+@Component({
+  selector: 'ot-admin-auth',
+  template: `
+    <div class="a-auth">
+      <aside class="a-auth-brand">
+        <span class="a-auth-logo" aria-hidden="true">@if (logo(); as url) { <img [src]="url" alt="" /> } @else { 天 }</span>
+        <p class="a-auth-name">Obento Tensho</p>
+        <p class="a-auth-tag">Trang quản trị dành cho nhân viên quán</p>
+        <ul class="a-auth-points">
+          <li>Đơn hàng và màn hình bếp theo thời gian thực</li>
+          <li>Đặt bàn, sơ đồ bàn và ca phục vụ</li>
+          <li>Thực đơn, khuyến mãi và báo cáo doanh thu</li>
+        </ul>
+        <p class="a-auth-copy">© {{ year }} Obento Tensho</p>
+      </aside>
+      <main class="a-auth-main"><div class="a-auth-card"><ng-content /></div></main>
+    </div>
+  `,
+})
+export class AuthFrame {
+  protected readonly year = new Date().getFullYear();
+  protected readonly logo = toSignal(inject(Api).publicSettings().pipe(map((s) => s['restaurant.logoUrl'] || null), catchError(() => of(null))), { initialValue: null });
+}
+
 // Đăng nhập nhiều bước: mật khẩu → (đổi mật khẩu lần đầu) → (thiết lập 2FA) → nhập mã 2FA
 @Component({
   selector: 'ot-admin-login',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LucideAngularModule, AuthFrame],
   template: `
-    <form class="ot-form" (ngSubmit)="submit()">
-      <h1>Quản trị Obento Tensho</h1>
-      @switch (step()) {
-        @case ('login') {
-          <label>Email<input class="ot-input" name="email" type="email" autocomplete="username" required [(ngModel)]="email" /></label>
-          <label>Mật khẩu<input class="ot-input" name="password" type="password" autocomplete="current-password" required [(ngModel)]="password" /></label>
+    <ot-admin-auth>
+      <form class="ot-form" (ngSubmit)="submit()">
+        @switch (step()) {
+          @case ('login') {
+            <h1>Đăng nhập</h1>
+            <p class="a-auth-sub">Dùng tài khoản nhân viên do quản lý cấp.</p>
+            <label>Email<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.mail" [size]="18" /></span><input class="ot-input" name="email" type="email" autocomplete="username" required [(ngModel)]="email" /></span></label>
+            <label>Mật khẩu<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.lock" [size]="18" /></span><input class="ot-input" name="password" [type]="show() ? 'text' : 'password'" autocomplete="current-password" required [(ngModel)]="password" /><button type="button" class="a-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.eyeOff : icons.eye" [size]="18" /></button></span></label>
+          }
+          @case ('password_change') {
+            <h1>Đổi mật khẩu</h1>
+            <p class="a-auth-sub">Lần đầu đăng nhập, bạn cần đặt mật khẩu riêng trước khi tiếp tục.</p>
+            <label>Mật khẩu mới (từ 10 ký tự)<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.lock" [size]="18" /></span><input class="ot-input" name="newPassword" [type]="show() ? 'text' : 'password'" autocomplete="new-password" required [(ngModel)]="newPassword" /><button type="button" class="a-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.eyeOff : icons.eye" [size]="18" /></button></span></label>
+          }
+          @case ('totp_setup') {
+            <h1>Bật xác thực 2 bước</h1>
+            <p class="a-auth-sub">Mở ứng dụng xác thực (Google Authenticator…), thêm tài khoản bằng khóa sau rồi nhập mã 6 số.</p>
+            <p class="a-auth-key">{{ setup()?.secret }}</p>
+            <label>Mã 6 số<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.shield" [size]="18" /></span><input class="ot-input" name="code" inputmode="numeric" autocomplete="one-time-code" required [(ngModel)]="code" /></span></label>
+          }
+          @case ('recovery') {
+            <h1>Mã khôi phục</h1>
+            <p class="a-auth-sub">Lưu các mã sau ở nơi an toàn. Mỗi mã dùng một lần và chỉ hiện lúc này.</p>
+            <ul class="a-auth-codes">@for (c of recovery(); track c) { <li>{{ c }}</li> }</ul>
+          }
+          @case ('totp_verify') {
+            <h1>Xác thực 2 bước</h1>
+            <p class="a-auth-sub">Nhập mã 6 số đang hiện trong ứng dụng xác thực.</p>
+            <label>Mã 6 số<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.shield" [size]="18" /></span><input class="ot-input" name="code" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="code" /></span></label>
+            <label>Hoặc mã khôi phục<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.key" [size]="18" /></span><input class="ot-input" name="recoveryCode" [(ngModel)]="recoveryCode" /></span></label>
+          }
         }
-        @case ('password_change') {
-          <p>Bạn cần đổi mật khẩu trước khi tiếp tục.</p>
-          <label>Mật khẩu mới (từ 10 ký tự)<input class="ot-input" name="newPassword" type="password" autocomplete="new-password" required [(ngModel)]="newPassword" /></label>
-        }
-        @case ('totp_setup') {
-          <p>Mở ứng dụng xác thực (Google Authenticator…), thêm tài khoản bằng khóa sau rồi nhập mã 6 số:</p>
-          <p class="break-all font-mono font-bold">{{ setup()?.secret }}</p>
-          <label>Mã 6 số<input class="ot-input" name="code" inputmode="numeric" autocomplete="one-time-code" required [(ngModel)]="code" /></label>
-        }
-        @case ('recovery') {
-          <p>Lưu các mã khôi phục sau, mỗi mã dùng một lần và chỉ hiện lúc này:</p>
-          <ul class="font-mono">@for (c of recovery(); track c) { <li>{{ c }}</li> }</ul>
-        }
-        @case ('totp_verify') {
-          <label>Mã 6 số từ ứng dụng xác thực<input class="ot-input" name="code" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="code" /></label>
-          <label>Hoặc mã khôi phục<input class="ot-input" name="recoveryCode" [(ngModel)]="recoveryCode" /></label>
-        }
-      }
-      @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
-      <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">{{ step() === 'recovery' ? 'Đã lưu, tiếp tục' : 'Tiếp tục' }}</button>
-      @if (step() === 'login') { <a class="text-primary" routerLink="/forgot">Quên mật khẩu?</a> }
-    </form>
+        @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
+        <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">{{ step() === 'recovery' ? 'Đã lưu, tiếp tục' : step() === 'login' ? 'Đăng nhập' : 'Tiếp tục' }}</button>
+        @if (step() === 'login') { <a class="a-auth-link" routerLink="/forgot">Quên mật khẩu?</a> }
+      </form>
+    </ot-admin-auth>
   `,
 })
 export class Login {
+  protected readonly icons = { mail: Mail, lock: Lock, eye: Eye, eyeOff: EyeOff, shield: ShieldCheck, key: KeyRound };
+  protected readonly show = signal(false);
   private readonly api = inject(Api);
   private readonly turnstile = inject(Turnstile);
   private readonly auth = inject(Auth);
@@ -127,20 +164,25 @@ function takeToken(doc: Document): string {
 
 @Component({
   selector: 'ot-admin-forgot',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink, LucideAngularModule, AuthFrame],
   template: `
-    <form class="ot-form" (ngSubmit)="submit()">
-      <h1>Quên mật khẩu</h1>
-      @if (done()) { <p>Nếu email có tài khoản, liên kết đã được gửi.</p> } @else {
-        <label>Email<input class="ot-input" name="email" type="email" required [(ngModel)]="email" /></label>
-        @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
-        <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Gửi liên kết</button>
-      }
-    </form>
+    <ot-admin-auth>
+      <form class="ot-form" (ngSubmit)="submit()">
+        <h1>Quên mật khẩu</h1>
+        @if (done()) { <p class="a-auth-sub">Nếu email có tài khoản, liên kết đặt lại mật khẩu đã được gửi.</p> } @else {
+          <p class="a-auth-sub">Nhập email tài khoản, hệ thống sẽ gửi liên kết đặt lại mật khẩu.</p>
+          <label>Email<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="mail" [size]="18" /></span><input class="ot-input" name="email" type="email" autocomplete="username" required [(ngModel)]="email" /></span></label>
+          @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
+          <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Gửi liên kết</button>
+        }
+        <a class="a-auth-link" routerLink="/login">‹ Quay lại đăng nhập</a>
+      </form>
+    </ot-admin-auth>
   `,
 })
 export class Forgot {
   private readonly api = inject(Api);
+  protected readonly mail = Mail;
   protected readonly form = new Submit();
   protected readonly done = signal(false);
   protected email = '';
@@ -153,22 +195,27 @@ export class Forgot {
 // Đặt lại mật khẩu và nhận lời mời: nhập mật khẩu mới với token trong email
 @Component({
   selector: 'ot-admin-set-password',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LucideAngularModule, AuthFrame],
   template: `
-    <form class="ot-form" (ngSubmit)="submit()">
-      <h1>Đặt mật khẩu</h1>
-      @if (done()) { <p>Đã lưu.</p><a class="ot-btn ot-btn-primary" routerLink="/login">Đăng nhập</a> } @else {
-        <label>Mật khẩu mới (từ 10 ký tự)<input class="ot-input" name="password" type="password" autocomplete="new-password" required [(ngModel)]="password" /></label>
-        @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
-        <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Lưu</button>
-      }
-    </form>
+    <ot-admin-auth>
+      <form class="ot-form" (ngSubmit)="submit()">
+        <h1>Đặt mật khẩu</h1>
+        @if (done()) { <p class="a-auth-sub">Đã lưu mật khẩu mới.</p><a class="ot-btn ot-btn-primary" routerLink="/login">Đăng nhập</a> } @else {
+          <p class="a-auth-sub">Chọn mật khẩu từ 10 ký tự, không trùng với email.</p>
+          <label>Mật khẩu mới<span class="a-auth-field"><span class="a-auth-icon"><lucide-icon [img]="icons.lock" [size]="18" /></span><input class="ot-input" name="password" [type]="show() ? 'text' : 'password'" autocomplete="new-password" required [(ngModel)]="password" /><button type="button" class="a-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.eyeOff : icons.eye" [size]="18" /></button></span></label>
+          @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
+          <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Lưu</button>
+        }
+      </form>
+    </ot-admin-auth>
   `,
 })
 export class SetPassword {
   private readonly api = inject(Api);
   private readonly token = takeToken(inject(DOCUMENT));
   private readonly invite = inject(ActivatedRoute).snapshot.data['invite'] === true;
+  protected readonly icons = { lock: Lock, eye: Eye, eyeOff: EyeOff };
+  protected readonly show = signal(false);
   protected readonly form = new Submit();
   protected readonly done = signal(false);
   protected password = '';
@@ -183,7 +230,16 @@ export class SetPassword {
 
 @Component({
   selector: 'ot-admin-not-me',
-  template: `<div class="ot-form"><h1>Không phải tôi</h1>@if (done()) { <p>Đã khóa phiên đăng nhập lạ. Hãy đặt lại mật khẩu.</p> } @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }</div>`,
+  imports: [RouterLink, AuthFrame],
+  template: `
+    <ot-admin-auth>
+      <div class="ot-form">
+        <h1>Không phải tôi</h1>
+        @if (done()) { <p class="a-auth-sub">Đã khóa phiên đăng nhập lạ. Hãy đặt lại mật khẩu.</p><a class="ot-btn ot-btn-primary" routerLink="/forgot">Đặt lại mật khẩu</a> }
+        @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
+      </div>
+    </ot-admin-auth>
+  `,
 })
 export class NotMe {
   protected readonly form = new Submit();
