@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { Bell, ChevronDown, LogOut, LucideAngularModule, Menu, UserRound } from 'lucide-angular';
-import { filter, map } from 'rxjs';
+import { catchError, filter, map, of } from 'rxjs';
 
 import { Api } from '../core/api';
 import { Auth, StepUp } from '../core/auth';
@@ -21,7 +21,7 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
     <div class="a-wrap" [class.a-open]="drawer()">
       @if (drawer()) { <div class="a-scrim" (click)="drawer.set(false)"></div> }
       <aside class="a-side" aria-label="Điều hướng">
-        <div class="a-brand"><span class="a-logo" aria-hidden="true">天</span><span>Obento Tensho</span></div>
+        <div class="a-brand">@if (logo(); as url) { <img class="a-logo object-cover" [src]="url" alt="" /> } @else { <span class="a-logo" aria-hidden="true">天</span> }<span>Obento Tensho</span></div>
         <nav class="py-3">
           @for (group of groups(); track group.title) {
             @if (group.items.length === 1) {
@@ -110,6 +110,7 @@ export class Shell {
   protected password = '';
   protected code = '';
   private readonly url = toSignal(this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => this.router.url)), { initialValue: this.router.url });
+  protected readonly logo = toSignal(this.api.publicSettings().pipe(map((s) => s['restaurant.logoUrl'] || null), catchError(() => of(null))), { initialValue: null });
   protected readonly role = computed(() => ROLES[this.auth.me()?.role ?? ''] ?? '');
   protected readonly initial = computed(() => (this.auth.me()?.fullName.trim().split(/\s+/).at(-1) ?? '?').charAt(0).toUpperCase());
   protected readonly groups = computed(() => {
