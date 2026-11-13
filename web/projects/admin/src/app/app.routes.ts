@@ -31,6 +31,7 @@ export const routes: Routes = [
       page('floor', 'tables_view', () => import('./pages/floor').then((m) => m.Floor)),
       page('dine-in', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineIn)),
       page('dine-in/:id', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineInBill)),
+      page('invoices', 'invoices', () => import('./pages/invoices').then((m) => m.Invoices)),
       page('option-groups', 'menu', () => import('./pages/menu').then((m) => m.OptionGroups)),
       page('item-images/:id', 'menu', () => import('./pages/menu').then((m) => m.ItemImages)),
       page('customers', 'customers', () => import('./pages/customers').then((m) => m.Customers)),

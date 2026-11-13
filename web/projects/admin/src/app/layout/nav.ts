@@ -1,4 +1,4 @@
-import { Armchair, BadgePercent, BarChart3, CalendarCheck, CalendarDays, CalendarX, ChefHat, ClipboardList, Clock, Clock3, Coins, Download, FileText, FolderTree, Gift, Image, Images, Inbox, Languages, LayoutDashboard, ListChecks, LucideIconData, Map, Megaphone, Newspaper, ScrollText, Send, Settings, Star, Tags, Ticket, UserCog, Users, Utensils, UtensilsCrossed } from 'lucide-angular';
+import { Armchair, BadgePercent, BarChart3, CalendarCheck, CalendarDays, CalendarX, ChefHat, ClipboardList, Clock, Clock3, Coins, Download, FileText, FolderTree, Gift, Image, Images, Inbox, Languages, LayoutDashboard, ListChecks, LucideIconData, Map, Megaphone, Newspaper, ScrollText, Send, Settings, Star, Tags, Ticket, UserCog, Users, Utensils, UtensilsCrossed, Receipt } from 'lucide-angular';
 
 export interface NavItem {
   label: string;
@@ -73,6 +73,7 @@ export const NAV: { title: string; icon: LucideIconData; items: NavItem[] }[] = 
     icon: Settings,
     items: [
       { label: 'Báo cáo', path: '/reports', cap: 'reports', icon: BarChart3 },
+      { label: 'Yêu cầu hóa đơn', path: '/invoices', cap: 'invoices', icon: Receipt },
       { label: 'Cài đặt', path: '/settings', cap: 'reports', icon: Settings },
       { label: 'Nhân viên', path: '/r/staff', cap: 'staff_and_audit', icon: UserCog },
       { label: 'Nhật ký thao tác', path: '/r/audit', cap: 'staff_and_audit', icon: ScrollText },

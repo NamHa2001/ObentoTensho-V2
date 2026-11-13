@@ -7,6 +7,7 @@ import { Auth } from '../core/auth';
 import { reloadOnLive } from '../core/live';
 import { Latest, ORDER_STATUS, Submit, VnDatePipe, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
+import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
 
 const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'] };
 
@@ -75,7 +76,7 @@ export class Orders {
 
 @Component({
   selector: 'ot-order',
-  imports: [VndPipe, VnDatePipe],
+  imports: [FormsModule, VndPipe, VnDatePipe, InvoiceForm],
   template: `
     @if (form.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     @if (d(); as v) {
@@ -112,13 +113,30 @@ export class Orders {
               @if (v.order.needsContactConfirm && !v.order.contactConfirmed) { <button type="button" class="ot-chip" (click)="confirmContact(v)">Đã gọi xác nhận</button> }
               @if (v.order.paymentStatus === 'unpaid' && v.order.status !== 'cancelled') { <button type="button" class="ot-chip" (click)="pay(v)">Đã thu tiền</button> }
               @if (v.order.refundPending) { <button type="button" class="ot-chip" (click)="refund(v)">Ghi hoàn tiền</button> }
+              @if (v.order.status !== 'cancelled') { <button type="button" class="ot-chip" (click)="startInvoice()">Yêu cầu xuất hóa đơn</button> }
             </div>
+            @if (invoiceSent()) { <p class="px-4 pb-3 text-sm font-semibold">Đã gửi yêu cầu xuất hóa đơn cho kế toán.</p> }
           </section>
           <section class="a-card">
             <header class="a-card-h">Lịch sử</header>
             <div class="a-card-b">@for (h of v.history; track $index) { <div class="a-line text-sm"><span>{{ labels[h.toStatus] }} @if (h.reason) { ({{ h.reason }}) }</span><span class="whitespace-nowrap text-muted">{{ h.changedAtUtc | vnDate: true }}</span></div> } @empty { <p class="text-muted">Chưa có.</p> }</div>
           </section>
         </div>
+      </div>
+    }
+    @if (invoicing()) {
+      <div class="a-drawer" role="dialog" aria-modal="true">
+        <form class="a-drawer-panel" (ngSubmit)="sendInvoice()">
+          <div class="a-drawer-h">Yêu cầu xuất hóa đơn</div>
+          <div class="a-drawer-b">
+            <ot-invoice-form [model]="buyer" />
+            @if (invoiceForm.error(); as e) { <p class="ot-error">{{ e }}</p> }
+          </div>
+          <div class="a-drawer-f">
+            <button type="button" class="ot-btn ot-btn-outline" (click)="invoicing.set(false)">Đóng</button>
+            <button class="ot-btn ot-btn-primary" [disabled]="invoiceForm.busy()">Gửi kế toán</button>
+          </div>
+        </form>
       </div>
     }
   `,
@@ -131,6 +149,10 @@ export class Order {
   protected readonly d = signal<any>(null);
   protected readonly contact = signal<any>(null);
   protected readonly form = new Submit();
+  protected readonly invoiceForm = new Submit();
+  protected readonly invoicing = signal(false);
+  protected readonly invoiceSent = signal(false);
+  protected buyer = emptyBuyer();
 
   constructor() {
     this.load();
@@ -138,6 +160,19 @@ export class Order {
 
   private load(): void {
     this.form.run(this.api.get<any>(`orders/${this.id}`), (v) => this.d.set(v));
+  }
+
+  protected startInvoice(): void {
+    this.buyer = emptyBuyer();
+    this.invoiceForm.error.set(null);
+    this.invoicing.set(true);
+  }
+
+  protected sendInvoice(): void {
+    this.invoiceForm.run(this.api.post(`orders/${this.id}/invoice-request`, buyerBody(this.buyer)), () => {
+      this.invoicing.set(false);
+      this.invoiceSent.set(true);
+    });
   }
 
   // Chỉ hiện bước mà vai trò này được làm và đã đủ điều kiện (đơn cần gọi xác nhận thì gọi trước)

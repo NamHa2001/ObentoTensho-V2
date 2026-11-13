@@ -10,6 +10,7 @@ import { Auth } from '../core/auth';
 import { reloadOnLive } from '../core/live';
 import { Latest, Submit, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
+import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
 
 const TABLE_STATUS: Record<string, string> = { available: 'Trống', reserved: 'Đã đặt', occupied: 'Có khách', cleaning: 'Đang dọn' };
 
@@ -154,7 +155,7 @@ interface DraftLine {
 // chuyển/gộp bàn, in tạm tính, thanh toán (thu ngân)
 @Component({
   selector: 'ot-dine-in-bill',
-  imports: [FormsModule, RouterLink, VndPipe],
+  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm],
   template: `
     <div class="a-head">
       <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">· {{ b.guestCount }} khách · mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
@@ -315,6 +316,8 @@ interface DraftLine {
                 <label class="flex items-center gap-2 font-normal"><input type="radio" name="method" value="cash" [(ngModel)]="pay.paymentMethod" /> Tiền mặt</label>
                 <label class="flex items-center gap-2 font-normal"><input type="radio" name="method" value="bank_transfer" [(ngModel)]="pay.paymentMethod" /> Chuyển khoản</label>
               </fieldset>
+              <label class="flex items-center gap-2 font-normal"><input type="checkbox" name="wantInvoice" [(ngModel)]="wantInvoice" /> Khách lấy hóa đơn</label>
+              @if (wantInvoice) { <ot-invoice-form [model]="buyer" /> }
               @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
             }
           </div>
@@ -380,6 +383,8 @@ export class DineInBill {
   protected readonly quoter = new Submit();
   protected readonly loader = new Latest();
   protected pay = { memberPhone: '', voucherCode: '', paymentMethod: 'cash' };
+  protected wantInvoice = false;
+  protected buyer = emptyBuyer();
   protected readonly canVoid = computed(() => this.auth.has('orders_void'));
   protected readonly canPay = computed(() => this.auth.has('orders_cashier'));
   protected readonly shop = toSignal(
@@ -553,6 +558,8 @@ export class DineInBill {
   protected startCheckout(b: any): void {
     this.form.error.set(null);
     this.pay = { memberPhone: '', voucherCode: '', paymentMethod: 'cash' };
+    this.wantInvoice = false;
+    this.buyer = emptyBuyer();
     this.receipt.set(null);
     this.quoted.set(null);
     this.paying.set(b);
@@ -565,7 +572,7 @@ export class DineInBill {
   }
 
   protected checkout(b: any): void {
-    this.form.run(this.api.post<any>(`dine-in/${b.id}/checkout`, { ...this.payBody(), paymentMethod: this.pay.paymentMethod }), (r) => {
+    this.form.run(this.api.post<any>(`dine-in/${b.id}/checkout`, { ...this.payBody(), paymentMethod: this.pay.paymentMethod, invoice: this.wantInvoice ? buyerBody(this.buyer) : null }), (r) => {
       this.receipt.set(r);
       this.printReceipt();
     });
