@@ -53,6 +53,7 @@ public static class ApiProblems
         [ErrorCodes.PaymentRequired] = (StatusCodes.Status409Conflict, "Đơn chưa thanh toán"),
         [ErrorCodes.MemberNotFound] = (StatusCodes.Status404NotFound, "Không tìm thấy thành viên với số điện thoại này"),
         [ErrorCodes.BillNotEmpty] = (StatusCodes.Status409Conflict, "Bàn còn món chưa hủy"),
+        [ErrorCodes.InvoiceExists] = (StatusCodes.Status409Conflict, "Đơn này đã có yêu cầu xuất hóa đơn"),
         [ErrorCodes.PointsInsufficient] = (StatusCodes.Status409Conflict, "Không đủ điểm"),
         [ErrorCodes.FourEyesRequired] = (StatusCodes.Status409Conflict, "Cần người khác duyệt"),
         [ErrorCodes.VoucherInvalid] = (StatusCodes.Status400BadRequest, "Mã không hợp lệ"),

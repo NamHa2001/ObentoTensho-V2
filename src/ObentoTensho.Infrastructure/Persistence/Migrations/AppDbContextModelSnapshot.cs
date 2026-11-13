@@ -1120,6 +1120,89 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.ToTable("DataExports", (string)null);
                 });
 
+            modelBuilder.Entity("ObentoTensho.Core.Invoices.Domain.InvoiceRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<string>("BuyerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte>("BuyerType")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("CancelReason")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("CancelledAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("CreatedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("varchar(150)");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("IssuedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("IssuedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("NationalId")
+                        .HasColumnType("varchar(12)");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("OrderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("varchar(15)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("TaxCode")
+                        .HasColumnType("varchar(14)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status", "CreatedAtUtc");
+
+                    b.HasIndex(new[] { "OrderId" }, "UX_InvoiceRequests_ActiveOrder")
+                        .IsUnique()
+                        .HasFilter("[Status] <> 2");
+
+                    b.ToTable("InvoiceRequests", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_InvoiceRequests_Buyer", "([BuyerType] = 0 AND [NationalId] IS NOT NULL) OR ([BuyerType] = 1 AND [TaxCode] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_InvoiceRequests_BuyerType", "[BuyerType] BETWEEN 0 AND 1");
+
+                            t.HasCheckConstraint("CK_InvoiceRequests_Issued", "[Status] <> 1 OR [InvoiceNumber] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_InvoiceRequests_Status", "[Status] BETWEEN 0 AND 2");
+                        });
+                });
+
             modelBuilder.Entity("ObentoTensho.Core.Localization.Domain.BannerTranslation", b =>
                 {
                     b.Property<int>("EntityId")
@@ -3601,6 +3684,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RequestedByStaffId")
                         .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ObentoTensho.Core.Invoices.Domain.InvoiceRequest", b =>
+                {
+                    b.HasOne("ObentoTensho.Core.Orders.Domain.Order", null)
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

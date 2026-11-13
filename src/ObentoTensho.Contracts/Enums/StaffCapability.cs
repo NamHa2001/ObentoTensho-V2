@@ -28,5 +28,8 @@ public enum StaffCapability
     DineIn,
 
     // Hủy món đã gửi bếp (chủ quán 2026-11-13: cần quản lý)
-    OrdersVoid
+    OrdersVoid,
+
+    // Kế toán xem và xử lý yêu cầu xuất hóa đơn (có số CCCD, MST)
+    Invoices
 }

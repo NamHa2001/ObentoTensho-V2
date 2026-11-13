@@ -4204,6 +4204,242 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/orders/{orderId}/invoice-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["InvoiceBuyerRequest"];
+                    "text/json": components["schemas"]["InvoiceBuyerRequest"];
+                    "application/*+json": components["schemas"]["InvoiceBuyerRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoice-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["InvoiceRequestStatus"];
+                    from?: string;
+                    to?: string;
+                    q?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoice-requests/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["InvoiceRequestStatus"];
+                    from?: string;
+                    to?: string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoice-requests/{id}/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoice-requests/{id}/issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["IssueInvoiceRequest"];
+                    "text/json": components["schemas"]["IssueInvoiceRequest"];
+                    "application/*+json": components["schemas"]["IssueInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/invoice-requests/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelInvoiceRequest"];
+                    "text/json": components["schemas"]["CancelInvoiceRequest"];
+                    "application/*+json": components["schemas"]["CancelInvoiceRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/customers/{userId}/loyalty-points": {
         parameters: {
             query?: never;
@@ -10057,6 +10293,9 @@ export interface components {
             /** Format: int32 */
             maxGuests: null | number;
         };
+        CancelInvoiceRequest: {
+            reason: string;
+        };
         CancelOrderRequest: {
             token: null | string;
             reason: null | string;
@@ -10209,6 +10448,7 @@ export interface components {
             note: null | string;
             lang: null | string;
             voucherCode?: null | string;
+            invoice?: null | components["schemas"]["InvoiceBuyerRequest"];
         };
         CreateReservationRequest: {
             /** Format: date */
@@ -10445,6 +10685,7 @@ export interface components {
             paymentMethod: components["schemas"]["PaymentMethod"];
             voucherCode: null | string;
             memberPhone: null | string;
+            invoice?: null | components["schemas"]["InvoiceBuyerRequest"];
         };
         DineInKitchenLineDto: {
             /** Format: int64 */
@@ -10663,6 +10904,58 @@ export interface components {
             /** Format: int32 */
             width: number;
             url: string;
+        };
+        InvoiceBuyerRequest: {
+            buyerType: components["schemas"]["InvoiceBuyerType"];
+            buyerName: string;
+            nationalId: null | string;
+            taxCode: null | string;
+            address: null | string;
+            email: null | string;
+            phone: null | string;
+            note: null | string;
+        };
+        /** @enum {unknown} */
+        InvoiceBuyerType: "individual" | "company";
+        InvoiceContactDto: {
+            nationalId: null | string;
+            phone: null | string;
+        };
+        InvoiceRequestDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            orderId: string;
+            orderCode: string;
+            /** @enum {unknown} */
+            channel: "pickup" | "dine_in";
+            /** Format: double */
+            totalAmount: number;
+            /** Format: date-time */
+            orderCreatedAtUtc: string;
+            /** @enum {unknown} */
+            buyerType: "individual" | "company";
+            buyerName: string;
+            maskedNationalId: null | string;
+            taxCode: null | string;
+            address: null | string;
+            email: null | string;
+            maskedPhone: null | string;
+            note: null | string;
+            /** @enum {unknown} */
+            status: "pending" | "issued" | "cancelled";
+            invoiceNumber: null | string;
+            /** Format: date-time */
+            issuedAtUtc: null | string;
+            cancelReason: null | string;
+            /** Format: date-time */
+            createdAtUtc: string;
+            version: string;
+        };
+        /** @enum {unknown} */
+        InvoiceRequestStatus: "pending" | "issued" | "cancelled" | null;
+        IssueInvoiceRequest: {
+            invoiceNumber: string;
         };
         KitchenLineDto: {
             name: string;
@@ -12261,7 +12554,7 @@ export interface components {
             note: null | string;
         };
         /** @enum {unknown} */
-        StaffCapability: "dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void";
+        StaffCapability: "dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void" | "invoices";
         /** @enum {unknown} */
         StaffChallengeKind: "password_change" | "totp_verify" | "totp_setup" | "step_up" | "not_me";
         StaffChallengeResponse: {
@@ -12330,7 +12623,7 @@ export interface components {
             email: string;
             /** @enum {unknown} */
             role: "super_admin" | "manager" | "reception" | "kitchen" | "cashier" | "content_editor";
-            capabilities: ("dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void")[];
+            capabilities: ("dashboard" | "reservations" | "tables_view" | "tables_manage" | "shifts" | "orders_view" | "orders_kitchen" | "orders_cashier" | "orders_cancel" | "menu" | "customers" | "feedback" | "games" | "content" | "reports" | "payment_settings" | "customer_export" | "regular_hours" | "special_hours" | "staff_and_audit" | "dine_in" | "orders_void" | "invoices")[];
             totpEnabled: boolean;
         };
         /** @enum {unknown} */

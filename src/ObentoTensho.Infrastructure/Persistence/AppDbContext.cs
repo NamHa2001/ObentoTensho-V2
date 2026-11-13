@@ -10,6 +10,7 @@ using ObentoTensho.Core.Loyalty.Domain;
 using ObentoTensho.Core.Media.Domain;
 using ObentoTensho.Core.Menu.Domain;
 using ObentoTensho.Core.Notifications.Domain;
+using ObentoTensho.Core.Invoices.Domain;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Promotions.Domain;
 using ObentoTensho.Core.Reservations.Domain;
@@ -140,6 +141,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<RedeemReward> RedeemRewards => Set<RedeemReward>();
 
     public DbSet<Order> Orders => Set<Order>();
+
+    public DbSet<InvoiceRequest> InvoiceRequests => Set<InvoiceRequest>();
 
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 

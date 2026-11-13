@@ -64,6 +64,7 @@ public static class ErrorCodes
     public const string PaymentRequired = "PAYMENT_REQUIRED";
     public const string MemberNotFound = "MEMBER_NOT_FOUND";
     public const string BillNotEmpty = "BILL_NOT_EMPTY";
+    public const string InvoiceExists = "INVOICE_EXISTS";
     // Điểm thưởng (docs/srs/13)
     public const string PointsInsufficient = "POINTS_INSUFFICIENT";
     public const string FourEyesRequired = "FOUR_EYES_REQUIRED";

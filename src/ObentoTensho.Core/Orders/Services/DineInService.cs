@@ -7,6 +7,7 @@ using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Invoices.Services;
 using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
@@ -31,6 +32,7 @@ public sealed class DineInService(
     OrderTransitions transitions,
     LoyaltyService loyalty,
     VoucherEvaluator vouchers,
+    InvoiceService invoices,
     ISecureTokenService secureTokens,
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
@@ -334,9 +336,9 @@ public sealed class DineInService(
         ArgumentNullException.ThrowIfNull(request);
         return unitOfWork.TryInTransactionAsync(async ct =>
         {
-            if (!Enum.IsDefined(request.PaymentMethod))
+            if (CheckoutErrors(request) is { } errors)
             {
-                return Result.Failure<DineInReceiptDto>(ErrorCodes.ValidationFailed, Field("paymentMethod", FieldErrorCodes.OutOfRange));
+                return Result.Failure<DineInReceiptDto>(ErrorCodes.ValidationFailed, errors);
             }
 
             if (await orders.FindOpenDineInAsync(billId, ct) is not { } bill)
@@ -376,11 +378,26 @@ public sealed class DineInService(
             }
 
             audit.Record(new AuditEntry("orders.order.paid", Entity, Id(bill), After: new { bill.TotalAmount, bill.PaymentMethod }));
+            if (request.Invoice is not null)
+            {
+                invoices.Attach(bill.Id, request.Invoice, staffId);
+            }
+
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(new DineInReceiptDto(
                 bill.OrderCode, TableName(names, bill.TableId), bill.GuestCount ?? 0, Lines(bill), bill.SubTotal, bill.MemberDiscount,
                 bill.VoucherDiscount, bill.TotalAmount, bill.PaymentMethod, now, member?.FullName, bill.PointsEarned));
         }, cancellationToken);
+    }
+
+    private IReadOnlyDictionary<string, string[]>? CheckoutErrors(DineInCheckoutRequest request)
+    {
+        if (!Enum.IsDefined(request.PaymentMethod))
+        {
+            return Field("paymentMethod", FieldErrorCodes.OutOfRange);
+        }
+
+        return request.Invoice is not null && invoices.Validate(request.Invoice) is { Count: > 0 } errors ? errors : null;
     }
 
     private static void ApplyPayment(Order bill, (OrderPricing.Totals Totals, Voucher? Voucher, User? Member) priced, PaymentMethod method, Guid staffId, DateTime now)

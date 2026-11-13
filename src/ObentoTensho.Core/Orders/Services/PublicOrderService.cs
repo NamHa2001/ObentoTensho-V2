@@ -8,6 +8,7 @@ using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Invoices.Services;
 using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Loyalty.Services;
 using ObentoTensho.Core.Orders.Abstractions;
@@ -34,6 +35,7 @@ public sealed class PublicOrderService(
     IOrderSettings settings,
     LoyaltyService loyalty,
     VoucherEvaluator vouchers,
+    InvoiceService invoices,
     IUnitOfWork unitOfWork,
     IRealtimeEvents realtime,
     IClock clock,
@@ -81,6 +83,11 @@ public sealed class PublicOrderService(
         if (!validation.IsValid)
         {
             return validation.ToFailure<CreatedOrderDto>();
+        }
+
+        if (request.Invoice is not null && invoices.Validate(request.Invoice) is { Count: > 0 } invoiceErrors)
+        {
+            return Result.Failure<CreatedOrderDto>(ErrorCodes.ValidationFailed, invoiceErrors);
         }
 
         // Validator đã kiểm định dạng; nhánh này chỉ để có giá trị chuẩn hóa
@@ -133,6 +140,11 @@ public sealed class PublicOrderService(
             var token = secureTokens.Create();
             var order = NewOrder(draft, await orders.NextDailySeqAsync(clock.TodayLocal, ct), token.Hash);
             orders.Add(order);
+            if (draft.Request.Invoice is { } invoice)
+            {
+                invoices.Attach(order.Id, invoice, staffId: null);
+            }
+
             orders.AddHistory(new OrderStatusHistory
             {
                 OrderId = order.Id,

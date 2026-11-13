@@ -3193,6 +3193,264 @@
         }
       }
     },
+    "/api/v1/admin/orders/{orderId}/invoice-request": {
+      "post": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceBuyerRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceBuyerRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceBuyerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoice-requests": {
+      "get": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceRequestStatus"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoice-requests/export": {
+      "get": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/InvoiceRequestStatus"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoice-requests/{id}/reveal": {
+      "post": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoice-requests/{id}/issue": {
+      "post": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInvoiceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInvoiceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invoice-requests/{id}/cancel": {
+      "post": {
+        "tags": [
+          "AdminInvoices"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInvoiceRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInvoiceRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInvoiceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/customers/{userId}/loyalty-points": {
       "get": {
         "tags": [
@@ -10706,6 +10964,17 @@
           }
         }
       },
+      "CancelInvoiceRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
       "CancelOrderRequest": {
         "required": [
           "token",
@@ -11338,6 +11607,16 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "invoice": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/InvoiceBuyerRequest"
+              }
             ]
           }
         }
@@ -12176,6 +12455,16 @@
               "null",
               "string"
             ]
+          },
+          "invoice": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/InvoiceBuyerRequest"
+              }
+            ]
           }
         }
       },
@@ -12941,6 +13230,239 @@
             "format": "int32"
           },
           "url": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceBuyerRequest": {
+        "required": [
+          "buyerType",
+          "buyerName",
+          "nationalId",
+          "taxCode",
+          "address",
+          "email",
+          "phone",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "buyerType": {
+            "$ref": "#/components/schemas/InvoiceBuyerType"
+          },
+          "buyerName": {
+            "type": "string"
+          },
+          "nationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InvoiceBuyerType": {
+        "enum": [
+          "individual",
+          "company"
+        ]
+      },
+      "InvoiceContactDto": {
+        "required": [
+          "nationalId",
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "nationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "InvoiceRequestDto": {
+        "required": [
+          "id",
+          "orderId",
+          "orderCode",
+          "channel",
+          "totalAmount",
+          "orderCreatedAtUtc",
+          "buyerType",
+          "buyerName",
+          "maskedNationalId",
+          "taxCode",
+          "address",
+          "email",
+          "maskedPhone",
+          "note",
+          "status",
+          "invoiceNumber",
+          "issuedAtUtc",
+          "cancelReason",
+          "createdAtUtc",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "orderCode": {
+            "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in"
+            ]
+          },
+          "totalAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "orderCreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "buyerType": {
+            "enum": [
+              "individual",
+              "company"
+            ]
+          },
+          "buyerName": {
+            "type": "string"
+          },
+          "maskedNationalId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "taxCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "maskedPhone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "issued",
+              "cancelled"
+            ]
+          },
+          "invoiceNumber": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "issuedAtUtc": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "cancelReason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "InvoiceRequestStatus": {
+        "enum": [
+          "pending",
+          "issued",
+          "cancelled",
+          null
+        ]
+      },
+      "IssueInvoiceRequest": {
+        "required": [
+          "invoiceNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceNumber": {
             "type": "string"
           }
         }
@@ -18948,7 +19470,8 @@
           "special_hours",
           "staff_and_audit",
           "dine_in",
-          "orders_void"
+          "orders_void",
+          "invoices"
         ]
       },
       "StaffChallengeKind": {
@@ -19239,7 +19762,8 @@
                 "special_hours",
                 "staff_and_audit",
                 "dine_in",
-                "orders_void"
+                "orders_void",
+                "invoices"
               ]
             }
           },
@@ -20481,6 +21005,9 @@
     },
     {
       "name": "AdminExports"
+    },
+    {
+      "name": "AdminInvoices"
     },
     {
       "name": "AdminLoyalty"
