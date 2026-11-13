@@ -87,8 +87,12 @@ const MAX_AUTO_DAYS = 14;
                 <p class="mt-2 flex justify-between border-t border-line pt-2"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
                 @if (delivering()) { <p class="flex justify-between"><span>Phí ship</span><span>{{ ship() ? (shipFee() === 0 ? 'Miễn phí' : (shipFee() | vnd)) : 'Chưa tính' }}</span></p> }
                 @if (applied(); as v) {
-                  <p class="flex justify-between"><span>Voucher {{ appliedCode() }}</span><span>-{{ v.voucherDiscount | vnd }}</span></p>
-                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher + shipFee() | vnd }}</span></p>
+                  @if (v.shippingDiscount > 0) {
+                    <p class="flex justify-between"><span>Giảm phí ship ({{ appliedCode() }})</span><span>-{{ v.shippingDiscount | vnd }}</span></p>
+                  } @else {
+                    <p class="flex justify-between"><span>Voucher {{ appliedCode() }}</span><span>-{{ v.voucherDiscount | vnd }}</span></p>
+                  }
+                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher + shipFee() - v.shippingDiscount | vnd }}</span></p>
                 } @else {
                   @if (q.memberDiscount > 0) { <p class="flex justify-between"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
                   <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ q.totalAmount + shipFee() | vnd }}</span></p>
@@ -98,7 +102,7 @@ const MAX_AUTO_DAYS = 14;
             <div class="mt-4 border-t border-line pt-4">
               @if (applied(); as v) {
                 <div class="ot-ticket is-picked">
-                  <div class="ot-ticket-stub"><lucide-icon [img]="icons.ticket" [size]="22" /><small class="mt-1">-{{ v.voucherDiscount | vnd }}</small></div>
+                  <div class="ot-ticket-stub"><lucide-icon [img]="icons.ticket" [size]="22" /><small class="mt-1">-{{ v.voucherDiscount + v.shippingDiscount | vnd }}</small></div>
                   <div class="flex min-w-0 flex-1 items-center justify-between gap-2 p-3">
                     <span class="min-w-0"><b class="block truncate">{{ appliedCode() }}</b><small class="text-muted">Đã áp dụng</small></span>
                     <span class="flex shrink-0 gap-3 text-sm font-semibold"><button type="button" class="text-primary" (click)="openPicker()">Đổi</button><button type="button" class="text-muted" (click)="removeVoucher()">Bỏ</button></span>
@@ -203,6 +207,10 @@ export class Checkout {
     this.model.customerEmail = profile?.email ?? '';
     this.loadTimes();
     effect(() => {
+      this.shipFee();
+      untracked(() => this.applied()?.shippingDiscount && this.removeVoucher());
+    });
+    effect(() => {
       const items = linesOf(this.cart);
       untracked(() => this.applied.set(null));
       if (items.length > 0) {
@@ -262,7 +270,7 @@ export class Checkout {
   private loadOptions(): void {
     const items = linesOf(this.cart);
     this.optionsLoading.set(true);
-    this.api.post<VoucherOption[]>('account/voucher-options', { items }).subscribe({
+    this.api.post<VoucherOption[]>('account/voucher-options', { items, deliveryFee: this.shipFee() || null }).subscribe({
       next: (o) => {
         // Giỏ đã đổi trong lúc chờ: kết quả này của giỏ cũ
         if (JSON.stringify(items) === JSON.stringify(linesOf(this.cart))) {
@@ -279,7 +287,7 @@ export class Checkout {
 
   protected check(input: string): void {
     const code = input.trim();
-    this.checker.run(this.api.post<Schemas['VoucherCheckDto']>('vouchers/validate', { code, items: linesOf(this.cart) }), (v) => {
+    this.checker.run(this.api.post<Schemas['VoucherCheckDto']>('vouchers/validate', { code, items: linesOf(this.cart), deliveryFee: this.shipFee() || null }), (v) => {
       this.appliedCode.set(code);
       this.applied.set(v);
       this.voucher = '';

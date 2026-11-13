@@ -8,6 +8,7 @@ interface Discount {
   discountValue: number;
   maxDiscountAmount: number | null;
   minOrderValue: number;
+  appliesTo?: 'items' | 'shipping';
 }
 
 const THOUSAND = 1000;
@@ -15,6 +16,10 @@ const money = new Intl.NumberFormat('vi-VN');
 
 // Cuống vé ghi gọn: "20%" hoặc "30K"
 export function discountShort(v: Discount): string {
+  if (v.appliesTo === 'shipping' && v.discountType === 'percent' && v.discountValue >= 100) {
+    return 'Free ship';
+  }
+
   if (v.discountType === 'percent') {
     return `${v.discountValue}%`;
   }
@@ -24,7 +29,7 @@ export function discountShort(v: Discount): string {
 
 // Một dòng điều kiện đọc được ngay: "Giảm tối đa 50.000₫ · Đơn từ 100.000₫"
 export function discountTerms(v: Discount): string {
-  const parts: string[] = [];
+  const parts: string[] = v.appliesTo === 'shipping' ? ['Giảm phí ship, chỉ cho đơn giao tận nơi'] : [];
   if (v.discountType === 'percent' && v.maxDiscountAmount) {
     parts.push(`Giảm tối đa ${money.format(v.maxDiscountAmount)}₫`);
   }
