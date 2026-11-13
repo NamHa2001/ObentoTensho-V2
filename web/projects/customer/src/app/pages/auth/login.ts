@@ -12,7 +12,7 @@ import { AuthCard } from './auth-card';
   selector: 'ot-login',
   imports: [FormsModule, RouterLink, LucideAngularModule, AuthCard],
   template: `
-    <ot-auth-card heading="Đăng nhập" subtitle="Đăng nhập để đặt món, giữ bàn và tích điểm dễ dàng hơn." [phoneImage]="true">
+    <ot-auth-card heading="Đăng nhập" subtitle="Đăng nhập để đặt món, giữ bàn và tích điểm dễ dàng hơn.">
       <form class="ot-auth-form" (ngSubmit)="submit()">
         <label>Email<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.mail" [size]="20" /></span><input class="ot-input" name="email" type="email" inputmode="email" placeholder="Email của bạn" autocomplete="username" required [(ngModel)]="email" /></span></label>
         <label>Mật khẩu<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.lock" [size]="20" /></span><input class="ot-input" name="password" [type]="show() ? 'text' : 'password'" placeholder="Nhập mật khẩu của bạn" autocomplete="current-password" required [(ngModel)]="password" /><button type="button" class="ot-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" [attr.aria-pressed]="show()" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.hide : icons.eye" [size]="20" /></button></span></label>
