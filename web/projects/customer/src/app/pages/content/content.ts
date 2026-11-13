@@ -217,7 +217,7 @@ export class Promotions {
     <article class="ot-page">
       <a class="text-muted" routerLink="/khuyen-mai">‹ Khuyến mãi</a>
       @if (item(); as p) {
-        @if (banner(); as src) { <img class="mt-3 w-full rounded-lg" [src]="src" [alt]="p.title" /> }
+        @if (banner(); as src) { <img class="mt-3 aspect-video w-full rounded-lg object-cover" [src]="src" [alt]="p.title" /> }
         <h1 class="mt-3">{{ p.title }}</h1>
         <p class="text-sm text-muted">{{ p.startDate | vnDate }} – {{ p.endDate | vnDate }}</p>
         <div class="ot-prose" [innerHTML]="p.descriptionHtml"></div>
