@@ -2,12 +2,14 @@ using System.Security.Cryptography;
 using System.Text;
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos;
+using ObentoTensho.Contracts.Dtos.Delivery;
 using ObentoTensho.Contracts.Dtos.Orders;
 using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Abstractions;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Delivery.Services;
 using ObentoTensho.Core.Invoices.Services;
 using ObentoTensho.Core.Customers.Services;
 using ObentoTensho.Core.Loyalty.Services;
@@ -36,6 +38,7 @@ public sealed class PublicOrderService(
     LoyaltyService loyalty,
     VoucherEvaluator vouchers,
     InvoiceService invoices,
+    DeliveryQuoteService delivery,
     IUnitOfWork unitOfWork,
     IRealtimeEvents realtime,
     IClock clock,
@@ -90,6 +93,12 @@ public sealed class PublicOrderService(
             return Result.Failure<CreatedOrderDto>(ErrorCodes.ValidationFailed, invoiceErrors);
         }
 
+        var shipping = await ShippingAsync(request, cancellationToken);
+        if (!shipping.IsSuccess)
+        {
+            return Result.Failure<CreatedOrderDto>(shipping.ErrorCode ?? ErrorCodes.DeliveryUnavailable, shipping.FieldErrors);
+        }
+
         // Validator đã kiểm định dạng; nhánh này chỉ để có giá trị chuẩn hóa
         if (!VietnamesePhoneNumber.TryNormalize(request.CustomerPhone, out var phone))
         {
@@ -123,8 +132,8 @@ public sealed class PublicOrderService(
         }
 
         var (totals, voucher) = pricing.Value;
-        var needsCall = await NeedsCallAsync(phone, request.PaymentMethod, totals.TotalAmount, cancellationToken);
-        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, voucher, needsCall, userId);
+        var needsCall = await NeedsCallAsync(phone, request.PaymentMethod, totals.TotalAmount + (shipping.Value.Quote?.Fee ?? 0), cancellationToken);
+        var draft = new OrderDraft(request, phone, language, pickupAt.Value, priced.Items, totals, voucher, needsCall, userId, shipping.Value.Quote);
         return await PersistAsync(draft, cancellationToken);
     }
 
@@ -158,6 +167,22 @@ public sealed class PublicOrderService(
             await unitOfWork.SaveChangesAsync(ct);
             return Result.Success(new CreatedOrderDto(order.ToPublic(clock), token.Value));
         }, cancellationToken);
+
+    // Giao hàng: phí ship tính lại ở server từ địa chỉ (không tin số client gửi); đơn mang về thì không có
+    private async Task<Result<Shipping>> ShippingAsync(CreateOrderRequest request, CancellationToken cancellationToken)
+    {
+        if (request.Channel != OrderChannel.Delivery)
+        {
+            return Result.Success(new Shipping(null));
+        }
+
+        var quote = await delivery.QuoteAsync(request.DeliveryAddress, cancellationToken);
+        return quote.IsSuccess
+            ? Result.Success(new Shipping(quote.Value))
+            : Result.Failure<Shipping>(
+                quote.ErrorCode ?? ErrorCodes.DeliveryUnavailable,
+                quote.FieldErrors.ToDictionary(e => string.Equals(e.Key, "address", StringComparison.Ordinal) ? "deliveryAddress" : e.Key, e => e.Value, StringComparer.Ordinal));
+    }
 
     // BR-ORD-03, BR-VCH-04: có mã ⇒ giảm theo voucher (không giảm theo hạng); không mã ⇒ thành viên giảm theo hạng
     private async Task<Result<(OrderPricing.Totals Totals, Voucher? Voucher)>> TotalsAsync(string? voucherCode, decimal subTotal, Guid? userId, CancellationToken cancellationToken)
@@ -196,7 +221,11 @@ public sealed class PublicOrderService(
             SubTotal = draft.Totals.SubTotal,
             MemberDiscount = draft.Totals.MemberDiscount,
             VoucherDiscount = draft.Totals.VoucherDiscount,
-            TotalAmount = draft.Totals.TotalAmount,
+            TotalAmount = draft.Totals.TotalAmount + (draft.Shipping?.Fee ?? 0),
+            Channel = draft.Shipping is null ? OrderChannel.Pickup : OrderChannel.Delivery,
+            DeliveryAddress = draft.Shipping?.Address,
+            DeliveryDistanceKm = draft.Shipping?.DistanceKm,
+            DeliveryFee = draft.Shipping?.Fee ?? 0,
             VoucherId = draft.Voucher?.Id,
             VoucherCodeSnapshot = draft.Voucher?.Code,
             PaymentMethod = draft.Request.PaymentMethod,
@@ -297,6 +326,9 @@ public sealed class PublicOrderService(
     private static bool SameSecret(string expected, string actual) =>
         CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(expected), Encoding.ASCII.GetBytes(actual));
 
+    // Phí ship của đơn giao hàng; đơn mang về thì Quote = null
+    private sealed record Shipping(DeliveryQuoteDto? Quote);
+
     private sealed record OrderDraft(
         CreateOrderRequest Request,
         string Phone,
@@ -306,5 +338,6 @@ public sealed class PublicOrderService(
         OrderPricing.Totals Totals,
         Voucher? Voucher,
         bool NeedsContactConfirm,
-        Guid? UserId);
+        Guid? UserId,
+        DeliveryQuoteDto? Shipping);
 }

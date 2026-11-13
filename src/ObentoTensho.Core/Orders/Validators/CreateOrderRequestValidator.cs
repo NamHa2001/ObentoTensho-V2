@@ -1,5 +1,6 @@
 using FluentValidation;
 using ObentoTensho.Contracts.Dtos.Orders;
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Contracts.Errors;
 using ObentoTensho.Core.Auth.Validators;
 using ObentoTensho.Core.Orders.Abstractions;
@@ -16,6 +17,9 @@ public sealed class CreateOrderRequestValidator : AbstractValidator<CreateOrderR
         RuleFor(r => r.CustomerPhone).GuestPhone();
         RuleFor(r => r.CustomerEmail).ValidEmail();
         RuleFor(r => r.PaymentMethod).IsInEnum().WithErrorCode(FieldErrorCodes.OutOfRange);
+
+        // Khách chỉ đặt mang về hoặc giao tận nơi; tại bàn do nhân viên mở
+        RuleFor(r => r.Channel).Must(c => c is OrderChannel.Pickup or OrderChannel.Delivery).WithErrorCode(FieldErrorCodes.OutOfRange);
         RuleFor(r => r.Items).Lines(settings.MaxLines);
         RuleFor(r => r.Note).PlainText();
         RuleFor(r => r.Lang).Language();

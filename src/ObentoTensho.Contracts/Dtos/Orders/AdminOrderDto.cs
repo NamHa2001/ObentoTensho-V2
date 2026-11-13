@@ -26,4 +26,5 @@ public sealed record AdminOrderDto(
     bool RefundPending,
     bool NoPickupFlag,
     DateTime CreatedAtUtc,
-    string Version);
+    string Version,
+    OrderChannel Channel = OrderChannel.Pickup);

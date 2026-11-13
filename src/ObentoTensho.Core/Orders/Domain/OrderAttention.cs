@@ -25,7 +25,7 @@ public static class OrderAttention
         {
             OrderStatus.Pending when order.CreatedAtUtc <= nowUtc.AddMinutes(-pendingAlertMinutes)
                 || order.PickupAtUtc <= nowUtc.AddMinutes(pendingAlertMinutes) => Kind.PendingOverdue,
-            OrderStatus.Ready when order.PickupAtUtc.AddMinutes(noPickupMinutes) <= nowUtc => Kind.NotPickedUp,
+            OrderStatus.Ready when order.Channel == OrderChannel.Pickup && order.PickupAtUtc.AddMinutes(noPickupMinutes) <= nowUtc => Kind.NotPickedUp,
             _ => null,
         };
     }

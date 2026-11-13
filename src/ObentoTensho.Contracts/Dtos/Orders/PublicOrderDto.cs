@@ -21,4 +21,7 @@ public sealed record PublicOrderDto(
     string? Note,
     bool CanCancel,
     DateTime CreatedAtUtc,
-    Guid Id);
+    Guid Id,
+    OrderChannel Channel = OrderChannel.Pickup,
+    string? DeliveryAddress = null,
+    decimal DeliveryFee = 0);

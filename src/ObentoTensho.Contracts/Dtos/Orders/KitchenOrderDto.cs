@@ -15,4 +15,5 @@ public sealed record KitchenOrderDto(
     string ShortName,
     IReadOnlyList<KitchenLineDto> Items,
     string? Note,
-    string Version);
+    string Version,
+    OrderChannel Channel = OrderChannel.Pickup);

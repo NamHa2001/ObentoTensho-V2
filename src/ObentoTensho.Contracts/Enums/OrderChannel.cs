@@ -4,5 +4,8 @@ namespace ObentoTensho.Contracts.Enums;
 public enum OrderChannel : byte
 {
     Pickup = 0,
-    DineIn = 1
+    DineIn = 1,
+
+    // Quán tự giao tận nơi, phí ship theo quãng đường (chủ quán 2026-11-13)
+    Delivery = 2
 }

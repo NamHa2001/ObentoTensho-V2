@@ -7,5 +7,8 @@ public enum OrderStatus : byte
     Preparing = 1,
     Ready = 2,
     Completed = 3,
-    Cancelled = 4
+    Cancelled = 4,
+
+    // Đơn giao hàng: đã đưa cho người giao, chưa tới tay khách
+    Delivering = 5
 }

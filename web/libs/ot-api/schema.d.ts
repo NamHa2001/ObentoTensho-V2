@@ -9908,7 +9908,7 @@ export interface components {
                 id: string;
                 code: string;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 paymentMethod: "cash" | "bank_transfer";
                 /** @enum {unknown} */
@@ -9931,6 +9931,11 @@ export interface components {
                 /** Format: date-time */
                 createdAtUtc: string;
                 version: string;
+                /**
+                 * @default pickup
+                 * @enum {unknown}
+                 */
+                channel: "pickup" | "dine_in" | "delivery";
             };
             items: {
                 /** Format: int32 */
@@ -9967,9 +9972,9 @@ export interface components {
             refundNote: null | string;
             history: {
                 /** @enum {unknown} */
-                fromStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | null;
+                fromStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering" | null;
                 /** @enum {unknown} */
-                toStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                toStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 changedBy: "customer" | "staff" | "system";
                 /** Format: uuid */
@@ -9978,13 +9983,21 @@ export interface components {
                 /** Format: date-time */
                 changedAtUtc: string;
             }[];
+            deliveryAddress?: null | string;
+            /** Format: double */
+            deliveryDistanceKm?: null | number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            deliveryFee: number;
         };
         AdminOrderDto: {
             /** Format: uuid */
             id: string;
             code: string;
             /** @enum {unknown} */
-            status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** @enum {unknown} */
             paymentMethod: "cash" | "bank_transfer";
             /** @enum {unknown} */
@@ -10007,6 +10020,11 @@ export interface components {
             /** Format: date-time */
             createdAtUtc: string;
             version: string;
+            /**
+             * @default pickup
+             * @enum {unknown}
+             */
+            channel: "pickup" | "dine_in" | "delivery";
         };
         AdminPromotionDto: {
             /** Format: int32 */
@@ -10425,7 +10443,7 @@ export interface components {
             order: {
                 code: string;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 paymentMethod: "cash" | "bank_transfer";
                 /** @enum {unknown} */
@@ -10471,6 +10489,17 @@ export interface components {
                 createdAtUtc: string;
                 /** Format: uuid */
                 id: string;
+                /**
+                 * @default pickup
+                 * @enum {unknown}
+                 */
+                channel: "pickup" | "dine_in" | "delivery";
+                deliveryAddress?: null | string;
+                /**
+                 * Format: double
+                 * @default 0
+                 */
+                deliveryFee: number;
             };
             accessToken: string;
         };
@@ -10488,6 +10517,8 @@ export interface components {
             lang: null | string;
             voucherCode?: null | string;
             invoice?: null | components["schemas"]["InvoiceBuyerRequest"];
+            channel?: components["schemas"]["OrderChannel"];
+            deliveryAddress?: null | string;
         };
         CreateReservationRequest: {
             /** Format: date */
@@ -10560,7 +10591,7 @@ export interface components {
                 /** Format: double */
                 totalAmount: number;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** Format: date-time */
                 createdAtUtc: string;
             }[];
@@ -10597,7 +10628,7 @@ export interface components {
             /** Format: double */
             totalAmount: number;
             /** @enum {unknown} */
-            status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** Format: date-time */
             createdAtUtc: string;
         };
@@ -10981,7 +11012,7 @@ export interface components {
             orderId: string;
             orderCode: string;
             /** @enum {unknown} */
-            channel: "pickup" | "dine_in";
+            channel: "pickup" | "dine_in" | "delivery";
             /** Format: double */
             totalAmount: number;
             /** Format: date-time */
@@ -11022,7 +11053,7 @@ export interface components {
             id: string;
             code: string;
             /** @enum {unknown} */
-            status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** Format: date */
             pickupDate: string;
             /** Format: time */
@@ -11037,6 +11068,11 @@ export interface components {
             }[];
             note: null | string;
             version: string;
+            /**
+             * @default pickup
+             * @enum {unknown}
+             */
+            channel: "pickup" | "dine_in" | "delivery";
         };
         LoginRequest: {
             email: string;
@@ -11133,7 +11169,7 @@ export interface components {
             }[];
             ordersToday: {
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** Format: int32 */
                 count: number;
             }[];
@@ -11479,7 +11515,7 @@ export interface components {
                 id: string;
                 code: string;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 paymentMethod: "cash" | "bank_transfer";
                 /** @enum {unknown} */
@@ -11502,13 +11538,18 @@ export interface components {
                 /** Format: date-time */
                 createdAtUtc: string;
                 version: string;
+                /**
+                 * @default pickup
+                 * @enum {unknown}
+                 */
+                channel: "pickup" | "dine_in" | "delivery";
             }[];
             notPickedUp: {
                 /** Format: uuid */
                 id: string;
                 code: string;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 paymentMethod: "cash" | "bank_transfer";
                 /** @enum {unknown} */
@@ -11531,13 +11572,18 @@ export interface components {
                 /** Format: date-time */
                 createdAtUtc: string;
                 version: string;
+                /**
+                 * @default pickup
+                 * @enum {unknown}
+                 */
+                channel: "pickup" | "dine_in" | "delivery";
             }[];
             refundPending: {
                 /** Format: uuid */
                 id: string;
                 code: string;
                 /** @enum {unknown} */
-                status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+                status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
                 /** @enum {unknown} */
                 paymentMethod: "cash" | "bank_transfer";
                 /** @enum {unknown} */
@@ -11560,19 +11606,27 @@ export interface components {
                 /** Format: date-time */
                 createdAtUtc: string;
                 version: string;
+                /**
+                 * @default pickup
+                 * @enum {unknown}
+                 */
+                channel: "pickup" | "dine_in" | "delivery";
             }[];
         };
-        /** @enum {unknown} */
-        OrderChannel: "pickup" | "dine_in";
+        /**
+         * @default pickup
+         * @enum {unknown}
+         */
+        OrderChannel: "pickup" | "dine_in" | "delivery";
         OrderContactDto: {
             phone: string;
             email: string;
         };
         OrderHistoryDto: {
             /** @enum {unknown} */
-            fromStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | null;
+            fromStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering" | null;
             /** @enum {unknown} */
-            toStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            toStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** @enum {unknown} */
             changedBy: "customer" | "staff" | "system";
             /** Format: uuid */
@@ -11681,10 +11735,10 @@ export interface components {
             }[];
         };
         /** @enum {unknown} */
-        OrderStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | null;
+        OrderStatus: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering" | null;
         OrderStatusCountDto: {
             /** @enum {unknown} */
-            status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** Format: int32 */
             count: number;
         };
@@ -12172,7 +12226,7 @@ export interface components {
         PublicOrderDto: {
             code: string;
             /** @enum {unknown} */
-            status: "pending" | "preparing" | "ready" | "completed" | "cancelled";
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
             /** @enum {unknown} */
             paymentMethod: "cash" | "bank_transfer";
             /** @enum {unknown} */
@@ -12218,6 +12272,17 @@ export interface components {
             createdAtUtc: string;
             /** Format: uuid */
             id: string;
+            /**
+             * @default pickup
+             * @enum {unknown}
+             */
+            channel: "pickup" | "dine_in" | "delivery";
+            deliveryAddress?: null | string;
+            /**
+             * Format: double
+             * @default 0
+             */
+            deliveryFee: number;
         };
         PublicPromotionDto: {
             slug: string;

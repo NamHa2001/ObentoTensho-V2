@@ -12,4 +12,7 @@ public sealed record AdminOrderDetailDto(
     DateTime? PaidAtUtc,
     DateTime? RefundedAtUtc,
     string? RefundNote,
-    IReadOnlyList<OrderHistoryDto> History);
+    IReadOnlyList<OrderHistoryDto> History,
+    string? DeliveryAddress = null,
+    decimal? DeliveryDistanceKm = null,
+    decimal DeliveryFee = 0);

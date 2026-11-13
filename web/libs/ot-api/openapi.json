@@ -9465,7 +9465,8 @@
                   "preparing",
                   "ready",
                   "completed",
-                  "cancelled"
+                  "cancelled",
+                  "delivering"
                 ]
               },
               "paymentMethod": {
@@ -9523,6 +9524,14 @@
               },
               "version": {
                 "type": "string"
+              },
+              "channel": {
+                "enum": [
+                  "pickup",
+                  "dine_in",
+                  "delivery"
+                ],
+                "default": "pickup"
               }
             }
           },
@@ -9663,6 +9672,7 @@
                     "ready",
                     "completed",
                     "cancelled",
+                    "delivering",
                     null
                   ]
                 },
@@ -9672,7 +9682,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "changedBy": {
@@ -9701,6 +9712,24 @@
                 }
               }
             }
+          },
+          "deliveryAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deliveryDistanceKm": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deliveryFee": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
@@ -9740,7 +9769,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "paymentMethod": {
@@ -9798,6 +9828,14 @@
           },
           "version": {
             "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in",
+              "delivery"
+            ],
+            "default": "pickup"
           }
         }
       },
@@ -11438,7 +11476,8 @@
                   "preparing",
                   "ready",
                   "completed",
-                  "cancelled"
+                  "cancelled",
+                  "delivering"
                 ]
               },
               "paymentMethod": {
@@ -11575,6 +11614,25 @@
               "id": {
                 "type": "string",
                 "format": "uuid"
+              },
+              "channel": {
+                "enum": [
+                  "pickup",
+                  "dine_in",
+                  "delivery"
+                ],
+                "default": "pickup"
+              },
+              "deliveryAddress": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "deliveryFee": {
+                "type": "number",
+                "format": "double",
+                "default": 0
               }
             }
           },
@@ -11649,6 +11707,15 @@
               {
                 "$ref": "#/components/schemas/InvoiceBuyerRequest"
               }
+            ]
+          },
+          "channel": {
+            "$ref": "#/components/schemas/OrderChannel"
+          },
+          "deliveryAddress": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }
@@ -11916,7 +11983,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "createdAtUtc": {
@@ -12049,7 +12117,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "createdAtUtc": {
@@ -13431,7 +13500,8 @@
           "channel": {
             "enum": [
               "pickup",
-              "dine_in"
+              "dine_in",
+              "delivery"
             ]
           },
           "totalAmount": {
@@ -13598,7 +13668,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "pickupDate": {
@@ -13653,6 +13724,14 @@
           },
           "version": {
             "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in",
+              "delivery"
+            ],
+            "default": "pickup"
           }
         }
       },
@@ -14009,7 +14088,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "count": {
@@ -15329,7 +15409,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "paymentMethod": {
@@ -15387,6 +15468,14 @@
                 },
                 "version": {
                   "type": "string"
+                },
+                "channel": {
+                  "enum": [
+                    "pickup",
+                    "dine_in",
+                    "delivery"
+                  ],
+                  "default": "pickup"
                 }
               }
             }
@@ -15429,7 +15518,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "paymentMethod": {
@@ -15487,6 +15577,14 @@
                 },
                 "version": {
                   "type": "string"
+                },
+                "channel": {
+                  "enum": [
+                    "pickup",
+                    "dine_in",
+                    "delivery"
+                  ],
+                  "default": "pickup"
                 }
               }
             }
@@ -15529,7 +15627,8 @@
                     "preparing",
                     "ready",
                     "completed",
-                    "cancelled"
+                    "cancelled",
+                    "delivering"
                   ]
                 },
                 "paymentMethod": {
@@ -15587,6 +15686,14 @@
                 },
                 "version": {
                   "type": "string"
+                },
+                "channel": {
+                  "enum": [
+                    "pickup",
+                    "dine_in",
+                    "delivery"
+                  ],
+                  "default": "pickup"
                 }
               }
             }
@@ -15596,8 +15703,10 @@
       "OrderChannel": {
         "enum": [
           "pickup",
-          "dine_in"
-        ]
+          "dine_in",
+          "delivery"
+        ],
+        "default": "pickup"
       },
       "OrderContactDto": {
         "required": [
@@ -15632,6 +15741,7 @@
               "ready",
               "completed",
               "cancelled",
+              "delivering",
               null
             ]
           },
@@ -15641,7 +15751,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "changedBy": {
@@ -16023,6 +16134,7 @@
           "ready",
           "completed",
           "cancelled",
+          "delivering",
           null
         ]
       },
@@ -16039,7 +16151,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "count": {
@@ -17953,7 +18066,8 @@
               "preparing",
               "ready",
               "completed",
-              "cancelled"
+              "cancelled",
+              "delivering"
             ]
           },
           "paymentMethod": {
@@ -18090,6 +18204,25 @@
           "id": {
             "type": "string",
             "format": "uuid"
+          },
+          "channel": {
+            "enum": [
+              "pickup",
+              "dine_in",
+              "delivery"
+            ],
+            "default": "pickup"
+          },
+          "deliveryAddress": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "deliveryFee": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },

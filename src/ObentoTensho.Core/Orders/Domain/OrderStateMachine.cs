@@ -9,6 +9,12 @@ public static class OrderStateMachine
     public static bool CanTransition(OrderStatus from, OrderStatus to, OrderActor actor, OrderChannel channel = OrderChannel.Pickup) => (from, to) switch
     {
         (OrderStatus.Preparing, OrderStatus.Completed) when channel == OrderChannel.DineIn => actor == OrderActor.Staff,
+
+        // Giao hàng: sẵn sàng ⇒ đang giao ⇒ đã giao; không bỏ qua bước đang giao
+        (OrderStatus.Ready, OrderStatus.Delivering) => channel == OrderChannel.Delivery && actor == OrderActor.Staff,
+        (OrderStatus.Ready, OrderStatus.Completed) when channel == OrderChannel.Delivery => false,
+        (OrderStatus.Delivering, OrderStatus.Completed) => actor == OrderActor.Staff,
+        (OrderStatus.Delivering, OrderStatus.Cancelled) => actor != OrderActor.Customer,
         (OrderStatus.Pending, OrderStatus.Preparing) => actor == OrderActor.Staff,
         (OrderStatus.Preparing, OrderStatus.Ready) => actor == OrderActor.Staff,
         (OrderStatus.Ready, OrderStatus.Completed) => actor == OrderActor.Staff,
@@ -27,9 +33,9 @@ public static class OrderStateMachine
     public static StaffCapability RequiredCapability(OrderStatus to) => to switch
     {
         OrderStatus.Preparing or OrderStatus.Ready => StaffCapability.OrdersKitchen,
-        OrderStatus.Completed => StaffCapability.OrdersCashier,
+        OrderStatus.Completed or OrderStatus.Delivering => StaffCapability.OrdersCashier,
         _ => StaffCapability.OrdersCancel,
     };
 
-    public static bool IsOpen(OrderStatus status) => status is OrderStatus.Pending or OrderStatus.Preparing or OrderStatus.Ready;
+    public static bool IsOpen(OrderStatus status) => status is OrderStatus.Pending or OrderStatus.Preparing or OrderStatus.Ready or OrderStatus.Delivering;
 }

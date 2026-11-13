@@ -83,7 +83,8 @@ public sealed class OrderTransitions(
 
         if (to == OrderStatus.Completed)
         {
-            var points = LoyaltyRules.OrderPoints(order.TotalAmount, loyaltySettings.VndPerPoint);
+            // Tiền ship không tính điểm
+            var points = LoyaltyRules.OrderPoints(order.TotalAmount - order.DeliveryFee, loyaltySettings.VndPerPoint);
             order.PointsEarned = await ledger.EarnAsync(userId, LoyaltyTransactionType.OrderEarn, order.OrderCode, points, note: null, cancellationToken);
         }
         else if (to == OrderStatus.Cancelled && order.PointsEarned > 0)
@@ -119,7 +120,8 @@ public sealed class OrderTransitions(
     // Tại bàn không gửi thư (khách đang ở quán, phiếu không có email)
     private void Notify(Order order, OrderStatus to, OrderActor actor, string? reason)
     {
-        if (order.Channel == OrderChannel.DineIn)
+        // Đơn giao hàng không báo "đến lấy" khi sẵn sàng
+        if (order.Channel == OrderChannel.DineIn || (order.Channel == OrderChannel.Delivery && to == OrderStatus.Ready))
         {
             return;
         }

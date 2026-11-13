@@ -2239,6 +2239,16 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<int>("DailySeq")
                         .HasColumnType("int");
 
+                    b.Property<string>("DeliveryAddress")
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<decimal?>("DeliveryDistanceKm")
+                        .HasColumnType("decimal(6,1)");
+
+                    b.Property<decimal>("DeliveryFee")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
                     b.Property<int?>("GuestCount")
                         .HasColumnType("int");
 
@@ -2347,13 +2357,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.ToTable("Orders", null, t =>
                         {
-                            t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0");
+                            t.HasCheckConstraint("CK_Orders_Amounts", "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0");
 
                             t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
 
-                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 1");
+                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 2");
 
                             t.HasCheckConstraint("CK_Orders_CompletedPaid", "[Status] <> 3 OR [PaymentStatus] = 1");
+
+                            t.HasCheckConstraint("CK_Orders_Delivery", "[Channel] <> 2 OR [DeliveryAddress] IS NOT NULL");
 
                             t.HasCheckConstraint("CK_Orders_DineIn", "[Channel] <> 1 OR ([GuestCount] BETWEEN 1 AND 50)");
 
@@ -2361,7 +2373,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Orders_PaymentStatus", "[PaymentStatus] BETWEEN 0 AND 1");
 
-                            t.HasCheckConstraint("CK_Orders_Status", "[Status] BETWEEN 0 AND 4");
+                            t.HasCheckConstraint("CK_Orders_Status", "[Status] BETWEEN 0 AND 5");
                         });
                 });
 

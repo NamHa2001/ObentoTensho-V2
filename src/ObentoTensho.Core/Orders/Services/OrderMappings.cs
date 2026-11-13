@@ -31,7 +31,10 @@ public static class OrderMappings
             o.Note,
             o.CanCustomerCancel(),
             o.CreatedAtUtc,
-            o.Id);
+            o.Id,
+            o.Channel,
+            o.DeliveryAddress,
+            o.DeliveryFee);
     }
 
     public static AdminOrderDto ToAdmin(this Order o, IClock clock, bool noPickupFlag = false)
@@ -56,7 +59,8 @@ public static class OrderMappings
             o.RefundPending,
             noPickupFlag,
             o.CreatedAtUtc,
-            RowVersions.Encode(o.RowVersion));
+            RowVersions.Encode(o.RowVersion),
+            o.Channel);
     }
 
     public static AdminOrderDetailDto ToDetail(this Order o, IClock clock, bool noPickupFlag, IReadOnlyList<OrderStatusHistory> history) =>
@@ -71,7 +75,10 @@ public static class OrderMappings
             o.PaidAtUtc,
             o.RefundedAtUtc,
             o.RefundNote,
-            history.Select(h => new OrderHistoryDto(h.FromStatus, h.ToStatus, h.ChangedByType, h.ChangedById, h.Reason, h.ChangedAtUtc)).ToArray());
+            history.Select(h => new OrderHistoryDto(h.FromStatus, h.ToStatus, h.ChangedByType, h.ChangedById, h.Reason, h.ChangedAtUtc)).ToArray(),
+            o.DeliveryAddress,
+            o.DeliveryDistanceKm,
+            o.DeliveryFee);
 
     public static KitchenOrderDto ToKitchen(this Order o, IClock clock)
     {
@@ -86,7 +93,8 @@ public static class OrderMappings
             ShortName(o.CustomerName),
             o.Items.Select(i => new KitchenLineDto(i.ItemName, i.Quantity, i.Options.Select(x => $"{x.GroupName}: {x.OptionName}").ToArray(), i.Note)).ToArray(),
             o.Note,
-            RowVersions.Encode(o.RowVersion));
+            RowVersions.Encode(o.RowVersion),
+            o.Channel);
     }
 
     // BR-ORD-17: chỉ khi còn chờ; đơn phải gọi xác nhận mà đã gọi thì khách phải gọi quán để hủy

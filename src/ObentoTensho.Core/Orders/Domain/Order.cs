@@ -35,6 +35,13 @@ public sealed class Order
 
     public int? GuestCount { get; set; }
 
+    // Giao hàng: địa chỉ, quãng đường lái xe (km) và phí ship lúc đặt; phí ship đã gồm trong TotalAmount
+    public string? DeliveryAddress { get; init; }
+
+    public decimal? DeliveryDistanceKm { get; init; }
+
+    public decimal DeliveryFee { get; init; }
+
     public string? Note { get; init; }
 
     public required decimal SubTotal { get; set; }

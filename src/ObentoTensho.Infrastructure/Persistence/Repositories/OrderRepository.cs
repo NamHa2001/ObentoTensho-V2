@@ -8,7 +8,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Repositories;
 
 internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
 {
-    private static readonly OrderStatus[] Open = [OrderStatus.Pending, OrderStatus.Preparing, OrderStatus.Ready];
+    private static readonly OrderStatus[] Open = [OrderStatus.Pending, OrderStatus.Preparing, OrderStatus.Ready, OrderStatus.Delivering];
 
     public void Add(Order order) => db.Orders.Add(order);
 
@@ -60,7 +60,7 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
     public async Task<IReadOnlyList<Order>> ListOpenAsync(int limit, CancellationToken cancellationToken) =>
         await Source(withItems: true, tracking: false)
-            .Where(o => o.Channel == OrderChannel.Pickup && Open.Contains(o.Status))
+            .Where(o => o.Channel != OrderChannel.DineIn && Open.Contains(o.Status))
             .OrderBy(o => o.PickupAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);
@@ -132,7 +132,7 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
     public async Task<IReadOnlyList<Order>> ListAttentionAsync(DateTime pendingCreatedBeforeUtc, DateTime pendingPickupBeforeUtc, DateTime readyPickupBeforeUtc, int limit, CancellationToken cancellationToken) =>
         await Source(withItems: true, tracking: false)
-            .Where(o => o.Channel == OrderChannel.Pickup)
+            .Where(o => o.Channel != OrderChannel.DineIn)
             .Where(o => (o.Status == OrderStatus.Pending && (o.CreatedAtUtc <= pendingCreatedBeforeUtc || o.PickupAtUtc <= pendingPickupBeforeUtc))
                 || (o.Status == OrderStatus.Ready && o.PickupAtUtc <= readyPickupBeforeUtc)
                 || (o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.RefundedAtUtc == null))
