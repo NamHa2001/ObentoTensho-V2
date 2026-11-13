@@ -110,6 +110,7 @@ export const RESOURCES: Record<string, Resource> = {
         fields: [
           { key: 'prefix', label: 'Tiền tố mã', required: true }, { key: 'quantity', label: 'Số lượng', type: 'number', required: true, default: 10 },
           { key: 'discountType', label: 'Kiểu giảm', type: 'select', required: true, default: 'percent', options: [{ value: 'percent', label: 'Phần trăm' }, { value: 'fixed', label: 'Số tiền' }] },
+          { key: 'appliesTo', label: 'Áp dụng cho', type: 'select', required: true, default: 'items', options: [{ value: 'items', label: 'Tiền món' }, { value: 'shipping', label: 'Phí ship' }] },
           { key: 'discountValue', label: 'Giá trị', type: 'number', required: true }, { key: 'maxDiscountAmount', label: 'Giảm tối đa', type: 'number' }, { key: 'minOrderValue', label: 'Đơn tối thiểu', type: 'number', required: true, default: 0 },
           { key: 'startDate', label: 'Từ ngày', type: 'date' }, { key: 'endDate', label: 'Đến ngày', type: 'date' },
         ],
@@ -117,13 +118,14 @@ export const RESOURCES: Record<string, Resource> = {
       },
     ],
     filters: [{ key: 'q', label: 'Tìm mã' }, { key: 'approvalStatus', label: 'Duyệt', options: Object.entries(approval).map(([value, l]) => ({ value, label: l })) }],
-    columns: [{ key: 'code', label: 'Mã' }, { key: 'discountType', label: 'Kiểu', map: (r) => (r.discountType === 'percent' ? 'Phần trăm' : 'Số tiền') }, { key: 'discountValue', label: 'Giá trị' }, { key: 'usedCount', label: 'Đã dùng' }, { key: 'approvalStatus', label: 'Duyệt', map: (r) => approval[r.approvalStatus] }, { key: 'isActive', label: 'Bật' }],
+    columns: [{ key: 'code', label: 'Mã' }, { key: 'discountType', label: 'Kiểu', map: (r) => (r.discountType === 'percent' ? 'Phần trăm' : 'Số tiền') + (r.appliesTo === 'shipping' ? ' phí ship' : '') }, { key: 'discountValue', label: 'Giá trị' }, { key: 'usedCount', label: 'Đã dùng' }, { key: 'approvalStatus', label: 'Duyệt', map: (r) => approval[r.approvalStatus] }, { key: 'isActive', label: 'Bật' }],
     actions: [
       { label: 'Duyệt', when: (r) => r.approvalStatus === 'pending', prompt: 'Ghi chú duyệt', run: (a, r, note) => a.post(`vouchers/${r.id}/approve`, { note }, r.version) },
       { label: 'Từ chối', when: (r) => r.approvalStatus === 'pending', prompt: 'Lý do từ chối', run: (a, r, note) => a.post(`vouchers/${r.id}/reject`, { note }, r.version) },
     ],
     fields: [
       { key: 'code', label: 'Mã', required: true }, { key: 'discountType', label: 'Kiểu giảm', type: 'select', required: true, default: 'percent', options: [{ value: 'percent', label: 'Phần trăm' }, { value: 'fixed', label: 'Số tiền' }] },
+      { key: 'appliesTo', label: 'Áp dụng cho', type: 'select', required: true, default: 'items', options: [{ value: 'items', label: 'Tiền món' }, { value: 'shipping', label: 'Phí ship' }] },
       { key: 'discountValue', label: 'Giá trị', type: 'number', required: true }, { key: 'maxDiscountAmount', label: 'Giảm tối đa', type: 'number' }, { key: 'minOrderValue', label: 'Đơn tối thiểu', type: 'number', default: 0, required: true },
       { key: 'maxUsageTotal', label: 'Tổng lượt dùng', type: 'number' }, { key: 'maxUsagePerUser', label: 'Lượt mỗi khách', type: 'number', default: 1, required: true }, { key: 'applicableTier', label: 'Hạng áp dụng', type: 'select', options: TIERS },
       { key: 'requireLogin', label: 'Cần đăng nhập', type: 'bool', default: true }, { key: 'startDate', label: 'Từ ngày', type: 'date' }, { key: 'endDate', label: 'Đến ngày', type: 'date' }, { key: 'isActive', label: 'Bật', type: 'bool', default: true },
