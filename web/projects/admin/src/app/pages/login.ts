@@ -14,24 +14,26 @@ import { errorCode, Submit } from '../shared/ui';
 
 type LoginResult = Schemas['StaffLoginResponse'];
 
-// Khung chung của các trang chưa đăng nhập: nửa thương hiệu (logo từ Cài đặt) và thẻ form
+// Khung chung của các trang chưa đăng nhập, cùng kiểu thẻ đăng nhập trang khách: form bên trái, thương hiệu (logo từ Cài đặt) bên phải
 @Component({
   selector: 'ot-admin-auth',
   template: `
-    <div class="a-auth">
-      <aside class="a-auth-brand">
-        <span class="a-auth-logo" aria-hidden="true">@if (logo(); as url) { <img [src]="url" alt="" /> } @else { 天 }</span>
-        <p class="a-auth-name">Obento Tensho</p>
-        <p class="a-auth-tag">Trang quản trị dành cho nhân viên quán</p>
-        <ul class="a-auth-points">
-          <li>Đơn hàng và màn hình bếp theo thời gian thực</li>
-          <li>Đặt bàn, sơ đồ bàn và ca phục vụ</li>
-          <li>Thực đơn, khuyến mãi và báo cáo doanh thu</li>
-        </ul>
-        <p class="a-auth-copy">© {{ year }} Obento Tensho</p>
-      </aside>
-      <main class="a-auth-main"><div class="a-auth-card"><ng-content /></div></main>
-    </div>
+    <main class="a-auth">
+      <div class="a-auth-card">
+        <aside class="a-auth-brand">
+          <span class="a-auth-logo" aria-hidden="true">@if (logo(); as url) { <img [src]="url" alt="" /> } @else { 天 }</span>
+          <p class="a-auth-name">Obento Tensho</p>
+          <p class="a-auth-tag">Trang quản trị dành cho nhân viên quán</p>
+          <ul class="a-auth-points">
+            <li>Đơn hàng và màn hình bếp theo thời gian thực</li>
+            <li>Đặt bàn, sơ đồ bàn và ca phục vụ</li>
+            <li>Thực đơn, khuyến mãi và báo cáo doanh thu</li>
+          </ul>
+        </aside>
+        <div class="a-auth-panel"><ng-content /></div>
+      </div>
+      <p class="a-auth-copy">© {{ year }} Obento Tensho</p>
+    </main>
   `,
 })
 export class AuthFrame {
