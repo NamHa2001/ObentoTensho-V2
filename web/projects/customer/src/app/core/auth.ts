@@ -126,12 +126,14 @@ export const guestGuard: CanActivateFn = async () => {
 export const verifiedGuard: CanActivateFn = async (_, state) => {
   const auth = inject(Auth);
   const router = inject(Router);
+  // inject() chỉ gọi được trước await đầu tiên
+  const policy = inject(ContactPolicy);
   await auth.init();
   const profile = auth.profile();
   if (!profile) {
     return router.createUrlTree(['/dang-nhap'], { queryParams: { next: state.url } });
   }
 
-  const pending = await inject(ContactPolicy).pending(profile);
+  const pending = await policy.pending(profile);
   return pending ? router.createUrlTree([pending], { queryParams: { next: state.url } }) : true;
 };
