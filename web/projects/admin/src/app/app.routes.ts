@@ -29,6 +29,8 @@ export const routes: Routes = [
       page('reservations/:id', 'reservations', () => import('./pages/reservations').then((m) => m.Reservation)),
       page('calendar', 'reservations', () => import('./pages/calendar').then((m) => m.Calendar)),
       page('floor', 'tables_view', () => import('./pages/floor').then((m) => m.Floor)),
+      page('dine-in', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineIn)),
+      page('dine-in/:id', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineInBill)),
       page('option-groups', 'menu', () => import('./pages/menu').then((m) => m.OptionGroups)),
       page('item-images/:id', 'menu', () => import('./pages/menu').then((m) => m.ItemImages)),
       page('customers', 'customers', () => import('./pages/customers').then((m) => m.Customers)),

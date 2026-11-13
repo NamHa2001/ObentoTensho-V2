@@ -138,6 +138,16 @@ body { font-size: 15px; background: var(--ot-bg); }
 .a-drawer .ot-input { min-height: 42px; border-radius: var(--ot-radius-sm); }
 .a-drawer .ot-btn { flex: 1; min-height: 44px; border-radius: var(--ot-radius-sm); box-shadow: none; }
 
+/* Gọi món tại bàn: ô bàn tô màu theo trạng thái, ô món dạng nút lớn dễ bấm trên máy tính bảng */
+.a-dine-table { display: grid; align-content: start; gap: 4px; min-height: 112px; padding: 12px; border: 2px solid var(--ot-border); border-radius: var(--ot-radius-md); background: var(--ot-surface); text-align: left; }
+.a-dine-table:hover { border-color: var(--ot-primary); }
+.a-dine-table[data-status='occupied'] { border-color: var(--ot-primary); background: var(--ot-primary-soft); }
+.a-dine-table[data-status='reserved'] { background: var(--ot-info-bg); }
+.a-dine-table[data-status='cleaning'] { background: var(--ot-warning-bg); }
+.a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 10px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
+.a-dine-item:hover:not(:disabled) { border-color: var(--ot-primary); }
+.a-dine-item:disabled { opacity: 0.5; }
+
 /* Trang đăng nhập: một thẻ giữa màn hình như trang khách. Điện thoại: thương hiệu gọn ở đầu thẻ; từ 992px form trái, khung đỏ phải */
 .a-auth { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; min-height: 100dvh; padding: calc(16px + var(--ot-safe-top)) 16px calc(16px + var(--ot-safe-bottom)); background: var(--ot-bg); }
 .a-auth-card { display: flex; flex-direction: column; width: 100%; max-width: 480px; overflow: hidden; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-lg); background: var(--ot-surface); box-shadow: var(--ot-shadow-2); }

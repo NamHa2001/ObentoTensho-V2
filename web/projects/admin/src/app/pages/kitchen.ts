@@ -17,6 +17,26 @@ import { Latest, ORDER_STATUS, Submit } from '../shared/ui';
       <button type="button" class="ot-chip" (click)="load()">Tải lại</button>
       <button type="button" class="ot-chip" [class.ot-chip-active]="live.sound()" (click)="live.toggleSound()">{{ live.sound() ? 'Đang bật âm báo' : 'Bật âm báo' }}</button>
     </div>
+    @if (tickets().length > 0) {
+      <section class="a-card mt-3 p-3">
+        <h2 class="flex justify-between">Tại bàn <span class="a-badge">{{ tickets().length }}</span></h2>
+        <div class="mt-2 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          @for (t of tickets(); track t.billId) {
+            <article class="ot-card p-3">
+              <b>{{ t.tableName }}</b> <small class="text-muted">· {{ t.code }}</small>
+              <ul class="mt-1">
+                @for (i of t.items; track i.id) {
+                  <li class="flex items-start justify-between gap-2 border-b border-line py-1 last:border-0">
+                    <span><b>{{ i.quantity }} × {{ i.name }}</b> <small class="text-muted">đợt {{ i.round }} · {{ waited(i.sentAtUtc) }} phút</small>@for (x of i.options; track $index) { <small class="block text-muted">{{ x }}</small> }@if (i.note) { <small class="block">{{ i.note }}</small> }</span>
+                    <button type="button" class="ot-btn ot-btn-primary shrink-0" (click)="served(t, i)">Đã ra</button>
+                  </li>
+                }
+              </ul>
+            </article>
+          }
+        </div>
+      </section>
+    }
     <div class="mt-3 grid gap-4 md:grid-cols-3" cdkDropListGroup>
       @for (lane of lanes; track lane) {
         <section class="a-card min-h-60 p-3" cdkDropList [cdkDropListData]="lane" (cdkDropListDropped)="dropped($event)"><h2 class="flex justify-between">{{ labels[lane] }} <span class="a-badge">{{ of(lane).length }}</span></h2>
@@ -48,6 +68,7 @@ export class Kitchen {
   protected readonly lanes = ['pending', 'preparing', 'ready'];
   protected readonly nextOf: Record<string, string> = { pending: 'preparing', preparing: 'ready', ready: 'completed' };
   protected readonly orders = signal<any[]>([]);
+  protected readonly tickets = signal<any[]>([]);
   protected readonly printing = signal<any>(null);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
@@ -60,6 +81,15 @@ export class Kitchen {
 
   protected load(): void {
     this.loader.run(this.api.get<any[]>('orders/kitchen-view'), (o) => this.orders.set(o));
+    this.api.get<any[]>('dine-in/kitchen-view').subscribe({ next: (t) => this.tickets.set(t), error: () => undefined });
+  }
+
+  protected served(t: any, i: any): void {
+    this.form.run(this.api.post(`dine-in/${t.billId}/items/${i.id}/served`), () => this.load());
+  }
+
+  protected waited(utc: string): number {
+    return Math.max(0, Math.round((Date.now() - new Date(utc).getTime()) / 60000));
   }
 
   // Bếp nấu xong tới "Sẵn sàng"; giao cho khách là việc của thu ngân
