@@ -6,7 +6,8 @@ import { RESOURCES } from './shared/resources';
 
 const login = () => import('./pages/login');
 const res = (key: string, cap: string) => ({ path: `r/${key}`, canActivate: [authGuard], data: { cap, resource: RESOURCES[key] }, loadComponent: () => import('./shared/resource').then((m) => m.ResourcePage) });
-const page = (path: string, cap: string | undefined, load: () => Promise<any>) => ({ path, canActivate: [authGuard], data: { cap }, loadComponent: load });
+// back: trang cha của nút quay lại trên thanh trên cùng (điện thoại)
+const page = (path: string, cap: string | undefined, load: () => Promise<any>, back?: string) => ({ path, canActivate: [authGuard], data: { cap, back }, loadComponent: load });
 
 export const routes: Routes = [
   { path: 'login', canActivate: [guestGuard], loadComponent: () => login().then((m) => m.Login) },
@@ -22,20 +23,20 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', canActivate: [async () => { const auth = inject(Auth); await auth.init(); return inject(Router).createUrlTree([auth.home()]); }], children: [] },
       page('dashboard', 'dashboard', () => import('./pages/dashboard').then((m) => m.Dashboard)),
       page('orders', 'orders_cashier', () => import('./pages/orders').then((m) => m.Orders)),
-      page('orders/:id', 'orders_cashier', () => import('./pages/orders').then((m) => m.Order)),
+      page('orders/:id', 'orders_cashier', () => import('./pages/orders').then((m) => m.Order), '/orders'),
       page('kitchen', 'orders_kitchen', () => import('./pages/kitchen').then((m) => m.Kitchen)),
       page('reservations', 'reservations', () => import('./pages/reservations').then((m) => m.Reservations)),
-      page('reservations/new', 'reservations', () => import('./pages/reservations').then((m) => m.ReservationNew)),
-      page('reservations/:id', 'reservations', () => import('./pages/reservations').then((m) => m.Reservation)),
+      page('reservations/new', 'reservations', () => import('./pages/reservations').then((m) => m.ReservationNew), '/reservations'),
+      page('reservations/:id', 'reservations', () => import('./pages/reservations').then((m) => m.Reservation), '/reservations'),
       page('calendar', 'reservations', () => import('./pages/calendar').then((m) => m.Calendar)),
       page('floor', 'tables_view', () => import('./pages/floor').then((m) => m.Floor)),
       page('dine-in', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineIn)),
-      page('dine-in/:id', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineInBill)),
+      page('dine-in/:id', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineInBill), '/dine-in'),
       page('invoices', 'invoices', () => import('./pages/invoices').then((m) => m.Invoices)),
       page('option-groups', 'menu', () => import('./pages/menu').then((m) => m.OptionGroups)),
-      page('item-images/:id', 'menu', () => import('./pages/menu').then((m) => m.ItemImages)),
+      page('item-images/:id', 'menu', () => import('./pages/menu').then((m) => m.ItemImages), '/r/items'),
       page('customers', 'customers', () => import('./pages/customers').then((m) => m.Customers)),
-      page('customers/:id', 'customers', () => import('./pages/customers').then((m) => m.Customer)),
+      page('customers/:id', 'customers', () => import('./pages/customers').then((m) => m.Customer), '/customers'),
       page('reports', 'reports', () => import('./pages/reports').then((m) => m.Reports)),
       page('settings', 'reports', () => import('./pages/settings').then((m) => m.Settings)),
       page('hours', 'tables_view', () => import('./pages/hours').then((m) => m.Hours)),

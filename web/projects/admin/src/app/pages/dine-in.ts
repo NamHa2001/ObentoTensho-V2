@@ -216,7 +216,7 @@ interface DraftLine {
   template: `
     <div class="a-head">
       <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
-      <div class="a-btns"><a class="ot-btn ot-btn-outline" routerLink="/dine-in">‹ Sơ đồ bàn</a></div>
+      <div class="a-btns a-desk-only"><a class="ot-btn ot-btn-outline" routerLink="/dine-in">‹ Sơ đồ bàn</a></div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3" role="alert">{{ e }}</p> }
 

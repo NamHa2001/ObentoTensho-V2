@@ -74,6 +74,10 @@ body { font-size: 15px; background: var(--ot-bg); }
 .a-icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: var(--ot-radius-sm); }
 /* Chỉ điện thoại và máy tính bảng cần nút mở menu; màn lớn menu luôn hiện */
 @media (min-width: 992px) { .a-menu-btn { display: none; } }
+/* Nút quay lại ở trang con: chỉ trên điện thoại/máy tính bảng, nằm trên thanh trên cùng nên không trôi mất khi cuộn; link quay lại trong trang chỉ giữ trên máy tính */
+.a-back-btn { width: auto; gap: 2px; padding: 0 10px 0 4px; color: var(--ot-primary); font-weight: 600; }
+@media (min-width: 992px) { .a-back-btn { display: none; } }
+@media (max-width: 991.98px) { .a-desk-only { display: none !important; } }
 .a-icon-btn:hover { background: var(--ot-surface-2); }
 .a-count { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 9px; background: var(--ot-primary); color: var(--ot-primary-contrast); font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; }
 .a-user { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 4px 8px; border-radius: var(--ot-radius-sm); text-align: right; }

@@ -100,7 +100,7 @@ export class OptionGroups {
   selector: 'ot-item-images',
   imports: [RouterLink],
   template: `
-    <a class="text-muted" routerLink="/r/items">‹ Món ăn</a>
+    <a class="a-desk-only text-muted" routerLink="/r/items">‹ Món ăn</a>
     <h1>Ảnh món</h1>
     @if (form.error(); as e) { <p class="ot-error mt-2">{{ e }}</p> }
     <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">

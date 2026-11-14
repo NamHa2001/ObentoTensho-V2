@@ -3,11 +3,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { Bell, ChevronDown, LogOut, LucideAngularModule, Menu, UserRound } from 'lucide-angular';
+import { Bell, ChevronDown, ChevronLeft, LogOut, LucideAngularModule, Menu, UserRound } from 'lucide-angular';
 import { catchError, filter, map, of } from 'rxjs';
 
 import { Api } from '../core/api';
 import { Auth, StepUp } from '../core/auth';
+import { Back } from '../core/back';
 import { Live } from '../core/live';
 import { Submit } from '../shared/ui';
 import { NAV } from './nav';
@@ -46,6 +47,7 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
       <div class="a-body">
         <header class="a-top" style="padding-top: var(--ot-safe-top)">
           <button type="button" class="a-icon-btn a-menu-btn" aria-label="Mở menu" (click)="drawer.set(!drawer())"><lucide-icon [img]="icons.menu" [size]="22" /></button>
+          @if (back.target()) { <button type="button" class="a-icon-btn a-back-btn" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="icons.back" [size]="24" /> <span>Quay lại</span></button> }
           <div class="flex-1"></div>
           <div class="relative">
             <button type="button" class="a-icon-btn" [attr.aria-label]="'Thông báo, ' + live.unread() + ' chưa đọc'" (click)="toggleBell()">
@@ -101,7 +103,8 @@ export class Shell {
   protected readonly auth = inject(Auth);
   protected readonly stepUp = inject(StepUp);
   protected readonly live = inject(Live);
-  protected readonly icons = { menu: Menu, bell: Bell, user: UserRound, logout: LogOut, down: ChevronDown };
+  protected readonly back = inject(Back);
+  protected readonly icons = { menu: Menu, bell: Bell, user: UserRound, logout: LogOut, down: ChevronDown, back: ChevronLeft };
   protected readonly drawer = signal(false);
   protected readonly bellOpen = signal(false);
   protected readonly open = signal<string | null>(null);
