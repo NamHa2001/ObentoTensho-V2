@@ -13,14 +13,15 @@ const lookup = () => order().then((m) => m.Lookup);
 const staticPage = () => content().then((m) => m.StaticPage);
 const verifyEmail = { title: 'Xác thực email', endpoint: 'auth/verify-email' };
 
+// data.back: trang cha của nút quay lại trên thanh tiêu đề (điện thoại)
 // Các đường dẫn tiếng Anh (/auth, /orders, /reservations, /account) là liên kết trong email đã gửi
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./pages/home/home').then((m) => m.Home), title: 'Obento Tensho — Cơm hộp Nhật' },
   { path: 'menu', loadComponent: () => import('./pages/menu/menu').then((m) => m.Menu), title: 'Thực đơn — Obento Tensho' },
-  { path: 'menu/:slug', loadComponent: () => import('./pages/menu-detail/menu-detail').then((m) => m.MenuDetail) },
+  { path: 'menu/:slug', data: { back: '/menu' }, loadComponent: () => import('./pages/menu-detail/menu-detail').then((m) => m.MenuDetail) },
   { path: 'dat-ban', canActivate: [verifiedGuard], loadComponent: () => import('./pages/reservation/reservation').then((m) => m.Reservation), title: 'Đặt bàn — Obento Tensho' },
   { path: 'gio-hang', loadComponent: () => import('./pages/order/cart').then((m) => m.CartPage), title: 'Giỏ hàng — Obento Tensho' },
-  { path: 'thanh-toan', canActivate: [verifiedGuard], loadComponent: () => import('./pages/order/checkout').then((m) => m.Checkout), title: 'Thanh toán — Obento Tensho' },
+  { path: 'thanh-toan', canActivate: [verifiedGuard], data: { back: '/gio-hang' }, loadComponent: () => import('./pages/order/checkout').then((m) => m.Checkout), title: 'Thanh toán — Obento Tensho' },
   { path: 'xac-nhan/:code', canActivate: [authGuard], data: { fresh: true }, loadComponent: () => order().then((m) => m.OrderDetail), title: 'Xác nhận đơn — Obento Tensho' },
   { path: 'tra-cuu', loadComponent: lookup, title: 'Tra cứu — Obento Tensho' },
   { path: 'orders/lookup', loadComponent: lookup, title: 'Tra cứu — Obento Tensho' },
@@ -36,9 +37,9 @@ export const routes: Routes = [
   { path: 'lien-he', loadComponent: () => content().then((m) => m.Contact), title: 'Liên hệ — Obento Tensho' },
   { path: 'khong-gian', loadComponent: () => content().then((m) => m.Gallery), title: 'Không gian — Obento Tensho' },
   { path: 'khuyen-mai', loadComponent: () => content().then((m) => m.Promotions), title: 'Khuyến mãi — Obento Tensho' },
-  { path: 'khuyen-mai/:slug', loadComponent: () => content().then((m) => m.Promotion), title: 'Khuyến mãi — Obento Tensho' },
+  { path: 'khuyen-mai/:slug', data: { back: '/khuyen-mai' }, loadComponent: () => content().then((m) => m.Promotion), title: 'Khuyến mãi — Obento Tensho' },
   { path: 'tin-tuc', loadComponent: () => content().then((m) => m.NewsList), title: 'Tin tức — Obento Tensho' },
-  { path: 'tin-tuc/:slug', loadComponent: () => content().then((m) => m.NewsArticle), title: 'Tin tức — Obento Tensho' },
+  { path: 'tin-tuc/:slug', data: { back: '/tin-tuc' }, loadComponent: () => content().then((m) => m.NewsArticle), title: 'Tin tức — Obento Tensho' },
 
   { path: 'dang-nhap', canActivate: [guestGuard], loadComponent: login, title: 'Đăng nhập — Obento Tensho' },
   { path: 'auth/login', canActivate: [guestGuard], loadComponent: login, title: 'Đăng nhập — Obento Tensho' },
@@ -56,7 +57,7 @@ export const routes: Routes = [
   { path: 'account/points', redirectTo: 'tai-khoan/diem-thuong', pathMatch: 'full' },
   { path: 'account/vouchers', redirectTo: 'tai-khoan/diem-thuong', pathMatch: 'full' },
 
-  { path: 'tai-khoan/don-hang/:code', canActivate: [authGuard], loadComponent: () => order().then((m) => m.OrderDetail), title: 'Chi tiết đơn — Obento Tensho' },
+  { path: 'tai-khoan/don-hang/:code', canActivate: [authGuard], data: { back: '/tai-khoan/don-hang' }, loadComponent: () => order().then((m) => m.OrderDetail), title: 'Chi tiết đơn — Obento Tensho' },
   {
     path: 'tai-khoan',
     canActivate: [authGuard],

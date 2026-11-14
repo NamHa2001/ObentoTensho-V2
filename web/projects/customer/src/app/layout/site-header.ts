@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { LucideAngularModule, Menu, ShoppingBag, User, X } from 'lucide-angular';
+import { ChevronLeft, LucideAngularModule, Menu, ShoppingBag, User, X } from 'lucide-angular';
 
 import { map } from 'rxjs';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
+import { Back } from '../core/back';
 import { Cart } from '../core/cart';
 import { givenName } from '../shared/format';
 import { HEADER_LINKS } from './nav-items';
@@ -18,10 +19,16 @@ import { HEADER_LINKS } from './nav-items';
   template: `
     <!-- Máy tính: ba cột, hai bên bằng nhau nên menu luôn nằm đúng giữa trang -->
     <div class="ot-container flex items-center justify-between gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr] lg:gap-6" style="height: var(--ot-header-h)">
-      <a routerLink="/" class="flex min-w-0 items-center gap-2 justify-self-start md:gap-3">
-        @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-bold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
-        <span class="font-heading truncate text-xl font-extrabold text-primary max-[319px]:text-base lg:max-xl:text-lg xl:text-[26px]">Obento Tensho</span>
-      </a>
+      <!-- Trang con trên điện thoại: nút quay lại đứng trước logo, dính theo thanh tiêu đề khi kéo xuống -->
+      <div class="flex min-w-0 items-center gap-1 justify-self-start">
+        @if (back.target()) {
+          <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-primary active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="26" /></button>
+        }
+        <a routerLink="/" class="flex min-w-0 items-center gap-2 md:gap-3">
+          @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-bold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
+          <span class="font-heading truncate text-xl font-extrabold text-primary max-[319px]:text-base lg:max-xl:text-lg xl:text-[26px]">Obento Tensho</span>
+        </a>
+      </div>
 
       <nav class="hidden items-center gap-1 lg:flex xl:gap-2" aria-label="Điều hướng chính">
         @for (link of links; track link.path) {
@@ -57,6 +64,8 @@ export class SiteHeader {
   protected readonly links = HEADER_LINKS;
   protected readonly open = signal(false);
   protected readonly logo = toSignal(inject(Api).getOr<Record<string, string>>('public/settings', {}).pipe(map((v) => v['restaurant.logoUrl'] ?? null)), { initialValue: null });
+  protected readonly back = inject(Back);
+  protected readonly chevron = ChevronLeft;
   protected readonly menu = Menu;
   protected readonly close = X;
   protected readonly cartState = inject(Cart);

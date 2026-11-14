@@ -215,7 +215,7 @@ export class Promotions {
   imports: [RouterLink, VnDatePipe],
   template: `
     <article class="ot-page">
-      <a class="text-muted" routerLink="/khuyen-mai">‹ Khuyến mãi</a>
+      <a class="text-muted max-lg:hidden" routerLink="/khuyen-mai">‹ Khuyến mãi</a>
       @if (item(); as p) {
         @if (banner(); as src) { <img class="mt-3 aspect-video w-full rounded-lg object-cover" [src]="src" [alt]="p.title" /> }
         <h1 class="mt-3">{{ p.title }}</h1>
@@ -308,7 +308,7 @@ export class NewsList {
   imports: [RouterLink, VnDatePipe],
   template: `
     <article class="ot-page">
-      <a class="text-muted" routerLink="/tin-tuc">‹ Tin tức</a>
+      <a class="text-muted max-lg:hidden" routerLink="/tin-tuc">‹ Tin tức</a>
       @if (item(); as n) {
         <h1 class="mt-3">{{ n.title }}</h1>
         <p class="text-sm text-muted">{{ n.authorDisplayName }} · {{ n.publishedAtUtc | vnDate }}</p>
