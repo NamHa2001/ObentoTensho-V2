@@ -112,7 +112,7 @@ export class Orders {
               <dt>Kênh</dt><dd>{{ channel[v.order.channel] }}</dd>
               <dt>{{ v.order.channel === 'delivery' ? 'Giờ giao' : 'Giờ lấy' }}</dt><dd>{{ v.order.pickupTime.slice(0, 5) }} {{ v.order.pickupDate | vnDate }}</dd>
               @if (v.deliveryAddress) {
-                <dt>Giao tới</dt><dd>{{ v.deliveryAddress }} <small class="block text-muted">{{ v.deliveryDistanceKm }} km</small><a class="text-primary" target="_blank" rel="noopener" [href]="mapLink(v.deliveryAddress)">Mở Google Maps</a></dd>
+                <dt>Giao tới</dt><dd>{{ v.deliveryAddress }} <small class="block text-muted">{{ v.deliveryDistanceKm }} km</small><a class="text-primary" target="_blank" rel="noopener" [href]="mapLink(v)">Mở Google Maps</a>@if (v.deliveryLatitude) { <small class="block text-muted">Khách đã ghim vị trí trên bản đồ</small> }</dd>
               }
               <dt>Thanh toán</dt><dd>{{ v.order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ v.order.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</dd>
             </dl></div>
@@ -195,8 +195,10 @@ export class Order {
     return nextSteps(order).filter((s) => (s === 'cancelled' ? this.auth.has('orders_cancel') : s === 'completed' || s === 'delivering' ? this.auth.has('orders_cashier') : this.auth.has('orders_kitchen') && !blocked));
   }
 
-  protected mapLink(address: string): string {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
+  // Khách ghim vị trí thì chỉ đường tới đúng điểm ghim; không thì tìm theo địa chỉ chữ
+  protected mapLink(v: any): string {
+    const to = v.deliveryLatitude != null ? `${v.deliveryLatitude},${v.deliveryLongitude}` : v.deliveryAddress;
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(to)}`;
   }
 
   protected async noPickup(v: any): Promise<void> {
