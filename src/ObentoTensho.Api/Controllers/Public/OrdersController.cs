@@ -22,7 +22,7 @@ public sealed class OrdersController(PublicOrderService orders, DeliveryQuoteSer
     [AllowAnonymous]
     [EnableRateLimiting(RateLimitConfiguration.LookupPolicy)]
     public async Task<IActionResult> DeliveryQuote(DeliveryQuoteRequest request, CancellationToken cancellationToken) =>
-        this.DataOrProblem(await delivery.QuoteAsync(request.Address, cancellationToken));
+        this.DataOrProblem(await delivery.QuoteAsync(request.Address, request.Latitude, request.Longitude, cancellationToken));
 
     [HttpGet("pickup-times")]
     [AllowAnonymous]

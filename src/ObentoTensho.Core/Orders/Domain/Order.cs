@@ -40,6 +40,11 @@ public sealed class Order
 
     public decimal? DeliveryDistanceKm { get; init; }
 
+    // Điểm khách ghim trên bản đồ (không ghim thì trống, người giao tìm theo địa chỉ)
+    public double? DeliveryLatitude { get; init; }
+
+    public double? DeliveryLongitude { get; init; }
+
     public decimal DeliveryFee { get; init; }
 
     // Mã giảm phí ship: phần giảm trên phí ship (không vượt phí ship)

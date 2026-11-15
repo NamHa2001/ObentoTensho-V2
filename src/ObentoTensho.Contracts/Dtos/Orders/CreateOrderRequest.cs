@@ -8,7 +8,8 @@ namespace ObentoTensho.Contracts.Dtos.Orders;
 /// Giá, giảm giá, tổng tiền do server tính — mọi trường giá client gửi đều bị từ chối (BR-ORD-22).
 /// <c>VoucherCode</c>: tối đa một mã mỗi đơn (BR-VCH-20); có voucher thì không giảm theo hạng (BR-VCH-04).
 /// <c>Invoice</c>: khách cần xuất hóa đơn (cá nhân/doanh nghiệp); bỏ trống nếu không lấy hóa đơn.
-/// <c>Channel</c> = <c>delivery</c>: giao tận nơi tới <c>DeliveryAddress</c>; phí ship server tính lại từ quãng đường, giờ chọn là giờ nhận hàng.
+/// <c>Channel</c> = <c>delivery</c>: giao tận nơi tới <c>DeliveryAddress</c> (và điểm ghim <c>DeliveryLatitude</c>/<c>DeliveryLongitude</c> nếu có);
+/// phí ship server tính lại từ quãng đường, giờ chọn là giờ nhận hàng.
 /// </summary>
 public sealed record CreateOrderRequest(
     string CustomerName,
@@ -23,4 +24,6 @@ public sealed record CreateOrderRequest(
     string? VoucherCode = null,
     InvoiceBuyerRequest? Invoice = null,
     OrderChannel Channel = OrderChannel.Pickup,
-    string? DeliveryAddress = null);
+    string? DeliveryAddress = null,
+    double? DeliveryLatitude = null,
+    double? DeliveryLongitude = null);

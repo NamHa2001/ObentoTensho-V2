@@ -16,4 +16,6 @@ public sealed record AdminOrderDetailDto(
     string? DeliveryAddress = null,
     decimal? DeliveryDistanceKm = null,
     decimal DeliveryFee = 0,
-    decimal ShippingDiscount = 0);
+    decimal ShippingDiscount = 0,
+    double? DeliveryLatitude = null,
+    double? DeliveryLongitude = null);

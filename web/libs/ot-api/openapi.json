@@ -9785,6 +9785,20 @@
             "type": "number",
             "format": "double",
             "default": 0
+          },
+          "deliveryLatitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deliveryLongitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -11861,6 +11875,20 @@
               "null",
               "string"
             ]
+          },
+          "deliveryLatitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "deliveryLongitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -12577,6 +12605,20 @@
           "feePerKm": {
             "type": "integer",
             "format": "int32"
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },
@@ -12588,6 +12630,20 @@
         "properties": {
           "address": {
             "type": "string"
+          },
+          "latitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "longitude": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
           }
         }
       },

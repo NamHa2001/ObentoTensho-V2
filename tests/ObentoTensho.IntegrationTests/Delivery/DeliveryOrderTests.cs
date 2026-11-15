@@ -86,6 +86,7 @@ public sealed class DeliveryOrderTests : IDisposable
         var detail = await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}/{id}", cashier));
         Assert.Equal("88 Nguyễn Huệ 4100m Quận 1", detail.GetProperty("deliveryAddress").GetString());
         Assert.Equal(4.1m, detail.GetProperty("deliveryDistanceKm").GetDecimal());
+        Assert.Equal(JsonValueKind.Null, detail.GetProperty("deliveryLatitude").ValueKind);
 
         // Đơn giao hàng không gửi thư "món đã sẵn sàng, mời đến lấy"
         await using var db = _fixture.CreateContext();
@@ -93,6 +94,26 @@ public sealed class DeliveryOrderTests : IDisposable
         var payloads = await db.OutboxMessages.Where(m => m.PayloadJson.Contains(email)).Select(m => m.PayloadJson).ToListAsync();
         Assert.NotEmpty(payloads);
         Assert.DoesNotContain(payloads, p => p.Contains("OrderReady", StringComparison.OrdinalIgnoreCase) || p.Contains("order_ready", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Don_giao_hang_luu_diem_khach_ghim()
+    {
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var menu = await OrderTestMenu.CreateAsync(_fixture);
+        var cashier = await _admin.SignInAsync(StaffRole.Cashier);
+        var body = Body(menu, "Hẻm 51 nhà cổng xanh");
+        body["deliveryLatitude"] = 10.7801;
+        body["deliveryLongitude"] = 106.6952;
+
+        var created = await _orders.CreateAsync(body);
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var order = (await OrderApiClient.DataOf(created)).GetProperty("order");
+        Assert.Equal(30_000, order.GetProperty("deliveryFee").GetDecimal());
+
+        var detail = await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}/{order.GetProperty("id").GetGuid()}", cashier));
+        Assert.Equal(10.7801, detail.GetProperty("deliveryLatitude").GetDouble());
+        Assert.Equal(106.6952, detail.GetProperty("deliveryLongitude").GetDouble());
     }
 
     [Fact]

@@ -49,7 +49,7 @@ public static class SettingsCatalog
 
         // Giao hàng (chủ quán 2026-11-13): quán tự giao, phí theo quãng đường lái xe thật
         new(DeliveryEnabled, SettingType.Bool, "false", "Nhận đơn giao tận nơi", IsPublic: true),
-        Text(DeliveryOrigin, string.Empty, "Điểm xuất phát giao hàng (để trống = địa chỉ quán; hoặc vĩ độ,kinh độ)", isPublic: false),
+        Text(DeliveryOrigin, string.Empty, "Vị trí quán trên bản đồ: vĩ độ,kinh độ (vd 10.7716,106.6953; để trống = tìm theo địa chỉ quán)", isPublic: true),
         new(DeliveryFreeKm, SettingType.Number, "2", "Miễn phí ship trong bán kính (km)", 0, 50, IsPublic: true),
         new(DeliveryFeePerKm, SettingType.Number, "15000", "Phí ship mỗi km vượt bán kính miễn phí (₫)", 0, 500_000, IsPublic: true),
         new(DeliveryMaxKm, SettingType.Number, "7", "Giao xa tối đa (km)", 1, 100, IsPublic: true),

@@ -10057,6 +10057,10 @@ export interface components {
              * @default 0
              */
             shippingDiscount: number;
+            /** Format: double */
+            deliveryLatitude?: null | number;
+            /** Format: double */
+            deliveryLongitude?: null | number;
         };
         AdminOrderDto: {
             /** Format: uuid */
@@ -10620,6 +10624,10 @@ export interface components {
             invoice?: null | components["schemas"]["InvoiceBuyerRequest"];
             channel?: components["schemas"]["OrderChannel"];
             deliveryAddress?: null | string;
+            /** Format: double */
+            deliveryLatitude?: null | number;
+            /** Format: double */
+            deliveryLongitude?: null | number;
         };
         CreateReservationRequest: {
             /** Format: date */
@@ -10825,9 +10833,17 @@ export interface components {
             freeKm: number;
             /** Format: int32 */
             feePerKm: number;
+            /** Format: double */
+            latitude?: null | number;
+            /** Format: double */
+            longitude?: null | number;
         };
         DeliveryQuoteRequest: {
             address: string;
+            /** Format: double */
+            latitude?: null | number;
+            /** Format: double */
+            longitude?: null | number;
         };
         DineInBillDto: {
             /** Format: uuid */

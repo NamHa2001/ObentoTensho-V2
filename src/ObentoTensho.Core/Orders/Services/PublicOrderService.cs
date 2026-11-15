@@ -176,12 +176,12 @@ public sealed class PublicOrderService(
             return Result.Success(new Shipping(null));
         }
 
-        var quote = await delivery.QuoteAsync(request.DeliveryAddress, cancellationToken);
+        var quote = await delivery.QuoteAsync(request.DeliveryAddress, request.DeliveryLatitude, request.DeliveryLongitude, cancellationToken);
         return quote.IsSuccess
             ? Result.Success(new Shipping(quote.Value))
             : Result.Failure<Shipping>(
                 quote.ErrorCode ?? ErrorCodes.DeliveryUnavailable,
-                quote.FieldErrors.ToDictionary(e => string.Equals(e.Key, "address", StringComparison.Ordinal) ? "deliveryAddress" : e.Key, e => e.Value, StringComparer.Ordinal));
+                quote.FieldErrors.ToDictionary(e => e.Key switch { "address" => "deliveryAddress", "location" => "deliveryLatitude", _ => e.Key }, e => e.Value, StringComparer.Ordinal));
     }
 
     // BR-ORD-03, BR-VCH-04: có mã ⇒ giảm theo voucher (không giảm theo hạng); không mã ⇒ thành viên giảm theo hạng
@@ -232,6 +232,8 @@ public sealed class PublicOrderService(
             Channel = draft.Shipping is null ? OrderChannel.Pickup : OrderChannel.Delivery,
             DeliveryAddress = draft.Shipping?.Address,
             DeliveryDistanceKm = draft.Shipping?.DistanceKm,
+            DeliveryLatitude = draft.Shipping?.Latitude,
+            DeliveryLongitude = draft.Shipping?.Longitude,
             DeliveryFee = draft.Shipping?.Fee ?? 0,
             ShippingDiscount = draft.ShippingDiscount,
             VoucherId = draft.Voucher?.Id,

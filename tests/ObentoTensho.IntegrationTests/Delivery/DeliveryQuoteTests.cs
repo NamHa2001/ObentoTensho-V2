@@ -35,6 +35,24 @@ public sealed class DeliveryQuoteTests(SqlServerFixture fixture)
     }
 
     [Fact]
+    public async Task Khach_ghim_vi_tri_thi_tinh_toi_diem_ghim()
+    {
+        var routes = new DeliveryTestHost.FakeRoutes();
+        using var factory = DeliveryTestHost.Create(fixture.ConnectionString, routes);
+        using var http = factory.CreateApiClient();
+
+        // Địa chỉ chữ không có trong bản đồ giả nhưng có điểm ghim ⇒ vẫn tính được (3,5 km ⇒ 30.000đ)
+        var pinned = await http.PostAsJsonAsync("/api/v1/orders/delivery-quote", new { address = "Hẻm 51 nhà cổng xanh", latitude = 10.7801, longitude = 106.6952 });
+        var data = (await pinned.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("data");
+        Assert.Equal(30_000, data.GetProperty("fee").GetDecimal());
+        Assert.Equal(10.7801, data.GetProperty("latitude").GetDouble());
+
+        // Thiếu kinh độ hoặc ghim ngoài Việt Nam thì từ chối
+        Assert.Equal(ErrorCodes.ValidationFailed, await AuthApiClient.ReadErrorCodeAsync(await http.PostAsJsonAsync("/api/v1/orders/delivery-quote", new { address = "Hẻm 51 nhà cổng xanh", latitude = 10.78 })));
+        Assert.Equal(ErrorCodes.ValidationFailed, await AuthApiClient.ReadErrorCodeAsync(await http.PostAsJsonAsync("/api/v1/orders/delivery-quote", new { address = "Hẻm 51 nhà cổng xanh", latitude = 35.68, longitude = 139.69 })));
+    }
+
+    [Fact]
     public async Task Quan_chua_bat_giao_hang_thi_tu_choi_va_khong_goi_ban_do()
     {
         var routes = new DeliveryTestHost.FakeRoutes();

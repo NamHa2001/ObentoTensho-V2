@@ -7,7 +7,7 @@ using ObentoTensho.IntegrationTests.Fixtures;
 namespace ObentoTensho.IntegrationTests.Delivery;
 
 // API test có bật giao hàng và quãng đường giả: địa chỉ chứa "{n}m" thì cách quán n mét; "khong-tim-thay" ⇒ không có đường;
-// "google-loi" ⇒ dịch vụ bản đồ lỗi. Đếm số lần gọi để kiểm tra không gọi thừa.
+// "google-loi" ⇒ dịch vụ bản đồ lỗi; điểm ghim "vĩ độ,kinh độ" ⇒ cách quán 3500 m. Đếm số lần gọi để kiểm tra không gọi thừa.
 public static class DeliveryTestHost
 {
     public static ApiFactory Create(string connectionString, FakeRoutes routes, bool enabled = true) =>
@@ -29,6 +29,11 @@ public static class DeliveryTestHost
             if (destination.Contains("google-loi", StringComparison.Ordinal))
             {
                 return Task.FromResult(RouteDistanceResult.Unavailable);
+            }
+
+            if (destination.StartsWith("10.", StringComparison.Ordinal) && destination.Contains(",106.", StringComparison.Ordinal))
+            {
+                return Task.FromResult(RouteDistanceResult.Of(3500));
             }
 
             var marker = destination.Split(' ').FirstOrDefault(w => w.EndsWith('m') && int.TryParse(w[..^1], System.Globalization.CultureInfo.InvariantCulture, out _));

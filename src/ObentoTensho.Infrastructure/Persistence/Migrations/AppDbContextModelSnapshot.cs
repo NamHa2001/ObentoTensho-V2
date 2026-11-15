@@ -2249,6 +2249,12 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .HasColumnType("decimal(18,0)")
                         .HasDefaultValue(0m);
 
+                    b.Property<double?>("DeliveryLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("DeliveryLongitude")
+                        .HasColumnType("float");
+
                     b.Property<int?>("GuestCount")
                         .HasColumnType("int");
 
