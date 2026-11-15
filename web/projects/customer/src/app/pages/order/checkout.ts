@@ -9,6 +9,7 @@ import { map } from 'rxjs';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { Cart } from '../../core/cart';
+import { AddressPicker, Pin } from '../../shared/address-picker';
 import { Submit } from '../../shared/form';
 import { addDays, localPhone, today, VnDatePipe } from '../../shared/format';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../shared/invoice-form';
@@ -20,7 +21,7 @@ const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-checkout',
-  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule, InvoiceForm],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule, InvoiceForm, AddressPicker],
   template: `
     <div class="ot-page-split">
       <h1>Thanh toán</h1>
@@ -37,7 +38,7 @@ const MAX_AUTO_DAYS = 14;
                   <button type="button" class="ot-chip" role="radio" [attr.aria-checked]="delivering()" [class.ot-chip-active]="delivering()" (click)="delivering.set(true)">Giao tận nơi</button>
                 </div>
                 @if (delivering()) {
-                  <label class="ot-span-2">Địa chỉ giao hàng<textarea class="ot-input" name="address" rows="2" maxlength="300" placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành" [(ngModel)]="address" (ngModelChange)="ship.set(null)" (change)="checkShip()"></textarea></label>
+                  <ot-address-picker class="ot-span-2" [address]="address" (addressChange)="onAddress($event)" [pin]="pin" (pinChange)="onPin($event)" [center]="origin()" />
                   <div class="ot-span-2 -mt-2 flex flex-wrap items-center gap-3">
                     <button type="button" class="ot-btn ot-btn-outline" [disabled]="shipper.busy() || address.trim().length < 8" (click)="checkShip()">Tính phí ship</button>
                     @if (ship(); as s) { <span>Cách quán {{ s.distanceKm }} km · Phí ship <b>{{ s.fee === 0 ? 'Miễn phí' : (s.fee | vnd) }}</b></span> }
@@ -190,12 +191,19 @@ export class Checkout {
   // Chỉ tự chuyển ngày ở lần mở trang; khách đã tự chọn ngày thì giữ nguyên
   private autoPick = true;
   private tries = 0;
-  protected readonly deliveryOn = toSignal(this.api.getOr<Record<string, string>>('public/settings', {}).pipe(map((s) => s['delivery.enabled'] === 'true')), { initialValue: false });
+  private readonly settings = toSignal(this.api.getOr<Record<string, string>>('public/settings', {}), { initialValue: {} as Record<string, string> });
+  protected readonly deliveryOn = computed(() => this.settings()['delivery.enabled'] === 'true');
+  // Vị trí quán ("vĩ độ,kinh độ" trong cài đặt) để mở bản đồ và gợi ý địa chỉ gần quán
+  protected readonly origin = computed<Pin | null>(() => {
+    const [lat, lng] = (this.settings()['delivery.origin'] ?? '').split(',').map(Number);
+    return Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 ? { lat, lng } : null;
+  });
   protected readonly delivering = signal(false);
   protected readonly ship = signal<Schemas['DeliveryQuoteDto'] | null>(null);
   protected readonly shipFee = computed(() => (this.delivering() ? (this.ship()?.fee ?? 0) : 0));
   protected readonly shipper = new Submit();
   protected address = '';
+  protected pin: Pin | null = null;
   protected wantInvoice = false;
   protected readonly invoice = emptyBuyer();
   protected model = { customerName: '', customerPhone: '', customerEmail: '', pickupDate: today(), pickupTime: '', paymentMethod: 'cash', note: '' };
@@ -220,12 +228,26 @@ export class Checkout {
     });
   }
 
-  // Phí ship do server tính từ quãng đường thật; lúc đặt đơn server tính lại lần nữa
+  // Phí ship do server tính từ quãng đường thật (tới điểm ghim nếu có); lúc đặt đơn server tính lại lần nữa
   protected checkShip(): void {
     const address = this.address.trim();
     if (address.length >= 8 && !this.shipper.busy()) {
-      this.shipper.run(this.api.post<Schemas['DeliveryQuoteDto']>('orders/delivery-quote', { address }), (s) => this.ship.set(s));
+      this.shipper.run(this.api.post<Schemas['DeliveryQuoteDto']>('orders/delivery-quote', { address, latitude: this.pin?.lat ?? null, longitude: this.pin?.lng ?? null }), (s) => this.ship.set(s));
     }
+  }
+
+  // Đã ghim thì phí tính theo điểm ghim, sửa chữ (số nhà, ghi chú hẻm) không làm đổi phí
+  protected onAddress(value: string): void {
+    this.address = value;
+    if (!this.pin) {
+      this.ship.set(null);
+    }
+  }
+
+  protected onPin(pin: Pin | null): void {
+    this.pin = pin;
+    this.ship.set(null);
+    this.checkShip();
   }
 
   protected pickDate(): void {
@@ -306,7 +328,7 @@ export class Checkout {
   }
 
   protected submit(): void {
-    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null, invoice: this.wantInvoice ? buyerBody(this.invoice) : null, channel: this.delivering() ? 'delivery' : 'pickup', deliveryAddress: this.delivering() ? this.address.trim() : null };
+    const body = { ...this.model, note: this.model.note || null, items: linesOf(this.cart), lang: 'vi', voucherCode: this.applied() ? this.appliedCode() : null, invoice: this.wantInvoice ? buyerBody(this.invoice) : null, channel: this.delivering() ? 'delivery' : 'pickup', deliveryAddress: this.delivering() ? this.address.trim() : null, deliveryLatitude: this.delivering() ? (this.pin?.lat ?? null) : null, deliveryLongitude: this.delivering() ? (this.pin?.lng ?? null) : null };
     this.form.run(this.api.post<Schemas['CreatedOrderDto']>('orders', body), (created) => {
       this.cart.clear();
       void this.router.navigate(['/xac-nhan', created.order.code]);

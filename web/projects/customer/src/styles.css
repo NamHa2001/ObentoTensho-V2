@@ -893,6 +893,95 @@
     }
   }
 
+  /* Ô địa chỉ giao hàng: danh sách gợi ý và bản đồ ghim vị trí */
+  .ot-suggest {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 40;
+    max-height: 280px;
+    margin-top: 4px;
+    overflow-y: auto;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-md);
+    background: var(--ot-surface);
+    box-shadow: var(--ot-shadow-2);
+  }
+
+  .ot-suggest button {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    font-weight: 400;
+    text-align: left;
+  }
+
+  .ot-suggest li + li {
+    border-top: 1px solid var(--ot-border);
+  }
+
+  .ot-suggest button:hover {
+    background: var(--ot-surface-2);
+  }
+
+  /* Bản đồ tạo lớp xếp chồng riêng để không đè lên thanh tiêu đề dính khi cuộn */
+  .ot-map-wrap {
+    position: relative;
+    isolation: isolate;
+    z-index: 0;
+  }
+
+  .ot-map {
+    height: 260px;
+    overflow: hidden;
+    border: 1px solid var(--ot-border);
+    border-radius: var(--ot-radius-md);
+    background: var(--ot-surface-2);
+  }
+
+  .ot-map-locate {
+    position: absolute;
+    right: 10px;
+    bottom: 22px;
+    z-index: 500;
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: var(--ot-surface);
+    box-shadow: var(--ot-shadow-2);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .ot-map-msg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    color: var(--ot-text-muted);
+    text-align: center;
+  }
+
+  .ot-map-pin {
+    display: block;
+    width: 30px;
+    height: 30px;
+    border: 3px solid #fff;
+    border-radius: 50% 50% 50% 0;
+    background: var(--ot-primary);
+    box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
+    transform: rotate(-45deg);
+  }
+
   /* Nhóm món theo danh mục; chừa chỗ cho thanh tiêu đề và hàng danh mục khi cuộn tới */
   .ot-menu-section {
     scroll-margin-top: calc(var(--ot-header-h) + var(--ot-safe-top) + 64px);
