@@ -67,9 +67,7 @@ public static class MessagingRegistration
             .ValidateOnStart();
         services.AddHttpClient<ITurnstileVerifier, CloudflareTurnstileVerifier>(c => c.Timeout = TimeSpan.FromSeconds(5));
 
-        // Giao hàng: quãng đường qua Google Routes; chưa có khóa thì báo chưa tính được phí
-        services.AddOptions<MapsOptions>().Bind(configuration.GetSection(MapsOptions.SectionName));
-        services.AddHttpClient<IRouteDistance, GoogleRouteDistance>(c => c.Timeout = TimeSpan.FromSeconds(8));
+        AddMaps(services, configuration);
 
         // Việc định kỳ (docs/srs/20 §4)
         services.AddOptions<JobOptions>()
@@ -80,5 +78,20 @@ public static class MessagingRegistration
         services.AddScoped<IJobRunStore, JobRunStore>();
         services.AddHostedService<RecurringJobWorker>();
         return services;
+    }
+
+    // Giao hàng: quãng đường qua Google Routes khi có khóa; chưa có khóa thì dùng OpenStreetMap (miễn phí)
+    private static void AddMaps(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<MapsOptions>().Bind(configuration.GetSection(MapsOptions.SectionName));
+        services.AddHttpClient<GoogleRouteDistance>(c => c.Timeout = TimeSpan.FromSeconds(8));
+        services.AddHttpClient<OsmRouteDistance>(c =>
+        {
+            c.Timeout = TimeSpan.FromSeconds(8);
+            c.DefaultRequestHeaders.UserAgent.ParseAdd("ObentoTensho/1.0 (+https://obento-tensho.pages.dev)");
+        });
+        services.AddTransient<IRouteDistance>(sp => string.IsNullOrWhiteSpace(sp.GetRequiredService<IOptions<MapsOptions>>().Value.ServerApiKey)
+            ? sp.GetRequiredService<OsmRouteDistance>()
+            : sp.GetRequiredService<GoogleRouteDistance>());
     }
 }

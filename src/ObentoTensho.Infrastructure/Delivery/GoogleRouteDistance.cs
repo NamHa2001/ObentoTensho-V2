@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Caching.Memory;
@@ -68,15 +67,10 @@ internal sealed partial class GoogleRouteDistance(
     }
 
     // "10.7769,106.7009" ⇒ toạ độ; còn lại là địa chỉ để Google tự tìm
-    private static object Waypoint(string value)
-    {
-        var parts = value.Split(',', StringSplitOptions.TrimEntries);
-        return parts.Length == 2
-            && double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var lat)
-            && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var lng)
+    private static object Waypoint(string value) =>
+        LatLng.TryParse(value, out var lat, out var lng)
             ? new { location = new { latLng = new { latitude = lat, longitude = lng } } }
             : new { address = value };
-    }
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Không tính được quãng đường giao hàng (HTTP {Status}).")]
     private static partial void LogFailed(ILogger logger, int status, Exception? exception);
