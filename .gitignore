@@ -49,3 +49,6 @@ mail-pickup/
 # Gói triển khai và cấu hình thật của máy chủ thử
 artifacts/
 appsettings.Staging.json
+
+# Ảnh chụp của npm run verify
+web/.verify/
