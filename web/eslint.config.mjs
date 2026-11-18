@@ -4,7 +4,8 @@ import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
 // Luật riêng của dự án: mỗi lỗi từng gặp thành một luật máy tự bắt, kèm hướng sửa đúng.
-// Chỗ vi phạm có từ trước nằm trong eslint-suppressions.json và được dọn dần; mã mới không được vi phạm thêm.
+// Không còn chỗ vi phạm nào được miễn. Thêm luật mới mà mã cũ chưa đạt thì ghi tạm bằng `npx eslint projects libs --suppress-all`
+// (tạo eslint-suppressions.json), dọn dần rồi chạy `--prune-suppressions`; mã mới không được vi phạm thêm.
 export default defineConfig(
   {
     ignores: ['dist/', '.angular/', 'node_modules/', 'libs/ot-api/schema.d.ts'],
