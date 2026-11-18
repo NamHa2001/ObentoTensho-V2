@@ -1,19 +1,4 @@
 {
-  "projects/admin/src/app/app.routes.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "projects/admin/src/app/core/live.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "projects/admin/src/app/pages/calendar.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 6
-    }
-  },
   "projects/admin/src/app/pages/customers.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 7
@@ -64,29 +49,9 @@
       "count": 15
     }
   },
-  "projects/admin/src/app/pages/settings.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 3
-    }
-  },
-  "projects/admin/src/app/pages/translations.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 4
-    }
-  },
-  "projects/admin/src/app/shared/chart.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "projects/admin/src/app/shared/resource.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 37
-    }
-  },
-  "projects/customer/src/app/core/live.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 1
     }
   }
 }

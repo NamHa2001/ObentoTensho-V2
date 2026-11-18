@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Router, Routes } from '@angular/router';
+import { Route, Router, Routes } from '@angular/router';
 
 import { Auth, authGuard, guestGuard } from './core/auth';
 import { RESOURCES } from './shared/resources';
@@ -7,7 +7,7 @@ import { RESOURCES } from './shared/resources';
 const login = () => import('./pages/login');
 const res = (key: string, cap: string) => ({ path: `r/${key}`, canActivate: [authGuard], data: { cap, resource: RESOURCES[key] }, loadComponent: () => import('./shared/resource').then((m) => m.ResourcePage) });
 // back: trang cha của nút quay lại trên thanh trên cùng (điện thoại)
-const page = (path: string, cap: string | undefined, load: () => Promise<any>, back?: string) => ({ path, canActivate: [authGuard], data: { cap, back }, loadComponent: load });
+const page = (path: string, cap: string | undefined, load: NonNullable<Route['loadComponent']>, back?: string) => ({ path, canActivate: [authGuard], data: { cap, back }, loadComponent: load });
 
 export const routes: Routes = [
   { path: 'login', canActivate: [guestGuard], loadComponent: () => login().then((m) => m.Login) },

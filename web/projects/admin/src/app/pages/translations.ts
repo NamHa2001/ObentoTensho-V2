@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { errorText, Submit } from '../shared/ui';
@@ -30,6 +31,15 @@ const TRANSLATE: TranslateKind[] = [
 ];
 
 const PROGRESS_LABELS: Record<string, string> = { menu_item: 'Món ăn', menu_category: 'Danh mục món', option_group: 'Nhóm tùy chọn', option: 'Tùy chọn', static_page: 'Trang tĩnh', promotion: 'Khuyến mãi', banner: 'Banner', gallery: 'Không gian', news: 'Tin tức' };
+
+type Row = Record<string, unknown>;
+
+// Bản dịch món ăn và nội dung khác nhau ở các trường nội dung, giống nhau ở ngôn ngữ và trạng thái duyệt
+interface Translation extends Row {
+  lang: string;
+  status: string;
+  outdated: boolean;
+}
 
 @Component({
   selector: 'ot-translations',
@@ -69,7 +79,7 @@ export class Translations {
   protected readonly langs = ['en', 'ja'];
   protected readonly kinds = TRANSLATE;
   protected readonly form = new Submit();
-  protected readonly data = signal<Record<string, any>>({});
+  protected readonly data = signal<Record<string, Schemas['TranslationProgressDto']>>({});
   protected readonly kind = signal(TRANSLATE[0]);
   protected readonly rows = signal<{ key: string; name: string }[]>([]);
   protected readonly itemKey = signal<string | null>(null);
@@ -90,7 +100,7 @@ export class Translations {
 
   private loadProgress(): void {
     for (const lang of this.langs) {
-      this.api.get<any>('translations/progress', { lang }).subscribe({ next: (p) => this.data.update((d) => ({ ...d, [lang]: p })), error: () => undefined });
+      this.api.get<Schemas['TranslationProgressDto']>('translations/progress', { lang }).subscribe({ next: (p) => this.data.update((d) => ({ ...d, [lang]: p })), error: () => undefined });
     }
   }
 
@@ -99,9 +109,10 @@ export class Translations {
     this.kind.set(kind);
     this.itemKey.set(null);
     this.rows.set([]);
-    this.api.raw<any[]>(kind.list, { page: 1, pageSize: 50 }).subscribe({
+    // Mỗi loại nội dung có danh sách khác nhau; chỉ đọc trường khoá và tên khai báo trong TRANSLATE
+    this.api.raw<Row[]>(kind.list, { page: 1, pageSize: 50 }).subscribe({
       next: (r) => {
-        const source = kind.flatten ? r.data.flatMap((g) => g.options) : r.data;
+        const source = kind.flatten ? r.data.flatMap((g) => g['options'] as Row[]) : r.data;
         this.rows.set(source.filter((x) => x[kind.name]).map((x) => ({ key: String(x[kind.key ?? 'id']), name: String(x[kind.name]) })));
       },
       error: () => this.rows.set([]),
@@ -132,11 +143,11 @@ export class Translations {
       return;
     }
 
-    this.api.get<any[]>(this.path()).subscribe({
+    this.api.get<Translation[]>(this.path()).subscribe({
       next: (list) => {
         const found = list.find((t) => t.lang === this.lang());
         for (const f of this.kind().fields) {
-          this.model[f.key] = found?.[f.key] ?? '';
+          this.model[f.key] = (found?.[f.key] as string | null | undefined) ?? '';
         }
 
         this.approve = found?.status === 'approved' && !found?.outdated;

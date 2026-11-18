@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { reloadOnLive } from '../core/live';
@@ -78,8 +79,8 @@ export class Calendar {
   protected readonly dayLoader = new Latest();
   protected readonly month = signal(this.now.slice(0, 7));
   protected readonly selected = signal(this.now);
-  protected readonly days = signal<any[]>([]);
-  protected readonly list = signal<any[]>([]);
+  protected readonly days = signal<Schemas['CalendarDayDto'][]>([]);
+  protected readonly list = signal<Schemas['AdminReservationDto'][]>([]);
   protected readonly cells = computed(() => monthCells(this.month()));
   protected readonly title = computed(() => `${this.month().slice(5)}/${this.month().slice(0, 4)}`);
   protected readonly slotsOf = computed(() => this.days().find((d) => d.date === this.selected())?.slots ?? []);
@@ -95,8 +96,8 @@ export class Calendar {
       return null;
     }
 
-    const booked = slots.reduce((sum: number, s: any) => sum + s.bookedCount, 0);
-    const max = slots.reduce((sum: number, s: any) => sum + s.maxReservations, 0);
+    const booked = slots.reduce((sum, s) => sum + s.bookedCount, 0);
+    const max = slots.reduce((sum, s) => sum + s.maxReservations, 0);
     return { booked, max, tone: booked >= max ? 'bad' : booked / max >= 0.7 ? 'warn' : 'good' };
   }
 
@@ -119,12 +120,12 @@ export class Calendar {
 
   private reload(): void {
     const cells = monthCells(this.month()).filter((c) => c !== null);
-    this.loader.run(this.api.get<any[]>('reservations/calendar', { from: cells[0].date, to: cells.at(-1)!.date }), (d) => this.days.set(d));
+    this.loader.run(this.api.get<Schemas['CalendarDayDto'][]>('reservations/calendar', { from: cells[0].date, to: cells.at(-1)!.date }), (d) => this.days.set(d));
     this.loadDay();
   }
 
   private loadDay(): void {
     const date = this.selected();
-    this.dayLoader.run(this.api.raw<any[]>('reservations', { from: date, to: date, page: 1, pageSize: 100 }), (r) => this.list.set(r.data));
+    this.dayLoader.run(this.api.raw<Schemas['AdminReservationDto'][]>('reservations', { from: date, to: date, page: 1, pageSize: 100 }), (r) => this.list.set(r.data));
   }
 }

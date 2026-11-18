@@ -16,13 +16,20 @@ describe('Biểu đồ', () => {
 
   it('biểu đồ một chuỗi không có chú giải, biểu đồ tròn có', () => {
     const points = [{ label: 'A', value: 1 }];
-    expect(chartConfig('line', points, plain, colors).options.plugins.legend.display).toBe(false);
-    expect(chartConfig('doughnut', points, plain, colors).options.plugins.legend.display).toBe(true);
+    expect(chartConfig('line', points, plain, colors).options?.plugins?.legend?.display).toBe(false);
+    expect(chartConfig('doughnut', points, plain, colors).options?.plugins?.legend?.display).toBe(true);
+  });
+
+  it('khung chú thích khi rê chuột hiện đúng giá trị của điểm ở mọi loại biểu đồ', () => {
+    for (const kind of ['line', 'bar', 'hbar', 'doughnut'] as const) {
+      const label = chartConfig(kind, [{ label: 'A', value: 1500 }], plain, colors).options?.plugins?.tooltip?.callbacks?.label as (c: unknown) => string;
+      expect(label({ raw: 1500 })).toBe(plain(1500));
+    }
   });
 
   it('cột ngang đặt trục giá trị theo chiều ngang', () => {
     const config = chartConfig('hbar', [{ label: 'A', value: 1 }], plain, colors);
-    expect(config.options.indexAxis).toBe('y');
-    expect(config.options.scales.x.beginAtZero).toBe(true);
+    expect(config.options?.indexAxis).toBe('y');
+    expect(config.options?.scales?.['x']).toMatchObject({ beginAtZero: true });
   });
 });

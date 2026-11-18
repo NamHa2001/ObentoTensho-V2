@@ -9,7 +9,13 @@ export interface Note {
   link: string;
 }
 
-const NOTIFY: Record<string, ((p: any) => Note) | null> = {
+// Sự kiện tạo mới kèm id và mã của đơn/đặt bàn
+interface Created {
+  id?: string | number;
+  code?: string;
+}
+
+const NOTIFY: Record<string, ((p: Created) => Note) | null> = {
   'order.created': (p) => ({ text: `Đơn mới ${p.code ?? ''}`, link: `/orders/${p.id}` }),
   'reservation.created': (p) => ({ text: `Đặt bàn mới ${p.code ?? ''}`, link: `/reservations/${p.id}` }),
   'contact.created': () => ({ text: 'Tin liên hệ mới', link: '/r/contact-messages' }),
@@ -98,7 +104,7 @@ export class Live {
 
   private handle(name: string, payload: unknown): void {
     this.changes.update((c) => c + 1);
-    const note = NOTIFY[name]?.(payload);
+    const note = NOTIFY[name]?.(payload as Created);
     if (!note) {
       return;
     }

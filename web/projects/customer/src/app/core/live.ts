@@ -3,7 +3,7 @@ import type { HubConnection } from '@microsoft/signalr';
 export interface LiveOptions {
   url: () => Promise<string>;
   events: string[];
-  onEvent: (name: string, payload: any) => void;
+  onEvent: (name: string, payload: unknown) => void;
   // Gọi sau khi nối được: đăng ký theo dõi (nếu có) và đồng bộ lại dữ liệu đã lỡ trong lúc mất kết nối (RT-06)
   onOpen?: (connection: HubConnection, reconnected: boolean) => Promise<unknown>;
   onState?: (connected: boolean) => void;

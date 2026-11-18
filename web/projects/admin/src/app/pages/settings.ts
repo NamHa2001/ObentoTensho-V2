@@ -1,10 +1,13 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { Submit, altOf } from '../shared/ui';
 
 const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán', social: 'Mạng xã hội', payment: 'Thanh toán', reservation: 'Đặt bàn', order: 'Đặt món', delivery: 'Giao hàng', loyalty: 'Điểm thưởng', voucher: 'Voucher', notification: 'Thông báo', email: 'Email', otp: 'Mã OTP', i18n: 'Ngôn ngữ', seo: 'SEO', security: 'Bảo mật', content: 'Nội dung', media: 'Hình ảnh' };
+
+type Setting = Schemas['SettingDto'];
 
 @Component({
   selector: 'ot-settings',
@@ -39,12 +42,12 @@ const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán',
 })
 export class Settings {
   private readonly api = inject(Api);
-  protected readonly items = signal<any[]>([]);
+  protected readonly items = signal<Setting[]>([]);
   protected readonly form = new Submit();
   protected readonly saved = signal(false);
   protected readonly notice = signal<string | null>(null);
   protected readonly groups = computed(() => {
-    const map = new Map<string, any[]>();
+    const map = new Map<string, Setting[]>();
     for (const item of this.items()) {
       const prefix = item.key.split('.')[0];
       map.set(prefix, [...(map.get(prefix) ?? []), item]);
@@ -56,7 +59,7 @@ export class Settings {
   private original: Record<string, string> = {};
 
   constructor() {
-    this.form.run(this.api.get<any[]>('settings'), (s) => {
+    this.form.run(this.api.get<Setting[]>('settings'), (s) => {
       this.items.set(s);
       for (const x of s) this.m[x.key] = x.value ?? '';
       this.original = { ...this.m };

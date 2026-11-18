@@ -1,4 +1,5 @@
 import { Component, DestroyRef, effect, ElementRef, input, signal, viewChild, inject, untracked } from '@angular/core';
+import type { ChartConfiguration, TooltipItem } from 'chart.js';
 import { LucideAngularModule, LucideIconData } from 'lucide-angular';
 
 export interface ChartPoint {
@@ -24,11 +25,11 @@ export function foldSlices(points: ChartPoint[]): ChartPoint[] {
   return [...sorted.slice(0, MAX_SLICES - 1), { label: 'Khác', value: rest }];
 }
 
-export function chartConfig(kind: ChartKind, points: ChartPoint[], format: (v: number) => string, colors: { series: string[]; ink: string; line: string; surface: string }): any {
+export function chartConfig(kind: ChartKind, points: ChartPoint[], format: (v: number) => string, colors: { series: string[]; ink: string; line: string; surface: string }): ChartConfiguration<'line' | 'bar' | 'doughnut'> {
   const data = kind === 'doughnut' ? foldSlices(points) : points;
   const round = kind === 'doughnut';
   const ticks = { color: colors.ink, font: { size: 12 }, maxRotation: 0, autoSkipPadding: 14 };
-  const valueAxis = { beginAtZero: true, grid: { color: colors.line }, border: { display: false }, ticks: { ...ticks, callback: (v: number) => format(v), maxTicksLimit: 6 } };
+  const valueAxis = { beginAtZero: true, grid: { color: colors.line }, border: { display: false }, ticks: { ...ticks, callback: (v: string | number) => format(Number(v)), maxTicksLimit: 6 } };
   const labelAxis = { grid: { display: false }, border: { color: colors.line }, ticks };
   return {
     type: kind === 'hbar' ? 'bar' : kind,
@@ -58,7 +59,7 @@ export function chartConfig(kind: ChartKind, points: ChartPoint[], format: (v: n
       scales: round ? {} : kind === 'hbar' ? { x: valueAxis, y: labelAxis } : { x: labelAxis, y: valueAxis },
       plugins: {
         legend: { display: round, position: 'bottom', labels: { color: colors.ink, boxWidth: 12, boxHeight: 12, padding: 14 } },
-        tooltip: { displayColors: round, callbacks: { label: (c: any) => format(c.parsed.y !== undefined && !round && kind !== 'hbar' ? c.parsed.y : kind === 'hbar' ? c.parsed.x : c.parsed) } },
+        tooltip: { displayColors: round, callbacks: { label: (c: TooltipItem<'line' | 'bar' | 'doughnut'>) => format(Number(c.raw)) } },
       },
     },
   };
