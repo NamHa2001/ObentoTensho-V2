@@ -131,7 +131,7 @@ export class Page {
   async go(path, { reload = false } = {}) {
     if (!this.#loaded || reload) {
       await this.send('Page.navigate', { url: this.base + path });
-      await this.waitFor(`document.readyState === 'complete' && !!document.querySelector('router-outlet')`, `trang ${path} tải xong`);
+      await this.waitFor(`document.readyState !== 'loading' && !!document.querySelector('router-outlet')`, `trang ${path} tải xong`);
       this.#loaded = true;
     } else {
       await this.eval(`history.pushState(null, '', ${JSON.stringify(path)}); dispatchEvent(new PopStateEvent('popstate'))`);
