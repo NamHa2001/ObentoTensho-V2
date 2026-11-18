@@ -2,6 +2,7 @@ import { afterNextRender, Component, computed, HostListener, inject, Injector, s
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Schemas } from '@ot/api';
 import { catchError, map, of } from 'rxjs';
 
 import { Api } from '../core/api';
@@ -10,6 +11,35 @@ import { reloadOnLive } from '../core/live';
 import { Latest, Submit, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
+
+type TableCard = Schemas['DineInTableDto'];
+type Bill = Schemas['DineInBillDto'];
+type Line = Bill['items'][number];
+type Receipt = Schemas['DineInReceiptDto'];
+type MenuItem = Schemas['PublicMenuItemDto'];
+type OptionGroup = Schemas['PublicOptionGroupDto'];
+
+// Bảng chọn tùy chọn cho một món trước khi thêm vào đợt gọi
+interface Picking {
+  item: MenuItem;
+  groups: OptionGroup[];
+  selected: Set<number>;
+  quantity: number;
+}
+
+// Phiếu in: tạm tính lúc khách xem hoặc phiếu thanh toán sau khi thu tiền
+interface Slip {
+  title: string;
+  tableName: string;
+  guestCount: number;
+  code: string;
+  items: Pick<Line, 'id' | 'quantity' | 'name' | 'lineTotal' | 'options'>[];
+  subTotal: number;
+  memberDiscount: number;
+  voucherDiscount: number;
+  totalAmount: number;
+  paymentLabel: string;
+}
 
 const TABLE_STATUS: Record<string, string> = { available: 'Trống', reserved: 'Đã đặt', occupied: 'Có khách', cleaning: 'Đang dọn' };
 
@@ -59,7 +89,7 @@ function clock(utc: string): string {
               <b class="text-lg">{{ t.tableName }}</b>
               @if (t.billId) {
                 <span class="text-sm">{{ t.guestCount }} khách · {{ since(t.openedAtUtc) }} phút</span>
-                <span class="font-semibold">{{ t.subTotal | vnd }}</span>
+                <span class="font-semibold">{{ t.subTotal ?? 0 | vnd }}</span>
                 @if (t.unservedCount > 0) { <span class="a-badge self-start">{{ t.unservedCount }} món chờ bếp</span> }
               } @else {
                 <span class="text-sm">{{ label(t.status) }} · tối đa {{ t.maxCapacity }} khách</span>
@@ -110,18 +140,18 @@ function clock(utc: string): string {
 export class DineIn {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
-  protected readonly tables = signal<any[]>([]);
-  protected readonly counter = signal<any[]>([]);
+  protected readonly tables = signal<TableCard[]>([]);
+  protected readonly counter = signal<Schemas['CounterBillDto'][]>([]);
   protected readonly counterForm = signal(false);
   protected counterName = '';
   protected readonly loaded = signal(false);
-  protected readonly opening = signal<any>(null);
+  protected readonly opening = signal<TableCard | null>(null);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
   protected guests = 2;
   protected note = '';
   protected readonly groups = computed(() => {
-    const byArea = new Map<string, any[]>();
+    const byArea = new Map<string, TableCard[]>();
     for (const t of this.tables()) {
       byArea.set(t.areaName, [...(byArea.get(t.areaName) ?? []), t]);
     }
@@ -135,18 +165,18 @@ export class DineIn {
   }
 
   protected load(): void {
-    this.loader.run(this.api.get<any[]>('dine-in/tables'), (t) => {
+    this.loader.run(this.api.get<TableCard[]>('dine-in/tables'), (t) => {
       this.tables.set(t);
       this.loaded.set(true);
     });
-    this.api.get<any[]>('dine-in/counter').subscribe({ next: (c) => this.counter.set(c), error: () => undefined });
+    this.api.get<Schemas['CounterBillDto'][]>('dine-in/counter').subscribe({ next: (c) => this.counter.set(c), error: () => undefined });
   }
 
   protected label(status: string): string {
     return TABLE_STATUS[status] ?? status;
   }
 
-  protected since(utc: string): number {
+  protected since(utc: string | null): number {
     return minutesSince(utc);
   }
 
@@ -162,13 +192,13 @@ export class DineIn {
   }
 
   protected openCounter(): void {
-    this.form.run(this.api.post<any>('dine-in/counter', { customerName: this.counterName.trim() || null, note: this.note.trim() || null }), (bill) => {
+    this.form.run(this.api.post<Bill>('dine-in/counter', { customerName: this.counterName.trim() || null, note: this.note.trim() || null }), (bill) => {
       this.counterForm.set(false);
       this.openBill(bill.id);
     });
   }
 
-  protected async pick(t: any): Promise<void> {
+  protected async pick(t: TableCard): Promise<void> {
     this.form.error.set(null);
     if (t.billId) {
       void this.router.navigate(['/dine-in', t.billId]);
@@ -188,8 +218,8 @@ export class DineIn {
     this.opening.set(t);
   }
 
-  protected open(t: any): void {
-    this.form.run(this.api.post<any>('dine-in', { tableId: t.tableId, guestCount: Number(this.guests), note: this.note || null }), (bill) => {
+  protected open(t: TableCard): void {
+    this.form.run(this.api.post<Bill>('dine-in', { tableId: t.tableId, guestCount: Number(this.guests), note: this.note || null }), (bill) => {
       this.opening.set(null);
       void this.router.navigate(['/dine-in', bill.id]);
     });
@@ -368,7 +398,7 @@ interface DraftLine {
           <div class="a-drawer-b">
             @for (t of targets(); track t.tableId) {
               <button type="button" class="ot-btn ot-btn-outline justify-between" (click)="mode === 'move' ? move(t) : merge(t)">
-                <span>{{ t.areaName }} · {{ t.tableName }}</span>@if (t.billId) { <span>{{ t.subTotal | vnd }}</span> }
+                <span>{{ t.areaName }} · {{ t.tableName }}</span>@if (t.billId) { <span>{{ t.subTotal ?? 0 | vnd }}</span> }
               </button>
             } @empty { <p class="text-muted">{{ mode === 'move' ? 'Không còn bàn trống.' : 'Không có bàn nào khác đang có khách.' }}</p> }
             @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
@@ -454,24 +484,24 @@ export class DineInBill {
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
-  private readonly details = new Map<string, any>();
+  private readonly details = new Map<string, OptionGroup[]>();
   private nextKey = 1;
-  protected readonly bill = signal<any>(null);
-  protected readonly menu = signal<any[]>([]);
-  protected readonly categories = signal<any[]>([]);
+  protected readonly bill = signal<Bill | null>(null);
+  protected readonly menu = signal<MenuItem[]>([]);
+  protected readonly categories = signal<Schemas['PublicCategoryDto'][]>([]);
   protected readonly activeCat = signal<number | null>(null);
   protected readonly query = signal('');
   private spyFrame = 0;
   private jumpingUntil = 0;
   protected readonly draft = signal<DraftLine[]>([]);
-  protected readonly picking = signal<any>(null);
+  protected readonly picking = signal<Picking | null>(null);
   protected readonly pickError = signal<string | null>(null);
   protected readonly moving = signal<'move' | 'merge' | null>(null);
-  protected readonly targets = signal<any[]>([]);
-  protected readonly paying = signal<any>(null);
-  protected readonly quoted = signal<any>(null);
-  protected readonly receipt = signal<any>(null);
-  protected readonly printing = signal<any>(null);
+  protected readonly targets = signal<TableCard[]>([]);
+  protected readonly paying = signal<Bill | null>(null);
+  protected readonly quoted = signal<Schemas['DineInQuoteDto'] | null>(null);
+  protected readonly receipt = signal<Receipt | null>(null);
+  protected readonly printing = signal<(Slip & { at: string }) | null>(null);
   protected readonly form = new Submit();
   protected readonly quoter = new Submit();
   protected readonly loader = new Latest();
@@ -494,13 +524,13 @@ export class DineInBill {
   // Món chia nhóm theo thứ tự danh mục của thực đơn
   protected readonly groups = computed(() =>
     this.categories()
-      .map((c) => ({ id: c.id as number, name: c.name as string, items: this.menu().filter((m) => m.categoryId === c.id) }))
+      .map((c) => ({ id: c.id, name: c.name, items: this.menu().filter((m) => m.categoryId === c.id) }))
       .filter((g) => g.items.length > 0),
   );
   protected readonly draftCount = computed(() => this.draft().reduce((n, d) => n + d.quantity, 0));
-  protected readonly activeCount = computed(() => (this.bill()?.items ?? []).filter((i: any) => !i.voided).length);
+  protected readonly activeCount = computed(() => (this.bill()?.items ?? []).filter((i) => !i.voided).length);
   protected readonly rounds = computed(() => {
-    const byRound = new Map<number, any[]>();
+    const byRound = new Map<number, Line[]>();
     for (const i of this.bill()?.items ?? []) {
       byRound.set(i.round, [...(byRound.get(i.round) ?? []), i]);
     }
@@ -511,12 +541,12 @@ export class DineInBill {
   constructor() {
     this.load();
     reloadOnLive(() => this.load());
-    this.api.publicGet<any[]>('menu/categories').subscribe({ next: (c) => this.categories.set(c), error: () => undefined });
-    this.api.publicGet<any[]>('menu/items', { pageSize: 100 }).subscribe({ next: (m) => this.menu.set(m), error: () => this.form.error.set('Không tải được thực đơn.') });
+    this.api.publicGet<Schemas['PublicCategoryDto'][]>('menu/categories').subscribe({ next: (c) => this.categories.set(c), error: () => undefined });
+    this.api.publicGet<MenuItem[]>('menu/items', { pageSize: 100 }).subscribe({ next: (m) => this.menu.set(m), error: () => this.form.error.set('Không tải được thực đơn.') });
   }
 
   protected load(): void {
-    this.loader.run(this.api.get<any>(`dine-in/${this.id}`), (b) => this.bill.set(b));
+    this.loader.run(this.api.get<Bill>(`dine-in/${this.id}`), (b) => this.bill.set(b));
   }
 
   protected jumpCat(id: number): void {
@@ -561,31 +591,31 @@ export class DineInBill {
   }
 
   // Món không có tùy chọn thì thêm luôn; có thì mở bảng chọn
-  protected choose(m: any): void {
+  protected choose(m: MenuItem): void {
     const cached = this.details.get(m.slug);
     if (cached) {
       this.pick(m, cached);
       return;
     }
 
-    this.form.run(this.api.publicGet<any>(`menu/items/${m.slug}`).pipe(map((d) => d.optionGroups ?? [])), (groups) => {
+    this.form.run(this.api.publicGet<Schemas['PublicMenuItemDetailDto']>(`menu/items/${m.slug}`).pipe(map((d) => d.optionGroups)), (groups) => {
       this.details.set(m.slug, groups);
       this.pick(m, groups);
     });
   }
 
-  private pick(m: any, groups: any[]): void {
+  private pick(m: MenuItem, groups: OptionGroup[]): void {
     if (groups.length === 0) {
       this.addDraft(m, [], [], 1);
       return;
     }
 
-    const selected = new Set<number>(groups.flatMap((g: any) => g.options.filter((o: any) => o.isDefault && o.status === 'available').map((o: any) => o.id)));
+    const selected = new Set<number>(groups.flatMap((g) => g.options.filter((o) => o.isDefault && o.status === 'available').map((o) => o.id)));
     this.pickError.set(null);
     this.picking.set({ item: m, groups, selected, quantity: 1 });
   }
 
-  protected toggle(p: any, g: any, optionId: number): void {
+  protected toggle(p: Picking, g: OptionGroup, optionId: number): void {
     if (g.selectionType === 'one') {
       for (const o of g.options) {
         p.selected.delete(o.id);
@@ -599,27 +629,27 @@ export class DineInBill {
     }
   }
 
-  protected addPicked(p: any): void {
+  protected addPicked(p: Picking): void {
     for (const g of p.groups) {
-      const count = g.options.filter((o: any) => p.selected.has(o.id)).length;
+      const count = g.options.filter((o) => p.selected.has(o.id)).length;
       if (count < g.minSelect || count > g.maxSelect) {
         this.pickError.set(`Nhóm "${g.name}" cần chọn ${g.minSelect === g.maxSelect ? g.minSelect : `${g.minSelect}–${g.maxSelect}`} lựa chọn.`);
         return;
       }
     }
 
-    const chosen = p.groups.flatMap((g: any) => g.options.filter((o: any) => p.selected.has(o.id)).map((o: any) => ({ g, o })));
+    const chosen = p.groups.flatMap((g) => g.options.filter((o) => p.selected.has(o.id)).map((o) => ({ g, o })));
     this.addDraft(
       p.item,
-      chosen.map((x: any) => x.o.id),
-      chosen.map((x: any) => `${x.g.name}: ${x.o.name}`),
+      chosen.map((x) => x.o.id),
+      chosen.map((x) => `${x.g.name}: ${x.o.name}`),
       Math.min(99, Math.max(1, Number(p.quantity) || 1)),
-      chosen.reduce((sum: number, x: any) => sum + x.o.priceDelta, 0),
+      chosen.reduce((sum, x) => sum + x.o.priceDelta, 0),
     );
     this.picking.set(null);
   }
 
-  private addDraft(m: any, optionIds: number[], options: string[], quantity: number, optionsPrice = 0): void {
+  private addDraft(m: MenuItem, optionIds: number[], options: string[], quantity: number, optionsPrice = 0): void {
     const same = this.draft().find((d) => d.menuItemId === m.id && d.optionIds.join() === optionIds.join() && !d.note);
     if (same) {
       this.bump(same, quantity);
@@ -633,26 +663,26 @@ export class DineInBill {
     this.draft.update((all) => all.map((x) => (x.key === d.key ? { ...x, quantity: Math.min(99, x.quantity + delta) } : x)).filter((x) => x.quantity > 0));
   }
 
-  protected send(b: any): void {
+  protected send(b: Bill): void {
     const items = this.draft().map((d) => ({ menuItemId: d.menuItemId, quantity: d.quantity, optionIds: d.optionIds, note: d.note.trim() || null }));
-    this.form.run(this.api.post<any>(`dine-in/${b.id}/items`, { items }), (bill) => {
+    this.form.run(this.api.post<Bill>(`dine-in/${b.id}/items`, { items }), (bill) => {
       this.bill.set(bill);
       this.draft.set([]);
     });
   }
 
-  protected served(b: any, i: any): void {
-    this.form.run(this.api.post<any>(`dine-in/${b.id}/items/${i.id}/served-at-table`), (bill) => this.bill.set(bill));
+  protected served(b: Bill, i: Line): void {
+    this.form.run(this.api.post<Bill>(`dine-in/${b.id}/items/${i.id}/served-at-table`), (bill) => this.bill.set(bill));
   }
 
-  protected async voidItem(b: any, i: any): Promise<void> {
+  protected async voidItem(b: Bill, i: Line): Promise<void> {
     const reason = await askText(`Lý do hủy "${i.quantity} × ${i.name}"?`);
     if (reason?.trim()) {
-      this.form.run(this.api.post<any>(`dine-in/${b.id}/items/${i.id}/void`, { reason }), (bill) => this.bill.set(bill));
+      this.form.run(this.api.post<Bill>(`dine-in/${b.id}/items/${i.id}/void`, { reason }), (bill) => this.bill.set(bill));
     }
   }
 
-  protected async cancelBill(b: any): Promise<void> {
+  protected async cancelBill(b: Bill): Promise<void> {
     const reason = await askText(`Hủy phiếu ${b.tableName}? Nhập lý do:`);
     if (reason?.trim()) {
       this.form.run(this.api.post(`dine-in/${b.id}/cancel`, { reason }), () => void this.router.navigateByUrl('/dine-in'));
@@ -667,31 +697,31 @@ export class DineInBill {
     this.openTargets('merge', (t) => !!t.billId && t.billId !== this.id);
   }
 
-  private openTargets(mode: 'move' | 'merge', keep: (t: any) => boolean): void {
+  private openTargets(mode: 'move' | 'merge', keep: (t: TableCard) => boolean): void {
     this.form.error.set(null);
-    this.form.run(this.api.get<any[]>('dine-in/tables'), (all) => {
+    this.form.run(this.api.get<TableCard[]>('dine-in/tables'), (all) => {
       this.targets.set(all.filter(keep));
       this.moving.set(mode);
     });
   }
 
-  protected move(t: any): void {
-    this.form.run(this.api.post<any>(`dine-in/${this.id}/move`, { tableId: t.tableId }), (bill) => {
+  protected move(t: TableCard): void {
+    this.form.run(this.api.post<Bill>(`dine-in/${this.id}/move`, { tableId: t.tableId }), (bill) => {
       this.bill.set(bill);
       this.moving.set(null);
     });
   }
 
-  protected async merge(t: any): Promise<void> {
+  protected async merge(t: TableCard): Promise<void> {
     if (await askConfirm(`Gộp ${t.tableName} vào ${this.bill()?.tableName}? Phiếu ${t.tableName} sẽ đóng.`)) {
-      this.form.run(this.api.post<any>(`dine-in/${this.id}/merge`, { fromBillId: t.billId }), (bill) => {
+      this.form.run(this.api.post<Bill>(`dine-in/${this.id}/merge`, { fromBillId: t.billId }), (bill) => {
         this.bill.set(bill);
         this.moving.set(null);
       });
     }
   }
 
-  protected startCheckout(b: any): void {
+  protected startCheckout(b: Bill): void {
     this.form.error.set(null);
     this.pay = { memberPhone: '', voucherCode: '', paymentMethod: 'cash' };
     this.wantInvoice = false;
@@ -702,13 +732,13 @@ export class DineInBill {
     this.quote(b);
   }
 
-  protected quote(b: any): void {
+  protected quote(b: Bill): void {
     this.quoted.set(null);
-    this.quoter.run(this.api.post<any>(`dine-in/${b.id}/quote`, this.payBody()), (q) => this.quoted.set(q));
+    this.quoter.run(this.api.post<Schemas['DineInQuoteDto']>(`dine-in/${b.id}/quote`, this.payBody()), (q) => this.quoted.set(q));
   }
 
-  protected checkout(b: any): void {
-    this.form.run(this.api.post<any>(`dine-in/${b.id}/checkout`, { ...this.payBody(), paymentMethod: this.pay.paymentMethod, invoice: this.wantInvoice ? buyerBody(this.buyer) : null }), (r) => {
+  protected checkout(b: Bill): void {
+    this.form.run(this.api.post<Receipt>(`dine-in/${b.id}/checkout`, { ...this.payBody(), paymentMethod: this.pay.paymentMethod, invoice: this.wantInvoice ? buyerBody(this.buyer) : null }), (r) => {
       this.receipt.set(r);
       this.printReceipt();
     });
@@ -723,20 +753,20 @@ export class DineInBill {
     void this.router.navigateByUrl('/dine-in');
   }
 
-  protected printBill(b: any): void {
-    const items = b.items.filter((i: any) => !i.voided);
+  protected printBill(b: Bill): void {
+    const items = b.items.filter((i) => !i.voided);
     this.print({ title: 'PHIẾU TẠM TÍNH', tableName: b.tableName, guestCount: b.guestCount, code: b.code, items, subTotal: b.subTotal, memberDiscount: 0, voucherDiscount: 0, totalAmount: b.subTotal, paymentLabel: '' });
   }
 
   protected printReceipt(): void {
     const r = this.receipt();
     if (r) {
-      const items = r.items.filter((i: any) => !i.voided);
+      const items = r.items.filter((i) => !i.voided);
       this.print({ ...r, title: 'PHIẾU THANH TOÁN', items, paymentLabel: r.paymentMethod === 'cash' ? 'Đã thu tiền mặt' : 'Đã thu chuyển khoản' });
     }
   }
 
-  private print(p: any): void {
+  private print(p: Slip): void {
     this.printing.set({ ...p, at: new Date().toLocaleString('vi-VN') });
     // In sau khi phiếu đã vẽ ra trang, không in ra trang trắng
     afterNextRender(() => window.print(), { injector: this.injector });

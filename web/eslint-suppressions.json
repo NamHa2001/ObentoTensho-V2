@@ -1,7 +1,2 @@
 {
-  "projects/admin/src/app/pages/dine-in.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 67
-    }
-  }
 }
