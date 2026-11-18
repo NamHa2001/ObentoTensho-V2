@@ -2,7 +2,8 @@ import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray } from '@angular/cdk
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { Schemas } from '@ot/api';
+import { finalize, Observable } from 'rxjs';
 
 import { Api, Params, saveBlob } from '../core/api';
 import { RichEditor } from './rich-editor';
@@ -10,12 +11,15 @@ import { altOf, errorText, Latest, Submit, utcFromVnInput, vnInputFromUtc } from
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { Modal } from '../../../../customer/src/app/shared/modal';
 
+// Một dòng bất kỳ của bảng chung; từng mục trong resources.ts khai báo kiểu dòng thật của API
+export type Row = Record<string, unknown>;
+
 export interface Option {
   value: string | number | boolean | null;
   label: string;
 }
 
-export interface Field {
+export interface Field<T = Row> {
   key: string;
   label: string;
   type?: 'text' | 'textarea' | 'rich' | 'number' | 'bool' | 'date' | 'datetime' | 'time' | 'select' | 'multi' | 'image' | 'email';
@@ -24,17 +28,17 @@ export interface Field {
   required?: boolean;
   default?: unknown;
   // Lấy giá trị từ dòng dữ liệu khi tên trong DTO khác tên gửi lên
-  read?: (row: any) => unknown;
+  read?: (row: T) => unknown;
   createOnly?: boolean;
 }
 
-export interface Action {
+export interface Action<T = Row> {
   label: string;
-  run: (api: Api, row: any, note: string | null) => import('rxjs').Observable<unknown>;
-  when?: (row: any) => boolean;
+  run: (api: Api, row: T, note: string | null) => Observable<unknown>;
+  when?: (row: T) => boolean;
   prompt?: string;
   confirm?: string;
-  link?: (row: any) => unknown[];
+  link?: (row: T) => unknown[];
 }
 
 export interface Tool {
@@ -44,29 +48,47 @@ export interface Tool {
   file?: string;
   message?: string;
   fields?: Field[];
-  toBody?: (model: any) => unknown;
+  toBody?: (model: Row) => unknown;
 }
 
-export interface Resource {
+// Tên cột phải là trường có thật trong dòng dữ liệu
+export interface Column<T = Row> {
+  key: Extract<keyof T, string>;
+  label: string;
+  map?: (row: T) => unknown;
+  thumb?: (row: T) => string | null | undefined;
+}
+
+export interface Resource<T = Row> {
   title: string;
   path: string;
   id?: string;
   paged?: boolean;
-  columns: { key: string; label: string; map?: (row: any) => unknown; thumb?: (row: any) => string | null | undefined }[];
-  fields?: Field[];
+  columns: Column<T>[];
+  fields?: Field<T>[];
   canCreate?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
   // Danh sách thiếu cột: lấy bản đầy đủ khi mở form sửa
   detail?: boolean;
-  actions?: Action[];
+  actions?: Action<T>[];
   filters?: Field[];
-  toBody?: (model: any) => unknown;
+  toBody?: (model: Row) => unknown;
   // Dòng luôn có dù CSDL chưa có bản ghi (vd trang tĩnh chưa viết); bản ghi thật đè lên theo khóa
-  seedRows?: any[];
+  seedRows?: Partial<T>[];
   tools?: Tool[];
   // API có PATCH {path}/reorder
   reorder?: boolean;
+}
+
+// Khai báo một mục kèm kiểu dòng thật của API để tên cột và các hàm đọc dòng được kiểm tra;
+// màn hình chung chỉ cần biết dòng là bản ghi nên đổi về Resource<Row> tại đây
+export function resource<T>(config: Resource<T>): Resource {
+  return config as unknown as Resource;
+}
+
+function text(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
 }
 
 const NULLABLE = new Set(['text', 'textarea', 'rich', 'date', 'datetime', 'time', 'number', 'select', 'image', 'email']);
@@ -176,9 +198,9 @@ function display(value: unknown): string {
                   @switch (f.type) {
                     @case ('bool') { <label class="flex min-h-7 items-center gap-2"><input type="checkbox" [name]="f.key" [(ngModel)]="m[f.key]" /> {{ f.label }}</label> }
                     @case ('textarea') { <label>{{ f.label }}<textarea class="ot-input" rows="6" [name]="f.key" [(ngModel)]="m[f.key]"></textarea></label> }
-                    @case ('rich') { <p>{{ f.label }}</p><ot-rich-editor class="mt-1 block" [label]="f.label" [value]="m[f.key]" (valueChange)="m[f.key] = $event" /> }
+                    @case ('rich') { <p>{{ f.label }}</p><ot-rich-editor class="mt-1 block" [label]="f.label" [value]="asText(m[f.key])" (valueChange)="m[f.key] = $event" /> }
                     @case ('select') { <label>{{ f.label }}<select class="ot-input" [name]="f.key" [(ngModel)]="m[f.key]" [required]="!!f.required">@if (!f.required) { <option [ngValue]="null">—</option> }@for (o of optionsOf(f); track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }</select></label> }
-                    @case ('multi') { <fieldset><legend>{{ f.label }}</legend><div class="mt-1 grid grid-cols-2 gap-2">@for (o of optionsOf(f); track o.value) { <label class="flex items-center gap-2 font-normal"><input type="checkbox" [name]="f.key + o.value" [ngModel]="m[f.key]?.includes(o.value)" (ngModelChange)="toggle(m, f.key, o.value, $event)" /> {{ o.label }}</label> }</div></fieldset> }
+                    @case ('multi') { <fieldset><legend>{{ f.label }}</legend><div class="mt-1 grid grid-cols-2 gap-2">@for (o of optionsOf(f); track o.value) { <label class="flex items-center gap-2 font-normal"><input type="checkbox" [name]="f.key + o.value" [ngModel]="checked(m, f.key, o.value)" (ngModelChange)="toggle(m, f.key, o.value, $event)" /> {{ o.label }}</label> }</div></fieldset> }
                     @case ('image') {
                       <label>{{ f.label }}<input class="ot-input" type="file" accept="image/*" (change)="upload($event, m, f.key)" /></label>
                       @if (m[f.key]) { <p class="mt-1 text-sm text-muted">Đã có ảnh</p> @if (previews()[f.key]; as src) { <img class="mt-1 h-24 rounded-sm" [src]="src" alt="" /> } }
@@ -202,16 +224,16 @@ export class ResourcePage {
   readonly resource = input<Resource | null>(null);
   private readonly routeConfig = inject(ActivatedRoute, { optional: true });
   protected readonly config = signal<Resource | null>(null);
-  protected readonly rows = signal<any[]>([]);
+  protected readonly rows = signal<Row[]>([]);
   protected readonly total = signal(0);
   protected readonly page = signal(1);
   protected readonly filter = signal<Params>({});
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
-  protected readonly editing = signal<Record<string, any> | null>(null);
+  protected readonly editing = signal<Row | null>(null);
   protected readonly previews = signal<Record<string, string>>({});
   protected readonly uploading = signal(false);
-  protected readonly menu = signal<{ row: any; top: number; right: number } | null>(null);
+  protected readonly menu = signal<{ row: Row; top: number; right: number } | null>(null);
   protected readonly lookups = signal<Record<string, Option[]>>({});
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
@@ -238,7 +260,7 @@ export class ResourcePage {
     for (const f of [...(r.fields ?? []), ...(r.filters ?? [])]) {
       if (f.optionsFrom) {
         const from = f.optionsFrom;
-        this.api.raw<any[]>(from.path, { pageSize: 100 }).subscribe({ next: (x) => this.lookups.update((l) => ({ ...l, [f.key]: x.data.map((i) => ({ value: i[from.value], label: i[from.label] })) })), error: () => undefined });
+        this.api.raw<Row[]>(from.path, { pageSize: 100 }).subscribe({ next: (x) => this.lookups.update((l) => ({ ...l, [f.key]: x.data.map((i) => ({ value: i[from.value] as Option['value'], label: String(i[from.label]) })) })), error: () => undefined });
       }
     }
   }
@@ -248,8 +270,8 @@ export class ResourcePage {
     if (!c) return;
     this.loading.set(true);
     this.error.set(null);
-    this.loader.run(this.api.raw<any>(c.path, { ...this.filter(), ...(c.paged ? { page: this.page(), pageSize: this.pageSize } : {}) }).pipe(finalize(() => this.loading.set(false))), (r) => {
-        const rows: any[] = Array.isArray(r.data) ? r.data : [];
+    this.loader.run(this.api.raw<Row[]>(c.path, { ...this.filter(), ...(c.paged ? { page: this.page(), pageSize: this.pageSize } : {}) }).pipe(finalize(() => this.loading.set(false))), (r) => {
+        const rows = Array.isArray(r.data) ? r.data : [];
         const key = c.id ?? 'id';
         this.rows.set(c.seedRows ? c.seedRows.map((seed) => rows.find((x) => x[key] === seed[key]) ?? seed) : rows);
         this.total.set(r.meta?.total ?? 0);
@@ -263,7 +285,7 @@ export class ResourcePage {
     } else if (t.kind === 'reason') {
       void this.reasonTool(t);
     } else {
-      const model: Record<string, any> = { __tool: t.label, __toolRef: t };
+      const model: Row = { __tool: t.label, __toolRef: t };
       for (const f of t.fields ?? []) {
         model[f.key] = f.default !== undefined ? f.default : f.type === 'bool' ? false : null;
       }
@@ -289,13 +311,13 @@ export class ResourcePage {
       const data = new FormData();
       data.append('file', file);
       this.notice.set(null);
-      this.api.post<any>(t.path, data).subscribe({ next: (report) => void this.confirmImport(report, data, t), error: (e: unknown) => this.error.set(errorText(e)) });
+      this.api.post<Schemas['MenuImportReport']>(t.path, data).subscribe({ next: (report) => void this.confirmImport(report, data, t), error: (e: unknown) => this.error.set(errorText(e)) });
     }
   }
 
-  private async confirmImport(report: any, data: FormData, t: Tool): Promise<void> {
+  private async confirmImport(report: Schemas['MenuImportReport'], data: FormData, t: Tool): Promise<void> {
     if (report.failed > 0) {
-      const lines = report.rows.filter((r: any) => r.errors.length > 0).slice(0, 5).map((r: any) => `Dòng ${r.row}: ${r.errors.map((e: any) => e.column).join(', ')}`);
+      const lines = report.rows.filter((r) => r.errors.length > 0).slice(0, 5).map((r) => `Dòng ${r.row}: ${r.errors.map((e) => e.column).join(', ')}`);
       this.error.set(`Tệp có ${report.failed} dòng lỗi, chưa ghi gì. ${lines.join('; ')}`);
       return;
     }
@@ -322,8 +344,8 @@ export class ResourcePage {
     this.load();
   }
 
-  protected cell(col: Resource['columns'][number], row: any): string {
-    return display(col.map ? col.map(row) : col.key === 'status' ? (STATUS_TEXT[row.status] ?? row.status) : row[col.key]);
+  protected cell(col: Column, row: Row): string {
+    return display(col.map ? col.map(row) : col.key === 'status' ? (STATUS_TEXT[String(row['status'])] ?? row['status']) : row[col.key]);
   }
 
   protected hasActions(c: Resource): boolean {
@@ -331,7 +353,7 @@ export class ResourcePage {
   }
 
   // Trạng thái và giá trị có/không hiện dạng nhãn màu
-  protected tone(col: Resource['columns'][number], row: any): 'good' | 'warn' | 'bad' | 'plain' | null {
+  protected tone(col: Column, row: Row): 'good' | 'warn' | 'bad' | 'plain' | null {
     const value = row[col.key];
     if (typeof value === 'boolean') {
       return value ? 'good' : 'plain';
@@ -341,6 +363,8 @@ export class ResourcePage {
       return null;
     }
 
+    if (typeof value !== 'string') return 'plain';
+
     if (['available', 'approved', 'published', 'finished', 'ready', 'active'].includes(value)) return 'good';
     if (['pending', 'draft', 'sold_out', 'scheduled', 'sending', 'queued', 'reserved', 'cleaning'].includes(value)) return 'warn';
     if (['rejected', 'cancelled', 'expired', 'occupied'].includes(value)) return 'bad';
@@ -348,7 +372,7 @@ export class ResourcePage {
   }
 
   // Đặt theo màn hình để không bị khung cuộn của bảng cắt mất; gần đáy thì mở lên trên
-  protected openMenu(event: MouseEvent, row: any): void {
+  protected openMenu(event: MouseEvent, row: Row): void {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const height = 40 * (2 + (this.config()?.actions?.length ?? 0)) + 12;
     const top = rect.bottom + height + 8 > innerHeight ? Math.max(8, rect.top - height - 4) : rect.bottom + 4;
@@ -363,18 +387,27 @@ export class ResourcePage {
     return f.type === 'datetime' ? 'datetime-local' : (f.type ?? 'text');
   }
 
-  protected visibleFields(m: Record<string, any>): Field[] {
+  protected asText(value: unknown): string | null {
+    return text(value);
+  }
+
+  protected checked(m: Row, key: string, value: unknown): boolean {
+    const current = m[key];
+    return Array.isArray(current) && current.includes(value);
+  }
+
+  protected visibleFields(m: Row): Field[] {
     const tool = m['__toolRef'] as Tool | undefined;
     return tool?.fields ?? (this.config()?.fields ?? []).filter((f) => !f.createOnly || m['__id'] === undefined);
   }
 
-  protected toggle(m: Record<string, any>, key: string, value: unknown, on: boolean): void {
-    const current: unknown[] = m[key] ?? [];
+  protected toggle(m: Row, key: string, value: unknown, on: boolean): void {
+    const current: unknown[] = Array.isArray(m[key]) ? m[key] : [];
     m[key] = on ? [...current, value] : current.filter((v) => v !== value);
   }
 
   protected create(): void {
-    const model: Record<string, any> = {};
+    const model: Row = {};
     for (const f of this.config()?.fields ?? []) {
       model[f.key] = f.default !== undefined ? f.default : f.type === 'bool' ? false : f.type === 'multi' ? [] : null;
     }
@@ -384,18 +417,18 @@ export class ResourcePage {
     this.editing.set(model);
   }
 
-  protected edit(row: any): void {
+  protected edit(row: Row): void {
     const c = this.config() as Resource;
     const id = row[c.id ?? 'id'];
     if (c.detail) {
-      this.api.get<any>(`${c.path}/${id}`).subscribe({ next: (full) => this.open({ ...row, ...full }, id), error: (e: { status?: number }) => (c.seedRows && e.status === 404 ? this.open(row, id) : this.error.set(errorText(e))) });
+      this.api.get<Row>(`${c.path}/${id}`).subscribe({ next: (full) => this.open({ ...row, ...full }, id), error: (e: { status?: number }) => (c.seedRows && e.status === 404 ? this.open(row, id) : this.error.set(errorText(e))) });
     } else {
       this.open(row, id);
     }
   }
 
-  private open(row: any, id: unknown): void {
-    const model: Record<string, any> = { __id: id, __version: row.version };
+  private open(row: Row, id: unknown): void {
+    const model: Row = { __id: id, __version: row['version'] };
     for (const f of this.config()?.fields ?? []) {
       let v = f.read ? f.read(row) : row[f.key];
       if (f.type === 'datetime' && typeof v === 'string') v = vnInputFromUtc(v);
@@ -408,7 +441,7 @@ export class ResourcePage {
     this.editing.set(model);
   }
 
-  protected upload(event: Event, m: Record<string, any>, key: string): void {
+  protected upload(event: Event, m: Row, key: string): void {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const data = new FormData();
@@ -431,20 +464,20 @@ export class ResourcePage {
 
   protected save(): void {
     const c = this.config() as Resource;
-    const m = this.editing() as Record<string, any>;
+    const m = this.editing() as Row;
     const tool = m['__toolRef'] as Tool | undefined;
-    const body: Record<string, any> = {};
+    const body: Row = {};
     for (const f of tool?.fields ?? c.fields ?? []) {
       let v = m[f.key];
       if (v === '' && NULLABLE.has(f.type ?? 'text')) v = null;
       if (f.type === 'number' && v !== null) v = Number(v);
-      if (f.type === 'datetime') v = utcFromVnInput(v);
+      if (f.type === 'datetime') v = utcFromVnInput(text(v));
       if (f.createOnly && m['__id'] !== undefined) continue;
       body[f.key] = v;
     }
 
     if (tool) {
-      this.form.run(this.api.post<any>(tool.path, tool.toBody ? tool.toBody(body) : body), (r) => {
+      this.form.run(this.api.post<Partial<Schemas['BulkGenerateResultDto']> | null>(tool.path, tool.toBody ? tool.toBody(body) : body), (r) => {
         this.editing.set(null);
         this.notice.set(r?.count ? `Đã tạo ${r.count} mã.` : 'Đã xong.');
         this.load();
@@ -453,7 +486,7 @@ export class ResourcePage {
     }
 
     const payload = c.toBody ? c.toBody(body) : body;
-    const request = m['__id'] === undefined ? this.api.post(c.path, payload) : this.api.put(`${c.path}/${m['__id']}`, payload, m['__version']);
+    const request = m['__id'] === undefined ? this.api.post(c.path, payload) : this.api.put(`${c.path}/${m['__id']}`, payload, text(m['__version']));
     this.form.run(request, () => {
       this.editing.set(null);
       this.load();
@@ -465,7 +498,7 @@ export class ResourcePage {
     const rows = [...this.rows()];
     moveItemInArray(rows, event.previousIndex, event.currentIndex);
     this.rows.set(rows);
-    this.api.patch(`${c.path}/reorder`, { ids: rows.map((r) => r.id) }).subscribe({
+    this.api.patch(`${c.path}/reorder`, { ids: rows.map((r) => r['id']) }).subscribe({
       error: (e: unknown) => {
         this.error.set(errorText(e));
         this.load();
@@ -473,14 +506,14 @@ export class ResourcePage {
     });
   }
 
-  protected async remove(row: any): Promise<void> {
+  protected async remove(row: Row): Promise<void> {
     const c = this.config() as Resource;
     if (await askConfirm('Bạn chắc chắn muốn xóa?')) {
-      this.api.delete(`${c.path}/${row[c.id ?? 'id']}`, row.version).subscribe({ next: () => this.load(), error: (e: unknown) => this.error.set(errorText(e)) });
+      this.api.delete(`${c.path}/${row[c.id ?? 'id']}`, text(row['version'])).subscribe({ next: () => this.load(), error: (e: unknown) => this.error.set(errorText(e)) });
     }
   }
 
-  protected async act(a: Action, row: any): Promise<void> {
+  protected async act(a: Action, row: Row): Promise<void> {
     let note: string | null = null;
     if (a.prompt) {
       note = await askText(a.prompt);

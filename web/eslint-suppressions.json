@@ -3,10 +3,5 @@
     "@typescript-eslint/no-explicit-any": {
       "count": 67
     }
-  },
-  "projects/admin/src/app/shared/resource.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 37
-    }
   }
 }
