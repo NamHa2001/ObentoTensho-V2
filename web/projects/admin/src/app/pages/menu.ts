@@ -1,10 +1,18 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { altOf, Submit } from '../shared/ui';
 import { askConfirm } from '../../../../customer/src/app/core/dialog';
+
+type Group = Schemas['AdminOptionGroupDto'];
+type Option = Schemas['AdminOptionDto'];
+type Image = Schemas['ImageDto'];
+// Ô sửa: nhóm/tùy chọn mới chưa có id, phiên bản, thứ tự
+type GroupDraft = Omit<Group, 'id' | 'version' | 'displayOrder' | 'options'> & Partial<Pick<Group, 'id' | 'version'>>;
+type OptionDraft = Omit<Option, 'id' | 'version' | 'displayOrder'> & Partial<Pick<Option, 'id' | 'version'>>;
 
 @Component({
   selector: 'ot-option-groups',
@@ -43,27 +51,27 @@ import { askConfirm } from '../../../../customer/src/app/core/dialog';
 export class OptionGroups {
   private readonly api = inject(Api);
   protected readonly form = new Submit();
-  protected readonly groups = signal<any[]>([]);
-  protected readonly group = signal<any>(null);
-  protected readonly option = signal<any>(null);
+  protected readonly groups = signal<Group[]>([]);
+  protected readonly group = signal<GroupDraft | null>(null);
+  protected readonly option = signal<OptionDraft | null>(null);
 
   constructor() {
     this.load();
   }
 
   private load(): void {
-    this.form.run(this.api.get<any[]>('menu/option-groups'), (g) => this.groups.set(g));
+    this.form.run(this.api.get<Group[]>('menu/option-groups'), (g) => this.groups.set(g));
   }
 
   protected newGroup(): void {
     this.group.set({ name: '', selectionType: 'one', isRequired: true, minSelect: 1, maxSelect: 1, isActive: true });
   }
 
-  protected editGroup(g: any): void {
+  protected editGroup(g: Group): void {
     this.group.set({ ...g });
   }
 
-  protected saveGroup(m: any): void {
+  protected saveGroup(m: GroupDraft): void {
     const body = { name: m.name, selectionType: m.selectionType, isRequired: m.isRequired, minSelect: Number(m.minSelect), maxSelect: Number(m.maxSelect), isActive: m.isActive };
     this.form.run(m.id ? this.api.put(`menu/option-groups/${m.id}`, body, m.version) : this.api.post('menu/option-groups', body), () => {
       this.group.set(null);
@@ -71,19 +79,19 @@ export class OptionGroups {
     });
   }
 
-  protected async removeGroup(g: any): Promise<void> {
+  protected async removeGroup(g: Group): Promise<void> {
     if (await askConfirm('Xóa nhóm này?')) this.form.run(this.api.delete(`menu/option-groups/${g.id}`, g.version), () => this.load());
   }
 
-  protected newOption(g: any): void {
+  protected newOption(g: Group): void {
     this.option.set({ groupId: g.id, name: '', priceDelta: 0, isDefault: false, status: 'available', allergens: [] });
   }
 
-  protected editOption(o: any): void {
+  protected editOption(o: Option): void {
     this.option.set({ ...o });
   }
 
-  protected saveOption(m: any): void {
+  protected saveOption(m: OptionDraft): void {
     const body = { name: m.name, priceDelta: Number(m.priceDelta), isDefault: m.isDefault, status: m.status, allergens: m.allergens ?? [] };
     this.form.run(m.id ? this.api.put(`menu/options/${m.id}`, body, m.version) : this.api.post(`menu/option-groups/${m.groupId}/options`, body), () => {
       this.option.set(null);
@@ -91,7 +99,7 @@ export class OptionGroups {
     });
   }
 
-  protected async removeOption(o: any): Promise<void> {
+  protected async removeOption(o: Option): Promise<void> {
     if (await askConfirm('Xóa tùy chọn này?')) this.form.run(this.api.delete(`menu/options/${o.id}`, o.version), () => this.load());
   }
 }
@@ -118,7 +126,7 @@ export class ItemImages {
   private readonly api = inject(Api);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly form = new Submit();
-  protected readonly all = signal<any[]>([]);
+  protected readonly all = signal<Image[]>([]);
   protected readonly main = signal<string | null>(null);
 
   constructor() {
@@ -126,13 +134,13 @@ export class ItemImages {
   }
 
   private load(): void {
-    this.form.run(this.api.get<any>(`menu/items/${this.id}/images`), (d) => {
+    this.form.run(this.api.get<Schemas['MenuItemImagesDto']>(`menu/items/${this.id}/images`), (d) => {
       this.main.set(d.mainImage?.id ?? null);
-      this.all.set([...(d.mainImage ? [d.mainImage] : []), ...d.images.filter((i: any) => i.id !== d.mainImage?.id)]);
+      this.all.set([...(d.mainImage ? [d.mainImage] : []), ...d.images.filter((i) => i.id !== d.mainImage?.id)]);
     });
   }
 
-  protected url(i: any): string {
+  protected url(i: Image): string {
     return i.variants?.at(-1)?.url ?? '';
   }
 
@@ -154,6 +162,6 @@ export class ItemImages {
     const data = new FormData();
     data.append('file', file);
     data.append('altText', altOf(file));
-    this.form.run(this.api.post<any>('images', data), (image) => this.save(this.main() ?? image.id, [...this.all().map((i) => i.id), image.id]));
+    this.form.run(this.api.post<Image>('images', data), (image) => this.save(this.main() ?? image.id, [...this.all().map((i) => i.id), image.id]));
   }
 }

@@ -4,11 +4,6 @@
       "count": 67
     }
   },
-  "projects/admin/src/app/pages/menu.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
   "projects/admin/src/app/shared/resource.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 37
