@@ -8,6 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "eslint projects libs",
+    "audit:check": "node scripts/audit.mjs",
     "serve:ssr:customer": "node dist/customer/server/server.mjs",
     "api:types": "openapi-typescript libs/ot-api/openapi.json -o libs/ot-api/schema.d.ts"
   },

@@ -72,8 +72,8 @@ jobs:
         run: npx ng test customer --watch=false
       - name: Test admin
         run: npx ng test admin --watch=false
-      - name: Gói npm có lỗ hổng mức High trở lên
-        run: npm audit --audit-level=high
+      - name: Gói npm có lỗ hổng mức High trở lên (trừ miễn trừ còn hạn trong audit-exceptions.json)
+        run: npm run audit:check
 
   secrets:
     name: Quét bí mật

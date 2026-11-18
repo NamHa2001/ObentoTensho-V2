@@ -1,0 +1,8 @@
+[
+  {
+    "id": "GHSA-fc5q-39xc-vjpf",
+    "package": "picomatch",
+    "until": "2026-12-31",
+    "reason": "ReDoS khi nhận mẫu tên tệp do người ngoài đưa vào. picomatch chỉ nằm trong công cụ build/test (Angular CLI, vitest, ESLint) và chỉ nhận mẫu do dự án tự viết; trang web chạy thật không chứa gói này. Chưa có bản vá (mới nhất 4.0.7 vẫn dính)."
+  }
+]
