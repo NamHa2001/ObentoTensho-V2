@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { ChevronRight, LucideAngularModule, TicketPercent, X } from 'lucide-angular';
-import { map } from 'rxjs';
 
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';

@@ -38,6 +38,7 @@ const PHOTON = 'https://photon.komoot.io';
         placeholder="Số nhà, đường, phường/xã, quận/huyện"
         role="combobox"
         aria-autocomplete="list"
+        aria-controls="ot-address-suggest"
         [attr.aria-expanded]="open() && suggestions().length > 0"
         [ngModel]="address()"
         (ngModelChange)="type($event)"
@@ -46,7 +47,7 @@ const PHOTON = 'https://photon.komoot.io';
         (keydown.escape)="open.set(false)"
       />
       @if (open() && suggestions().length > 0) {
-        <ul class="ot-suggest" role="listbox" aria-label="Địa chỉ gợi ý">
+        <ul id="ot-address-suggest" class="ot-suggest" role="listbox" aria-label="Địa chỉ gợi ý">
           @for (s of suggestions(); track $index) {
             <li role="option" [attr.aria-selected]="false">
               <button type="button" (mousedown)="$event.preventDefault()" (click)="choose(s)"><lucide-icon class="shrink-0 text-primary" [img]="icons.pin" [size]="16" /><span>{{ s.label }}</span></button>
@@ -87,6 +88,7 @@ export class AddressPicker {
   private leaflet: Leaflet | null = null;
   private view: LeafletMap | null = null;
   private marker: LeafletMarker | null = null;
+  private resize: ResizeObserver | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -103,7 +105,10 @@ export class AddressPicker {
         .then((leaflet) => this.draw(leaflet))
         .catch(() => this.failed.set(true));
     });
-    destroyRef.onDestroy(() => this.view?.remove());
+    destroyRef.onDestroy(() => {
+      this.resize?.disconnect();
+      this.view?.remove();
+    });
 
     // Toạ độ quán tải xong sau khi bản đồ đã mở thì dời về quán (khi khách chưa ghim)
     effect(() => {
@@ -164,8 +169,9 @@ export class AddressPicker {
       this.place(pin);
     }
 
-    // Bản đồ nằm trong khung vừa hiện ra: đo lại kích thước sau khi bố cục ổn định
-    setTimeout(() => this.view?.invalidateSize(), 200);
+    // Khung bản đồ vừa hiện ra hoặc đổi cỡ (xoay màn hình, mở phần giao hàng) thì Leaflet đo lại để không bị ô xám
+    this.resize = new ResizeObserver(() => this.view?.invalidateSize());
+    this.resize.observe(this.host().nativeElement);
   }
 
   private place(pin: Pin, zoom?: number): void {
@@ -195,6 +201,7 @@ export class AddressPicker {
     const house = /^(?:số\s*)?(\d+[\w/-]*)\s+(.{3,})$/iu.exec(q);
     const text = house ? house[2] : q;
     const url = `${PHOTON}/api/?q=${encodeURIComponent(text)}&limit=6&lang=default&lat=${near.lat}&lon=${near.lng}&bbox=102,8,110,24`;
+    // eslint-disable-next-line no-restricted-globals -- dịch vụ gợi ý địa chỉ bên ngoài (Photon), không phải API của quán
     return from(fetch(url).then((r) => (r.ok ? r.json() : { features: [] }))).pipe(
       map((body: { features?: PhotonFeature[] }) => {
         const list = (body.features ?? [])
@@ -210,6 +217,7 @@ export class AddressPicker {
   }
 
   private reverse(pin: Pin): void {
+    // eslint-disable-next-line no-restricted-globals -- dịch vụ đổi toạ độ ra địa chỉ bên ngoài (Photon)
     fetch(`${PHOTON}/reverse?lang=default&lat=${pin.lat}&lon=${pin.lng}`)
       .then((r) => (r.ok ? r.json() : { features: [] }))
       .then((body: { features?: PhotonFeature[] }) => {

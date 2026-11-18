@@ -149,25 +149,11 @@
     },
     "@angular-eslint/template/interactive-supports-focus": {
       "count": 1
-    },
-    "@typescript-eslint/no-unused-vars": {
-      "count": 1
     }
   },
   "projects/customer/src/app/shared/add-to-cart.ts": {
     "@angular-eslint/template/click-events-have-key-events": {
       "count": 2
-    }
-  },
-  "projects/customer/src/app/shared/address-picker.ts": {
-    "@angular-eslint/template/role-has-required-aria": {
-      "count": 1
-    },
-    "no-restricted-globals": {
-      "count": 2
-    },
-    "no-restricted-syntax": {
-      "count": 1
     }
   },
   "projects/customer/src/app/shared/lightbox.ts": {
