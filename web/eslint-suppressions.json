@@ -9,14 +9,6 @@
       "count": 1
     }
   },
-  "projects/admin/src/app/layout/shell.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 1
-    },
-    "@angular-eslint/template/interactive-supports-focus": {
-      "count": 1
-    }
-  },
   "projects/admin/src/app/pages/calendar.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 6
@@ -83,9 +75,6 @@
     }
   },
   "projects/admin/src/app/pages/translations.ts": {
-    "@angular-eslint/template/label-has-associated-control": {
-      "count": 1
-    },
     "@typescript-eslint/no-explicit-any": {
       "count": 4
     }
@@ -96,52 +85,12 @@
     }
   },
   "projects/admin/src/app/shared/resource.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 1
-    },
-    "@angular-eslint/template/interactive-supports-focus": {
-      "count": 1
-    },
     "@typescript-eslint/no-explicit-any": {
       "count": 37
     }
   },
-  "projects/customer/src/app/core/dialog.ts": {
-    "@angular-eslint/template/no-autofocus": {
-      "count": 1
-    }
-  },
   "projects/customer/src/app/core/live.ts": {
     "@typescript-eslint/no-explicit-any": {
-      "count": 1
-    }
-  },
-  "projects/customer/src/app/pages/account/account.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 2
-    },
-    "@angular-eslint/template/interactive-supports-focus": {
-      "count": 1
-    }
-  },
-  "projects/customer/src/app/pages/order/checkout.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 2
-    },
-    "@angular-eslint/template/interactive-supports-focus": {
-      "count": 1
-    }
-  },
-  "projects/customer/src/app/shared/add-to-cart.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 2
-    }
-  },
-  "projects/customer/src/app/shared/lightbox.ts": {
-    "@angular-eslint/template/click-events-have-key-events": {
-      "count": 2
-    },
-    "@angular-eslint/template/interactive-supports-focus": {
       "count": 1
     }
   }

@@ -1,4 +1,4 @@
-import { Component, computed, effect, HostListener, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -10,6 +10,7 @@ import { Auth } from '../../core/auth';
 import { Cart } from '../../core/cart';
 import { AddressPicker, Pin } from '../../shared/address-picker';
 import { Submit } from '../../shared/form';
+import { Modal } from '../../shared/modal';
 import { addDays, localPhone, today, VnDatePipe } from '../../shared/format';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../shared/invoice-form';
 import { discountShort, discountTerms, VOUCHER_REASON, VOUCHER_SOURCE, VoucherOption } from '../../shared/voucher';
@@ -20,7 +21,7 @@ const MAX_AUTO_DAYS = 14;
 
 @Component({
   selector: 'ot-checkout',
-  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule, InvoiceForm, AddressPicker],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule, InvoiceForm, AddressPicker, Modal],
   template: `
     <div class="ot-page-split">
       <h1>Thanh toán</h1>
@@ -125,8 +126,8 @@ const MAX_AUTO_DAYS = 14;
     </div>
 
     @if (picker()) {
-      <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Chọn mã giảm giá" (click)="picker.set(false)">
-        <div class="ot-sheet" (click)="$event.stopPropagation()">
+      <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Chọn mã giảm giá" otModal (dismiss)="picker.set(false)">
+        <div class="ot-sheet">
           <div class="ot-sheet-head">
             <p class="font-heading text-lg font-extrabold">Chọn mã giảm giá</p>
             <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="picker.set(false)"><lucide-icon [img]="icons.close" [size]="22" /></button>
@@ -319,11 +320,6 @@ export class Checkout {
   protected removeVoucher(): void {
     this.applied.set(null);
     this.appliedCode.set('');
-  }
-
-  @HostListener('document:keydown.escape')
-  protected escape(): void {
-    this.picker.set(false);
   }
 
   protected submit(): void {

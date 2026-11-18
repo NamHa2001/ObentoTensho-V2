@@ -8,6 +8,7 @@ import { Api, Params, saveBlob } from '../core/api';
 import { RichEditor } from './rich-editor';
 import { altOf, errorText, Latest, Submit, utcFromVnInput, vnInputFromUtc } from './ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
+import { Modal } from '../../../../customer/src/app/shared/modal';
 
 export interface Option {
   value: string | number | boolean | null;
@@ -88,7 +89,7 @@ function display(value: unknown): string {
 // Mọi mục danh sách + thêm/sửa/xóa dùng chung một màn hình, khai báo ở resources.ts
 @Component({
   selector: 'ot-resource',
-  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, RichEditor],
+  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, RichEditor, Modal],
   template: `
     @if (config(); as c) {
       <div class="a-head">
@@ -153,7 +154,7 @@ function display(value: unknown): string {
       }
 
       @if (menu(); as open) {
-        <div class="fixed inset-0 z-40" (click)="menu.set(null)"></div>
+        <div class="fixed inset-0 z-40" otModal (dismiss)="menu.set(null)"></div>
         <div class="a-menu" [style.top.px]="open.top" [style.right.px]="open.right">
           @if (c.canEdit) { <button type="button" class="a-drop-item" (click)="menu.set(null); edit(open.row)">Sửa</button> }
           @for (a of c.actions ?? []; track a.label) {

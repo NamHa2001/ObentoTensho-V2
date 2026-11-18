@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Schemas } from '@ot/api';
@@ -10,6 +10,7 @@ import { Api, Page } from '../../core/api';
 import { Auth, ContactPolicy } from '../../core/auth';
 import { askConfirm } from '../../core/dialog';
 import { errorText, Submit } from '../../shared/form';
+import { Modal } from '../../shared/modal';
 import { givenName, localPhone, ORDER_STATUS, RESERVATION_STATUS, TIERS, today, VnDatePipe } from '../../shared/format';
 import { discountShort, discountTerms, RedeemReward, VOUCHER_SOURCE } from '../../shared/voucher';
 import { VndPipe } from '../../shared/vnd.pipe';
@@ -548,7 +549,7 @@ export class AccountOrders {
 
 @Component({
   selector: 'ot-account-points',
-  imports: [VnDatePipe, LucideAngularModule],
+  imports: [VnDatePipe, LucideAngularModule, Modal],
   template: `
     <h2 class="ot-acc-title">Điểm thưởng & voucher</h2>
     @if (summary(); as s) {
@@ -603,8 +604,8 @@ export class AccountOrders {
     </section>
 
     @if (sheet()) {
-      <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Đổi điểm" (click)="sheet.set(false)">
-        <div class="ot-sheet" (click)="$event.stopPropagation()">
+      <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Đổi điểm" otModal (dismiss)="sheet.set(false)">
+        <div class="ot-sheet">
           <div class="ot-sheet-head">
             <div><p class="font-heading text-lg font-extrabold">Đổi điểm lấy ưu đãi</p><p class="text-sm text-muted">Bạn đang có <b class="text-primary">{{ points() }} điểm</b></p></div>
             <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="sheet.set(false)"><lucide-icon [img]="close" [size]="22" /></button>
@@ -679,11 +680,6 @@ export class AccountPoints {
   protected openRewards(): void {
     this.form.error.set(null);
     this.sheet.set(true);
-  }
-
-  @HostListener('document:keydown.escape')
-  protected escape(): void {
-    this.sheet.set(false);
   }
 
   protected async redeem(reward: RedeemReward): Promise<void> {

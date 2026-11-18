@@ -12,15 +12,16 @@ import { Back } from '../core/back';
 import { Live } from '../core/live';
 import { Submit } from '../shared/ui';
 import { NAV } from './nav';
+import { Modal } from '../../../../customer/src/app/shared/modal';
 
 const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Quản lý', reception: 'Lễ tân', kitchen: 'Bếp', cashier: 'Thu ngân', content_editor: 'Biên tập' };
 
 @Component({
   selector: 'ot-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, LucideAngularModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, LucideAngularModule, Modal],
   template: `
     <div class="a-wrap" [class.a-open]="drawer()">
-      @if (drawer()) { <div class="a-scrim" (click)="drawer.set(false)"></div> }
+      @if (drawer()) { <div class="a-scrim" otModal (dismiss)="drawer.set(false)"></div> }
       <aside class="a-side" aria-label="Điều hướng">
         <div class="a-brand">@if (logo(); as url) { <img class="a-logo object-cover" [src]="url" alt="" /> } @else { <span class="a-logo" aria-hidden="true">天</span> }<span>Obento Tensho</span></div>
         <nav class="py-3">

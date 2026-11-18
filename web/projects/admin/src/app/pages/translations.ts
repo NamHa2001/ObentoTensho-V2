@@ -51,9 +51,10 @@ const PROGRESS_LABELS: Record<string, string> = { menu_item: 'Món ăn', menu_ca
       @if (itemKey() !== null) {
         @if (status(); as st) { <p class="text-sm text-muted">Hiện tại: {{ st }}</p> }
         @for (f of kind().fields; track f.key) {
-          <label>{{ f.label }}
-            @if (f.area) { <textarea class="ot-input" rows="6" [name]="f.key" [(ngModel)]="model[f.key]"></textarea> } @else { <input class="ot-input" [name]="f.key" [(ngModel)]="model[f.key]" /> }
-          </label>
+          <div>
+            <label [for]="'tr-' + f.key">{{ f.label }}</label>
+            @if (f.area) { <textarea class="ot-input" rows="6" [id]="'tr-' + f.key" [name]="f.key" [(ngModel)]="model[f.key]"></textarea> } @else { <input class="ot-input" [id]="'tr-' + f.key" [name]="f.key" [(ngModel)]="model[f.key]" /> }
+          </div>
         }
         <label class="flex items-center gap-2"><input type="checkbox" name="approve" [(ngModel)]="approve" /> Duyệt bản dịch này</label>
         @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }

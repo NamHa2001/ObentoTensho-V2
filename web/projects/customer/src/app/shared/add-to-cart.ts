@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
 import { Check, LucideAngularModule, Minus, Plus, X } from 'lucide-angular';
@@ -6,6 +6,7 @@ import { Check, LucideAngularModule, Minus, Plus, X } from 'lucide-angular';
 import { Api } from '../core/api';
 import { Cart, MAX_QUANTITY, NOTE_MAX_LENGTH } from '../core/cart';
 import { defaultSelection, isComplete, isOrderable, requiredCount, Selection, toggle, unitPrice } from './option-selection';
+import { Modal } from './modal';
 import { VndPipe } from './vnd.pipe';
 
 type Detail = Schemas['PublicMenuItemDetailDto'];
@@ -16,10 +17,10 @@ type Option = Schemas['PublicOptionDto'];
 // Dùng chung cho thẻ món (chưa có tùy chọn thì tự tải) và trang chi tiết (đã có sẵn)
 @Component({
   selector: 'ot-add-to-cart',
-  imports: [FormsModule, LucideAngularModule, VndPipe],
+  imports: [FormsModule, LucideAngularModule, VndPipe, Modal],
   template: `
-    <div class="ot-sheet-back" role="dialog" aria-modal="true" [attr.aria-label]="'Thêm ' + name()" (click)="closed.emit()">
-      <form class="ot-sheet" (click)="$event.stopPropagation()" (ngSubmit)="add()">
+    <div class="ot-sheet-back" role="dialog" aria-modal="true" [attr.aria-label]="'Thêm ' + name()" otModal (dismiss)="closed.emit()">
+      <form class="ot-sheet" (ngSubmit)="add()">
         <div class="ot-sheet-head">
           <div class="flex min-w-0 items-center gap-3">
             @if (thumb(); as url) { <img class="size-14 shrink-0 rounded-md object-cover" [src]="url" alt="" width="56" height="56" /> }
@@ -116,11 +117,6 @@ export class AddToCart implements OnInit {
       next: (d) => this.ready(d),
       error: () => this.state.set('failed'),
     });
-  }
-
-  @HostListener('document:keydown.escape')
-  protected escape(): void {
-    this.closed.emit();
   }
 
   protected selected(group: Group, option: Option): boolean {
