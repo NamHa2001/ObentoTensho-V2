@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, computed, DestroyRef, effect, HostListener, inject, PLATFORM_ID, signal, untracked } from '@angular/core';
+import { afterNextRender, Component, computed, DestroyRef, effect, HostListener, inject, Injector, PLATFORM_ID, signal, untracked } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
@@ -37,6 +37,7 @@ export class Menu {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly typed = new Subject<string>();
   private page = 1;
@@ -99,7 +100,8 @@ export class Menu {
         this.failed.set(result === null);
         this.loading.set(false);
         if (this.browser && this.grouped()) {
-          setTimeout(() => (this.filter().category ? this.jump(this.filter().category!) : this.spy()));
+          // Chờ các nhóm món vẽ xong mới đo vị trí để cuộn tới danh mục
+          afterNextRender(() => (this.filter().category ? this.jump(this.filter().category!) : this.spy()), { injector: this.injector });
         }
       });
 

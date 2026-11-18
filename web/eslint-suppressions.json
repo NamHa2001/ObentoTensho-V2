@@ -116,21 +116,11 @@
       "count": 1
     }
   },
-  "projects/customer/src/app/core/turnstile.ts": {
-    "no-restricted-imports": {
-      "count": 1
-    }
-  },
   "projects/customer/src/app/pages/account/account.ts": {
     "@angular-eslint/template/click-events-have-key-events": {
       "count": 2
     },
     "@angular-eslint/template/interactive-supports-focus": {
-      "count": 1
-    }
-  },
-  "projects/customer/src/app/pages/menu/menu.ts": {
-    "no-restricted-syntax": {
       "count": 1
     }
   },
