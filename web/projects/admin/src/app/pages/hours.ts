@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -13,6 +14,14 @@ export function rangesOverlap(ranges: { open: string; close: string }[]): boolea
   const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
   const spans = ranges.map((r) => [minutes(r.open), minutes(r.close) + (r.close < r.open ? 1440 : 0)]).sort((a, b) => a[0] - b[0]);
   return spans.some((s, i) => i > 0 && s[0] < spans[i - 1][1]);
+}
+
+type Special = Schemas['SpecialHoursDto'];
+// Ô sửa giờ: chỉ giờ mở/đóng dạng HH:mm, cờ qua nửa đêm tính lại lúc lưu
+interface DayForm {
+  dayOfWeek: number;
+  closed: boolean;
+  ranges: { open: string; close: string }[];
 }
 
 @Component({
@@ -68,11 +77,11 @@ export class Hours {
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
   protected readonly names = DAY_NAMES;
-  protected readonly days = signal<any[]>([]);
-  protected readonly special = signal<any[]>([]);
+  protected readonly days = signal<DayForm[]>([]);
+  protected readonly special = signal<Special[]>([]);
   protected readonly weekForm = new Submit();
   protected readonly specialForm = new Submit();
-  protected sp: any = { date: today(), closed: true, open: '10:00', close: '21:00', note: '' };
+  protected sp = { date: today(), closed: true, open: '10:00', close: '21:00', note: '' };
   private version: string | null = null;
 
   constructor() {
@@ -81,18 +90,18 @@ export class Hours {
   }
 
   private loadWeek(): void {
-    this.weekForm.run(this.api.get<any>('opening-hours'), (w) => {
+    this.weekForm.run(this.api.get<Schemas['WeeklyHoursDto']>('opening-hours'), (w) => {
       this.version = w.version;
-      this.days.set(w.days.map((d: any) => ({ dayOfWeek: d.dayOfWeek, closed: d.closed, ranges: d.ranges.length > 0 ? d.ranges.map((r: any) => ({ open: r.open.slice(0, 5), close: r.close.slice(0, 5) })) : [{ open: '10:00', close: '21:00' }] })));
+      this.days.set(w.days.map((d) => ({ dayOfWeek: d.dayOfWeek, closed: d.closed, ranges: d.ranges.length > 0 ? d.ranges.map((r) => ({ open: r.open.slice(0, 5), close: r.close.slice(0, 5) })) : [{ open: '10:00', close: '21:00' }] })));
     });
   }
 
   private loadSpecial(): void {
-    this.api.get<any[]>('special-hours').subscribe({ next: (s) => this.special.set(s), error: () => undefined });
+    this.api.get<Special[]>('special-hours').subscribe({ next: (s) => this.special.set(s), error: () => undefined });
   }
 
-  protected range(s: any): string {
-    return s.ranges.map((r: any) => `${r.open.slice(0, 5)}–${r.close.slice(0, 5)}`).join(', ');
+  protected range(s: Special): string {
+    return s.ranges.map((r) => `${r.open.slice(0, 5)}–${r.close.slice(0, 5)}`).join(', ');
   }
 
   // API trả mã theo trường; đổi sang câu người dùng đọc được
@@ -111,7 +120,7 @@ export class Hours {
       return;
     }
 
-    const days = this.days().map((d) => ({ dayOfWeek: d.dayOfWeek, closed: d.closed, ranges: d.closed ? [] : d.ranges.map((r: any) => ({ open: r.open, close: r.close, crossesMidnight: r.close < r.open })) }));
+    const days = this.days().map((d) => ({ dayOfWeek: d.dayOfWeek, closed: d.closed, ranges: d.closed ? [] : d.ranges.map((r) => ({ open: r.open, close: r.close, crossesMidnight: r.close < r.open })) }));
     this.weekForm.run(this.api.put('opening-hours', { days }, this.version), () => this.loadWeek());
   }
 

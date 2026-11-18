@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 import { BadgeDollarSign, ClipboardList, TrendingUp, Wallet } from 'lucide-angular';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
@@ -11,6 +12,9 @@ import { Auth } from '../core/auth';
 import { StatCard } from '../shared/chart';
 import { ORDER_STATUS, RESERVATION_STATUS, Submit, TIERS, VnDatePipe, errorText } from '../shared/ui';
 import { askText } from '../../../../customer/src/app/core/dialog';
+
+type CustomerRow = Schemas['CustomerListItemDto'];
+type CustomerDetail = Schemas['CustomerDetailDto'];
 
 @Component({
   selector: 'ot-customers',
@@ -30,7 +34,7 @@ export class Customers {
   protected readonly auth = inject(Auth);
   protected readonly tiers = TIERS;
   protected readonly notice = signal<string | null>(null);
-  protected readonly rows = signal<any[]>([]);
+  protected readonly rows = signal<CustomerRow[]>([]);
   protected readonly total = signal(0);
   protected readonly error = signal<string | null>(null);
   protected q = '';
@@ -63,7 +67,7 @@ export class Customers {
   // Tìm mới hủy lần tải trước để kết quả cũ về muộn không chen vào danh sách
   private fetch(): void {
     this.loading?.unsubscribe();
-    this.loading = this.api.raw<any[]>('customers', { q: this.q, page: this.page, pageSize: 30 }).subscribe({
+    this.loading = this.api.raw<CustomerRow[]>('customers', { q: this.q, page: this.page, pageSize: 30 }).subscribe({
       next: (r) => {
         this.rows.update((x) => [...x, ...r.data]);
         this.total.set(r.meta?.total ?? 0);
@@ -122,7 +126,7 @@ export class Customer {
   protected readonly orderLabels = ORDER_STATUS;
   protected readonly reservationLabels = RESERVATION_STATUS;
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
-  protected readonly d = signal<any>(null);
+  protected readonly d = signal<CustomerDetail | null>(null);
   protected readonly form = new Submit();
 
   constructor() {
@@ -130,21 +134,21 @@ export class Customer {
   }
 
   private load(): void {
-    this.form.run(this.api.get<any>(`customers/${this.id}`), (c) => this.d.set(c));
+    this.form.run(this.api.get<CustomerDetail>(`customers/${this.id}`), (c) => this.d.set(c));
   }
 
-  protected async toggle(c: any): Promise<void> {
+  protected async toggle(c: CustomerDetail): Promise<void> {
     const reason = await askText(c.isActive ? 'Lý do khóa' : 'Lý do mở khóa');
     if (reason) this.form.run(this.api.patch(`customers/${c.id}/status`, { isActive: !c.isActive, reason }), () => this.load());
   }
 
-  protected async adjust(c: any): Promise<void> {
+  protected async adjust(c: CustomerDetail): Promise<void> {
     const points = Number(await askText('Số điểm (âm để trừ)'));
     const reason = points ? await askText('Lý do') : null;
     if (points && reason) this.form.run(this.api.patch(`customers/${c.id}/loyalty-points`, { points, reason }), () => this.load());
   }
 
-  protected async remove(c: any): Promise<void> {
+  protected async remove(c: CustomerDetail): Promise<void> {
     const reason = await askText('Lý do xóa tài khoản');
     if (reason) this.form.run(this.api.post(`customers/${c.id}/deletion`, { reason }), () => this.load());
   }

@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 import { RouterLink } from '@angular/router';
 
 import { Api, saveBlob } from '../core/api';
@@ -10,6 +11,9 @@ const STATUS: Record<string, string> = { pending: 'Chờ xuất', issued: 'Đã 
 
 // Kế toán: yêu cầu xuất hóa đơn từ mọi kênh. Xuất Excel để lập hóa đơn điện tử trên phần mềm của nhà cung cấp,
 // rồi ghi lại số hóa đơn. Số CCCD/SĐT che, "Hiện" có ghi nhật ký.
+type InvoiceRequest = Schemas['InvoiceRequestDto'];
+type InvoiceContact = Schemas['InvoiceContactDto'];
+
 @Component({
   selector: 'ot-invoices',
   imports: [FormsModule, RouterLink, VndPipe, VnDatePipe],
@@ -65,10 +69,10 @@ const STATUS: Record<string, string> = { pending: 'Chờ xuất', issued: 'Đã 
 export class Invoices {
   private readonly api = inject(Api);
   protected readonly statuses = Object.entries(STATUS);
-  protected readonly rows = signal<any[]>([]);
+  protected readonly rows = signal<InvoiceRequest[]>([]);
   protected readonly total = signal(0);
   protected readonly page = signal(1);
-  protected readonly revealed = signal<Record<string, any>>({});
+  protected readonly revealed = signal<Record<string, InvoiceContact>>({});
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
   protected readonly pageSize = 20;
@@ -100,7 +104,7 @@ export class Invoices {
   }
 
   private load(): void {
-    this.loader.run(this.api.raw<any[]>('invoice-requests', { ...this.params(), page: this.page(), pageSize: this.pageSize }), (r) => {
+    this.loader.run(this.api.raw<InvoiceRequest[]>('invoice-requests', { ...this.params(), page: this.page(), pageSize: this.pageSize }), (r) => {
       this.rows.set(r.data);
       this.total.set(r.meta?.total ?? r.data.length);
     });
@@ -110,18 +114,18 @@ export class Invoices {
     this.form.run(this.api.download('invoice-requests/export', this.params()), (r) => saveBlob(r, 'yeu-cau-hoa-don.xlsx'));
   }
 
-  protected reveal(r: any): void {
-    this.form.run(this.api.post<any>(`invoice-requests/${r.id}/reveal`), (c) => this.revealed.update((m) => ({ ...m, [r.id]: c })));
+  protected reveal(r: InvoiceRequest): void {
+    this.form.run(this.api.post<InvoiceContact>(`invoice-requests/${r.id}/reveal`), (c) => this.revealed.update((m) => ({ ...m, [r.id]: c })));
   }
 
-  protected async issue(r: any): Promise<void> {
+  protected async issue(r: InvoiceRequest): Promise<void> {
     const invoiceNumber = await askText(`Số hóa đơn đã xuất cho ${r.buyerName}?`);
     if (invoiceNumber?.trim()) {
       this.form.run(this.api.post(`invoice-requests/${r.id}/issue`, { invoiceNumber }), () => this.load());
     }
   }
 
-  protected async cancel(r: any): Promise<void> {
+  protected async cancel(r: InvoiceRequest): Promise<void> {
     const reason = await askText(`Lý do hủy yêu cầu của ${r.buyerName}?`);
     if (reason?.trim()) {
       this.form.run(this.api.post(`invoice-requests/${r.id}/cancel`, { reason }), () => this.load());

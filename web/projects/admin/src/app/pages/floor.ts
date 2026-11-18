@@ -1,6 +1,7 @@
 import { CdkDrag, CdkDragEnd, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -10,6 +11,11 @@ import { askConfirm } from '../../../../customer/src/app/core/dialog';
 
 const TABLE_W = 150;
 const TABLE_H = 124;
+
+type Area = Schemas['FloorPlanAreaDto'];
+type Table = Schemas['TableDto'];
+// Bàn mới chưa có id, phiên bản, vị trí
+type TableDraft = Pick<Table, 'areaId' | 'name' | 'minCapacity' | 'maxCapacity'> & Partial<Table>;
 
 @Component({
   selector: 'ot-floor',
@@ -87,10 +93,10 @@ export class Floor {
   private readonly auth = inject(Auth);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
-  protected readonly areas = signal<any[]>([]);
+  protected readonly areas = signal<Area[]>([]);
   protected readonly canMove = computed(() => this.auth.has('tables_manage'));
   protected readonly area = signal<{ name: string } | null>(null);
-  protected readonly table = signal<any>(null);
+  protected readonly table = signal<TableDraft | null>(null);
   protected readonly statuses = [{ value: 'available', label: 'Trống' }, { value: 'reserved', label: 'Đã đặt' }, { value: 'occupied', label: 'Có khách' }, { value: 'cleaning', label: 'Đang dọn' }];
 
   constructor() {
@@ -99,16 +105,16 @@ export class Floor {
   }
 
   private load(): void {
-    this.loader.run(this.api.get<any[]>('tables/floor-plan'), (a) => this.areas.set(a));
+    this.loader.run(this.api.get<Area[]>('tables/floor-plan'), (a) => this.areas.set(a));
   }
 
   // Bàn chưa xếp chỗ thì tự dàn theo lưới
-  protected pos(t: any, i: number): { x: number; y: number } {
+  protected pos(t: Table, i: number): { x: number; y: number } {
     const l = t.layout;
     return l && (l.x > 0 || l.y > 0) ? { x: l.x, y: l.y } : { x: 8 + (i % 4) * (TABLE_W + 8), y: 8 + Math.floor(i / 4) * (TABLE_H + 8) };
   }
 
-  protected set(t: any, status: string): void {
+  protected set(t: Table, status: string): void {
     this.form.run(this.api.patch(`tables/${t.id}/status`, { status }, t.version), () => this.load());
   }
 
@@ -129,12 +135,12 @@ export class Floor {
     this.table.set({ areaId: areaId ?? this.areas()[0].id, name: '', minCapacity: 1, maxCapacity: 4 });
   }
 
-  protected editTable(t: any, areaId: number): void {
+  protected editTable(t: Table, areaId: number): void {
     this.form.error.set(null);
     this.table.set({ ...t, areaId });
   }
 
-  protected saveTable(m: any): void {
+  protected saveTable(m: TableDraft): void {
     const body = { areaId: m.areaId, name: m.name, minCapacity: Number(m.minCapacity), maxCapacity: Number(m.maxCapacity), layout: m.layout ?? { x: 0, y: 0, width: TABLE_W, height: TABLE_H, rotation: 0 }, isActive: m.isActive ?? true };
     this.form.run(m.id ? this.api.put(`tables/${m.id}`, body, m.version) : this.api.post('tables', body), () => {
       this.table.set(null);
@@ -142,13 +148,13 @@ export class Floor {
     });
   }
 
-  protected async removeTable(t: any): Promise<void> {
+  protected async removeTable(t: Table): Promise<void> {
     if (await askConfirm(`Xóa bàn ${t.name}?`)) {
       this.form.run(this.api.delete(`tables/${t.id}`, t.version), () => this.load());
     }
   }
 
-  protected moved(t: any, i: number, event: CdkDragEnd): void {
+  protected moved(t: Table, i: number, event: CdkDragEnd): void {
     const base = this.pos(t, i);
     const drag = event.source.getFreeDragPosition();
     const layout = { x: Math.max(1, Math.round(base.x + drag.x)), y: Math.max(1, Math.round(base.y + drag.y)), width: TABLE_W, height: TABLE_H, rotation: 0 };

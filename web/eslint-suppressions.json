@@ -1,27 +1,7 @@
 {
-  "projects/admin/src/app/pages/customers.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
-    }
-  },
   "projects/admin/src/app/pages/dine-in.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 67
-    }
-  },
-  "projects/admin/src/app/pages/floor.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 9
-    }
-  },
-  "projects/admin/src/app/pages/hours.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 10
-    }
-  },
-  "projects/admin/src/app/pages/invoices.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 7
     }
   },
   "projects/admin/src/app/pages/kitchen.ts": {
@@ -37,11 +17,6 @@
   "projects/admin/src/app/pages/orders.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 16
-    }
-  },
-  "projects/admin/src/app/pages/reports.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 8
     }
   },
   "projects/admin/src/app/pages/reservations.ts": {

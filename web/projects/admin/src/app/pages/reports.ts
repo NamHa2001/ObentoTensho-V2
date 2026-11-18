@@ -1,14 +1,24 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Schemas } from '@ot/api';
 import { BadgeDollarSign, ClipboardList, TrendingUp, Wallet } from 'lucide-angular';
 
 import { Api, saveBlob } from '../core/api';
 import { ChartCard, ChartPoint, dayPoints, namedPoints, StatCard } from '../shared/chart';
 import { Latest, Submit, VndPipe, today } from '../shared/ui';
 
-const CHANNELS: Record<string, string> = { pickup: 'Đặt online đến lấy', dine_in: 'Tại bàn', delivery: 'Giao hàng', counter: 'Mua tại quầy' };
+const CHANNELS: Partial<Record<string, string>> = { pickup: 'Đặt online đến lấy', dine_in: 'Tại bàn', delivery: 'Giao hàng', counter: 'Mua tại quầy' };
 
-const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
+// Mỗi loại báo cáo trả dữ liệu khác nhau; giữ kèm loại để mẫu biết chắc đang hiển thị kiểu nào
+type ReportData =
+  | { kind: 'revenue'; data: Schemas['RevenueReportDto'] }
+  | { kind: 'reservations'; data: Schemas['ReservationReportDto'] }
+  | { kind: 'orders'; data: Schemas['OrderReportDto'] }
+  | { kind: 'customers'; data: Schemas['CustomerReportDto'] }
+  | { kind: 'top-dishes'; data: Schemas['TopDishDto'][] };
+type ReportKind = ReportData['kind'];
+
+const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
 
 @Component({
   selector: 'ot-reports',
@@ -23,9 +33,10 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
       <button type="button" class="ot-btn ot-btn-outline" (click)="save('pdf')">Xuất PDF</button>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    @if (d(); as v) {
-      @switch (report()) {
+    @if (d(); as r) {
+      @switch (r.kind) {
         @case ('revenue') {
+          @let v = r.data;
           <div class="a-row4">
             <ot-stat label="Doanh thu" [value]="vnd(v.net)" [icon]="icons.wallet" [tone]="1" />
             <ot-stat label="Tiền thu" [value]="vnd(v.paid)" [icon]="icons.trend" [tone]="4" />
@@ -43,7 +54,7 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
                 <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Tiền thu</th><th class="p-2 text-right">Hoàn tiền</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
                 <tbody>
                   @for (c of v.byChannel; track c.channel) {
-                    <tr class="border-t border-line"><td class="p-2">{{ channels[c.channel] ?? c.channel }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-semibold tabular-nums">{{ c.net | vnd }}</td></tr>
+                    <tr class="border-t border-line"><td class="p-2">{{ channelLabel(c.channel) }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-semibold tabular-nums">{{ c.net | vnd }}</td></tr>
                   }
                 </tbody>
               </table></div>
@@ -52,6 +63,7 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
           }
         }
         @case ('reservations') {
+          @let v = r.data;
           <div class="a-row4">
             <ot-stat label="Tổng lượt đặt" [value]="v.total" [icon]="icons.order" [tone]="2" />
             <ot-stat label="Đã đến" [value]="v.arrived" [note]="v.arrivedPercent + '%'" [icon]="icons.trend" [tone]="4" />
@@ -64,6 +76,7 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
           </div>
         }
         @case ('orders') {
+          @let v = r.data;
           <div class="a-row4">
             <ot-stat label="Đơn đã tạo" [value]="v.created" [icon]="icons.order" [tone]="2" />
             <ot-stat label="Hoàn thành" [value]="v.completed" [icon]="icons.trend" [tone]="4" />
@@ -76,6 +89,7 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
           </div>
         }
         @case ('customers') {
+          @let v = r.data;
           <div class="a-row4">
             <ot-stat label="Khách mới" [value]="v.newTotal" [icon]="icons.order" [tone]="2" />
             <ot-stat label="Tỷ lệ quay lại" [value]="v.retentionPercent + '%'" [icon]="icons.trend" [tone]="4" />
@@ -89,7 +103,7 @@ const REPORTS = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', 
             <div class="a-card-b">@for (c of v.topCustomers; track c.id) { <div class="a-line"><span>{{ c.fullName }} · {{ c.orders }} đơn</span><b class="tabular-nums">{{ c.spent | vnd }}</b></div> } @empty { <p class="text-muted">Chưa có dữ liệu.</p> }</div>
           </section>
         }
-        @default { <div class="a-row66"><ot-chart title="Số lượng bán" kind="hbar" [points]="dishes(list(v))" /><ot-chart title="Doanh thu" kind="doughnut" [points]="dishMoney(list(v))" [money]="true" /></div> }
+        @case ('top-dishes') { <div class="a-row66"><ot-chart title="Số lượng bán" kind="hbar" [points]="dishes(r.data)" /><ot-chart title="Doanh thu" kind="doughnut" [points]="dishMoney(r.data)" [money]="true" /></div> }
       }
     }
   `,
@@ -99,9 +113,8 @@ export class Reports {
   protected readonly reports = REPORTS;
   protected readonly days = dayPoints;
   protected readonly named = namedPoints;
-  protected readonly report = signal('revenue');
-  protected readonly channels = CHANNELS;
-  protected readonly d = signal<any>(null);
+  protected readonly report = signal<ReportKind>('revenue');
+  protected readonly d = signal<ReportData | null>(null);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
   protected from = today().slice(0, 8) + '01';
@@ -111,7 +124,7 @@ export class Reports {
     this.load();
   }
 
-  protected select(key: string): void {
+  protected select(key: ReportKind): void {
     this.report.set(key);
     this.d.set(null);
     this.load();
@@ -119,33 +132,36 @@ export class Reports {
 
   protected readonly icons = { wallet: Wallet, trend: TrendingUp, order: ClipboardList, dollar: BadgeDollarSign };
 
+  // Kênh mới server thêm sau mà giao diện chưa có nhãn thì hiện mã kênh
+  protected channelLabel(channel: string): string {
+    return CHANNELS[channel] ?? channel;
+  }
+
   protected vnd(value: number): string {
     return `${new Intl.NumberFormat('vi-VN').format(value)}\u00a0₫`;
   }
 
-  protected dishes(rows: any[]): ChartPoint[] {
-    return (rows ?? []).map((r) => ({ label: r.name, value: r.quantity }));
+  protected dishes(rows: Schemas['TopDishDto'][]): ChartPoint[] {
+    return rows.map((r) => ({ label: r.name, value: r.quantity }));
   }
 
-  protected dishMoney(rows: any[]): ChartPoint[] {
-    return (rows ?? []).map((r) => ({ label: r.name, value: r.revenue }));
+  protected dishMoney(rows: Schemas['TopDishDto'][]): ChartPoint[] {
+    return rows.map((r) => ({ label: r.name, value: r.revenue }));
   }
 
-  protected tiers(rows: any[]): ChartPoint[] {
-    return (rows ?? []).map((r) => ({ label: r.tier, value: r.count }));
+  protected tiers(rows: Schemas['TierCountDto'][]): ChartPoint[] {
+    return rows.map((r) => ({ label: r.tier, value: r.count }));
   }
 
-  protected series(rows: any[]): ChartPoint[] {
+  protected series(rows: Schemas['RevenuePointDto'][]): ChartPoint[] {
     return rows.map((r) => ({ label: r.period, value: r.net }));
   }
 
-  protected list(v: any): any[] {
-    return Array.isArray(v) ? v : (v.items ?? []);
-  }
-
   protected load(): void {
+    const kind = this.report();
     this.d.set(null);
-    this.loader.run(this.api.get<any>(`reports/${this.report()}`, { from: this.from, to: this.to, groupBy: this.report() === 'revenue' ? 'day' : null, limit: this.report() === 'revenue' || this.report() === 'reservations' ? null : 20 }), (v) => this.d.set(v));
+    // Đường dẫn reports/<loại> quyết định dạng dữ liệu, nên gắn loại vào ngay lúc nhận
+    this.loader.run(this.api.get<ReportData['data']>(`reports/${kind}`, { from: this.from, to: this.to, groupBy: kind === 'revenue' ? 'day' : null, limit: kind === 'revenue' || kind === 'reservations' ? null : 20 }), (data) => this.d.set({ kind, data } as ReportData));
   }
 
   protected saveChannels(): void {
