@@ -4,11 +4,6 @@
     "title": "ObentoTensho.Api | v1",
     "version": "1.0.0"
   },
-  "servers": [
-    {
-      "url": "http://localhost:5212/"
-    }
-  ],
   "paths": {
     "/api/v1/account/realtime-ticket": {
       "post": {
