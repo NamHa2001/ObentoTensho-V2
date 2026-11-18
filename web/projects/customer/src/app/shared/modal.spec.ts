@@ -63,4 +63,64 @@ describe('Cửa sổ (otModal)', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(host.dismissed).toBe(1);
   });
+
+  it('Tab ở nút cuối quay về ô đầu, Shift+Tab ở ô đầu sang nút cuối, focus lọt ra ngoài thì kéo về', async () => {
+    const { el, opener } = await opened();
+    const last = el('#sheet button');
+    const tab = (shiftKey = false) => {
+      const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, cancelable: true });
+      document.dispatchEvent(e);
+      return e.defaultPrevented;
+    };
+
+    last.focus();
+    expect(tab()).toBe(true);
+    expect(document.activeElement).toBe(el('#first'));
+
+    expect(tab(true)).toBe(true);
+    expect(document.activeElement).toBe(last);
+
+    // Giữa cửa sổ thì để trình duyệt tự chuyển
+    el('#first').focus();
+    expect(tab()).toBe(false);
+
+    opener.focus();
+    tab();
+    expect(document.activeElement).toBe(el('#first'));
+  });
+});
+
+@Component({
+  imports: [Modal],
+  template: `
+    <div id="outer" otModal (dismiss)="outer = outer + 1">
+      <button id="a" type="button">A</button>
+      @if (inner()) {
+        <div id="inner" otModal (dismiss)="closed = closed + 1; inner.set(false)"><button id="b" type="button">B</button></div>
+      }
+    </div>
+  `,
+})
+class Stacked {
+  readonly inner = signal(true);
+  outer = 0;
+  closed = 0;
+}
+
+describe('Hai cửa sổ chồng nhau', () => {
+  it('Esc chỉ đóng cửa sổ trên cùng, lần Esc sau mới tới cửa sổ dưới', async () => {
+    const fixture = TestBed.createComponent(Stacked);
+    document.body.append(fixture.nativeElement);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const host = fixture.componentInstance;
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect([host.closed, host.outer]).toEqual([1, 0]);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect([host.closed, host.outer]).toEqual([1, 1]);
+    fixture.destroy();
+  });
 });
