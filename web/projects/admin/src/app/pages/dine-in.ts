@@ -1,5 +1,4 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, computed, HostListener, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, HostListener, inject, Injector, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -451,7 +450,7 @@ interface DraftLine {
 })
 export class DineInBill {
   private readonly api = inject(Api);
-  private readonly http = inject(HttpClient);
+  private readonly injector = inject(Injector);
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
@@ -512,8 +511,8 @@ export class DineInBill {
   constructor() {
     this.load();
     reloadOnLive(() => this.load());
-    this.http.get<{ data: any[] }>('/api/v1/menu/categories').subscribe({ next: (r) => this.categories.set(r.data), error: () => undefined });
-    this.http.get<{ data: any[] }>('/api/v1/menu/items', { params: { pageSize: 100 } }).subscribe({ next: (r) => this.menu.set(r.data), error: () => this.form.error.set('Không tải được thực đơn.') });
+    this.api.publicGet<any[]>('menu/categories').subscribe({ next: (c) => this.categories.set(c), error: () => undefined });
+    this.api.publicGet<any[]>('menu/items', { pageSize: 100 }).subscribe({ next: (m) => this.menu.set(m), error: () => this.form.error.set('Không tải được thực đơn.') });
   }
 
   protected load(): void {
@@ -569,7 +568,7 @@ export class DineInBill {
       return;
     }
 
-    this.form.run(this.http.get<{ data: any }>(`/api/v1/menu/items/${m.slug}`).pipe(map((r) => r.data.optionGroups ?? [])), (groups) => {
+    this.form.run(this.api.publicGet<any>(`menu/items/${m.slug}`).pipe(map((d) => d.optionGroups ?? [])), (groups) => {
       this.details.set(m.slug, groups);
       this.pick(m, groups);
     });
@@ -739,6 +738,7 @@ export class DineInBill {
 
   private print(p: any): void {
     this.printing.set({ ...p, at: new Date().toLocaleString('vi-VN') });
-    setTimeout(() => window.print());
+    // In sau khi phiếu đã vẽ ra trang, không in ra trang trắng
+    afterNextRender(() => window.print(), { injector: this.injector });
   }
 }

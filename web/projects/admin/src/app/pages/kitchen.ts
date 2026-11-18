@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, inject, signal } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, signal } from '@angular/core';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -63,6 +63,7 @@ import { Latest, ORDER_STATUS, Submit } from '../shared/ui';
 })
 export class Kitchen {
   private readonly api = inject(Api);
+  private readonly injector = inject(Injector);
   protected readonly live = inject(Live);
   protected readonly labels = ORDER_STATUS;
   protected readonly lanes = ['pending', 'preparing', 'ready'];
@@ -116,6 +117,7 @@ export class Kitchen {
 
   protected print(o: any): void {
     this.printing.set(o);
-    setTimeout(() => window.print(), 50);
+    // In sau khi phiếu bếp đã vẽ ra trang, không in ra trang trắng
+    afterNextRender(() => window.print(), { injector: this.injector });
   }
 }

@@ -20,6 +20,7 @@ function headers(version?: string | null): HttpHeaders {
 }
 
 const BASE = '/api/v1/admin/';
+const PUBLIC = '/api/v1/';
 
 @Injectable({ providedIn: 'root' })
 export class Api {
@@ -54,9 +55,13 @@ export class Api {
     return this.http.patch<{ data: T } | null>(BASE + path, body, { headers: headers(version) }).pipe(map((r) => r?.data as T));
   }
 
-  // Cài đặt công khai (tên, logo quán) nằm ngoài nhánh admin
+  // API công khai nằm ngoài nhánh admin: thực đơn, cài đặt (tên, logo quán)
+  publicGet<T>(path: string, params?: Params): Observable<T> {
+    return this.http.get<{ data: T }>(PUBLIC + path, { params: query(params) }).pipe(map((r) => r.data));
+  }
+
   publicSettings(): Observable<Record<string, string>> {
-    return this.http.get<{ data: Record<string, string> }>('/api/v1/public/settings').pipe(map((r) => r.data));
+    return this.publicGet<Record<string, string>>('public/settings');
   }
 
   delete(path: string, version?: string | null): Observable<void> {
