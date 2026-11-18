@@ -7,6 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "lint": "eslint projects libs",
     "serve:ssr:customer": "node dist/customer/server/server.mjs",
     "api:types": "openapi-typescript libs/ot-api/openapi.json -o libs/ot-api/schema.d.ts"
   },
@@ -51,11 +52,14 @@
     "@tailwindcss/postcss": "^4.3.5",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
+    "angular-eslint": "^21.4.0",
+    "eslint": "^10.14.0",
     "jsdom": "^28.0.0",
     "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.32",
     "tailwindcss": "^4.3.5",
     "typescript": "~5.9.2",
+    "typescript-eslint": "^8.72.2",
     "vitest": "^4.0.8"
   }
 }

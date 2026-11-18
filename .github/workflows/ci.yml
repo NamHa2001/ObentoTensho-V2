@@ -62,6 +62,8 @@ jobs:
         run: npm ci
       - name: Kiểu TypeScript khớp tài liệu OpenAPI
         run: npm run api:types && git diff --exit-code libs/ot-api/schema.d.ts
+      - name: Lint (mẫu mã bị cấm, kiểu any, hỗ trợ bàn phím)
+        run: npm run lint
       - name: Build customer
         run: npx ng build customer
       - name: Build admin
