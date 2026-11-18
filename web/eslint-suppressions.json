@@ -19,11 +19,6 @@
       "count": 7
     }
   },
-  "projects/admin/src/app/pages/dashboard.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 2
-    }
-  },
   "projects/admin/src/app/pages/dine-in.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 67
