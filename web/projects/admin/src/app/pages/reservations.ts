@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { reloadOnLive } from '../core/live';
@@ -8,6 +9,9 @@ import { Latest, RESERVATION_STATUS, Submit, VnDatePipe, today } from '../shared
 import { askText } from '../../../../customer/src/app/core/dialog';
 
 const RESERVATION_NEXT: Record<string, string[]> = { pending: ['confirmed', 'cancelled'], confirmed: ['checked_in', 'no_show', 'cancelled'], checked_in: ['completed'], no_show: ['checked_in'] };
+
+type ReservationRow = Schemas['AdminReservationDto'];
+type ReservationDetail = Schemas['AdminReservationDetailDto'];
 
 @Component({
   selector: 'ot-reservations',
@@ -32,7 +36,7 @@ export class Reservations {
   private readonly api = inject(Api);
   protected readonly labels = RESERVATION_STATUS;
   protected readonly statusKeys = Object.keys(RESERVATION_STATUS);
-  protected readonly rows = signal<any[]>([]);
+  protected readonly rows = signal<ReservationRow[]>([]);
   protected readonly total = signal(0);
   protected readonly list = new Latest();
   protected q = '';
@@ -58,7 +62,7 @@ export class Reservations {
   }
 
   private fetch(): void {
-    this.list.run(this.api.raw<any[]>('reservations', { q: this.q, status: this.status, from: this.from, to: this.to, page: this.page, pageSize: 30 }), (r) => {
+    this.list.run(this.api.raw<ReservationRow[]>('reservations', { q: this.q, status: this.status, from: this.from, to: this.to, page: this.page, pageSize: 30 }), (r) => {
       this.rows.update((x) => [...x, ...r.data]);
       this.total.set(r.meta?.total ?? 0);
     });
@@ -121,19 +125,19 @@ export class Reservation {
   private readonly api = inject(Api);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly labels = RESERVATION_STATUS;
-  protected readonly d = signal<any>(null);
-  protected readonly contact = signal<any>(null);
-  protected readonly tables = signal<any[]>([]);
+  protected readonly d = signal<ReservationDetail | null>(null);
+  protected readonly contact = signal<Schemas['ReservationContactDto'] | null>(null);
+  protected readonly tables = signal<Schemas['TableDto'][]>([]);
   protected readonly form = new Submit();
   protected note = '';
 
   constructor() {
     this.load();
-    this.api.get<any[]>('tables').subscribe({ next: (t) => this.tables.set(t), error: () => undefined });
+    this.api.get<Schemas['TableDto'][]>('tables').subscribe({ next: (t) => this.tables.set(t), error: () => undefined });
   }
 
   private load(): void {
-    this.form.run(this.api.get<any>(`reservations/${this.id}`), (v) => {
+    this.form.run(this.api.get<ReservationDetail>(`reservations/${this.id}`), (v) => {
       this.d.set(v);
       this.note = v.reservation.internalNote ?? '';
     });
@@ -143,26 +147,26 @@ export class Reservation {
     return RESERVATION_NEXT[status] ?? [];
   }
 
-  protected reveal(v: any): void {
-    this.form.run(this.api.post(`reservations/${v.reservation.id}/reveal-contact`), (c) => this.contact.set(c));
+  protected reveal(v: ReservationDetail): void {
+    this.form.run(this.api.post<Schemas['ReservationContactDto']>(`reservations/${v.reservation.id}/reveal-contact`), (c) => this.contact.set(c));
   }
 
   // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì
-  protected async call(v: any): Promise<void> {
+  protected async call(v: ReservationDetail): Promise<void> {
     const note = await askText('Ghi chú cuộc gọi');
     if (note !== null) {
       this.form.run(this.api.post(`reservations/${v.reservation.id}/call-attempts`, { note }, v.reservation.version), () => this.load());
     }
   }
 
-  protected async confirmContact(v: any): Promise<void> {
+  protected async confirmContact(v: ReservationDetail): Promise<void> {
     const note = await askText('Ghi chú');
     if (note !== null) {
       this.form.run(this.api.post(`reservations/${v.reservation.id}/contact-confirmation`, { note }, v.reservation.version), () => this.load());
     }
   }
 
-  protected async move(v: any, status: string): Promise<void> {
+  protected async move(v: ReservationDetail, status: string): Promise<void> {
     let reason: string | null = null;
     if (status === 'cancelled') {
       reason = await askText('Lý do hủy');
@@ -172,13 +176,13 @@ export class Reservation {
     this.form.run(this.api.patch(`reservations/${v.reservation.id}/status`, { expectedStatus: v.reservation.status, status, reason }, v.reservation.version), () => this.load());
   }
 
-  protected assign(v: any, tableId: number | null): void {
+  protected assign(v: ReservationDetail, tableId: number | null): void {
     if (tableId !== null) {
       this.form.run(this.api.patch(`reservations/${v.reservation.id}/assign-table`, { tableId }, v.reservation.version), () => this.load());
     }
   }
 
-  protected saveNote(v: any): void {
+  protected saveNote(v: ReservationDetail): void {
     this.form.run(this.api.patch(`reservations/${v.reservation.id}/note`, { note: this.note || null }, v.reservation.version), () => this.load());
   }
 }
@@ -209,10 +213,10 @@ export class ReservationNew {
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   protected readonly form = new Submit();
-  protected m: any = { date: today(), time: '', adultCount: 2, childCount: 0, guestName: '', guestPhone: '', guestEmail: '', specialRequest: '', internalNote: null, source: 'phone', checkInNow: false, overrideCapacityReason: '' };
+  protected m: Schemas['StaffCreateReservationRequest'] = { date: today(), time: '', adultCount: 2, childCount: 0, guestName: '', guestPhone: '', guestEmail: '', specialRequest: '', internalNote: null, source: 'phone', checkInNow: false, overrideCapacityReason: '' };
 
   protected save(): void {
     const body = { ...this.m, guestEmail: this.m.guestEmail || null, specialRequest: this.m.specialRequest || null, overrideCapacityReason: this.m.overrideCapacityReason || null };
-    this.form.run(this.api.post<any>('reservations', body), (r) => void this.router.navigate(['/reservations', r.id]));
+    this.form.run(this.api.post<ReservationRow>('reservations', body), (r) => void this.router.navigate(['/reservations', r.id]));
   }
 }

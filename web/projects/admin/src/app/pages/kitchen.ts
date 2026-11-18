@@ -1,11 +1,15 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { afterNextRender, Component, inject, Injector, signal } from '@angular/core';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
 import { Live } from '../core/live';
 import { reloadOnLive } from '../core/live';
 import { Latest, ORDER_STATUS, Submit } from '../shared/ui';
+
+type KitchenOrder = Schemas['KitchenOrderDto'];
+type Ticket = Schemas['DineInKitchenTicketDto'];
 
 @Component({
   selector: 'ot-kitchen',
@@ -68,9 +72,9 @@ export class Kitchen {
   protected readonly labels = ORDER_STATUS;
   protected readonly lanes = ['pending', 'preparing', 'ready'];
   protected readonly nextOf: Record<string, string> = { pending: 'preparing', preparing: 'ready', ready: 'completed' };
-  protected readonly orders = signal<any[]>([]);
-  protected readonly tickets = signal<any[]>([]);
-  protected readonly printing = signal<any>(null);
+  protected readonly orders = signal<KitchenOrder[]>([]);
+  protected readonly tickets = signal<Ticket[]>([]);
+  protected readonly printing = signal<KitchenOrder | null>(null);
   protected readonly form = new Submit();
   protected readonly loader = new Latest();
   private readonly auth = inject(Auth);
@@ -81,11 +85,11 @@ export class Kitchen {
   }
 
   protected load(): void {
-    this.loader.run(this.api.get<any[]>('orders/kitchen-view'), (o) => this.orders.set(o));
-    this.api.get<any[]>('dine-in/kitchen-view').subscribe({ next: (t) => this.tickets.set(t), error: () => undefined });
+    this.loader.run(this.api.get<KitchenOrder[]>('orders/kitchen-view'), (o) => this.orders.set(o));
+    this.api.get<Ticket[]>('dine-in/kitchen-view').subscribe({ next: (t) => this.tickets.set(t), error: () => undefined });
   }
 
-  protected served(t: any, i: any): void {
+  protected served(t: Ticket, i: Schemas['DineInKitchenLineDto']): void {
     this.form.run(this.api.post(`dine-in/${t.billId}/items/${i.id}/served`), () => this.load());
   }
 
@@ -94,28 +98,28 @@ export class Kitchen {
   }
 
   // Bếp nấu xong tới "Sẵn sàng"; giao cho khách là việc của thu ngân
-  protected nextFor(o: any): string | null {
+  protected nextFor(o: KitchenOrder): string | null {
     const next = o.channel === 'delivery' && o.status === 'ready' ? 'delivering' : this.nextOf[o.status];
     return (next === 'completed' || next === 'delivering') && !this.auth.has('orders_cashier') ? null : next;
   }
 
-  protected of(status: string): any[] {
+  protected of(status: string): KitchenOrder[] {
     return this.orders().filter((o) => o.status === status);
   }
 
-  protected move(o: any, status: string): void {
+  protected move(o: KitchenOrder, status: string): void {
     this.form.run(this.api.patch(`orders/${o.id}/status`, { expectedStatus: o.status, status, reason: null }, o.version), () => this.load());
   }
 
   // Chỉ nhận kéo sang cột kế tiếp; máy trạng thái ở server vẫn là chốt chặn
   protected dropped(event: CdkDragDrop<string>): void {
-    const order = event.item.data;
+    const order: KitchenOrder = event.item.data;
     if (event.previousContainer !== event.container && this.nextFor(order) === event.container.data) {
       this.move(order, event.container.data);
     }
   }
 
-  protected print(o: any): void {
+  protected print(o: KitchenOrder): void {
     this.printing.set(o);
     // In sau khi phiếu bếp đã vẽ ra trang, không in ra trang trắng
     afterNextRender(() => window.print(), { injector: this.injector });

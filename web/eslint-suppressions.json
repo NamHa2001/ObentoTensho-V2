@@ -4,24 +4,9 @@
       "count": 67
     }
   },
-  "projects/admin/src/app/pages/kitchen.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 11
-    }
-  },
   "projects/admin/src/app/pages/menu.ts": {
     "@typescript-eslint/no-explicit-any": {
       "count": 16
-    }
-  },
-  "projects/admin/src/app/pages/orders.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 16
-    }
-  },
-  "projects/admin/src/app/pages/reservations.ts": {
-    "@typescript-eslint/no-explicit-any": {
-      "count": 15
     }
   },
   "projects/admin/src/app/shared/resource.ts": {

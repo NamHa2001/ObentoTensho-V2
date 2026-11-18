@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -12,8 +13,11 @@ import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app
 const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'], delivering: ['completed', 'cancelled'] };
 const CHANNEL: Record<string, string> = { pickup: 'Đặt online', delivery: 'Giao hàng', dine_in: 'Tại bàn', counter: 'Mua tại quầy' };
 
+type OrderRow = Schemas['AdminOrderDto'];
+type OrderDetail = Schemas['AdminOrderDetailDto'];
+
 // Đơn giao hàng: sẵn sàng thì chuyển "Đang giao" (không hoàn thành thẳng)
-function nextSteps(order: any): string[] {
+function nextSteps(order: Pick<OrderRow, 'status' | 'channel'>): string[] {
   const steps = ORDER_NEXT[order.status] ?? [];
   return order.channel === 'delivery' && order.status === 'ready' ? ['delivering', 'cancelled'] : steps;
 }
@@ -47,9 +51,9 @@ export class Orders {
   protected readonly channel = CHANNEL;
   protected readonly labels = ORDER_STATUS;
   protected readonly statusKeys = Object.keys(ORDER_STATUS);
-  protected readonly rows = signal<any[]>([]);
+  protected readonly rows = signal<OrderRow[]>([]);
   protected readonly total = signal(0);
-  protected readonly attention = signal<any>(null);
+  protected readonly attention = signal<Schemas['OrderAttentionDto'] | null>(null);
   protected readonly list = new Latest();
   protected q = '';
   protected status = '';
@@ -60,7 +64,7 @@ export class Orders {
   constructor() {
     this.reload();
     reloadOnLive(() => this.reload());
-    this.api.get<any>('orders/attention').subscribe({ next: (a) => this.attention.set(a), error: () => undefined });
+    this.api.get<Schemas['OrderAttentionDto']>('orders/attention').subscribe({ next: (a) => this.attention.set(a), error: () => undefined });
   }
 
   protected reload(): void {
@@ -75,7 +79,7 @@ export class Orders {
   }
 
   private fetch(): void {
-    this.list.run(this.api.raw<any[]>('orders', { q: this.q, status: this.status, from: this.from, to: this.to, page: this.page, pageSize: 30 }), (r) => {
+    this.list.run(this.api.raw<OrderRow[]>('orders', { q: this.q, status: this.status, from: this.from, to: this.to, page: this.page, pageSize: 30 }), (r) => {
       this.rows.update((x) => [...x, ...r.data]);
       this.total.set(r.meta?.total ?? 0);
     });
@@ -160,8 +164,8 @@ export class Order {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly labels = ORDER_STATUS;
   protected readonly channel = CHANNEL;
-  protected readonly d = signal<any>(null);
-  protected readonly contact = signal<any>(null);
+  protected readonly d = signal<OrderDetail | null>(null);
+  protected readonly contact = signal<Schemas['OrderContactDto'] | null>(null);
   protected readonly form = new Submit();
   protected readonly invoiceForm = new Submit();
   protected readonly invoicing = signal(false);
@@ -173,7 +177,7 @@ export class Order {
   }
 
   private load(): void {
-    this.form.run(this.api.get<any>(`orders/${this.id}`), (v) => this.d.set(v));
+    this.form.run(this.api.get<OrderDetail>(`orders/${this.id}`), (v) => this.d.set(v));
   }
 
   protected startInvoice(): void {
@@ -190,28 +194,28 @@ export class Order {
   }
 
   // Chỉ hiện bước mà vai trò này được làm và đã đủ điều kiện (đơn cần gọi xác nhận thì gọi trước)
-  protected next(order: any): string[] {
+  protected next(order: Pick<OrderRow, 'status' | 'channel' | 'needsContactConfirm' | 'contactConfirmed'>): string[] {
     const blocked = order.status === 'pending' && order.needsContactConfirm && !order.contactConfirmed;
     return nextSteps(order).filter((s) => (s === 'cancelled' ? this.auth.has('orders_cancel') : s === 'completed' || s === 'delivering' ? this.auth.has('orders_cashier') : this.auth.has('orders_kitchen') && !blocked));
   }
 
   // Khách ghim vị trí thì chỉ đường tới đúng điểm ghim; không thì tìm theo địa chỉ chữ
-  protected mapLink(v: any): string {
-    const to = v.deliveryLatitude != null ? `${v.deliveryLatitude},${v.deliveryLongitude}` : v.deliveryAddress;
+  protected mapLink(v: OrderDetail): string {
+    const to = v.deliveryLatitude != null ? `${v.deliveryLatitude},${v.deliveryLongitude}` : (v.deliveryAddress ?? '');
     return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(to)}`;
   }
 
-  protected async noPickup(v: any): Promise<void> {
+  protected async noPickup(v: OrderDetail): Promise<void> {
     if (await askConfirm('Ghi nhận khách không đến lấy và hủy đơn?')) {
       this.form.run(this.api.patch(`orders/${v.order.id}/status`, { expectedStatus: v.order.status, status: 'cancelled', reason: 'Khách không đến lấy', noPickup: true }, v.order.version), () => this.load());
     }
   }
 
-  protected reveal(v: any): void {
-    this.form.run(this.api.post(`orders/${v.order.id}/reveal-contact`), (c) => this.contact.set(c));
+  protected reveal(v: OrderDetail): void {
+    this.form.run(this.api.post<Schemas['OrderContactDto']>(`orders/${v.order.id}/reveal-contact`), (c) => this.contact.set(c));
   }
 
-  protected async move(v: any, status: string): Promise<void> {
+  protected async move(v: OrderDetail, status: string): Promise<void> {
     let reason: string | null = null;
     if (status === 'cancelled') {
       reason = await askText('Lý do hủy');
@@ -221,19 +225,19 @@ export class Order {
     this.form.run(this.api.patch(`orders/${v.order.id}/status`, { expectedStatus: v.order.status, status, reason }, v.order.version), () => this.load());
   }
 
-  protected async confirmContact(v: any): Promise<void> {
+  protected async confirmContact(v: OrderDetail): Promise<void> {
     const note = await askText('Ghi chú cuộc gọi');
     if (note !== null) {
       this.form.run(this.api.patch(`orders/${v.order.id}/contact-confirmed`, { note }, v.order.version), () => this.load());
     }
   }
 
-  protected pay(v: any): void {
+  protected pay(v: OrderDetail): void {
     this.form.run(this.api.patch(`orders/${v.order.id}/payment`, {}, v.order.version), () => this.load());
   }
 
   // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì
-  protected async refund(v: any): Promise<void> {
+  protected async refund(v: OrderDetail): Promise<void> {
     const note = await askText('Ghi chú hoàn tiền');
     if (note !== null) {
       this.form.run(this.api.patch(`orders/${v.order.id}/refund`, { note }, v.order.version), () => this.load());
