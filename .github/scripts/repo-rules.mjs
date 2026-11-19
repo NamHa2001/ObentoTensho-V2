@@ -3,14 +3,19 @@
 //   node .github/scripts/repo-rules.mjs guard <base> <head>     phát hiện thay đổi làm yếu bước kiểm tra
 //   node .github/scripts/repo-rules.mjs pr                      mô tả PR điền đủ mục (đọc sự kiện PR của GitHub Actions)
 //   node .github/scripts/repo-rules.mjs template                in khuôn mô tả PR
+//   node .github/scripts/repo-rules.mjs redfirst-plan           PR sửa lỗi: tìm test mà PR thêm hoặc sửa
+//   node .github/scripts/repo-rules.mjs redfirst-run <dotnet|angular>   chạy các test đó trên code trước khi sửa
+//   node .github/scripts/repo-rules.mjs redfirst-verdict        test phải đỏ trên code trước khi sửa
 // Luật đọc từ .github/repo-rules.json. Từ cấm và đường dẫn cấm riêng tư đọc từ biến môi trường REPO_RULES_PRIVATE
 // (JSON { "words": [...], "paths": [...] }, lưu ở secret của repo trên GitHub), không ghi trong repo.
-import { execFileSync } from 'node:child_process';
-import { appendFileSync, readFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { appendFileSync, existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const rules = JSON.parse(readFileSync(new URL('../repo-rules.json', import.meta.url), 'utf8'));
-const RULE_FILES = /^\.github\/(repo-rules\.json|scripts\/repo-rules\.mjs)$/;
 const DECLARE = 'Đổi-kiểm-tra:';
+const NO_RED = 'Không chạy đỏ trước';
 const LAYERS = Object.keys(rules.layers);
 
 const TEMPLATE = `Loại: <tính năng | sửa lỗi | cải tiến | khác>
@@ -32,6 +37,10 @@ const TEMPLATE = `Loại: <tính năng | sửa lỗi | cải tiến | khác>
 - Vì sao lưới không bắt: <chưa có test? test có nhưng kiểm thiếu?>
 - Chặn ở lớp: <một hoặc vài lớp, cách nhau dấu phẩy: ${LAYERS.join(', ')}>
 - Bằng chứng chặn: <tên test, luật hoặc mục kiểm chứng mới; "đã có lớp bắt" thì ghi bước CI đã báo đỏ>
+
+## ${NO_RED}
+(chỉ khi sửa lỗi mà test mới không thể chạy trên code trước khi sửa, ví dụ bản sửa buộc đổi chữ ký hàm; không thì xoá cả mục)
+<vì sao không viết được test đỏ trên code cũ, và lấy gì chứng minh test bắt được lỗi>
 
 ## Đổi kiểm tra
 (chỉ khi sửa tệp cấu hình kiểm tra, thêm Skip/eslint-disable… hoặc bớt test; không thì xoá cả mục)
@@ -163,9 +172,11 @@ const PLACEHOLDERS = TEMPLATE.match(/<[^<>\n]+>/g);
 const filled = (text, min = 5) => !!text && !PLACEHOLDERS.some((p) => text.includes(p)) && text.replace(/^\(.*\)$/gm, '').trim().length >= min;
 const field = (text, name) => text.match(new RegExp(`^-\\s*${name}\\s*:\\s*(.*)$`, 'mi'))?.[1].trim() ?? '';
 
+const prEvent = () => JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')).pull_request;
+const prKind = (body) => body.match(/^Loại\s*:\s*(.+)$/im)?.[1].trim().toLowerCase() ?? '';
+
 function checkPr() {
-  const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-  const pr = event.pull_request;
+  const pr = prEvent();
   const body = pr.body ?? '';
   const base = pr.base.sha;
   const head = pr.head.sha;
@@ -173,7 +184,7 @@ function checkPr() {
   const words = `${pr.title}\n${body}`.split('\n').filter((l) => any(priv.words, l));
   if (words.length) fail('Tiêu đề hoặc mô tả PR có từ cấm', words);
 
-  const kind = body.match(/^Loại\s*:\s*(.+)$/im)?.[1].trim().toLowerCase() ?? '';
+  const kind = prKind(body);
   if (!['tính năng', 'sửa lỗi', 'cải tiến', 'khác'].includes(kind)) fail('Thiếu dòng "Loại: tính năng | sửa lỗi | cải tiến | khác"', [`Đang là: ${kind || '(trống)'}`]);
   for (const name of ['Thay đổi', 'Bằng chứng', 'Chỗ cần soi']) if (!filled(section(body, name))) fail(`Mục "## ${name}" còn trống hoặc còn chữ mẫu <...>`);
 
@@ -192,6 +203,140 @@ function checkPr() {
   checkGuard(base, head, body);
 }
 
+// Đỏ trước – xanh sau: test mà PR sửa lỗi thêm hoặc sửa phải đỏ trên code trước khi sửa, tức là test thật sự bắt được lỗi.
+// Xanh sau khi sửa do workflow CI thường kiểm. Đỏ chỉ tính khi test chạy và báo sai: không biên dịch được, hay bộ lọc
+// không khớp test nào, đều không chứng minh được gì.
+const setOutputs = (values) => {
+  const lines = Object.entries(values).map(([k, v]) => `${k}=${v}`);
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${lines.join('\n')}\n`);
+  else notes.push(...lines);
+};
+const STACKS = { dotnet: '.NET', angular: 'Angular' };
+
+function redFirstPlan() {
+  const pr = prEvent();
+  const head = pr.head.sha;
+  const out = { run: 'false', note: '', base: '', head, dotnet_files: '', dotnet_filter: '', angular_files: '' };
+  if (prKind(pr.body ?? '') !== 'sửa lỗi') {
+    out.note = 'Không phải PR sửa lỗi, bỏ qua.';
+  } else {
+    out.base = git('merge-base', pr.base.sha, head).trim();
+    // Tên tệp đi vào dòng lệnh của bước sau, chỉ nhận ký tự an toàn
+    const changed = git('diff', '--name-only', '--diff-filter=ACMR', out.base, head).split('\n').filter((f) => /^[\w./-]+$/.test(f));
+    const dotnet = changed.filter((f) => new RegExp(rules.redFirst.dotnet.files).test(f));
+    const filter = dotnet.flatMap((f) => {
+      const src = git('show', `${head}:${f}`);
+      if (!/\[(Fact|Theory)\b/.test(src)) return [];
+      const ns = src.match(/^namespace\s+([\w.]+)/m)?.[1];
+      return [...src.matchAll(/\bclass\s+(\w+)/g)].map((m) => `FullyQualifiedName~${ns ? `${ns}.` : ''}${m[1]}.`);
+    });
+    const angular = changed.filter((f) => new RegExp(rules.redFirst.angular.files).test(f));
+    Object.assign(out, { dotnet_files: dotnet.join(' '), dotnet_filter: filter.join('|'), angular_files: angular.join(' ') });
+    out.run = String(!!(filter.length || angular.length));
+    out.note = out.run === 'true' ? '' : 'PR sửa lỗi không thêm hay sửa test nào, không có gì để chạy đỏ trước (lớp chặn do job "Mô tả PR" kiểm).';
+  }
+  setOutputs(out);
+  notes.push(out.note || `Test sẽ chạy trên code trước khi sửa (${out.base.slice(0, 7)}):`, ...[out.dotnet_filter, out.angular_files].filter(Boolean));
+}
+
+/** Chạy lệnh, in log ra màn hình; npm trên Windows là tệp .cmd nên cần shell (tham số đều cố định) */
+const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, stdio: 'inherit', shell: cmd === 'npm' && process.platform === 'win32' }).status === 0;
+
+const summarize = (total, failed, broken = []) => {
+  if (failed > 0) return { state: 'đỏ', total, failed, detail: broken.length ? `không biên dịch: ${broken.join(', ')}` : '' };
+  if (broken.length) return { state: 'không biên dịch', total, failed, detail: broken.join(', ') };
+  return { state: total ? 'xanh' : 'không chạy test nào', total, failed, detail: '' };
+};
+
+function runDotnet(dir) {
+  const sln = rules.redFirst.dotnet.solution;
+  if (!run('dotnet', ['restore', sln, '--locked-mode'], dir)) return { state: 'lỗi hạ tầng', detail: 'dotnet restore thất bại' };
+  if (!run('dotnet', ['build', sln, '--configuration', 'Release', '--no-restore'], dir)) return summarize(0, 0, [sln]);
+  const results = join(dir, '.red-first');
+  run('dotnet', ['test', sln, '--configuration', 'Release', '--no-build', '--filter', process.env.RF_FILTER, '--logger', 'trx', '--results-directory', results], dir);
+  let total = 0;
+  let failed = 0;
+  for (const f of existsSync(results) ? readdirSync(results).filter((n) => n.endsWith('.trx')) : []) {
+    const counters = readFileSync(join(results, f), 'utf8').match(/<Counters [^>]*>/)?.[0] ?? '';
+    total += Number(counters.match(/\btotal="(\d+)"/)?.[1] ?? 0);
+    failed += Number(counters.match(/\bfailed="(\d+)"/)?.[1] ?? 0);
+  }
+  return summarize(total, failed);
+}
+
+function runAngular(dir, files) {
+  const { dir: webDir, files: pattern } = rules.redFirst.angular;
+  const web = join(dir, webDir);
+  if (!run('npm', ['ci', '--no-audit', '--no-fund'], web)) return { state: 'lỗi hạ tầng', detail: 'npm ci thất bại' };
+  const byProject = new Map();
+  for (const f of files) {
+    const [, include, project] = f.match(new RegExp(pattern));
+    byProject.set(project, [...(byProject.get(project) ?? []), include]);
+  }
+  let total = 0;
+  let failed = 0;
+  const broken = [];
+  for (const [project, includes] of byProject) {
+    // Báo cáo JSON chỉ có khi test đã biên dịch và chạy; không có báo cáo nghĩa là lỗi biên dịch
+    const report = join(dir, `.red-first-${project}.json`);
+    const args = ['test', project, '--watch=false', '--reporters', 'json', '--reporters', 'default', '--output-file', report, ...includes.flatMap((i) => ['--include', i])];
+    run(process.execPath, [join(web, 'node_modules/@angular/cli/bin/ng.js'), ...args], web);
+    if (!existsSync(report)) {
+      broken.push(project);
+      continue;
+    }
+    const r = JSON.parse(readFileSync(report, 'utf8'));
+    total += r.numTotalTests;
+    failed += r.numFailedTests;
+  }
+  return summarize(total, failed, broken);
+}
+
+function redFirstRun(stack) {
+  const { RF_BASE: base, RF_HEAD: head } = process.env;
+  const files = (process.env.RF_FILES ?? '').split(' ').filter(Boolean);
+  // Thư mục riêng (git worktree) chứa code trước khi sửa, đặt tệp test của PR lên trên; bản checkout chính giữ nguyên
+  const dir = join(process.env.RUNNER_TEMP ?? tmpdir(), 'red-first');
+  try {
+    git('worktree', 'remove', '--force', dir);
+  } catch {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  git('worktree', 'add', '--detach', dir, base);
+  git('-C', dir, 'checkout', head, '--', ...files);
+  const result = { stack, ...(stack === 'dotnet' ? runDotnet(dir) : runAngular(dir, files)) };
+  setOutputs({ result: JSON.stringify(result) });
+  notes.push(`${STACKS[stack]} trên code trước khi sửa: ${result.state} (${result.failed ?? 0}/${result.total ?? 0} test đỏ)${result.detail ? `, ${result.detail}` : ''}`);
+}
+
+function redFirstVerdict() {
+  const needs = JSON.parse(process.env.RF_NEEDS);
+  const plan = needs.plan;
+  if (plan.result !== 'success') return fail('Bước tìm test của PR bị lỗi, xem log job đó');
+  if (plan.outputs.run !== 'true') return notes.push(plan.outputs.note);
+  const results = Object.keys(STACKS)
+    .filter((s) => needs[s].result !== 'skipped')
+    .map((s) => (needs[s].result === 'success' ? JSON.parse(needs[s].outputs.result) : { stack: s, state: 'lỗi hạ tầng', detail: `job ${needs[s].result}` }));
+  const lines = results.map((r) => `${STACKS[r.stack]}: ${r.state} (${r.failed ?? 0}/${r.total ?? 0} test đỏ)${r.detail ? `, ${r.detail}` : ''}`);
+  if (results.some((r) => r.state === 'đỏ')) {
+    notes.push('Test của PR đỏ trên code trước khi sửa: test bắt được lỗi. Xanh sau khi sửa do workflow CI kiểm.', ...lines);
+    return;
+  }
+  if (results.some((r) => r.state === 'lỗi hạ tầng')) return fail('Lỗi khi dựng môi trường chạy test, chưa kết luận được. Chạy lại job.', lines);
+  const reason = section(prEvent().body ?? '', NO_RED);
+  if (filled(reason)) {
+    notes.push(`Không có test nào đỏ trên code trước khi sửa, đã khai báo lý do ở mục "## ${NO_RED}". Người duyệt cần soi:`, ...lines, 'Lý do:', `    ${reason}`);
+    return;
+  }
+  const hint = {
+    xanh: 'Test của PR vẫn xanh trên code trước khi sửa, tức là chưa tái hiện được lỗi. Viết test đi đúng đường gây lỗi, thấy đỏ trên code cũ rồi mới sửa.',
+    'không biên dịch': 'Test của PR không biên dịch được trên code trước khi sửa (gọi hàm hoặc kiểu mà bản sửa mới thêm), nên chưa chứng minh được test bắt lỗi. Viết test qua API đã có.',
+    'không chạy test nào': 'Không có test nào chạy (bộ lọc không khớp, hoặc tệp test lỗi khi nạp).',
+  };
+  fail('Chưa chứng minh được test bắt được lỗi', [...lines, ...new Set(results.map((r) => hint[r.state]))]);
+  notes.push(`Nếu thật sự không thể viết test đỏ trên code cũ, ghi lý do ở mục "## ${NO_RED}" trong mô tả PR.`);
+}
+
 const [mode, base, head] = process.argv.slice(2);
 if (mode === 'template') {
   process.stdout.write(TEMPLATE);
@@ -200,8 +345,11 @@ if (mode === 'template') {
 if (mode === 'commits') checkCommits(resolveBase(base, head), head);
 else if (mode === 'guard') checkGuard(resolveBase(base, head), head);
 else if (mode === 'pr') checkPr();
+else if (mode === 'redfirst-plan') redFirstPlan();
+else if (mode === 'redfirst-run' && STACKS[base]) redFirstRun(base);
+else if (mode === 'redfirst-verdict') redFirstVerdict();
 else {
-  console.error('Dùng: repo-rules.mjs commits|guard <base> <head> | pr | template');
+  console.error('Dùng: repo-rules.mjs commits|guard <base> <head> | pr | template | redfirst-plan | redfirst-run dotnet|angular | redfirst-verdict');
   process.exit(2);
 }
 

@@ -1,0 +1,104 @@
+name: Đỏ trước khi sửa
+
+# PR sửa lỗi: test mà PR thêm hoặc sửa phải đỏ trên code trước khi sửa, chứng minh test bắt được lỗi.
+# Xanh sau khi sửa do workflow CI kiểm. Cách chạy ở .github/scripts/repo-rules.mjs (redfirst-*), phần riêng dự án ở .github/repo-rules.json (redFirst)
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: red-first-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    name: Tìm test của PR sửa lỗi
+    runs-on: ubuntu-24.04
+    outputs:
+      run: ${{ steps.plan.outputs.run }}
+      note: ${{ steps.plan.outputs.note }}
+      base: ${{ steps.plan.outputs.base }}
+      head: ${{ steps.plan.outputs.head }}
+      dotnet_files: ${{ steps.plan.outputs.dotnet_files }}
+      dotnet_filter: ${{ steps.plan.outputs.dotnet_filter }}
+      angular_files: ${{ steps.plan.outputs.angular_files }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: plan
+        name: Loại sửa lỗi thì lấy danh sách test PR thêm hoặc sửa
+        run: node .github/scripts/repo-rules.mjs redfirst-plan
+
+  dotnet:
+    name: Test .NET trên code trước khi sửa
+    needs: plan
+    if: needs.plan.outputs.dotnet_filter != ''
+    runs-on: ubuntu-24.04
+    outputs:
+      result: ${{ steps.run.outputs.result }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          global-json-file: global.json
+      - name: Khởi động SQL Server (cho test tích hợp)
+        run: |
+          PASSWORD="Ot-$(openssl rand -hex 12)A1"
+          echo "::add-mask::$PASSWORD"
+          docker run -d --name sql -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD="$PASSWORD" -p 1433:1433 mcr.microsoft.com/mssql/server:2022-latest
+          echo "OBENTO_TEST_SQL=Server=localhost,1433;User Id=sa;Password=$PASSWORD;TrustServerCertificate=True" >> "$GITHUB_ENV"
+          for i in $(seq 1 40); do
+            if docker exec sql /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$PASSWORD" -C -Q "SELECT 1" > /dev/null 2>&1; then exit 0; fi
+            sleep 3
+          done
+          docker logs sql
+          exit 1
+      - id: run
+        name: Build và chạy test của PR trên code trước khi sửa
+        env:
+          RF_BASE: ${{ needs.plan.outputs.base }}
+          RF_HEAD: ${{ needs.plan.outputs.head }}
+          RF_FILES: ${{ needs.plan.outputs.dotnet_files }}
+          RF_FILTER: ${{ needs.plan.outputs.dotnet_filter }}
+        run: node .github/scripts/repo-rules.mjs redfirst-run dotnet
+
+  angular:
+    name: Test Angular trên code trước khi sửa
+    needs: plan
+    if: needs.plan.outputs.angular_files != ''
+    runs-on: ubuntu-24.04
+    outputs:
+      result: ${{ steps.run.outputs.result }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - id: run
+        name: Chạy test của PR trên code trước khi sửa
+        env:
+          RF_BASE: ${{ needs.plan.outputs.base }}
+          RF_HEAD: ${{ needs.plan.outputs.head }}
+          RF_FILES: ${{ needs.plan.outputs.angular_files }}
+        run: node .github/scripts/repo-rules.mjs redfirst-run angular
+
+  verdict:
+    name: Đỏ trước khi sửa
+    needs: [plan, dotnet, angular]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Test của PR sửa lỗi phải đỏ trên code trước khi sửa
+        env:
+          RF_NEEDS: ${{ toJSON(needs) }}
+        run: node .github/scripts/repo-rules.mjs redfirst-verdict

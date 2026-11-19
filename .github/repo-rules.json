@@ -27,6 +27,10 @@
     "^\\.gitleaksignore$",
     "(^|/)tsconfig[^/]*\\.json$"
   ],
+  "redFirst": {
+    "dotnet": { "files": "^tests/.*\\.cs$", "solution": "ObentoTensho.sln" },
+    "angular": { "dir": "web", "files": "^web/(projects/([^/]+)/.*\\.spec\\.ts)$" }
+  },
   "layers": {
     "kiến trúc": [],
     "kiểu": ["\\.(cs|ts)$"],
