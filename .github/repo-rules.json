@@ -1,0 +1,40 @@
+{
+  "commitSubject": "^[^:\\s][^:]{0,29}: \\S.{4,}$",
+  "commitSubjectExample": "Giao hàng: tính phí theo điểm ghim",
+  "commitSubjectSkip": "^(Merge|Revert|fixup!|squash!) ",
+  "blockedPaths": ["(^|/)docs/", "\\.md$"],
+  "allowedPaths": ["^README\\.md$"],
+  "testFiles": ["^tests/.*\\.cs$", "\\.spec\\.ts$"],
+  "testCount": [
+    { "files": "^tests/.*\\.cs$", "pattern": "\\[(Fact|Theory)\\b" },
+    { "files": "\\.spec\\.ts$", "pattern": "(^|[^.\\w])(it|test)\\(" }
+  ],
+  "skipMarkers": ["\\[(Fact|Theory)\\([^\\]]*Skip\\s*=", "\\b(it|test|describe)\\.(skip|only|todo)\\(", "\\b(xit|xdescribe|fit|fdescribe)\\("],
+  "generatedFiles": ["/Migrations/"],
+  "weakenMarkers": [
+    "eslint-disable",
+    "@ts-(ignore|nocheck|expect-error)",
+    "#pragma\\s+warning\\s+disable",
+    "SuppressMessage"
+  ],
+  "checkConfig": [
+    "^\\.github/",
+    "(^|/)eslint\\.config\\.",
+    "(^|/)Directory\\.Build\\.(props|targets)$",
+    "(^|/)\\.editorconfig$",
+    "(^|/)\\.globalconfig$",
+    "(^|/)audit-exceptions\\.json$",
+    "^\\.gitleaksignore$",
+    "(^|/)tsconfig[^/]*\\.json$"
+  ],
+  "layers": {
+    "kiến trúc": [],
+    "kiểu": ["\\.(cs|ts)$"],
+    "lint": ["(^|/)eslint\\.config\\.", "(^|/)Directory\\.Build\\.props$", "(^|/)\\.editorconfig$"],
+    "test": ["^tests/.*\\.cs$", "\\.spec\\.ts$"],
+    "verify": ["^web/scripts/verify/"],
+    "hook": ["^\\.github/"],
+    "tài liệu": [],
+    "đã có lớp bắt": []
+  }
+}

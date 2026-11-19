@@ -1,0 +1,52 @@
+name: Quy tắc
+
+# Quy tắc chung cho mọi thay đổi, ai đẩy lên cũng bị kiểm như nhau (luật ở .github/repo-rules.json, cách chạy ở .github/scripts/repo-rules.mjs)
+on:
+  push:
+    branches: [master, Nam]
+  pull_request:
+    branches: [master]
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: rules-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REPO_RULES_PRIVATE: ${{ vars.REPO_RULES_PRIVATE }}
+
+jobs:
+  commits:
+    name: Lời commit và tệp
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Lời commit đúng dạng, không có tệp nội bộ, không có từ cấm
+        run: node .github/scripts/repo-rules.mjs commits "${{ github.event.pull_request.base.sha || github.event.before }}" "${{ github.event.pull_request.head.sha || github.sha }}"
+
+  guard:
+    name: Chống nới kiểm tra
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Không xoá test, không thêm Skip/eslint-disable, không sửa cấu hình kiểm tra mà không khai báo lý do
+        run: node .github/scripts/repo-rules.mjs guard "${{ github.event.before }}" "${{ github.sha }}"
+
+  pr:
+    name: Mô tả PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Đủ mục Bằng chứng, Chỗ cần soi, Phân tích lỗi (khi sửa lỗi); thay đổi đụng lưới kiểm tra phải có lý do
+        run: node .github/scripts/repo-rules.mjs pr
