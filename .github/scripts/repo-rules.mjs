@@ -233,10 +233,15 @@ function redFirstPlan() {
     const angular = changed.filter((f) => new RegExp(rules.redFirst.angular.files).test(f));
     Object.assign(out, { dotnet_files: dotnet.join(' '), dotnet_filter: filter.join('|'), angular_files: angular.join(' ') });
     out.run = String(!!(filter.length || angular.length));
-    out.note = out.run === 'true' ? '' : 'PR sửa lỗi không thêm hay sửa test nào, không có gì để chạy đỏ trước (lớp chặn do job "Mô tả PR" kiểm).';
+    const uncovered = changed.filter((f) => any(rules.testFiles, f) && !dotnet.includes(f) && !angular.includes(f));
+    out.note = [
+      out.run === 'true' ? '' : 'PR sửa lỗi không thêm hay sửa test chạy được, không có gì để chạy đỏ trước (lớp chặn do job "Mô tả PR" kiểm).',
+      uncovered.length ? `Tệp test chưa có cách chạy đỏ trước (thêm vào redFirst trong repo-rules.json): ${uncovered.join(', ')}` : '',
+    ].filter(Boolean).join(' ');
   }
   setOutputs(out);
-  notes.push(out.note || `Test sẽ chạy trên code trước khi sửa (${out.base.slice(0, 7)}):`, ...[out.dotnet_filter, out.angular_files].filter(Boolean));
+  if (out.note) notes.push(out.note);
+  if (out.run === 'true') notes.push(`Test sẽ chạy trên code trước khi sửa (${out.base.slice(0, 7)}):`, ...[out.dotnet_filter, out.angular_files].filter(Boolean));
 }
 
 /** Chạy lệnh, in log ra màn hình; npm trên Windows là tệp .cmd nên cần shell (tham số đều cố định) */
@@ -313,7 +318,8 @@ function redFirstVerdict() {
   const needs = JSON.parse(process.env.RF_NEEDS);
   const plan = needs.plan;
   if (plan.result !== 'success') return fail('Bước tìm test của PR bị lỗi, xem log job đó');
-  if (plan.outputs.run !== 'true') return notes.push(plan.outputs.note);
+  if (plan.outputs.note) notes.push(plan.outputs.note);
+  if (plan.outputs.run !== 'true') return;
   const results = Object.keys(STACKS)
     .filter((s) => needs[s].result !== 'skipped')
     .map((s) => (needs[s].result === 'success' ? JSON.parse(needs[s].outputs.result) : { stack: s, state: 'lỗi hạ tầng', detail: `job ${needs[s].result}` }));
