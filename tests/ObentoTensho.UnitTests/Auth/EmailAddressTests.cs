@@ -10,6 +10,12 @@ public sealed class EmailAddressTests
         Assert.Equal("an.nguyen@example.com", EmailAddress.Normalize("  An.Nguyen@Example.COM "));
     }
 
+    [Fact]
+    public void Normalize_bo_dau_cham_thua_cuoi_ten_mien()
+    {
+        Assert.Equal("an@example.com", EmailAddress.Normalize("an@example.com."));
+    }
+
     // BR-AUTH-13: một người không lấy được nhiều ưu đãi bằng +tag hay dấu chấm của Gmail
     [Theory]
     [InlineData("an.nguyen+uudai@gmail.com", "annguyen@gmail.com")]

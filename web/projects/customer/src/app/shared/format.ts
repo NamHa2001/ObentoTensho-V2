@@ -42,7 +42,7 @@ export function addDays(date: string, days: number): string {
 
 // Số lưu dạng +84…, khách quen đọc và gõ dạng 0…
 export function localPhone(phone: string | null | undefined): string {
-  return phone ? phone.replace(/^\+84/, '0') : '';
+  return phone ? phone.replace(/^\+?84/, '0') : '';
 }
 
 // Người Việt được gọi bằng tên, là từ cuối của họ tên

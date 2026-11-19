@@ -5,7 +5,7 @@ public static class EmailAddress
     private static readonly string[] GmailDomains = ["gmail.com", "googlemail.com"];
 
     // Email lưu chữ thường (CK_Users_Email_Lowercase); so sánh không phân biệt hoa thường
-    public static string Normalize(string email) => email.Trim().ToLowerInvariant();
+    public static string Normalize(string email) => email.Trim().TrimEnd('.').ToLowerInvariant();
 
     // BR-AUTH-13: dạng chuẩn để kiểm trùng ưu đãi — bỏ "+tag", bỏ dấu chấm của Gmail
     public static string Canonicalize(string normalizedEmail)

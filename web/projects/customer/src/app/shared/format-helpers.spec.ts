@@ -10,6 +10,7 @@ describe('Ngày và số điện thoại', () => {
     expect(localPhone('+84935766574')).toBe('0935766574');
     expect(localPhone('0935766574')).toBe('0935766574');
     expect(localPhone(null)).toBe('');
+    expect(localPhone('84935766574')).toBe('0935766574');
   });
 });
 
