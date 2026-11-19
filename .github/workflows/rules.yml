@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 env:
-  REPO_RULES_PRIVATE: ${{ vars.REPO_RULES_PRIVATE }}
+  REPO_RULES_PRIVATE: ${{ secrets.REPO_RULES_PRIVATE }}
 
 jobs:
   commits:

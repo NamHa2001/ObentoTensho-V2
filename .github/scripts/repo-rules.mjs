@@ -4,7 +4,7 @@
 //   node .github/scripts/repo-rules.mjs pr                      mô tả PR điền đủ mục (đọc sự kiện PR của GitHub Actions)
 //   node .github/scripts/repo-rules.mjs template                in khuôn mô tả PR
 // Luật đọc từ .github/repo-rules.json. Từ cấm và đường dẫn cấm riêng tư đọc từ biến môi trường REPO_RULES_PRIVATE
-// (JSON { "words": [...], "paths": [...] }, đặt ở biến của repo trên GitHub), không ghi trong repo.
+// (JSON { "words": [...], "paths": [...] }, lưu ở secret của repo trên GitHub), không ghi trong repo.
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 
@@ -48,7 +48,7 @@ const any = (patterns, text) => patterns.some((p) => new RegExp(p, 'i').test(tex
 function privateRules() {
   const raw = process.env.REPO_RULES_PRIVATE;
   if (!raw) {
-    fail('Thiếu biến REPO_RULES_PRIVATE (từ cấm và đường dẫn cấm riêng tư)', ['Đặt ở GitHub: Settings → Secrets and variables → Actions → Variables']);
+    fail('Thiếu biến REPO_RULES_PRIVATE (từ cấm và đường dẫn cấm riêng tư)', ['Đặt ở GitHub: Settings → Secrets and variables → Actions → Secrets (lưu dạng secret để không in ra log)']);
     return { words: [], paths: [] };
   }
   const p = JSON.parse(raw);
@@ -158,8 +158,9 @@ function section(body, name) {
   const m = body.match(new RegExp(`^##\\s*${name}\\s*$([\\s\\S]*?)(?=^##\\s|(?![\\s\\S]))`, 'mi'));
   return m ? m[1].trim() : '';
 }
-// Chữ mẫu trong khuôn có dạng <vài chữ cách nhau>; kiểu generic như resource<Dto> không có khoảng trắng nên không bị tính
-const filled = (text, min = 5) => !!text && !/<[^<>]*\s[^<>]*>/.test(text) && text.replace(/^\(.*\)$/gm, '').trim().length >= min;
+// Chỉ coi là chưa điền khi còn nguyên chữ mẫu của khuôn; nội dung thật có thể chứa <...> (kiểu generic, dạng "<Phân hệ>: <việc>")
+const PLACEHOLDERS = TEMPLATE.match(/<[^<>\n]+>/g);
+const filled = (text, min = 5) => !!text && !PLACEHOLDERS.some((p) => text.includes(p)) && text.replace(/^\(.*\)$/gm, '').trim().length >= min;
 const field = (text, name) => text.match(new RegExp(`^-\\s*${name}\\s*:\\s*(.*)$`, 'mi'))?.[1].trim() ?? '';
 
 function checkPr() {
