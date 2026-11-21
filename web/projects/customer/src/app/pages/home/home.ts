@@ -4,7 +4,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Meta } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { CalendarDays, ChevronRight, Clock, Gift, LucideAngularModule, MapPin, MessageCircle, Navigation, Phone, ShoppingBag, UtensilsCrossed } from 'lucide-angular';
+import { CalendarDays, ChevronRight, Clock, Gift, LucideAngularModule, MapPin, MessageCircle, Navigation, Phone, ShoppingBag, Star, UtensilsCrossed } from 'lucide-angular';
 import { catchError, map, of } from 'rxjs';
 
 import { Api } from '../../core/api';
@@ -36,7 +36,8 @@ function slots<T>(list: readonly T[], count: number): (T | null)[] {
 export class Home {
   private readonly api = inject(Api);
 
-  protected readonly icons = { clock: Clock, order: UtensilsCrossed, book: CalendarDays, next: ChevronRight, gift: Gift, pin: MapPin, phone: Phone, map: Navigation };
+  protected readonly icons = { clock: Clock, order: UtensilsCrossed, book: CalendarDays, next: ChevronRight, gift: Gift, pin: MapPin, phone: Phone, map: Navigation, star: Star };
+  protected readonly stars = [1, 2, 3, 4, 5];
   protected readonly services = [
     { path: '/menu', icon: ShoppingBag, title: 'Đặt món', note: 'Hẹn giờ đến lấy' },
     { path: '/dat-ban', icon: CalendarDays, title: 'Đặt bàn', note: 'Chọn ngày và ca' },
@@ -107,10 +108,6 @@ export class Home {
         clearInterval(clock);
       });
     });
-  }
-
-  protected stars(rating: number): string {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
   }
 
   protected pause(paused: boolean): void {
