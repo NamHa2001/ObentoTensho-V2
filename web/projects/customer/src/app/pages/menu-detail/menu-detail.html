@@ -59,7 +59,7 @@
             }
             <h1 class="text-[28px] leading-tight md:text-[36px]">{{ d.item.name }}</h1>
             <div class="mt-2 flex items-baseline gap-3">
-              <span class="text-2xl font-bold text-primary">{{ d.item.price | vnd }}</span>
+              <span class="text-2xl font-semibold text-primary">{{ d.item.price | vnd }}</span>
               @if (d.item.originalPrice; as original) {
                 <span class="text-muted line-through">{{ original | vnd }}</span>
               }

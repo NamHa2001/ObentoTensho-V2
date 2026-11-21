@@ -78,7 +78,7 @@ export function linesOf(cart: CartStore) {
             <div class="mt-3">
             <p class="ot-sum"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
             @if (q.memberDiscount > 0) { <p class="ot-sum"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
-            <p class="ot-sum border-t border-line pt-3 text-lg font-bold"><span>Tổng</span><span class="text-primary">{{ q.totalAmount | vnd }}</span></p>
+            <p class="ot-sum border-t border-line pt-3 text-lg font-semibold"><span>Tổng</span><span class="text-primary">{{ q.totalAmount | vnd }}</span></p>
             @if (q.isValid) {
               <a class="ot-btn ot-btn-primary mt-4 w-full" routerLink="/thanh-toan">{{ auth.profile() ? 'Đặt món' : 'Đăng nhập để đặt món' }}</a>
               @if (auth.ready() && !auth.profile()) {

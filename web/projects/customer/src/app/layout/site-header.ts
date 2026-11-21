@@ -25,8 +25,8 @@ import { HEADER_LINKS } from './nav-items';
           <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-primary active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="26" /></button>
         }
         <a routerLink="/" class="flex min-w-0 items-center gap-2 md:gap-3">
-          @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-bold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
-          <span class="font-heading truncate text-xl font-extrabold text-primary max-[319px]:text-base lg:max-xl:text-lg xl:text-[26px]">Obento Tensho</span>
+          @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-semibold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
+          <span class="font-heading truncate text-xl font-semibold text-primary max-[319px]:text-base lg:max-xl:text-lg xl:text-[26px]">Obento Tensho</span>
         </a>
       </div>
 
@@ -40,7 +40,7 @@ import { HEADER_LINKS } from './nav-items';
         <a routerLink="/gio-hang" class="relative flex size-11 items-center justify-center" aria-label="Giỏ hàng">
           <lucide-icon [img]="cart" [size]="24" />
           @if (cartState.count() > 0) {
-            <span class="absolute top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-bold text-on-primary">{{ cartState.count() }}</span>
+            <span class="absolute top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary">{{ cartState.count() }}</span>
           }
         </a>
         @if (auth.profile(); as me) {

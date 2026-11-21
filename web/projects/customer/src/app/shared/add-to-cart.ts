@@ -24,7 +24,7 @@ type Option = Schemas['PublicOptionDto'];
         <div class="ot-sheet-head">
           <div class="flex min-w-0 items-center gap-3">
             @if (thumb(); as url) { <img class="size-14 shrink-0 rounded-md object-cover" [src]="url" alt="" width="56" height="56" /> }
-            <div class="min-w-0"><p class="truncate font-heading text-lg font-extrabold">{{ name() }}</p><p class="text-sm font-semibold text-primary">{{ price() | vnd }}</p></div>
+            <div class="min-w-0"><p class="truncate font-heading text-lg font-semibold">{{ name() }}</p><p class="text-sm font-semibold text-primary">{{ price() | vnd }}</p></div>
           </div>
           <button type="button" class="flex size-11 shrink-0 items-center justify-center" aria-label="Đóng" (click)="closed.emit()"><lucide-icon [img]="icons.close" [size]="22" /></button>
         </div>
@@ -37,7 +37,7 @@ type Option = Schemas['PublicOptionDto'];
             @for (group of d.optionGroups; track group.id) {
               <fieldset>
                 <legend class="flex w-full items-baseline justify-between gap-3">
-                  <span class="font-heading text-lg font-extrabold text-heading">{{ group.name }}</span>
+                  <span class="font-heading text-lg font-semibold text-heading">{{ group.name }}</span>
                   <span class="text-sm whitespace-nowrap text-muted">{{ rule(group) }}</span>
                 </legend>
                 <div class="mt-2 grid grid-cols-1 gap-2">
@@ -57,7 +57,7 @@ type Option = Schemas['PublicOptionDto'];
               </fieldset>
             }
             <label class="block">
-              <span class="flex items-baseline justify-between gap-3"><span class="font-heading text-lg font-extrabold text-heading">Ghi chú cho quán</span><span class="text-sm text-muted">Không bắt buộc</span></span>
+              <span class="flex items-baseline justify-between gap-3"><span class="font-heading text-lg font-semibold text-heading">Ghi chú cho quán</span><span class="text-sm text-muted">Không bắt buộc</span></span>
               <textarea class="ot-input mt-2" name="note" rows="2" [maxlength]="noteMax" placeholder="Ví dụ: ít cay, không hành, sốt để riêng" [(ngModel)]="note"></textarea>
               <span class="mt-1 block text-right text-xs text-muted tabular-nums">{{ note.length }}/{{ noteMax }}</span>
             </label>

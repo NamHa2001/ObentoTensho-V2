@@ -29,7 +29,7 @@ const OPEN_RESERVATION = ['pending', 'confirmed'];
         <aside class="ot-acc-side">
           @if (auth.profile(); as p) {
             <div class="ot-acc-points">
-              <p class="font-bold">Điểm thưởng</p>
+              <p class="font-semibold">Điểm thưởng</p>
               <div class="mt-3 flex items-center gap-4">
                 <span class="ot-acc-ring">{{ p.currentPoints }}</span>
                 <p class="text-sm leading-snug">
@@ -128,7 +128,7 @@ export class Account {
       <section class="ot-panel mt-4">
         <div class="flex items-center justify-between gap-3">
           <h2>Đơn hàng gần đây</h2>
-          <a class="flex items-center gap-1 text-sm font-bold text-primary" routerLink="../don-hang">Xem tất cả <lucide-icon [img]="next" [size]="16" /></a>
+          <a class="flex items-center gap-1 text-sm font-semibold text-primary" routerLink="../don-hang">Xem tất cả <lucide-icon [img]="next" [size]="16" /></a>
         </div>
         @if (orders().length === 0) {
           <p class="mt-3 text-muted">Bạn chưa có đơn hàng nào.</p>
@@ -199,7 +199,7 @@ export class AccountOverview {
                 @if (avatar(); as src) {
                   <img class="size-24 rounded-full object-cover" [src]="src" alt="Ảnh đại diện" />
                 } @else {
-                  <span class="flex size-24 items-center justify-center rounded-full bg-primary-soft font-heading text-4xl font-extrabold text-primary" aria-hidden="true">{{ initial(p.fullName) }}</span>
+                  <span class="flex size-24 items-center justify-center rounded-full bg-primary-soft font-heading text-4xl font-semibold text-primary" aria-hidden="true">{{ initial(p.fullName) }}</span>
                 }
                 <div class="flex gap-3 text-sm">
                   <label class="cursor-pointer font-semibold text-primary">{{ avatar() ? 'Đổi ảnh' : 'Thêm ảnh' }}<input class="sr-only" type="file" accept="image/*" (change)="upload($event)" /></label>
@@ -207,7 +207,7 @@ export class AccountOverview {
                 </div>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="text-lg font-bold">{{ p.fullName }}</p>
+                <p class="text-lg font-semibold">{{ p.fullName }}</p>
                 <dl class="mt-2 grid gap-1 text-sm">
                   <div class="flex gap-2"><dt class="w-24 shrink-0 text-muted">Email</dt><dd class="min-w-0 break-all">{{ p.email }}</dd></div>
                   <div class="flex gap-2"><dt class="w-24 shrink-0 text-muted">Điện thoại</dt><dd>{{ phone(p.phoneNumber) || 'Chưa có' }} @if (p.isPhoneVerified) { <span class="text-success">· đã xác minh</span> }</dd></div>
@@ -216,7 +216,7 @@ export class AccountOverview {
               </div>
               <div class="flex shrink-0 flex-col items-start gap-2 sm:items-end">
                 <span class="text-sm text-muted">Hạng thành viên</span>
-                <span class="font-heading text-xl font-extrabold text-primary">{{ tiers[p.memberTier] }}</span>
+                <span class="font-heading text-xl font-semibold text-primary">{{ tiers[p.memberTier] }}</span>
                 <button type="button" class="ot-btn ot-btn-primary mt-1" (click)="startEdit()">Sửa thông tin</button>
               </div>
             </div>
@@ -581,7 +581,7 @@ export class AccountOrders {
             <div class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(v) }}</span><small>giảm</small></div>
             <div class="min-w-0 flex-1 p-3">
               <p class="text-xs font-semibold text-muted">{{ sources[v.source] || 'Voucher' }}</p>
-              <p class="font-bold tracking-wide">{{ v.code }}</p>
+              <p class="font-semibold tracking-wide">{{ v.code }}</p>
               <p class="text-sm text-muted">{{ terms(v) }}</p>
               <p class="mt-1 text-xs" [class.text-danger]="!v.usable" [class.text-muted]="v.usable">{{ v.usable ? 'HSD ' + (v.endDate | vnDate) : 'Đã dùng hoặc hết hạn' }}</p>
             </div>
@@ -607,7 +607,7 @@ export class AccountOrders {
       <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Đổi điểm" otModal (dismiss)="sheet.set(false)">
         <div class="ot-sheet">
           <div class="ot-sheet-head">
-            <div><p class="font-heading text-lg font-extrabold">Đổi điểm lấy ưu đãi</p><p class="text-sm text-muted">Bạn đang có <b class="text-primary">{{ points() }} điểm</b></p></div>
+            <div><p class="font-heading text-lg font-semibold">Đổi điểm lấy ưu đãi</p><p class="text-sm text-muted">Bạn đang có <b class="text-primary">{{ points() }} điểm</b></p></div>
             <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="sheet.set(false)"><lucide-icon [img]="close" [size]="22" /></button>
           </div>
           <div class="ot-sheet-body">
@@ -617,11 +617,11 @@ export class AccountOrders {
               <div class="ot-ticket" [class.is-off]="lack > 0">
                 <div class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(r) }}</span><small>giảm</small></div>
                 <div class="flex min-w-0 flex-1 flex-col gap-1 p-3">
-                  <p class="font-bold">{{ r.name }}</p>
+                  <p class="font-semibold">{{ r.name }}</p>
                   @if (r.description) { <p class="text-sm text-muted">{{ r.description }}</p> }
                   <p class="text-sm text-muted">{{ terms(r) }} · dùng trong {{ r.validDays }} ngày</p>
                   <div class="mt-1 flex flex-wrap items-center justify-between gap-2">
-                    <span class="font-bold text-primary">{{ r.pointsCost }} điểm</span>
+                    <span class="font-semibold text-primary">{{ r.pointsCost }} điểm</span>
                     @if (lack > 0) {
                       <span class="text-sm text-muted">Còn thiếu {{ lack }} điểm</span>
                     } @else {

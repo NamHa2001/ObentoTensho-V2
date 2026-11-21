@@ -93,10 +93,10 @@ const MAX_AUTO_DAYS = 14;
                   } @else {
                     <p class="flex justify-between"><span>Voucher {{ appliedCode() }}</span><span>-{{ v.voucherDiscount | vnd }}</span></p>
                   }
-                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher + shipFee() - v.shippingDiscount | vnd }}</span></p>
+                  <p class="flex justify-between font-semibold"><span>Tổng cộng</span><span class="text-primary">{{ v.totalWithVoucher + shipFee() - v.shippingDiscount | vnd }}</span></p>
                 } @else {
                   @if (q.memberDiscount > 0) { <p class="flex justify-between"><span>Giảm hạng thành viên</span><span>-{{ q.memberDiscount | vnd }}</span></p> }
-                  <p class="flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ q.totalAmount + shipFee() | vnd }}</span></p>
+                  <p class="flex justify-between font-semibold"><span>Tổng cộng</span><span class="text-primary">{{ q.totalAmount + shipFee() | vnd }}</span></p>
                 }
               </section>
             }
@@ -129,7 +129,7 @@ const MAX_AUTO_DAYS = 14;
       <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Chọn mã giảm giá" otModal (dismiss)="picker.set(false)">
         <div class="ot-sheet">
           <div class="ot-sheet-head">
-            <p class="font-heading text-lg font-extrabold">Chọn mã giảm giá</p>
+            <p class="font-heading text-lg font-semibold">Chọn mã giảm giá</p>
             <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="picker.set(false)"><lucide-icon [img]="icons.close" [size]="22" /></button>
           </div>
           <div class="ot-sheet-body">

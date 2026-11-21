@@ -10,7 +10,7 @@ import { VndPipe } from './vnd.pipe';
   template: `
     <div class="ot-card p-4">
       <p class="text-sm text-muted">Mã đơn</p>
-      <p class="text-xl font-bold">{{ order().code }}</p>
+      <p class="text-xl font-semibold">{{ order().code }}</p>
       <p class="mt-2"><b>{{ statuses[order().status] }}</b> · {{ order().paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ order().paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}</p>
       <p class="mt-1">Lấy lúc {{ order().pickupTime.slice(0, 5) }}, {{ order().pickupDate | vnDate }}</p>
       <ul class="mt-3 border-t border-line">
@@ -26,7 +26,7 @@ import { VndPipe } from './vnd.pipe';
       <p class="mt-2 flex justify-between"><span>Tạm tính</span><span>{{ order().subTotal | vnd }}</span></p>
       @if (order().memberDiscount > 0) { <p class="flex justify-between"><span>Giảm hạng thành viên</span><span>-{{ order().memberDiscount | vnd }}</span></p> }
       @if (order().voucherDiscount > 0) { <p class="flex justify-between"><span>Voucher</span><span>-{{ order().voucherDiscount | vnd }}</span></p> }
-      <p class="mt-1 flex justify-between font-bold"><span>Tổng cộng</span><span class="text-primary">{{ order().totalAmount | vnd }}</span></p>
+      <p class="mt-1 flex justify-between font-semibold"><span>Tổng cộng</span><span class="text-primary">{{ order().totalAmount | vnd }}</span></p>
       @if (order().note) { <p class="mt-2 text-sm text-muted">Ghi chú: {{ order().note }}</p> }
     </div>
   `,
@@ -42,7 +42,7 @@ export class OrderView {
   template: `
     <div class="ot-card p-4">
       <p class="text-sm text-muted">Mã đặt bàn</p>
-      <p class="text-xl font-bold">{{ reservation().code }}</p>
+      <p class="text-xl font-semibold">{{ reservation().code }}</p>
       <p class="mt-2"><b>{{ statuses[reservation().status] }}</b></p>
       <p class="mt-1">{{ reservation().time.slice(0, 5) }}, {{ reservation().date | vnDate }} · {{ reservation().adultCount }} người lớn, {{ reservation().childCount }} trẻ em</p>
       <p class="mt-1">{{ reservation().guestName }} · {{ reservation().maskedPhone }}</p>

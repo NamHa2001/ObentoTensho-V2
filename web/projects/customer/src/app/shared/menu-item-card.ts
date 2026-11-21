@@ -52,7 +52,7 @@ const ADDED_MS = 1800;
               {{ original | vnd }}
             }
           </p>
-          <p class="font-bold text-primary tabular-nums">{{ item().price | vnd }}</p>
+          <p class="font-semibold text-primary tabular-nums">{{ item().price | vnd }}</p>
         </div>
         @if (unavailable(); as reason) {
           <span class="pb-1 text-xs font-semibold text-muted">{{ reason }}</span>

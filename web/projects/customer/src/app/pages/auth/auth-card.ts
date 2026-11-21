@@ -22,7 +22,7 @@ import { Sakura } from '../../shared/sakura';
           <ot-sakura class="absolute top-8 right-8 size-16 opacity-30" />
           <ot-sakura class="absolute right-16 bottom-12 size-24 opacity-20" />
           <span class="ot-auth-logo">@if (logo(); as url) { <img [src]="url" alt="" /> } @else { 天 }</span>
-          <p class="font-heading relative mt-6 text-4xl font-extrabold text-on-primary">Obento Tensho</p>
+          <p class="font-heading relative mt-6 text-4xl font-semibold text-on-primary">Obento Tensho</p>
           <p class="relative mt-3 text-lg text-on-primary">Cơm hộp Nhật, nấu mới mỗi ngày</p>
           <ul class="ot-auth-points">
             <li>Đặt món mang về, theo dõi đơn ngay trên web</li>
