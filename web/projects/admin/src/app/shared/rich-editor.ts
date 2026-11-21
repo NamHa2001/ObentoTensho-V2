@@ -1,4 +1,5 @@
 import { Component, ElementRef, inject, input, OnInit, output, signal, viewChild } from '@angular/core';
+import { Bold, Heading2, Italic, List, LucideAngularModule, Pilcrow } from 'lucide-angular';
 
 import { askText } from '../../../../customer/src/app/core/dialog';
 import { Api } from '../core/api';
@@ -7,10 +8,11 @@ import { altOf, errorText } from './ui';
 // Soạn nội dung không cần gõ HTML; server làm sạch HTML khi lưu (SEC-08)
 @Component({
   selector: 'ot-rich-editor',
+  imports: [LucideAngularModule],
   template: `
     <div class="flex flex-wrap gap-1 rounded-t-md border border-b-0 border-line bg-surface-2 p-1">
-      @for (b of buttons; track b.command) {
-        <button type="button" class="min-h-9 min-w-9 rounded-sm px-2 font-semibold" [attr.aria-label]="b.title" (mousedown)="$event.preventDefault(); run(b.command, b.arg)">{{ b.label }}</button>
+      @for (b of buttons; track b.title) {
+        <button type="button" class="flex min-h-9 min-w-9 items-center justify-center rounded-sm px-2" [attr.aria-label]="b.title" [title]="b.title" (mousedown)="$event.preventDefault(); run(b.command, b.arg)"><lucide-icon [img]="b.icon" [size]="18" /></button>
       }
       <button type="button" class="min-h-9 rounded-sm px-2" (mousedown)="$event.preventDefault(); link()">Liên kết</button>
       <label class="flex min-h-9 cursor-pointer items-center rounded-sm px-2 font-normal">Ảnh<input class="sr-only" type="file" accept="image/*" (change)="image($event)" /></label>
@@ -28,11 +30,11 @@ export class RichEditor implements OnInit {
   protected readonly initial = signal('');
   protected readonly error = signal<string | null>(null);
   protected readonly buttons = [
-    { command: 'bold', label: 'B', title: 'Đậm' },
-    { command: 'italic', label: 'I', title: 'Nghiêng' },
-    { command: 'formatBlock', arg: 'h2', label: 'H2', title: 'Tiêu đề' },
-    { command: 'formatBlock', arg: 'p', label: 'P', title: 'Đoạn văn' },
-    { command: 'insertUnorderedList', label: '•', title: 'Danh sách' },
+    { command: 'bold', icon: Bold, title: 'Đậm' },
+    { command: 'italic', icon: Italic, title: 'Nghiêng' },
+    { command: 'formatBlock', arg: 'h2', icon: Heading2, title: 'Tiêu đề' },
+    { command: 'formatBlock', arg: 'p', icon: Pilcrow, title: 'Đoạn văn' },
+    { command: 'insertUnorderedList', icon: List, title: 'Danh sách' },
   ];
 
   // Chỉ gán nội dung một lần, gán lại khi đang gõ sẽ làm nhảy con trỏ
