@@ -1476,18 +1476,17 @@
   }
 
   .ot-add-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.97);
   }
 
   .ot-dish {
-    transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
+    transition: border-color 0.18s, box-shadow 0.18s;
   }
 
   @media (hover: hover) {
     .ot-dish:hover {
       border-color: color-mix(in srgb, var(--ot-primary) 35%, var(--ot-border));
       box-shadow: var(--ot-shadow-2);
-      transform: translateY(-3px);
     }
 
     .ot-add-btn:hover {
@@ -1532,7 +1531,6 @@
   @media (hover: hover) {
     .ot-btn-primary:hover:not(:disabled) {
       background: var(--ot-primary-hover);
-      transform: translateY(-1px);
     }
 
     .ot-btn-outline:hover:not(:disabled) {
@@ -1546,11 +1544,10 @@
       color: var(--ot-primary);
     }
 
-    /* Thẻ món, tin, danh mục: nhấc nhẹ lên, ảnh phóng chậm */
+    /* Thẻ món, tin, danh mục: viền và bóng đậm hơn, không nhấc thẻ */
     a.ot-card:hover {
       border-color: color-mix(in srgb, var(--ot-primary) 35%, var(--ot-border));
       box-shadow: var(--ot-shadow-2);
-      transform: translateY(-3px);
     }
 
     a.ot-line-row:hover {
@@ -1565,7 +1562,6 @@
     button.ot-ticket:not(:disabled):hover {
       border-color: var(--ot-primary);
       box-shadow: var(--ot-shadow-2);
-      transform: translateY(-2px);
     }
 
     .ot-service:hover > span:first-child {
@@ -1579,7 +1575,6 @@
     /* Nút nền trắng đặt trên dải đỏ */
     .ot-btn:not(.ot-btn-primary, .ot-btn-outline):hover:not(:disabled) {
       box-shadow: var(--ot-shadow-2);
-      transform: translateY(-1px);
     }
 
     .ot-stat-link:hover,
