@@ -1,5 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Check, LucideAngularModule } from 'lucide-angular';
 import { map } from 'rxjs';
 
 import { Api } from '../../core/api';
@@ -9,7 +10,7 @@ import { Sakura } from '../../shared/sakura';
 // Không dùng ảnh banner: banner có chữ khuyến mãi, cắt dọc sẽ mất chữ
 @Component({
   selector: 'ot-auth-card',
-  imports: [Sakura],
+  imports: [LucideAngularModule, Sakura],
   template: `
     <div class="ot-container py-4 md:py-8">
       <div class="ot-auth-card">
@@ -25,9 +26,9 @@ import { Sakura } from '../../shared/sakura';
           <p class="font-heading relative mt-6 text-4xl font-semibold text-on-primary">Obento Tensho</p>
           <p class="relative mt-3 text-lg text-on-primary">Cơm hộp Nhật, nấu mới mỗi ngày</p>
           <ul class="ot-auth-points">
-            <li>Đặt món mang về, theo dõi đơn ngay trên web</li>
-            <li>Giữ bàn trước, không phải chờ</li>
-            <li>Tích điểm mỗi đơn, nhận quà sinh nhật</li>
+            <li><lucide-icon [img]="check" [size]="18" />Đặt món mang về, theo dõi đơn ngay trên web</li>
+            <li><lucide-icon [img]="check" [size]="18" />Giữ bàn trước, không phải chờ</li>
+            <li><lucide-icon [img]="check" [size]="18" />Tích điểm mỗi đơn, nhận quà sinh nhật</li>
           </ul>
         </div>
       </div>
@@ -37,5 +38,6 @@ import { Sakura } from '../../shared/sakura';
 export class AuthCard {
   readonly heading = input.required<string>();
   readonly subtitle = input.required<string>();
+  protected readonly check = Check;
   protected readonly logo = toSignal(inject(Api).getOr<Record<string, string>>('public/settings', {}).pipe(map((v) => v['restaurant.logoUrl'] || null)), { initialValue: null });
 }

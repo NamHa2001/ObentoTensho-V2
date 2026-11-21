@@ -346,13 +346,9 @@
       gap: 12px;
     }
 
-    .ot-auth-points li::before {
-      flex: 0 0 8px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--ot-sakura);
-      content: '';
+    .ot-auth-points lucide-icon {
+      flex: 0 0 auto;
+      color: var(--ot-sakura);
     }
 
     .ot-auth-grid {
