@@ -89,7 +89,7 @@ export class Account {
   imports: [RouterLink, LucideAngularModule, VndPipe, VnDatePipe],
   template: `
     @if (auth.profile(); as p) {
-      <h2 class="ot-acc-title">Chào mừng trở lại, {{ name(p.fullName) }}!</h2>
+      <h2 class="ot-acc-title">Tổng quan</h2>
       @if (policy.requirePhone()) {
         @if (!p.isPhoneVerified) { <p class="ot-error mb-4">Số điện thoại chưa xác minh nên chưa đặt món, đặt bàn được. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
       } @else if (!p.isEmailVerified) { <p class="ot-error mb-4">Email chưa xác thực nên chưa đặt món, đặt bàn được. <a class="underline" routerLink="/xac-minh-email">Xác thực ngay</a></p> }
@@ -154,7 +154,6 @@ export class AccountOverview {
   protected readonly policy = inject(ContactPolicy);
   protected readonly tiers = TIERS;
   protected readonly statuses = ORDER_STATUS;
-  protected readonly name = givenName;
   protected readonly next = ChevronRight;
   protected readonly orders = signal<Schemas['PublicOrderDto'][]>([]);
   protected readonly orderTotal = signal(0);
@@ -569,7 +568,7 @@ export class AccountOrders {
         <p>{{ rewards().length > 0 ? 'Có ' + rewards().length + ' ưu đãi đổi bằng điểm. Chọn ưu đãi bạn thích, đủ điểm là đổi ngay.' : 'Tích điểm sau mỗi đơn để đổi voucher giảm giá.' }}</p>
         <button type="button" class="ot-btn bg-surface text-primary" (click)="openRewards()">Đổi điểm</button>
       </div>
-      @if (redeemed(); as code) { <p class="mt-2 text-success">Đổi thành công! Mã <b>{{ code }}</b> đã nằm trong "Voucher của tôi", nhập ở bước thanh toán để dùng.</p> }
+      @if (redeemed(); as code) { <p class="mt-2 text-success">Đã đổi điểm. Mã <b>{{ code }}</b> đã nằm trong "Voucher của tôi", nhập ở bước thanh toán để dùng.</p> }
       @if (s.expiringPoints > 0) { <p class="mt-2 text-sm text-muted">{{ s.expiringPoints }} điểm sẽ hết hạn ngày {{ s.nextExpiryAtUtc | vnDate }}.</p> }
       @if (s.pointsDebt > 0) { <p class="ot-error mt-2">Nợ điểm: {{ s.pointsDebt }}</p> }
     }
