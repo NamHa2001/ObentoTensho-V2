@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { Eye, EyeOff, KeyRound, Lock, LucideAngularModule, Mail, ShieldCheck } from 'lucide-angular';
+import { Check, Eye, EyeOff, KeyRound, Lock, LucideAngularModule, Mail, ShieldCheck } from 'lucide-angular';
 import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 
 import { Api } from '../core/api';
@@ -17,6 +17,7 @@ type LoginResult = Schemas['StaffLoginResponse'];
 // Khung chung của các trang chưa đăng nhập, cùng kiểu thẻ đăng nhập trang khách: form bên trái, thương hiệu (logo từ Cài đặt) bên phải
 @Component({
   selector: 'ot-admin-auth',
+  imports: [LucideAngularModule],
   template: `
     <main class="a-auth">
       <div class="a-auth-card">
@@ -25,9 +26,9 @@ type LoginResult = Schemas['StaffLoginResponse'];
           <p class="a-auth-name">Obento Tensho</p>
           <p class="a-auth-tag">Trang quản trị dành cho nhân viên quán</p>
           <ul class="a-auth-points">
-            <li>Đơn hàng và màn hình bếp theo thời gian thực</li>
-            <li>Đặt bàn, sơ đồ bàn và ca phục vụ</li>
-            <li>Thực đơn, khuyến mãi và báo cáo doanh thu</li>
+            <li><lucide-icon [img]="check" [size]="18" />Đơn hàng và màn hình bếp theo thời gian thực</li>
+            <li><lucide-icon [img]="check" [size]="18" />Đặt bàn, sơ đồ bàn và ca phục vụ</li>
+            <li><lucide-icon [img]="check" [size]="18" />Thực đơn, khuyến mãi và báo cáo doanh thu</li>
           </ul>
         </aside>
         <div class="a-auth-panel"><ng-content /></div>
@@ -37,6 +38,7 @@ type LoginResult = Schemas['StaffLoginResponse'];
   `,
 })
 export class AuthFrame {
+  protected readonly check = Check;
   protected readonly year = new Date().getFullYear();
   protected readonly logo = toSignal(inject(Api).publicSettings().pipe(map((s) => s['restaurant.logoUrl'] || null), catchError(() => of(null))), { initialValue: null });
 }
