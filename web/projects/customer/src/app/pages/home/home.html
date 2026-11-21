@@ -65,7 +65,7 @@
     <div class="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
       @for (s of services; track s.path) {
         <a [routerLink]="s.path" class="ot-service flex items-center gap-3">
-          <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary md:size-14"><lucide-icon [img]="s.icon" [size]="24" /></span>
+          <span class="flex shrink-0 text-primary"><lucide-icon [img]="s.icon" [size]="24" /></span>
           <span class="min-w-0">
             <span class="font-heading block font-medium text-heading md:text-lg">{{ s.title }}</span>
             <span class="block text-sm text-muted">{{ s.note }}</span>
@@ -185,7 +185,7 @@
 <section class="ot-container ot-block">
   <div class="flex flex-col gap-4 rounded-[var(--ot-radius-lg)] bg-surface-2 p-5 md:flex-row md:items-center md:justify-between md:p-8">
     <div class="flex items-center gap-3 md:gap-4">
-      <span class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary md:size-14"><lucide-icon [img]="icons.gift" [size]="24" /></span>
+      <span class="flex shrink-0 text-primary"><lucide-icon [img]="icons.gift" [size]="24" /></span>
       <div>
         <h2 class="text-xl md:text-2xl">Tích điểm mỗi đơn, nhận quà sinh nhật</h2>
         <p class="mt-1 text-muted">Thành viên được đổi điểm lấy ưu đãi và nhận voucher trong tháng sinh nhật.</p>

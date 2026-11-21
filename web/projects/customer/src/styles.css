@@ -1514,8 +1514,7 @@
   .ot-acc-item,
   .ot-ticket,
   a.ot-card,
-  a.ot-line-row,
-  .ot-service > span:first-child {
+  a.ot-line-row {
     transition: background-color 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
   }
 
@@ -1562,10 +1561,6 @@
     button.ot-ticket:not(:disabled):hover {
       border-color: var(--ot-primary);
       box-shadow: var(--ot-shadow-2);
-    }
-
-    .ot-service:hover > span:first-child {
-      background: var(--ot-primary-hover);
     }
 
     .ot-service:hover {
