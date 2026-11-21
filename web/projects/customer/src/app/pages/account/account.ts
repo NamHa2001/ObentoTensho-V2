@@ -3,7 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { CalendarDays, Gift, LayoutDashboard, LogOut, LucideAngularModule, ReceiptText, Star, UserRound, X } from 'lucide-angular';
+import { CalendarDays, ChevronRight, Gift, LayoutDashboard, LogOut, LucideAngularModule, ReceiptText, Star, UserRound, X } from 'lucide-angular';
 import { switchMap } from 'rxjs';
 
 import { Api, Page } from '../../core/api';
@@ -86,7 +86,7 @@ export class Account {
 
 @Component({
   selector: 'ot-account-overview',
-  imports: [RouterLink, VndPipe, VnDatePipe],
+  imports: [RouterLink, LucideAngularModule, VndPipe, VnDatePipe],
   template: `
     @if (auth.profile(); as p) {
       <h2 class="ot-acc-title">Chào mừng trở lại, {{ name(p.fullName) }}!</h2>
@@ -98,22 +98,22 @@ export class Account {
         <div class="ot-stat">
           <span class="ot-stat-value">{{ p.currentPoints }}</span>
           <span class="text-sm text-muted">Điểm thưởng</span>
-          <a class="ot-stat-link" routerLink="../diem-thuong">Xem →</a>
+          <a class="ot-stat-link" routerLink="../diem-thuong">Xem <lucide-icon [img]="next" [size]="16" /></a>
         </div>
         <div class="ot-stat">
           <span class="ot-stat-value">{{ tiers[p.memberTier] }}</span>
           <span class="text-sm text-muted">{{ discount() > 0 ? 'Giảm ' + discount() + '% mỗi đơn' : 'Hạng thành viên' }}</span>
-          <a class="ot-stat-link" routerLink="../diem-thuong">Quyền lợi →</a>
+          <a class="ot-stat-link" routerLink="../diem-thuong">Quyền lợi <lucide-icon [img]="next" [size]="16" /></a>
         </div>
         <div class="ot-stat">
           <span class="ot-stat-value">{{ orderTotal() }}</span>
           <span class="text-sm text-muted">Đơn hàng</span>
-          <a class="ot-stat-link" routerLink="../don-hang">Xem tất cả →</a>
+          <a class="ot-stat-link" routerLink="../don-hang">Xem tất cả <lucide-icon [img]="next" [size]="16" /></a>
         </div>
         <div class="ot-stat">
           <span class="ot-stat-value">{{ upcoming() }}</span>
           <span class="text-sm text-muted">Đặt bàn sắp tới</span>
-          <a class="ot-stat-link" routerLink="../dat-ban">Xem →</a>
+          <a class="ot-stat-link" routerLink="../dat-ban">Xem <lucide-icon [img]="next" [size]="16" /></a>
         </div>
       </div>
 
@@ -128,7 +128,7 @@ export class Account {
       <section class="ot-panel mt-4">
         <div class="flex items-center justify-between gap-3">
           <h2>Đơn hàng gần đây</h2>
-          <a class="text-sm font-bold text-primary" routerLink="../don-hang">Xem tất cả →</a>
+          <a class="flex items-center gap-1 text-sm font-bold text-primary" routerLink="../don-hang">Xem tất cả <lucide-icon [img]="next" [size]="16" /></a>
         </div>
         @if (orders().length === 0) {
           <p class="mt-3 text-muted">Bạn chưa có đơn hàng nào.</p>
@@ -155,6 +155,7 @@ export class AccountOverview {
   protected readonly tiers = TIERS;
   protected readonly statuses = ORDER_STATUS;
   protected readonly name = givenName;
+  protected readonly next = ChevronRight;
   protected readonly orders = signal<Schemas['PublicOrderDto'][]>([]);
   protected readonly orderTotal = signal(0);
   protected readonly upcoming = signal(0);

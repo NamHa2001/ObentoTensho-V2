@@ -744,6 +744,10 @@
   }
 
   .ot-stat-link {
+    display: flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 4px;
     margin-top: auto;
     padding-top: 8px;
     color: var(--ot-primary);
