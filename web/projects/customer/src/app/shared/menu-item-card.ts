@@ -15,7 +15,7 @@ const ADDED_MS = 1800;
   imports: [RouterLink, LucideAngularModule, AddToCart, VndPipe],
   host: { class: 'block h-full' },
   template: `
-    <div class="ot-dish ot-card flex h-full flex-col overflow-hidden p-2 md:p-[13px]">
+    <div class="ot-dish ot-card flex h-full flex-col overflow-hidden p-2 md:p-3">
       <a [routerLink]="['/menu', item().slug]" class="flex flex-1 flex-col">
         <div class="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-surface-2">
           @if (imageUrl(); as url) {
