@@ -3,6 +3,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
+import { ChevronDown, LucideAngularModule } from 'lucide-angular';
 import { finalize, Observable } from 'rxjs';
 
 import { Api, Params, saveBlob } from '../core/api';
@@ -111,7 +112,7 @@ function display(value: unknown): string {
 // Mọi mục danh sách + thêm/sửa/xóa dùng chung một màn hình, khai báo ở resources.ts
 @Component({
   selector: 'ot-resource',
-  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, RichEditor, Modal],
+  imports: [FormsModule, RouterLink, CdkDropList, CdkDrag, LucideAngularModule, RichEditor, Modal],
   template: `
     @if (config(); as c) {
       <div class="a-head">
@@ -158,7 +159,7 @@ function display(value: unknown): string {
                     }
                   </td>
                 }
-                @if (hasActions(c)) { <td class="a-actions"><button type="button" class="ot-chip" (click)="openMenu($event, row)">Thao tác ▾</button></td> }
+                @if (hasActions(c)) { <td class="a-actions"><button type="button" class="ot-chip gap-1" (click)="openMenu($event, row)">Thao tác <lucide-icon [img]="more" [size]="16" /></button></td> }
               </tr>
             } @empty {
               <tr><td class="text-center text-muted" [attr.colspan]="c.columns.length + 1" style="padding-block: 40px">{{ loading() ? 'Đang tải…' : 'Chưa có dữ liệu.' }}</td></tr>
@@ -221,6 +222,7 @@ function display(value: unknown): string {
 })
 export class ResourcePage {
   private readonly api = inject(Api);
+  protected readonly more = ChevronDown;
   readonly resource = input<Resource | null>(null);
   private readonly routeConfig = inject(ActivatedRoute, { optional: true });
   protected readonly config = signal<Resource | null>(null);
