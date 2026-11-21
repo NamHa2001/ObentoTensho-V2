@@ -1514,7 +1514,6 @@
 
     .ot-add-btn:hover {
       background: var(--ot-primary-hover);
-      box-shadow: 0 6px 16px color-mix(in srgb, var(--ot-primary) 30%, transparent);
       transform: scale(1.08);
     }
 
@@ -1561,7 +1560,6 @@
   @media (hover: hover) {
     .ot-btn-primary:hover:not(:disabled) {
       background: var(--ot-primary-hover);
-      box-shadow: 0 8px 20px color-mix(in srgb, var(--ot-primary) 28%, transparent);
       transform: translateY(-1px);
     }
 
