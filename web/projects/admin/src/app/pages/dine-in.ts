@@ -473,7 +473,7 @@ interface DraftLine {
         <p><b>Tổng cộng <span style="float: right">{{ p.totalAmount | vnd }}</span></b></p>
         @if (p.paymentLabel) { <p>{{ p.paymentLabel }}</p> }
         <hr />
-        <p>Phiếu này không phải hóa đơn GTGT. Cảm ơn quý khách!</p>
+        <p>Phiếu này không phải hóa đơn GTGT. Cảm ơn quý khách.</p>
       </div>
     }
   `,
