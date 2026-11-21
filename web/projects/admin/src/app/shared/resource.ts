@@ -200,7 +200,7 @@ function display(value: unknown): string {
                     @case ('bool') { <label class="flex min-h-7 items-center gap-2"><input type="checkbox" [name]="f.key" [(ngModel)]="m[f.key]" /> {{ f.label }}</label> }
                     @case ('textarea') { <label>{{ f.label }}<textarea class="ot-input" rows="6" [name]="f.key" [(ngModel)]="m[f.key]"></textarea></label> }
                     @case ('rich') { <p>{{ f.label }}</p><ot-rich-editor class="mt-1 block" [label]="f.label" [value]="asText(m[f.key])" (valueChange)="m[f.key] = $event" /> }
-                    @case ('select') { <label>{{ f.label }}<select class="ot-input" [name]="f.key" [(ngModel)]="m[f.key]" [required]="!!f.required">@if (!f.required) { <option [ngValue]="null">—</option> }@for (o of optionsOf(f); track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }</select></label> }
+                    @case ('select') { <label>{{ f.label }}<select class="ot-input" [name]="f.key" [(ngModel)]="m[f.key]" [required]="!!f.required">@if (!f.required) { <option [ngValue]="null">Không chọn</option> }@for (o of optionsOf(f); track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }</select></label> }
                     @case ('multi') { <fieldset><legend>{{ f.label }}</legend><div class="mt-1 grid grid-cols-2 gap-2">@for (o of optionsOf(f); track o.value) { <label class="flex items-center gap-2 font-normal"><input type="checkbox" [name]="f.key + o.value" [ngModel]="checked(m, f.key, o.value)" (ngModelChange)="toggle(m, f.key, o.value, $event)" /> {{ o.label }}</label> }</div></fieldset> }
                     @case ('image') {
                       <label>{{ f.label }}<input class="ot-input" type="file" accept="image/*" (change)="upload($event, m, f.key)" /></label>

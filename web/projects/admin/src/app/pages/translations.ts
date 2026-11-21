@@ -56,7 +56,7 @@ interface Translation extends Row {
     <h2 class="mt-6 text-xl">Nhập bản dịch</h2>
     <form class="ot-stack max-w-xl" (ngSubmit)="save()">
       <label>Loại nội dung<select class="ot-input" name="kind" [ngModel]="kind().value" (ngModelChange)="pickKind($event)">@for (k of kinds; track k.value) { <option [value]="k.value">{{ k.label }}</option> }</select></label>
-      <label>Mục<select class="ot-input" name="item" [ngModel]="itemKey()" (ngModelChange)="pickItem($event)"><option [ngValue]="null">— Chọn —</option>@for (r of rows(); track r.key) { <option [ngValue]="r.key">{{ r.name }}</option> }</select></label>
+      <label>Mục<select class="ot-input" name="item" [ngModel]="itemKey()" (ngModelChange)="pickItem($event)"><option [ngValue]="null">Chọn mục</option>@for (r of rows(); track r.key) { <option [ngValue]="r.key">{{ r.name }}</option> }</select></label>
       <label>Ngôn ngữ<select class="ot-input" name="lang" [ngModel]="lang()" (ngModelChange)="pickLang($event)">@for (l of langs; track l) { <option [value]="l">{{ l.toUpperCase() }}</option> }</select></label>
       @if (itemKey() !== null) {
         @if (status(); as st) { <p class="text-sm text-muted">Hiện tại: {{ st }}</p> }

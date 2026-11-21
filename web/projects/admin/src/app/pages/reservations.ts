@@ -111,7 +111,7 @@ export class Reservations {
           <section class="a-card">
             <header class="a-card-h">Bàn và ghi chú</header>
             <div class="a-card-b grid gap-3">
-              <label>Gán bàn<select class="ot-input" name="t" [ngModel]="v.reservation.tableId" (ngModelChange)="assign(v, $event)"><option [ngValue]="null">—</option>@for (t of tables(); track t.id) { <option [ngValue]="t.id">{{ t.name }} ({{ t.minCapacity }}–{{ t.maxCapacity }})</option> }</select></label>
+              <label>Gán bàn<select class="ot-input" name="t" [ngModel]="v.reservation.tableId" (ngModelChange)="assign(v, $event)"><option [ngValue]="null">Chưa gán</option>@for (t of tables(); track t.id) { <option [ngValue]="t.id">{{ t.name }} ({{ t.minCapacity }}–{{ t.maxCapacity }})</option> }</select></label>
               <label>Ghi chú nội bộ<textarea class="ot-input" name="n" rows="3" [(ngModel)]="note"></textarea></label>
               <div><button type="button" class="ot-btn ot-btn-outline" (click)="saveNote(v)">Lưu ghi chú</button></div>
             </div>
