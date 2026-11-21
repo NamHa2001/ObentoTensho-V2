@@ -27,7 +27,7 @@ import { askConfirm } from '../../../../customer/src/app/core/dialog';
       @if (twoFactor.error(); as e) { <p class="ot-error">{{ e }}</p> }
       @if (setup(); as s) {
         <p>Thêm khóa sau vào ứng dụng xác thực rồi nhập mã 6 số:</p>
-        <p class="font-mono font-bold break-all">{{ s.secret }}</p>
+        <p class="font-mono font-semibold break-all">{{ s.secret }}</p>
         <label>Mã 6 số<input class="ot-input" name="code" inputmode="numeric" autocomplete="one-time-code" [(ngModel)]="code" /></label>
         <button type="button" class="ot-btn ot-btn-primary" [disabled]="twoFactor.busy()" (click)="confirm()">Xác nhận</button>
       } @else if (auth.me()?.totpEnabled) {

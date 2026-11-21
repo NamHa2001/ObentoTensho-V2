@@ -139,12 +139,12 @@
               "node_modules/@fontsource/be-vietnam-pro/vietnamese-600.css",
               "node_modules/@fontsource/be-vietnam-pro/latin-ext-600.css",
               "node_modules/@fontsource/be-vietnam-pro/latin-600.css",
-              "node_modules/@fontsource/be-vietnam-pro/vietnamese-700.css",
-              "node_modules/@fontsource/be-vietnam-pro/latin-ext-700.css",
-              "node_modules/@fontsource/be-vietnam-pro/latin-700.css",
-              "node_modules/@fontsource/nunito/vietnamese-800.css",
-              "node_modules/@fontsource/nunito/latin-ext-800.css",
-              "node_modules/@fontsource/nunito/latin-800.css",
+              "node_modules/@fontsource/nunito/vietnamese-500.css",
+              "node_modules/@fontsource/nunito/latin-ext-500.css",
+              "node_modules/@fontsource/nunito/latin-500.css",
+              "node_modules/@fontsource/nunito/vietnamese-600.css",
+              "node_modules/@fontsource/nunito/latin-ext-600.css",
+              "node_modules/@fontsource/nunito/latin-600.css",
               "projects/admin/src/styles.css"
             ]
           },

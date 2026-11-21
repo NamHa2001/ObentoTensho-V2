@@ -102,7 +102,7 @@ export class Orders {
             @if (v.memberDiscount > 0) { <div class="a-line"><span>Giảm hạng</span><span class="tabular-nums">-{{ v.memberDiscount | vnd }}</span></div> }
             @if (v.voucherDiscount > 0) { <div class="a-line"><span>Voucher</span><span class="tabular-nums">-{{ v.voucherDiscount | vnd }}</span></div> }
             @if (v.order.channel === 'delivery') { <div class="a-line"><span>Phí ship</span><span class="tabular-nums">{{ v.deliveryFee | vnd }}</span></div> }
-            <div class="a-line font-bold"><span>Tổng cộng</span><span class="text-primary tabular-nums">{{ v.order.totalAmount | vnd }}</span></div>
+            <div class="a-line font-semibold"><span>Tổng cộng</span><span class="text-primary tabular-nums">{{ v.order.totalAmount | vnd }}</span></div>
             @if (v.note) { <p class="mt-2 text-muted">Ghi chú: {{ v.note }}</p> }
           </div>
         </section>

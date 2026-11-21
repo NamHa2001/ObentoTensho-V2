@@ -349,7 +349,7 @@ interface DraftLine {
               }
             } @empty { <p class="text-muted">Chưa gọi món nào.</p> }
 
-            <div class="mt-4 flex justify-between text-lg font-bold"><span>Tạm tính</span><span>{{ b.subTotal | vnd }}</span></div>
+            <div class="mt-4 flex justify-between text-lg font-semibold"><span>Tạm tính</span><span>{{ b.subTotal | vnd }}</span></div>
             <div class="mt-3 grid grid-cols-2 gap-2">
               <button type="button" class="ot-btn ot-btn-outline" [disabled]="activeCount() === 0" (click)="printBill(b)">In tạm tính</button>
               @if (b.channel === 'dine_in') {
@@ -414,7 +414,7 @@ interface DraftLine {
           <div class="a-drawer-h">Thanh toán {{ b.tableName }}</div>
           <div class="a-drawer-b">
             @if (receipt(); as r) {
-              <p class="text-lg font-bold">Đã thu {{ r.totalAmount | vnd }}</p>
+              <p class="text-lg font-semibold">Đã thu {{ r.totalAmount | vnd }}</p>
               @if (r.memberName) { <p>Thành viên {{ r.memberName }} được cộng {{ r.pointsEarned }} điểm.</p> }
               <button type="button" class="ot-btn ot-btn-primary" (click)="printReceipt()">In phiếu thanh toán</button>
               <button type="button" class="ot-btn ot-btn-outline" (click)="done()">Về sơ đồ bàn</button>
@@ -429,7 +429,7 @@ interface DraftLine {
                   <p class="flex justify-between"><span>Tạm tính</span><span>{{ q.subTotal | vnd }}</span></p>
                   @if (q.memberDiscount) { <p class="flex justify-between"><span>Giảm theo hạng</span><span>−{{ q.memberDiscount | vnd }}</span></p> }
                   @if (q.voucherDiscount) { <p class="flex justify-between"><span>Mã giảm giá</span><span>−{{ q.voucherDiscount | vnd }}</span></p> }
-                  <p class="flex justify-between text-lg font-bold"><span>Cần thu</span><span>{{ q.totalAmount | vnd }}</span></p>
+                  <p class="flex justify-between text-lg font-semibold"><span>Cần thu</span><span>{{ q.totalAmount | vnd }}</span></p>
                 </div>
               }
               <fieldset class="flex gap-4">
