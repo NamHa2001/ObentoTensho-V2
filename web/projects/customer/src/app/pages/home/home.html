@@ -163,24 +163,19 @@
   </div>
 </section>
 
-@if (reviewSlots().length > 0) {
+@if (topReviews().length > 0) {
   <section class="ot-container ot-block">
     <ot-section-title accent="Khách" title="nói gì" />
     <div class="ot-rail mt-3 md:mt-4">
-      @for (r of reviewSlots(); track $index) {
+      @for (r of topReviews(); track $index) {
         <figure class="ot-card flex flex-col gap-2 p-4 md:p-5">
-          @if (r) {
-            <span class="flex text-primary" [attr.aria-label]="r.rating + ' trên 5 sao'">
-              @for (s of stars; track s) {
-                <lucide-icon [img]="icons.star" [size]="16" [attr.fill]="s <= r.rating ? 'currentColor' : 'none'" />
-              }
-            </span>
-            <blockquote class="ot-title-3">{{ r.comment }}</blockquote>
-            <figcaption class="mt-auto font-semibold">{{ r.authorName }}</figcaption>
-          } @else {
-            <span class="text-line">★★★★★</span>
-            <p class="text-muted">Đánh giá đã duyệt của khách sẽ hiện ở đây.</p>
-          }
+          <span class="flex text-primary" [attr.aria-label]="r.rating + ' trên 5 sao'">
+            @for (s of stars; track s) {
+              <lucide-icon [img]="icons.star" [size]="16" [attr.fill]="s <= r.rating ? 'currentColor' : 'none'" />
+            }
+          </span>
+          <blockquote class="ot-title-3">{{ r.comment }}</blockquote>
+          <figcaption class="mt-auto font-semibold">{{ r.authorName }}</figcaption>
         </figure>
       }
     </div>

@@ -66,7 +66,8 @@ export class Home {
   protected readonly featuredSlots = computed(() => slots(this.featured(), 4));
   protected readonly promoSlots = computed(() => slots(this.promotions(), 3));
   protected readonly gallerySlots = computed(() => slots(this.gallery().filter((g) => g.image !== null), 4));
-  protected readonly reviewSlots = computed(() => slots(this.reviews().filter((r) => r.comment), 3));
+  // Đánh giá không chừa ô trống khi chạy dev: chỉ hiện đánh giá thật
+  protected readonly topReviews = computed(() => this.reviews().filter((r) => r.comment).slice(0, 3));
   protected readonly newsSlots = computed(() => slots(this.news(), 3));
   protected readonly story = computed(() => {
     const text = (this.about()?.contentHtml ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
