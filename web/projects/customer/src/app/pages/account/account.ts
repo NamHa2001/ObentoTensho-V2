@@ -581,7 +581,7 @@ export class AccountOrders {
             <div class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(v) }}</span><small>giảm</small></div>
             <div class="min-w-0 flex-1 p-3">
               <p class="text-xs font-semibold text-muted">{{ sources[v.source] || 'Voucher' }}</p>
-              <p class="font-semibold tracking-wide">{{ v.code }}</p>
+              <p class="font-semibold">{{ v.code }}</p>
               <p class="text-sm text-muted">{{ terms(v) }}</p>
               <p class="mt-1 text-xs" [class.text-danger]="!v.usable" [class.text-muted]="v.usable">{{ v.usable ? 'HSD ' + (v.endDate | vnDate) : 'Đã dùng hoặc hết hạn' }}</p>
             </div>

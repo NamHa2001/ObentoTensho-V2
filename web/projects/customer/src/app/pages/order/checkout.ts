@@ -146,7 +146,7 @@ const MAX_AUTO_DAYS = 14;
                   <span class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(o) }}</span><small>giảm</small></span>
                   <span class="flex min-w-0 flex-1 flex-col gap-0.5 p-3">
                     <span class="text-xs font-semibold text-muted">{{ o.title || sources[o.source] || 'Voucher' }}</span>
-                    <b class="tracking-wide">{{ o.code }}</b>
+                    <b>{{ o.code }}</b>
                     <span class="text-sm text-muted">{{ terms(o) }}@if (o.endDate) { · HSD {{ o.endDate | vnDate }} }</span>
                     @if (o.usable) {
                       <span class="text-sm font-semibold text-success">Giảm {{ o.discount | vnd }} cho đơn này</span>
