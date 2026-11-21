@@ -255,7 +255,7 @@ interface DraftLine {
           <header class="a-card-h">Chọn món</header>
           @if (b.paid) { <p class="a-card-b font-semibold">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
-            <input class="ot-input" name="q" placeholder="Tìm món…" [ngModel]="query()" (ngModelChange)="query.set($event)" />
+            <input class="ot-input" name="q" placeholder="Tìm món" [ngModel]="query()" (ngModelChange)="query.set($event)" />
             <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
             <div class="a-pos-menu">
               @if (!query().trim()) {
