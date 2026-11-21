@@ -58,6 +58,7 @@ const PHOTON = 'https://photon.komoot.io';
     </label>
     <div class="ot-map-wrap mt-3">
       <div #map class="ot-map" role="application" aria-label="Bản đồ ghim vị trí nhận hàng"></div>
+      <span #pinIcon hidden><lucide-icon class="ot-map-pin" [img]="icons.pin" [size]="40" /></span>
       @if (failed()) {
         <p class="ot-map-msg">Chưa tải được bản đồ. Bạn vẫn có thể nhập địa chỉ bằng chữ.</p>
       } @else {
@@ -84,6 +85,8 @@ export class AddressPicker {
   protected readonly locating = signal(false);
   protected readonly locateError = signal<string | null>(null);
   private readonly host = viewChild.required<ElementRef<HTMLElement>>('map');
+  // Ghim trên bản đồ là icon MapPin của lucide, nhân bản từ phần tử ẩn trong template
+  private readonly pinIcon = viewChild.required<ElementRef<HTMLElement>>('pinIcon');
   private readonly typed = new Subject<string>();
   private leaflet: Leaflet | null = null;
   private view: LeafletMap | null = null;
@@ -183,7 +186,7 @@ export class AddressPicker {
     if (this.marker) {
       this.marker.setLatLng([pin.lat, pin.lng]);
     } else {
-      const icon = this.leaflet.divIcon({ className: '', html: '<span class="ot-map-pin"></span>', iconSize: [30, 40], iconAnchor: [15, 40] });
+      const icon = this.leaflet.divIcon({ className: '', html: this.pinIcon().nativeElement.firstElementChild!.cloneNode(true), iconSize: [40, 40], iconAnchor: [20, 37] });
       this.marker = this.leaflet.marker([pin.lat, pin.lng], { draggable: true, icon, keyboard: false }).addTo(this.view);
       this.marker.on('dragend', () => {
         const at = this.marker!.getLatLng();

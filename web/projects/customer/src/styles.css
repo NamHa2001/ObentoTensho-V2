@@ -960,13 +960,12 @@
 
   .ot-map-pin {
     display: block;
-    width: 30px;
-    height: 30px;
-    border: 3px solid #fff;
-    border-radius: 50% 50% 50% 0;
-    background: var(--ot-primary);
-    box-shadow: 0 2px 6px rgb(0 0 0 / 35%);
-    transform: rotate(-45deg);
+    color: var(--ot-primary);
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 35%));
+  }
+
+  .ot-map-pin svg {
+    fill: #fff;
   }
 
   /* Nhóm món theo danh mục; chừa chỗ cho thanh tiêu đề và hàng danh mục khi cuộn tới */
