@@ -291,7 +291,7 @@
       justify-content: center;
       padding: 48px;
       overflow: hidden;
-      background: radial-gradient(circle at 20% 15%, #c4282b 0, transparent 55%), linear-gradient(160deg, var(--ot-primary) 0%, #6f0f12 100%);
+      background: var(--ot-primary);
     }
 
     /* Họa tiết sóng Seigaiha mờ, cùng kiểu trang đăng nhập quản trị */
