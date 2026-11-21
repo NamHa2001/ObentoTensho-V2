@@ -69,7 +69,7 @@ export class MenuDetail {
   constructor() {
     const route = inject(ActivatedRoute);
     const response = inject(RESPONSE_INIT, { optional: true });
-    this.title.setTitle('Món ăn — Obento Tensho');
+    this.title.setTitle('Món ăn | Obento Tensho');
     route.paramMap
       .pipe(
         map((params) => params.get('slug') ?? ''),
@@ -99,7 +99,7 @@ export class MenuDetail {
         this.activeImage.set(0);
         this.added.set(false);
         this.state.set('ready');
-        this.title.setTitle(`${detail.item.name} — Obento Tensho`);
+        this.title.setTitle(`${detail.item.name} | Obento Tensho`);
         this.api.getOr<Review[]>(`menu/items/${encodeURIComponent(slug)}/reviews`, [], { page: 1, pageSize: 5 }).subscribe((r) => this.reviews.set(r));
       });
   }

@@ -243,7 +243,7 @@ export class Promotion {
     this.api.getOr<Schemas['PublicPromotionDto'] | null>(`promotions/${encodeURIComponent(slug)}`, null).subscribe((p) => {
       this.item.set(p);
       if (p) {
-        title.setTitle(`${p.title} — Obento Tensho`);
+        title.setTitle(`${p.title} | Obento Tensho`);
       }
 
       this.missing.set(p === null);
@@ -330,7 +330,7 @@ export class NewsArticle {
     inject(Api).getOr<Schemas['PublicNewsDto'] | null>(`news/${encodeURIComponent(slug)}`, null).subscribe((n) => {
       this.item.set(n);
       if (n) {
-        title.setTitle(`${n.metaTitle || n.title} — Obento Tensho`);
+        title.setTitle(`${n.metaTitle || n.title} | Obento Tensho`);
         meta.updateTag({ name: 'description', content: n.metaDescription || n.summary || n.title });
       }
 
