@@ -83,7 +83,7 @@ export class SiteFooter {
       .map(([label, key]) => ({ label, url: all[key] }));
   });
   protected readonly groups = [
-    { title: 'Khám phá', links: [{ path: '/menu', label: 'Thực đơn' }, { path: '/khuyen-mai', label: 'Khuyến mãi' }, { path: '/khong-gian', label: 'Không gian' }, { path: '/tin-tuc', label: 'Tin tức' }, { path: '/gioi-thieu', label: 'Giới thiệu' }] },
+    { title: 'Nhà hàng', links: [{ path: '/menu', label: 'Thực đơn' }, { path: '/khuyen-mai', label: 'Khuyến mãi' }, { path: '/khong-gian', label: 'Không gian' }, { path: '/tin-tuc', label: 'Tin tức' }, { path: '/gioi-thieu', label: 'Giới thiệu' }] },
     { title: 'Hỗ trợ', links: [{ path: '/tra-cuu', label: 'Tra cứu đơn' }, { path: '/lien-he', label: 'Liên hệ' }, { path: '/dieu-khoan', label: 'Điều khoản' }, { path: '/chinh-sach-bao-mat', label: 'Chính sách bảo mật' }, { path: '/chinh-sach-huy-hoan', label: 'Hủy và hoàn tiền' }] },
   ];
 
