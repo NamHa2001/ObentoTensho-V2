@@ -312,7 +312,7 @@ interface DraftLine {
                       <button type="button" class="ot-chip" aria-label="Thêm" (click)="bump(d, 1)">+</button>
                     </div>
                     <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
-                    <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp (ít cay…)" [(ngModel)]="d.note" />
+                    <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [(ngModel)]="d.note" />
                   </div>
                 }
                 <button type="button" class="ot-btn ot-btn-primary mt-3 w-full" [disabled]="form.busy()" (click)="send(b)">Gửi bếp ({{ draftCount() }} món)</button>
