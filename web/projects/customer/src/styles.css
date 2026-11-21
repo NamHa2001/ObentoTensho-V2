@@ -477,25 +477,6 @@
     mask-image: linear-gradient(to right, transparent 0, #000 26%);
   }
 
-  .ot-drift {
-    animation: ot-drift 16s ease-in-out infinite alternate;
-  }
-
-  .ot-drift-slow {
-    animation-duration: 23s;
-    animation-direction: alternate-reverse;
-  }
-
-  @keyframes ot-drift {
-    from {
-      transform: translateX(-24px);
-    }
-
-    to {
-      transform: translateX(24px);
-    }
-  }
-
   /* Bố cục trang con theo dự án Meeting: tiêu đề kèm dòng mô tả, nội dung trong thẻ trắng bo góc.
      Điện thoại một cột sát lề; máy tính trang ngắn nằm trong thẻ giữa trang, trang nhiều nội dung chia 2 cột */
   .ot-page-sub {
