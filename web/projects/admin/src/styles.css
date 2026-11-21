@@ -187,7 +187,7 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-auth-field:has(.a-auth-eye) .ot-input { padding-right: 48px; }
 .a-auth-icon { position: absolute; top: 14px; left: 14px; display: flex; color: var(--ot-text-muted); pointer-events: none; }
 .a-auth-eye { position: absolute; top: 2px; right: 2px; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--ot-text-muted); }
-.a-auth-key { padding: 12px 14px; border: 1px dashed var(--ot-accent); border-radius: var(--ot-radius-md); background: var(--ot-primary-soft); font-family: ui-monospace, Consolas, monospace; font-weight: 600; letter-spacing: 0.04em; word-break: break-all; }
+.a-auth-key { padding: 12px 14px; border: 1px dashed var(--ot-accent); border-radius: var(--ot-radius-md); background: var(--ot-primary-soft); font-family: ui-monospace, Consolas, monospace; font-weight: 600; word-break: break-all; }
 .a-auth-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-family: ui-monospace, Consolas, monospace; }
 .a-auth-codes li { padding: 8px 10px; border-radius: var(--ot-radius-sm); background: var(--ot-surface-2); text-align: center; }
 .a-auth-link { justify-self: center; color: var(--ot-primary); font-weight: 500; }
