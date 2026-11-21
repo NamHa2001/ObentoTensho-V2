@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
+import { LucideAngularModule, X } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -26,7 +27,7 @@ interface DayForm {
 
 @Component({
   selector: 'ot-hours',
-  imports: [FormsModule, VnDatePipe],
+  imports: [FormsModule, LucideAngularModule, VnDatePipe],
   template: `
     <h1>Giờ mở cửa</h1>
     <div class="a-row66">
@@ -42,7 +43,7 @@ interface DayForm {
                     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_32px] items-center gap-2">
                       <input class="ot-input mt-0" type="time" aria-label="Giờ mở" [name]="'o' + d.dayOfWeek + i" [(ngModel)]="r.open" />
                       <input class="ot-input mt-0" type="time" aria-label="Giờ đóng" [name]="'e' + d.dayOfWeek + i" [(ngModel)]="r.close" />
-                      @if (d.ranges.length > 1) { <button type="button" class="text-danger" aria-label="Bỏ khoảng giờ" (click)="d.ranges.splice(i, 1)">✕</button> }
+                      @if (d.ranges.length > 1) { <button type="button" class="flex items-center justify-center text-danger" aria-label="Bỏ khoảng giờ" (click)="d.ranges.splice(i, 1)"><lucide-icon [img]="remove" [size]="18" /></button> }
                     </div>
                   }
                   <button type="button" class="a-link justify-self-start" (click)="d.ranges.push({ open: d.ranges.at(-1)?.close ?? '17:00', close: '21:00' })">Thêm khoảng giờ</button>
@@ -77,6 +78,7 @@ export class Hours {
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
   protected readonly names = DAY_NAMES;
+  protected readonly remove = X;
   protected readonly days = signal<DayForm[]>([]);
   protected readonly special = signal<Special[]>([]);
   protected readonly weekForm = new Submit();
