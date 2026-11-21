@@ -240,7 +240,7 @@ export class AccountOverview {
         </section>
 
         <div class="ot-row-card">
-          <div><p class="ot-row-label">Mật khẩu</p><p class="mt-1 tracking-widest">••••••••</p></div>
+          <p class="ot-row-label">Mật khẩu</p>
           @if (open() !== 'password') { <button type="button" class="ot-btn ot-btn-outline" (click)="toggle('password')">Đổi mật khẩu</button> }
           @if (passwordDone()) { <p class="w-full text-success">Đã đổi mật khẩu.</p> }
           @if (open() === 'password') {
