@@ -148,18 +148,18 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-dine-table[data-status='occupied'] { border-color: var(--ot-primary); background: var(--ot-primary-soft); }
 .a-dine-table[data-status='reserved'] { background: var(--ot-info-bg); }
 .a-dine-table[data-status='cleaning'] { background: var(--ot-warning-bg); }
-.a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 10px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
+.a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 12px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
 .a-dine-item:hover:not(:disabled) { border-color: var(--ot-primary); }
 .a-dine-item:disabled { opacity: 0.5; }
 /* Chọn món: danh mục dính khi cuộn (dưới thanh trên cùng cao 72px); nút gửi bếp dính đáy khi đang chọn món */
-.a-pos-cats { position: sticky; top: 72px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; margin-inline: -4px; padding: 8px 4px; background: var(--ot-surface); scrollbar-width: none; }
+.a-pos-cats { position: sticky; top: 72px; z-index: 5; display: flex; gap: 8px; overflow-x: auto; margin-inline: -4px; padding: 8px 4px; background: var(--ot-surface); scrollbar-width: none; }
 .a-pos-cats::-webkit-scrollbar { display: none; }
 .a-pos-cats .ot-chip { flex: 0 0 auto; white-space: nowrap; }
 .a-pos-section { scroll-margin-top: 132px; }
 .a-pos-section + .a-pos-section { margin-top: 16px; }
-.a-pos-send { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-inline: -4px; padding: 10px 4px calc(10px + var(--ot-safe-bottom)); background: var(--ot-surface); box-shadow: 0 -6px 8px -8px rgb(90 70 50 / 35%); }
+.a-pos-send { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-inline: -4px; padding: 12px 4px calc(12px + var(--ot-safe-bottom)); background: var(--ot-surface); box-shadow: 0 -6px 8px -8px rgb(90 70 50 / 35%); }
 @media (min-width: 768px) {
-  .a-pos-menu { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: start; }
+  .a-pos-menu { display: grid; grid-template-columns: 152px minmax(0, 1fr); gap: 12px; align-items: start; }
   .a-pos-cats { top: 88px; flex-direction: column; overflow: visible; margin: 0; padding: 0; }
   .a-pos-cats .ot-chip { justify-content: flex-start; width: 100%; white-space: normal; text-align: left; }
   .a-pos-section { scroll-margin-top: 88px; }
@@ -246,10 +246,10 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-nav-sub { margin-left: 28px; padding-left: 4px; border-left: 1px solid var(--ot-border); }
 .a-nav-sub .a-nav-link { min-height: 36px; margin-left: 4px; font-size: 14px; }
 
-.a-cal { display: grid; gap: 6px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.a-cal { display: grid; gap: 8px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .a-cal-head { padding-block: 4px; color: var(--ot-text-muted); font-size: 13px; font-weight: 600; text-align: center; }
 .a-cal-day { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 68px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); }
 .a-cal-day:hover { background: var(--ot-bg); }
 .a-cal-today { border-color: var(--ot-primary); font-weight: 600; }
 .a-cal-on { background: var(--ot-primary-soft); }
-.a-cal-day .a-badge { padding-inline: 5px; font-size: 11px; }
+.a-cal-day .a-badge { padding-inline: 4px; font-size: 11px; }

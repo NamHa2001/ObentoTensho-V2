@@ -35,8 +35,8 @@ interface DayForm {
         <header class="a-card-h">Giờ thường kỳ</header>
         <form class="a-card-b grid gap-3" (ngSubmit)="saveWeek()">
           @for (d of days(); track d.dayOfWeek) {
-            <div class="grid grid-cols-[minmax(0,1fr)_70px] items-start gap-2 sm:grid-cols-[90px_70px_minmax(0,1fr)]"><b class="pt-2.5">{{ names[d.dayOfWeek] }}</b>
-              <label class="flex items-center gap-1 pt-2.5 font-normal"><input type="checkbox" [name]="'c' + d.dayOfWeek" [(ngModel)]="d.closed" /> Nghỉ</label>
+            <div class="grid grid-cols-[minmax(0,1fr)_72px] items-start gap-2 sm:grid-cols-[88px_72px_minmax(0,1fr)]"><b class="pt-2">{{ names[d.dayOfWeek] }}</b>
+              <label class="flex items-center gap-1 pt-2 font-normal"><input type="checkbox" [name]="'c' + d.dayOfWeek" [(ngModel)]="d.closed" /> Nghỉ</label>
               @if (!d.closed) {
                 <div class="col-span-2 grid gap-2 sm:col-span-1">
                   @for (r of d.ranges; track $index; let i = $index) {
