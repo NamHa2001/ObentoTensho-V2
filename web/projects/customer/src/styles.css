@@ -194,7 +194,7 @@
   .ot-auth-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
+    gap: 16px;
   }
 
   .ot-auth-form label {
@@ -220,7 +220,7 @@
   .ot-auth-icon {
     position: absolute;
     top: 14px;
-    left: 14px;
+    left: 16px;
     display: flex;
     width: 20px;
     height: 20px;
@@ -580,7 +580,7 @@
   }
 
   .ot-acc-points {
-    padding: 18px;
+    padding: 20px;
     border-radius: var(--ot-radius-lg);
     background: var(--ot-primary);
     color: var(--ot-primary-contrast);
@@ -616,7 +616,7 @@
     display: flex;
     flex-shrink: 0;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     min-height: 44px;
     padding: 0 16px;
     border: 1px solid var(--ot-border);
@@ -753,8 +753,8 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 6px 16px;
-    padding: 14px 0;
+    gap: 8px 16px;
+    padding: 16px 0;
     border-bottom: 1px solid var(--ot-border);
   }
 
@@ -1286,7 +1286,7 @@
     align-items: center;
     justify-content: center;
     width: 92px;
-    padding: 12px 6px;
+    padding: 12px 8px;
     border-right: 2px dashed var(--ot-surface);
     background: var(--ot-primary);
     color: var(--ot-primary-contrast);
