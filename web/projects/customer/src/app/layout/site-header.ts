@@ -32,7 +32,7 @@ import { HEADER_LINKS } from './nav-items';
 
       <nav class="hidden items-center gap-1 lg:flex xl:gap-2" aria-label="Điều hướng chính">
         @for (link of links; track link.path) {
-          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-10 items-center rounded-full px-3.5 text-[15px] font-medium whitespace-nowrap transition-colors hover:text-primary xl:px-4 xl:text-base [&.bg-primary]:hover:text-on-primary">{{ link.label }}</a>
+          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-10 items-center rounded-full px-3 text-[15px] font-medium whitespace-nowrap transition-colors hover:text-primary xl:px-4 xl:text-base [&.bg-primary]:hover:text-on-primary">{{ link.label }}</a>
         }
       </nav>
 
@@ -40,7 +40,7 @@ import { HEADER_LINKS } from './nav-items';
         <a routerLink="/gio-hang" class="relative flex size-11 items-center justify-center" aria-label="Giỏ hàng">
           <lucide-icon [img]="cart" [size]="24" />
           @if (cartState.count() > 0) {
-            <span class="absolute top-0.5 right-0 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary">{{ cartState.count() }}</span>
+            <span class="absolute top-0.5 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary">{{ cartState.count() }}</span>
           }
         </a>
         @if (auth.profile(); as me) {
