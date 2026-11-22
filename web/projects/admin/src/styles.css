@@ -64,27 +64,27 @@ body { font-size: 15px; background: var(--ot-bg); }
 h1, h2, h3, b, strong { font-weight: 600; }
 .a-wrap { display: flex; min-height: 100dvh; }
 .a-side { position: sticky; top: 0; flex: 0 0 var(--a-side); width: var(--a-side); height: 100dvh; overflow-y: auto; background: var(--ot-surface); border-right: 1px solid var(--ot-border); }
-.a-brand { display: flex; align-items: center; gap: 10px; height: 70px; padding-inline: 18px; border-bottom: 1px solid var(--ot-border); color: var(--ot-primary); font-family: var(--ot-font-heading); font-size: 18px; font-weight: 600; white-space: nowrap; }
-.a-logo { display: flex; flex: 0 0 38px; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: var(--ot-primary); color: var(--ot-primary-contrast); font-family: serif; font-size: 22px; font-weight: 700; }
-.a-nav-link { display: flex; align-items: center; gap: 12px; min-height: 42px; margin: 2px 10px; padding-inline: 10px; border-radius: var(--ot-radius-sm); font-weight: 500; white-space: nowrap; }
+.a-brand { display: flex; align-items: center; gap: 12px; height: 72px; padding-inline: 20px; border-bottom: 1px solid var(--ot-border); color: var(--ot-primary); font-family: var(--ot-font-heading); font-size: 18px; font-weight: 600; white-space: nowrap; }
+.a-logo { display: flex; flex: 0 0 40px; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ot-primary); color: var(--ot-primary-contrast); font-family: serif; font-size: 22px; font-weight: 700; }
+.a-nav-link { display: flex; align-items: center; gap: 12px; min-height: 40px; margin: 2px 8px; padding-inline: 12px; border-radius: var(--ot-radius-sm); font-weight: 500; white-space: nowrap; }
 .a-nav-link:hover { background: var(--ot-surface-2); }
 .a-nav-on, .a-nav-on:hover { background: var(--ot-primary-soft); color: var(--ot-primary); font-weight: 600; }
 .a-body { display: flex; flex: 1 1 0; flex-direction: column; min-width: 0; }
-.a-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px; height: 70px; padding: 0 var(--a-gap); background: var(--ot-surface); border-bottom: 1px solid var(--ot-border); }
-.a-icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: var(--ot-radius-sm); }
+.a-top { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 8px; height: 72px; padding: 0 var(--a-gap); background: var(--ot-surface); border-bottom: 1px solid var(--ot-border); }
+.a-icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--ot-radius-sm); }
 /* Chỉ điện thoại và máy tính bảng cần nút mở menu; màn lớn menu luôn hiện */
 @media (min-width: 992px) { .a-menu-btn { display: none; } }
 /* Nút quay lại ở trang con: chỉ trên điện thoại/máy tính bảng, nằm trên thanh trên cùng nên không trôi mất khi cuộn; link quay lại trong trang chỉ giữ trên máy tính */
-.a-back-btn { width: auto; gap: 2px; padding: 0 10px 0 4px; color: var(--ot-primary); font-weight: 600; }
+.a-back-btn { width: auto; gap: 2px; padding: 0 12px 0 4px; color: var(--ot-primary); font-weight: 600; }
 @media (min-width: 992px) { .a-back-btn { display: none; } }
 @media (max-width: 991.98px) { .a-desk-only { display: none !important; } }
 .a-icon-btn:hover { background: var(--ot-surface-2); }
-.a-count { position: absolute; top: 2px; right: 0; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 9px; background: var(--ot-primary); color: var(--ot-primary-contrast); font-size: 11px; font-weight: 600; line-height: 18px; text-align: center; }
-.a-user { display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 4px 8px; border-radius: var(--ot-radius-sm); text-align: right; }
+.a-count { position: absolute; top: 2px; right: 0; min-width: 20px; height: 20px; padding-inline: 4px; border-radius: 10px; background: var(--ot-primary); color: var(--ot-primary-contrast); font-size: 11px; font-weight: 600; line-height: 20px; text-align: center; }
+.a-user { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 4px 8px; border-radius: var(--ot-radius-sm); text-align: right; }
 .a-user:hover { background: var(--ot-surface-2); }
 .a-avatar { display: flex; flex: 0 0 36px; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: var(--ot-primary); color: var(--ot-primary-contrast); font-weight: 600; }
-.a-drop { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; min-width: 240px; padding: 6px; background: var(--ot-surface); border: 1px solid var(--ot-border); border-radius: var(--ot-radius-md); box-shadow: var(--ot-shadow-2); }
-.a-drop-item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding-inline: 10px; border-radius: var(--ot-radius-sm); text-align: left; }
+.a-drop { position: absolute; top: calc(100% + 8px); right: 0; z-index: 40; min-width: 240px; padding: 4px; background: var(--ot-surface); border: 1px solid var(--ot-border); border-radius: var(--ot-radius-md); box-shadow: var(--ot-shadow-2); }
+.a-drop-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 40px; padding-inline: 12px; border-radius: var(--ot-radius-sm); text-align: left; }
 .a-drop-item:hover { background: var(--ot-surface-2); }
 .a-main { flex: 1; padding: var(--a-gap); }
 .a-main h1 { margin: 0 0 20px; font-size: 26px; line-height: 1.25; }
@@ -151,18 +151,18 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 10px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
 .a-dine-item:hover:not(:disabled) { border-color: var(--ot-primary); }
 .a-dine-item:disabled { opacity: 0.5; }
-/* Chọn món: danh mục dính khi cuộn (dưới thanh trên cùng cao 70px); nút gửi bếp dính đáy khi đang chọn món */
-.a-pos-cats { position: sticky; top: 70px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; margin-inline: -4px; padding: 8px 4px; background: var(--ot-surface); scrollbar-width: none; }
+/* Chọn món: danh mục dính khi cuộn (dưới thanh trên cùng cao 72px); nút gửi bếp dính đáy khi đang chọn món */
+.a-pos-cats { position: sticky; top: 72px; z-index: 5; display: flex; gap: 6px; overflow-x: auto; margin-inline: -4px; padding: 8px 4px; background: var(--ot-surface); scrollbar-width: none; }
 .a-pos-cats::-webkit-scrollbar { display: none; }
 .a-pos-cats .ot-chip { flex: 0 0 auto; white-space: nowrap; }
-.a-pos-section { scroll-margin-top: 130px; }
+.a-pos-section { scroll-margin-top: 132px; }
 .a-pos-section + .a-pos-section { margin-top: 16px; }
 .a-pos-send { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-inline: -4px; padding: 10px 4px calc(10px + var(--ot-safe-bottom)); background: var(--ot-surface); box-shadow: 0 -6px 8px -8px rgb(90 70 50 / 35%); }
 @media (min-width: 768px) {
   .a-pos-menu { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; align-items: start; }
-  .a-pos-cats { top: 86px; flex-direction: column; overflow: visible; margin: 0; padding: 0; }
+  .a-pos-cats { top: 88px; flex-direction: column; overflow: visible; margin: 0; padding: 0; }
   .a-pos-cats .ot-chip { justify-content: flex-start; width: 100%; white-space: normal; text-align: left; }
-  .a-pos-section { scroll-margin-top: 86px; }
+  .a-pos-section { scroll-margin-top: 88px; }
 }
 
 /* Trang đăng nhập: một thẻ giữa màn hình như trang khách. Điện thoại: thương hiệu gọn ở đầu thẻ; từ 992px form trái, khung đỏ phải */
@@ -244,7 +244,7 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-nav-arrow { transition: transform 0.15s; }
 .a-nav-arrow-on { transform: rotate(180deg); }
 .a-nav-sub { margin-left: 28px; padding-left: 4px; border-left: 1px solid var(--ot-border); }
-.a-nav-sub .a-nav-link { min-height: 38px; margin-left: 6px; font-size: 14px; }
+.a-nav-sub .a-nav-link { min-height: 36px; margin-left: 4px; font-size: 14px; }
 
 .a-cal { display: grid; gap: 6px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .a-cal-head { padding-block: 4px; color: var(--ot-text-muted); font-size: 13px; font-weight: 600; text-align: center; }
