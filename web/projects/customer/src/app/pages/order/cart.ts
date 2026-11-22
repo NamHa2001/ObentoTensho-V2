@@ -8,6 +8,7 @@ import { catchError, EMPTY, from, map, of, switchMap } from 'rxjs';
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
 import { Cart as CartStore, NOTE_MAX_LENGTH } from '../../core/cart';
+import { askConfirm } from '../../core/dialog';
 import { VndPipe } from '../../shared/vnd.pipe';
 
 const MENU_PAGE = 100;
@@ -60,12 +61,12 @@ export function linesOf(cart: CartStore) {
                     @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
                     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
                       <div class="flex items-center gap-1">
-                        <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1)">−</button>
+                        <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1, line?.name)">−</button>
                         <span class="w-8 text-center">{{ cart.lines()[row.index]?.quantity }}</span>
                         <button class="ot-chip" type="button" aria-label="Tăng" (click)="change(row.index, 1)">+</button>
                       </div>
                       @if (line; as l) { <b>{{ l.lineTotal | vnd }}</b> }
-                      <button class="text-danger" type="button" (click)="cart.remove(row.index)">Xóa</button>
+                      <button class="text-danger max-md:hidden" type="button" (click)="cart.remove(row.index)">Xóa</button>
                     </div>
                   </div>
                 </li>
@@ -151,7 +152,13 @@ export class CartPage {
     this.editing.set(null);
   }
 
-  protected change(index: number, delta: number): void {
-    this.cart.setQuantity(index, (this.cart.lines()[index]?.quantity ?? 1) + delta);
+  // Trên điện thoại không có nút Xóa riêng: giảm từ 1 xuống 0 thì hỏi xác nhận rồi xóa món
+  protected async change(index: number, delta: number, name?: string): Promise<void> {
+    const quantity = (this.cart.lines()[index]?.quantity ?? 1) + delta;
+    if (quantity >= 1) {
+      this.cart.setQuantity(index, quantity);
+    } else if (await askConfirm(`Xóa ${name ?? 'món này'} khỏi giỏ hàng?`)) {
+      this.cart.remove(index);
+    }
   }
 }
