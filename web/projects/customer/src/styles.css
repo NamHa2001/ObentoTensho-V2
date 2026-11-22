@@ -405,7 +405,7 @@
   /* Thực đơn trên máy tính: cỡ gọn theo trang danh sách của Pawsome. Giữ 16px cho thiết bị cảm ứng để iOS không tự phóng to */
   @media (min-width: 1024px) and (hover: hover) {
     .ot-menu .ot-field {
-      height: 42px;
+      height: 40px;
       font-size: 14px;
     }
 
@@ -668,7 +668,7 @@
     }
 
     .ot-acc-item {
-      min-height: 50px;
+      min-height: 48px;
       border: 0;
       border-bottom: 1px solid var(--ot-border);
       border-radius: 0;
@@ -1074,8 +1074,8 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border: 1.5px solid var(--ot-text-muted);
     border-radius: 6px;
     background: var(--ot-surface);
