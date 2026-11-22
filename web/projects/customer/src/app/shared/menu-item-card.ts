@@ -35,17 +35,17 @@ const ADDED_MS = 1800;
           <!-- Nhãn Cay/Chay nằm trên ảnh để phần chữ của mọi thẻ cao bằng nhau, không hở trên hàng giá -->
           @if (tags().length > 0) {
             <span class="absolute top-2 right-2 flex gap-1">
-              @for (t of tags(); track t) { <span class="rounded-sm bg-surface/90 px-1.5 py-0.5 text-xs font-semibold text-ink shadow-sm">{{ t }}</span> }
+              @for (t of tags(); track t) { <span class="rounded-sm bg-surface/90 px-2 py-0.5 text-xs font-semibold text-ink shadow-sm">{{ t }}</span> }
             </span>
           }
         </div>
-        <div class="flex flex-1 flex-col px-1 pt-2.5">
+        <div class="flex flex-1 flex-col px-1 pt-3">
           <h3 class="line-clamp-2 text-[15px] leading-snug font-semibold transition-colors md:text-base">{{ item().name }}</h3>
           <!-- Luôn chừa đủ 2 dòng mô tả: thẻ mô tả ngắn vẫn đặt giá cùng độ cao với thẻ bên cạnh -->
           <p class="mt-1 line-clamp-2 min-h-[2.75em] text-[13px] leading-[1.375] text-muted md:text-sm">{{ item().shortDesc }}</p>
         </div>
       </a>
-      <div class="flex items-end justify-between gap-2 px-1 pt-2.5 pb-0.5">
+      <div class="flex items-end justify-between gap-2 px-1 pt-3 pb-0.5">
         <div class="min-w-0">
           <p class="h-4 text-xs leading-4 text-muted line-through">
             @if (item().originalPrice; as original) {
