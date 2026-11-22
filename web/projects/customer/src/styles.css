@@ -299,15 +299,6 @@
       background: var(--ot-primary);
     }
 
-    /* Họa tiết sóng Seigaiha mờ, cùng kiểu trang đăng nhập quản trị */
-    .ot-auth-aside::before {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 100%, transparent 18px, rgb(255 255 255 / 7%) 19px, rgb(255 255 255 / 7%) 21px, transparent 22px) 0 0 / 48px 24px;
-      content: '';
-      pointer-events: none;
-    }
-
     .ot-auth-logo {
       position: relative;
       display: flex;
