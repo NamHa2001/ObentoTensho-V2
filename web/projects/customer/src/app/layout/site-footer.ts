@@ -19,7 +19,7 @@ import { Submit } from '../shared/form';
       <div class="col-span-2 lg:col-span-1">
         <a routerLink="/" class="flex items-center gap-3">
           @if (settings()['restaurant.logoUrl']; as url) { <img class="size-12 rounded-full object-cover" [src]="url" alt="" /> } @else { <span class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none text-on-primary">天</span> }
-          <span class="font-heading text-[22px] font-semibold text-white">{{ name() }}</span>
+          <span class="font-heading text-[22px] font-semibold">{{ name() }}</span>
         </a>
         <p class="ot-footer-muted mt-3">Cơm hộp Nhật, nấu mới mỗi ngày.</p>
         <div class="mt-4 grid gap-1">
