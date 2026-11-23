@@ -50,7 +50,7 @@ const PHOTON = 'https://photon.komoot.io';
         <ul id="ot-address-suggest" class="ot-suggest" role="listbox" aria-label="Địa chỉ gợi ý">
           @for (s of suggestions(); track $index) {
             <li role="option" [attr.aria-selected]="false">
-              <button type="button" (mousedown)="$event.preventDefault()" (click)="choose(s)"><lucide-icon class="shrink-0 text-primary" [img]="icons.pin" [size]="16" /><span>{{ s.label }}</span></button>
+              <button type="button" (mousedown)="$event.preventDefault()" (click)="choose(s)"><lucide-icon class="shrink-0 text-muted" [img]="icons.pin" [size]="16" /><span>{{ s.label }}</span></button>
             </li>
           }
         </ul>

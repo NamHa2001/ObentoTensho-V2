@@ -41,10 +41,10 @@
         <p class="mt-3 text-muted lg:text-lg">Đặt món mang về hoặc giữ bàn trước, chỉ vài bước ngay trên điện thoại.</p>
         <div class="mt-5 grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:max-w-[400px] lg:gap-5">
           <a routerLink="/menu" class="ot-btn ot-btn-primary whitespace-nowrap md:max-lg:gap-1 md:max-lg:px-3">
-            <lucide-icon [img]="icons.order" [size]="20" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
+            <lucide-icon [img]="icons.order" [size]="18" /> Đặt món <lucide-icon [img]="icons.next" [size]="18" />
           </a>
           <a routerLink="/dat-ban" class="ot-btn ot-btn-outline whitespace-nowrap md:max-lg:gap-1 md:max-lg:px-3">
-            <lucide-icon [img]="icons.book" [size]="20" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
+            <lucide-icon [img]="icons.book" [size]="18" /> Đặt bàn <lucide-icon [img]="icons.next" [size]="18" />
           </a>
         </div>
       </div>
@@ -65,7 +65,7 @@
     <div class="grid grid-cols-2 gap-3 md:gap-5 lg:grid-cols-4">
       @for (s of services; track s.path) {
         <a [routerLink]="s.path" class="ot-service flex items-center gap-3">
-          <span class="flex shrink-0 text-primary"><lucide-icon [img]="s.icon" [size]="24" /></span>
+          <span class="flex shrink-0 text-muted"><lucide-icon [img]="s.icon" [size]="18" /></span>
           <span class="min-w-0">
             <span class="font-heading block font-medium text-heading md:text-lg">{{ s.title }}</span>
             <span class="block text-sm text-muted">{{ s.note }}</span>
@@ -108,7 +108,7 @@
             @if (imageUrl(category.image); as url) {
               <img [src]="url" [alt]="category.name" loading="lazy" class="absolute inset-0 size-full object-cover" />
             } @else {
-              <span class="absolute inset-0 flex items-center justify-center text-muted"><lucide-icon [img]="icons.order" [size]="28" /></span>
+              <span class="absolute inset-0 flex items-center justify-center text-muted"><lucide-icon [img]="icons.order" [size]="32" /></span>
             }
           </span>
           <span class="min-w-0 flex-1">
@@ -185,7 +185,7 @@
 <section class="ot-container ot-block">
   <div class="flex flex-col gap-4 rounded-[var(--ot-radius-lg)] bg-surface-2 p-5 md:flex-row md:items-center md:justify-between md:p-8">
     <div class="flex items-center gap-3 md:gap-4">
-      <span class="flex shrink-0 text-primary"><lucide-icon [img]="icons.gift" [size]="24" /></span>
+      <span class="flex shrink-0 text-muted"><lucide-icon [img]="icons.gift" [size]="18" /></span>
       <div>
         <h2 class="text-xl md:text-2xl">Tích điểm mỗi đơn, nhận quà sinh nhật</h2>
         <p class="mt-1 text-muted">Thành viên được đổi điểm lấy ưu đãi và nhận voucher trong tháng sinh nhật.</p>
@@ -226,13 +226,13 @@
   <ot-section-title accent="Ghé thăm" title="quán" />
   <div class="mt-3 grid grid-cols-1 gap-3 md:mt-4 md:gap-5 lg:grid-cols-2">
     <div class="ot-card flex flex-col gap-4 p-4 md:p-6">
-      <p class="flex items-start gap-3"><lucide-icon class="mt-0.5 shrink-0 text-primary" [img]="icons.pin" [size]="22" /><span>{{ settings()['restaurant.address'] || 'Địa chỉ nhập ở admin → Cài đặt' }}</span></p>
+      <p class="flex items-start gap-3"><lucide-icon class="mt-0.5 shrink-0 text-muted" [img]="icons.pin" [size]="18" /><span>{{ settings()['restaurant.address'] || 'Địa chỉ nhập ở admin → Cài đặt' }}</span></p>
       @if (settings()['restaurant.phone']; as phone) {
-        <p class="flex items-center gap-3"><lucide-icon class="shrink-0 text-primary" [img]="icons.phone" [size]="22" /><span class="font-semibold">{{ phone }}</span></p>
+        <p class="flex items-center gap-3"><lucide-icon class="shrink-0 text-muted" [img]="icons.phone" [size]="18" /><span class="font-semibold">{{ phone }}</span></p>
       }
       <div class="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
-        @if (mapUrl(); as map) { <a class="ot-btn ot-btn-primary" [href]="map" target="_blank" rel="noopener"><lucide-icon [img]="icons.map" [size]="20" /> Chỉ đường</a> }
-        @if (settings()['restaurant.phone']; as phone) { <a class="ot-btn ot-btn-outline" [href]="'tel:' + phone"><lucide-icon [img]="icons.phone" [size]="20" /> Gọi cho quán</a> }
+        @if (mapUrl(); as map) { <a class="ot-btn ot-btn-primary" [href]="map" target="_blank" rel="noopener"><lucide-icon [img]="icons.map" [size]="18" /> Chỉ đường</a> }
+        @if (settings()['restaurant.phone']; as phone) { <a class="ot-btn ot-btn-outline" [href]="'tel:' + phone"><lucide-icon [img]="icons.phone" [size]="18" /> Gọi cho quán</a> }
       </div>
       @if (socials().length > 0) {
         <div class="mt-auto flex flex-wrap gap-2 border-t border-line pt-4">
@@ -242,7 +242,7 @@
     </div>
     @if (week().length > 0) {
       <div class="ot-card flex flex-col gap-4 p-4 md:p-6">
-        <p class="flex items-center gap-3 font-semibold"><lucide-icon class="shrink-0 text-primary" [img]="icons.clock" [size]="22" />Giờ mở cửa</p>
+        <p class="flex items-center gap-3 font-semibold"><lucide-icon class="shrink-0 text-muted" [img]="icons.clock" [size]="18" />Giờ mở cửa</p>
         @if (week().length === 1) {
           <dl class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-center">
             <dt class="text-muted">{{ week()[0].day }}</dt>

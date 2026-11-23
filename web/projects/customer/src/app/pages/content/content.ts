@@ -5,6 +5,7 @@ import { DomSanitizer, Meta, SafeResourceUrl, Title } from '@angular/platform-br
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, map, of, switchMap } from 'rxjs';
+import { ChevronLeft, LucideAngularModule } from 'lucide-angular';
 
 import { Api } from '../../core/api';
 import { Turnstile } from '../../core/turnstile';
@@ -212,10 +213,10 @@ export class Promotions {
 
 @Component({
   selector: 'ot-promotion',
-  imports: [RouterLink, VnDatePipe],
+  imports: [RouterLink, VnDatePipe, LucideAngularModule],
   template: `
     <article class="ot-page">
-      <a class="text-muted max-lg:hidden" routerLink="/khuyen-mai">‹ Khuyến mãi</a>
+      <a class="inline-flex items-center gap-1 text-muted max-lg:hidden" routerLink="/khuyen-mai"><lucide-icon [img]="icons.back" [size]="16" />Khuyến mãi</a>
       @if (item(); as p) {
         @if (banner(); as src) { <img class="mt-3 aspect-video w-full rounded-lg object-cover" [src]="src" [alt]="p.title" /> }
         <h1 class="mt-3">{{ p.title }}</h1>
@@ -231,6 +232,7 @@ export class Promotions {
   `,
 })
 export class Promotion {
+  protected readonly icons = { back: ChevronLeft };
   private readonly api = inject(Api);
   protected readonly item = signal<Schemas['PublicPromotionDto'] | null>(null);
   protected readonly missing = signal(false);
@@ -305,10 +307,10 @@ export class NewsList {
 
 @Component({
   selector: 'ot-news-article',
-  imports: [RouterLink, VnDatePipe],
+  imports: [RouterLink, VnDatePipe, LucideAngularModule],
   template: `
     <article class="ot-page">
-      <a class="text-muted max-lg:hidden" routerLink="/tin-tuc">‹ Tin tức</a>
+      <a class="inline-flex items-center gap-1 text-muted max-lg:hidden" routerLink="/tin-tuc"><lucide-icon [img]="icons.back" [size]="16" />Tin tức</a>
       @if (item(); as n) {
         <h1 class="mt-3">{{ n.title }}</h1>
         <p class="text-sm text-muted">{{ n.authorDisplayName }} · {{ n.publishedAtUtc | vnDate }}</p>
@@ -320,6 +322,7 @@ export class NewsList {
   `,
 })
 export class NewsArticle {
+  protected readonly icons = { back: ChevronLeft };
   protected readonly item = signal<Schemas['PublicNewsDto'] | null>(null);
   protected readonly missing = signal(false);
 

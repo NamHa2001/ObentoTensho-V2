@@ -22,7 +22,7 @@ import { HEADER_LINKS } from './nav-items';
       <!-- Trang con trên điện thoại: nút quay lại đứng trước logo, dính theo thanh tiêu đề khi kéo xuống -->
       <div class="flex min-w-0 items-center gap-1 justify-self-start">
         @if (back.target()) {
-          <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-primary active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="26" /></button>
+          <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-primary active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="18" /></button>
         }
         <a routerLink="/" class="flex min-w-0 items-center gap-2 md:gap-3">
           @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-semibold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
@@ -38,18 +38,18 @@ import { HEADER_LINKS } from './nav-items';
 
       <div class="hidden items-center gap-3 justify-self-end md:ml-auto md:flex lg:ml-0">
         <a routerLink="/gio-hang" class="relative flex size-11 items-center justify-center" aria-label="Giỏ hàng">
-          <lucide-icon [img]="cart" [size]="24" />
+          <lucide-icon [img]="cart" [size]="18" />
           @if (cartState.count() > 0) {
             <span class="absolute top-0.5 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary">{{ cartState.count() }}</span>
           }
         </a>
         @if (auth.profile(); as me) {
-          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-semibold" [title]="me.fullName"><lucide-icon class="shrink-0 text-primary" [img]="user" [size]="22" /><span class="max-w-[160px] truncate xl:max-w-[200px]">Xin chào, {{ givenName(me.fullName) }}</span></a>
+          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-semibold" [title]="me.fullName"><lucide-icon class="shrink-0 text-muted" [img]="user" [size]="18" /><span class="max-w-[160px] truncate xl:max-w-[200px]">Xin chào, {{ givenName(me.fullName) }}</span></a>
         } @else {
-          <a routerLink="/dang-nhap" class="ot-btn ot-btn-primary whitespace-nowrap" [class.invisible]="!auth.ready()"><lucide-icon class="lg:max-xl:hidden" [img]="user" [size]="20" /> Đăng nhập</a>
+          <a routerLink="/dang-nhap" class="ot-btn ot-btn-primary whitespace-nowrap" [class.invisible]="!auth.ready()"><lucide-icon class="lg:max-xl:hidden" [img]="user" [size]="18" /> Đăng nhập</a>
         }
       </div>
-      <button type="button" class="flex size-11 shrink-0 items-center justify-center lg:hidden" aria-label="Mở menu" [attr.aria-expanded]="open()" (click)="open.set(!open())"><lucide-icon [img]="open() ? close : menu" [size]="24" /></button>
+      <button type="button" class="flex size-11 shrink-0 items-center justify-center lg:hidden" aria-label="Mở menu" [attr.aria-expanded]="open()" (click)="open.set(!open())"><lucide-icon [img]="open() ? close : menu" [size]="18" /></button>
     </div>
     @if (open()) {
       <nav class="ot-container border-t border-line pb-2 lg:hidden" aria-label="Menu">

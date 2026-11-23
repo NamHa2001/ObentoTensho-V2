@@ -219,7 +219,7 @@
 
   .ot-auth-icon {
     position: absolute;
-    top: 14px;
+    top: 15px;
     left: 16px;
     display: flex;
     width: 20px;
@@ -339,7 +339,6 @@
 
     .ot-auth-points lucide-icon {
       flex: 0 0 auto;
-      color: var(--ot-sakura);
     }
 
     .ot-auth-grid {
@@ -627,7 +626,7 @@
   }
 
   .ot-acc-item lucide-icon {
-    color: var(--ot-primary);
+    color: var(--ot-text-muted);
   }
 
   .ot-acc-item.is-active {
@@ -687,7 +686,7 @@
     }
 
     .ot-acc-item.is-active lucide-icon {
-      color: var(--ot-primary);
+      color: inherit;
     }
   }
 
@@ -1263,6 +1262,11 @@
       border-radius: var(--ot-radius-lg);
       padding-bottom: 0;
     }
+  }
+
+  /* Mọi icon một nét 1.5 cho đồng bộ */
+  lucide-icon svg {
+    stroke-width: 1.5;
   }
 
   /* Sao đánh giá: lucide vẽ hình rỗng, thuộc tính fill đặt ở thẻ bọc nên phải truyền xuống hình bên trong */

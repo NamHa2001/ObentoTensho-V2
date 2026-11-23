@@ -58,7 +58,7 @@ const ADDED_MS = 1800;
           <span class="pb-1 text-xs font-semibold text-muted">{{ reason }}</span>
         } @else {
           <button type="button" class="ot-add-btn" [class.is-added]="added()" [attr.aria-label]="'Thêm ' + item().name + ' vào giỏ'" (click)="open.set(true)">
-            <lucide-icon [img]="added() ? icons.check : icons.plus" [size]="20" />
+            <lucide-icon [img]="added() ? icons.check : icons.plus" [size]="18" />
           </button>
         }
       </div>

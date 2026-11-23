@@ -26,7 +26,7 @@ type Option = Schemas['PublicOptionDto'];
             @if (thumb(); as url) { <img class="size-14 shrink-0 rounded-md object-cover" [src]="url" alt="" width="56" height="56" /> }
             <div class="min-w-0"><p class="truncate font-heading text-lg font-semibold">{{ name() }}</p><p class="text-sm font-semibold text-primary">{{ price() | vnd }}</p></div>
           </div>
-          <button type="button" class="flex size-11 shrink-0 items-center justify-center" aria-label="Đóng" (click)="closed.emit()"><lucide-icon [img]="icons.close" [size]="22" /></button>
+          <button type="button" class="flex size-11 shrink-0 items-center justify-center" aria-label="Đóng" (click)="closed.emit()"><lucide-icon [img]="icons.close" [size]="18" /></button>
         </div>
         <div class="ot-sheet-body">
           @if (state() === 'loading') {
@@ -45,7 +45,7 @@ type Option = Schemas['PublicOptionDto'];
                     <label class="ot-option" [class.ot-option-on]="selected(group, option)" [class.ot-option-off]="disabled(group, option)">
                       <input class="sr-only" [type]="group.selectionType === 'one' ? 'radio' : 'checkbox'" [name]="'group-' + group.id" [checked]="selected(group, option)" [disabled]="disabled(group, option)" (change)="choose(group, option)" />
                       <span class="ot-option-mark" [class.rounded-full]="group.selectionType === 'one'">
-                        @if (selected(group, option)) { <lucide-icon [img]="icons.check" [size]="14" /> }
+                        @if (selected(group, option)) { <lucide-icon [img]="icons.check" [size]="16" /> }
                       </span>
                       <span class="min-w-0 flex-1">{{ option.name }}</span>
                       <span class="text-sm whitespace-nowrap text-muted tabular-nums">

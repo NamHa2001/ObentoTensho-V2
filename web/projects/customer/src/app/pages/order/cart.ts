@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, EMPTY, from, map, of, switchMap } from 'rxjs';
+import { LucideAngularModule, Minus, Plus } from 'lucide-angular';
 
 import { Api } from '../../core/api';
 import { Auth } from '../../core/auth';
@@ -19,7 +20,7 @@ export function linesOf(cart: CartStore) {
 
 @Component({
   selector: 'ot-cart',
-  imports: [FormsModule, RouterLink, VndPipe],
+  imports: [FormsModule, RouterLink, VndPipe, LucideAngularModule],
   template: `
     <div class="ot-page-split">
       <h1>Giỏ hàng</h1>
@@ -56,14 +57,14 @@ export function linesOf(cart: CartStore) {
                     } @else if (note) {
                       <p class="mt-1 text-sm"><span class="text-muted">Ghi chú:</span> {{ note }} <button type="button" class="ml-1 font-semibold text-primary" (click)="editNote(row.index)">Sửa</button></p>
                     } @else {
-                      <button type="button" class="mt-1 text-sm font-semibold text-primary" (click)="editNote(row.index)">+ Thêm ghi chú</button>
+                      <button type="button" class="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-primary" (click)="editNote(row.index)"><lucide-icon [img]="icons.plus" [size]="16" />Thêm ghi chú</button>
                     }
                     @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
                     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">
                       <div class="flex items-center gap-1">
-                        <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1, line?.name)">−</button>
+                        <button class="ot-chip" type="button" aria-label="Giảm" (click)="change(row.index, -1, line?.name)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
                         <span class="w-8 text-center">{{ cart.lines()[row.index]?.quantity }}</span>
-                        <button class="ot-chip" type="button" aria-label="Tăng" (click)="change(row.index, 1)">+</button>
+                        <button class="ot-chip" type="button" aria-label="Tăng" (click)="change(row.index, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
                       </div>
                       @if (line; as l) { <b>{{ l.lineTotal | vnd }}</b> }
                       <button class="text-danger max-md:hidden" type="button" (click)="cart.remove(row.index)">Xóa</button>
@@ -100,6 +101,7 @@ export function linesOf(cart: CartStore) {
   `,
 })
 export class CartPage {
+  protected readonly icons = { minus: Minus, plus: Plus };
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
   protected readonly cart = inject(CartStore);

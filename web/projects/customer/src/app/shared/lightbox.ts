@@ -1,22 +1,24 @@
 import { Component, HostListener, input, model, output } from '@angular/core';
+import { ChevronLeft, ChevronRight, LucideAngularModule } from 'lucide-angular';
 
 import { Modal } from './modal';
 
 @Component({
   selector: 'ot-lightbox',
-  imports: [Modal],
+  imports: [Modal, LucideAngularModule],
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/90" role="dialog" aria-modal="true" aria-label="Xem ảnh" otModal (dismiss)="closed.emit()">
       <img class="max-h-[90dvh] max-w-full object-contain" [src]="images()[index()]" alt="" />
       <button type="button" class="ot-chip absolute top-3 right-3" style="margin-top: var(--ot-safe-top)" (click)="closed.emit()">Đóng</button>
       @if (images().length > 1) {
-        <button type="button" class="ot-chip absolute top-1/2 left-3" aria-label="Ảnh trước" (click)="step(-1); $event.stopPropagation()">‹</button>
-        <button type="button" class="ot-chip absolute top-1/2 right-3" aria-label="Ảnh sau" (click)="step(1); $event.stopPropagation()">›</button>
+        <button type="button" class="ot-chip absolute top-1/2 left-3" aria-label="Ảnh trước" (click)="step(-1); $event.stopPropagation()"><lucide-icon [img]="icons.prev" [size]="18" /></button>
+        <button type="button" class="ot-chip absolute top-1/2 right-3" aria-label="Ảnh sau" (click)="step(1); $event.stopPropagation()"><lucide-icon [img]="icons.next" [size]="18" /></button>
       }
     </div>
   `,
 })
 export class Lightbox {
+  protected readonly icons = { prev: ChevronLeft, next: ChevronRight };
   readonly images = input.required<string[]>();
   readonly index = model(0);
   readonly closed = output<void>();

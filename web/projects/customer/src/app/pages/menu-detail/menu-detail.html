@@ -1,6 +1,6 @@
 <div class="ot-container pt-3 pb-8 md:pt-6 md:pb-14">
   <a routerLink="/menu" class="-ml-1 hidden min-h-11 items-center gap-1 font-medium text-muted lg:inline-flex">
-    <lucide-icon [img]="icons.back" [size]="20" /> Thực đơn
+    <lucide-icon [img]="icons.back" [size]="18" /> Thực đơn
   </a>
 
   @switch (state()) {
@@ -78,13 +78,13 @@
             <!-- Trang này để xem; bấm thêm mới mở bảng chọn tùy chọn, ghi chú và số lượng như các app đặt món -->
             <div class="ot-buy-bar">
               @if (added()) {
-                <a routerLink="/gio-hang" class="ot-btn ot-btn-outline min-w-0 flex-1 px-3"><lucide-icon [img]="icons.check" [size]="20" /> Đã thêm · Xem giỏ</a>
+                <a routerLink="/gio-hang" class="ot-btn ot-btn-outline min-w-0 flex-1 px-3"><lucide-icon [img]="icons.check" [size]="18" /> Đã thêm · Xem giỏ</a>
               }
               <button type="button" class="ot-btn ot-btn-primary min-w-0 flex-1 px-3 shadow-none disabled:opacity-50" [disabled]="!!unavailable()" (click)="openPicker()">
                 @if (unavailable(); as reason) {
                   {{ reason }}
                 } @else {
-                  <lucide-icon [img]="icons.bag" [size]="20" class="hidden min-[360px]:block" /> <span class="whitespace-nowrap">{{ added() ? 'Thêm nữa' : 'Thêm vào giỏ' }}</span>
+                  <lucide-icon [img]="icons.bag" [size]="18" class="hidden min-[360px]:block" /> <span class="whitespace-nowrap">{{ added() ? 'Thêm nữa' : 'Thêm vào giỏ' }}</span>
                 }
               </button>
             </div>

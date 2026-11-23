@@ -26,7 +26,7 @@ import { TAB_ITEMS } from './nav-items';
           style="height: var(--ot-tabbar-h)"
         >
           <span class="relative flex">
-            <lucide-icon [img]="item.icon" [size]="22" />
+            <lucide-icon [img]="item.icon" [size]="18" />
             @if (item.path === '/gio-hang' && cart.count() > 0) {
               <span class="absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none font-semibold text-on-primary">{{ cart.count() }}</span>
             }

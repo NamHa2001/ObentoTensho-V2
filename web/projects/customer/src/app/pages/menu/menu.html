@@ -9,7 +9,7 @@
   <div class="mt-3 grid grid-cols-1 gap-3 md:mt-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-x-6 lg:gap-y-4">
   <div class="grid grid-cols-1 gap-3 md:grid-cols-[1fr_190px_190px] md:gap-4 lg:col-start-2 lg:row-start-1">
     <div class="relative">
-      <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.search" [size]="20" /></span>
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.search" [size]="18" /></span>
       <input
         #searchBox
         class="ot-field pr-12 pl-12"
@@ -34,7 +34,7 @@
         <option value="" [selected]="!filter().without">Không lọc dị ứng</option>
         @for (a of allergens; track a.value) { <option [value]="a.value" [selected]="a.value === filter().without">Không có {{ a.label.toLowerCase() }}</option> }
       </select>
-      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="20" /></span>
+      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="18" /></span>
     </div>
     <div class="relative">
       <select #sortBox class="ot-field pr-12 pl-4 font-medium" aria-label="Sắp xếp" [value]="filter().sort" (change)="onSort(sortBox.value)">
@@ -42,7 +42,7 @@
           <option [value]="option.value" [selected]="option.value === filter().sort">{{ option.label }}</option>
         }
       </select>
-      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="20" /></span>
+      <span class="pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-center text-muted"><lucide-icon [img]="icons.down" [size]="18" /></span>
     </div>
   </div>
 

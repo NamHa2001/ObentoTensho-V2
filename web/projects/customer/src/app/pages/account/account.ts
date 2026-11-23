@@ -608,7 +608,7 @@ export class AccountOrders {
         <div class="ot-sheet">
           <div class="ot-sheet-head">
             <div><p class="font-heading text-lg font-semibold">Đổi điểm lấy ưu đãi</p><p class="text-sm text-muted">Bạn đang có <b class="text-primary">{{ points() }} điểm</b></p></div>
-            <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="sheet.set(false)"><lucide-icon [img]="close" [size]="22" /></button>
+            <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="sheet.set(false)"><lucide-icon [img]="close" [size]="18" /></button>
           </div>
           <div class="ot-sheet-body">
             @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
