@@ -90,7 +90,7 @@ function clock(utc: string): string {
               <b class="text-lg">{{ t.tableName }}</b>
               @if (t.billId) {
                 <span class="text-sm">{{ t.guestCount }} khách · {{ since(t.openedAtUtc) }} phút</span>
-                <span class="font-semibold">{{ t.subTotal ?? 0 | vnd }}</span>
+                <span class="font-medium">{{ t.subTotal ?? 0 | vnd }}</span>
                 @if (t.unservedCount > 0) { <span class="a-badge self-start">{{ t.unservedCount }} món chờ bếp</span> }
               } @else {
                 <span class="text-sm">{{ label(t.status) }} · tối đa {{ t.maxCapacity }} khách</span>
@@ -255,7 +255,7 @@ interface DraftLine {
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section class="a-card">
           <header class="a-card-h">Chọn món</header>
-          @if (b.paid) { <p class="a-card-b font-semibold">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
+          @if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
             <input class="ot-input" name="q" placeholder="Tìm món" [ngModel]="query()" (ngModelChange)="query.set($event)" />
             <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
@@ -272,7 +272,7 @@ interface DraftLine {
                   <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
                     @for (m of shown(); track m.id) {
                       <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                        <span class="font-semibold">{{ m.name }}</span>
+                        <span class="font-medium">{{ m.name }}</span>
                         <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
                       </button>
                     } @empty { <p class="text-muted">Không có món phù hợp.</p> }
@@ -280,11 +280,11 @@ interface DraftLine {
                 } @else {
                   @for (g of groups(); track g.id) {
                     <section class="a-pos-section" [id]="'pos-cat-' + g.id">
-                      <h3 class="mb-2 font-semibold">{{ g.name }}</h3>
+                      <h3 class="mb-2 font-medium">{{ g.name }}</h3>
                       <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
                         @for (m of g.items; track m.id) {
                           <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                            <span class="font-semibold">{{ m.name }}</span>
+                            <span class="font-medium">{{ m.name }}</span>
                             <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
                           </button>
                         }
@@ -304,7 +304,7 @@ interface DraftLine {
 
             @if (draft().length > 0) {
               <div id="pos-draft" class="rounded-md border border-line p-3">
-                <h2 class="mb-2 font-semibold">Món đang chọn (chưa gửi bếp)</h2>
+                <h2 class="mb-2 font-medium">Món đang chọn (chưa gửi bếp)</h2>
                 @for (d of draft(); track d.key) {
                   <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
                     <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
@@ -329,7 +329,7 @@ interface DraftLine {
           <div class="a-card-b">
             @if (b.note) { <p class="mb-2 text-sm text-muted">Ghi chú: {{ b.note }}</p> }
             @for (r of rounds(); track r.round) {
-              <h3 class="mt-3 text-sm font-semibold text-muted">Đợt {{ r.round }} · {{ time(r.sentAtUtc) }}</h3>
+              <h3 class="mt-3 text-sm font-medium text-muted">Đợt {{ r.round }} · {{ time(r.sentAtUtc) }}</h3>
               @for (i of r.items; track i.id) {
                 <div class="border-b border-line py-2 last:border-0" [class.opacity-60]="i.voided">
                   <div class="flex justify-between gap-2">

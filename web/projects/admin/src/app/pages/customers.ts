@@ -21,7 +21,7 @@ type CustomerDetail = Schemas['CustomerDetailDto'];
   imports: [FormsModule, RouterLink],
   template: `
     <div class="a-head"><h1>Khách hàng</h1>@if (auth.has('customer_export')) { <button type="button" class="ot-btn ot-btn-outline" (click)="exportAll()">Xuất danh sách</button> }</div>
-    @if (notice(); as n) { <p class="mb-3 font-semibold">{{ n }}</p> }
+    @if (notice(); as n) { <p class="mb-3 font-medium">{{ n }}</p> }
     <div class="a-filters"><input class="ot-input" name="q" placeholder="Tìm tên, email, SĐT" [(ngModel)]="q" (change)="reload()" /></div>
     @if (error(); as e) { <p class="ot-error mt-2">{{ e }}</p> }
     <div class="a-table"><table class="w-full text-sm"><tr class="bg-surface-2 text-left"><th class="p-2">Họ tên</th><th class="p-2">Email</th><th class="p-2">SĐT</th><th class="p-2">Hạng</th><th class="p-2">Điểm</th><th class="p-2">Hoạt động</th></tr>

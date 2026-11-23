@@ -132,7 +132,7 @@ export class Orders {
               @if (v.order.refundPending) { <button type="button" class="ot-chip" (click)="refund(v)">Ghi hoàn tiền</button> }
               @if (v.order.status !== 'cancelled') { <button type="button" class="ot-chip" (click)="startInvoice()">Yêu cầu xuất hóa đơn</button> }
             </div>
-            @if (invoiceSent()) { <p class="px-4 pb-3 text-sm font-semibold">Đã gửi yêu cầu xuất hóa đơn cho kế toán.</p> }
+            @if (invoiceSent()) { <p class="px-4 pb-3 text-sm font-medium">Đã gửi yêu cầu xuất hóa đơn cho kế toán.</p> }
           </section>
           <section class="a-card">
             <header class="a-card-h">Lịch sử</header>

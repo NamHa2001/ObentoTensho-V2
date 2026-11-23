@@ -54,7 +54,7 @@ const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 
                 <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Tiền thu</th><th class="p-2 text-right">Hoàn tiền</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
                 <tbody>
                   @for (c of v.byChannel; track c.channel) {
-                    <tr class="border-t border-line"><td class="p-2">{{ channelLabel(c.channel) }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-semibold tabular-nums">{{ c.net | vnd }}</td></tr>
+                    <tr class="border-t border-line"><td class="p-2">{{ channelLabel(c.channel) }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-medium tabular-nums">{{ c.net | vnd }}</td></tr>
                   }
                 </tbody>
               </table></div>

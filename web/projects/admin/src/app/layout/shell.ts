@@ -82,7 +82,7 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Quá
       </div>
     </div>
 
-    @if (live.toast(); as t) { <p class="a-card fixed top-20 right-4 z-50 p-3 font-semibold" role="status">{{ t }}</p> }
+    @if (live.toast(); as t) { <p class="a-card fixed top-20 right-4 z-50 p-3 font-medium" role="status">{{ t }}</p> }
 
     @if (stepUp.open()) {
       <div class="a-drawer items-center justify-center p-4" role="dialog" aria-modal="true">

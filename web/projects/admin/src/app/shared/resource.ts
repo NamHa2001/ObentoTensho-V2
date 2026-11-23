@@ -140,7 +140,7 @@ function display(value: unknown): string {
         </div>
       }
       @if (error() || loader.error(); as e) { <p class="ot-error mb-3" role="alert">{{ e }}</p> }
-      @if (notice(); as n) { <p class="mb-3 font-semibold" role="status">{{ n }}</p> }
+      @if (notice(); as n) { <p class="mb-3 font-medium" role="status">{{ n }}</p> }
 
       <div class="a-table">
         <table>

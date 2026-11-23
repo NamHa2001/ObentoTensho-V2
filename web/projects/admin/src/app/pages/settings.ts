@@ -15,8 +15,8 @@ type Setting = Schemas['SettingDto'];
   template: `
     <div class="a-head"><h1>Cài đặt</h1><div class="a-btns"><button type="button" class="ot-btn ot-btn-outline" (click)="test()">Gửi email thử</button><button type="button" class="ot-btn ot-btn-primary" [disabled]="form.busy()" (click)="save()">Lưu thay đổi</button></div></div>
     @if (form.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    @if (saved()) { <p class="mb-3 font-semibold">Đã lưu.</p> }
-    @if (notice(); as n) { <p class="mb-3 font-semibold">{{ n }}</p> }
+    @if (saved()) { <p class="mb-3 font-medium">Đã lưu.</p> }
+    @if (notice(); as n) { <p class="mb-3 font-medium">{{ n }}</p> }
     <form class="a-row66" (ngSubmit)="save()">
       @for (g of groups(); track g.title) {
         <section class="a-card">
