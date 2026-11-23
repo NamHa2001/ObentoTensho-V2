@@ -14,7 +14,7 @@ import { Sakura } from './sakura';
     @if (accent()) { <ot-sakura class="ot-title-flower size-8 text-primary max-md:hidden" /> }
     <span class="h-px min-w-0 flex-1 bg-accent/50 max-[339px]:hidden" [class.md:hidden]="!!accent()"></span>
     @if (link(); as path) {
-      <a [routerLink]="path" [class.md:absolute]="!!accent()" [class.md:right-0]="!!accent()" class="flex min-h-11 shrink-0 items-center gap-1 text-sm font-semibold whitespace-nowrap text-primary md:text-base">
+      <a [routerLink]="path" [class.md:absolute]="!!accent()" [class.md:right-0]="!!accent()" class="flex min-h-11 shrink-0 items-center gap-1 text-sm font-medium whitespace-nowrap text-primary md:text-base">
         Xem tất cả <lucide-icon [img]="chevron" [size]="16" />
       </a>
     }

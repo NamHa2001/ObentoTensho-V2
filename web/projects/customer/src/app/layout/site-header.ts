@@ -40,11 +40,11 @@ import { HEADER_LINKS } from './nav-items';
         <a routerLink="/gio-hang" class="relative flex size-11 items-center justify-center" aria-label="Giỏ hàng">
           <lucide-icon [img]="cart" [size]="18" />
           @if (cartState.count() > 0) {
-            <span class="absolute top-0.5 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] leading-none font-semibold text-on-primary">{{ cartState.count() }}</span>
+            <span class="absolute top-0.5 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs leading-none font-medium text-on-primary">{{ cartState.count() }}</span>
           }
         </a>
         @if (auth.profile(); as me) {
-          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-semibold" [title]="me.fullName"><lucide-icon class="shrink-0 text-muted" [img]="user" [size]="18" /><span class="max-w-[160px] truncate xl:max-w-[200px]">Xin chào, {{ givenName(me.fullName) }}</span></a>
+          <a routerLink="/tai-khoan" class="flex h-11 items-center gap-2 font-medium" [title]="me.fullName"><lucide-icon class="shrink-0 text-muted" [img]="user" [size]="18" /><span class="max-w-[160px] truncate xl:max-w-[200px]">Xin chào, {{ givenName(me.fullName) }}</span></a>
         } @else {
           <a routerLink="/dang-nhap" class="ot-btn ot-btn-primary whitespace-nowrap" [class.invisible]="!auth.ready()"><lucide-icon class="lg:max-xl:hidden" [img]="user" [size]="18" /> Đăng nhập</a>
         }

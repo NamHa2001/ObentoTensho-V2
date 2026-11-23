@@ -24,7 +24,7 @@ import { Submit } from '../shared/form';
         <p class="ot-footer-muted mt-3">Cơm hộp Nhật, nấu mới mỗi ngày</p>
         <div class="mt-4 grid gap-1">
           @if (settings()['restaurant.address']; as address) { <p class="ot-footer-muted flex items-start gap-2 py-1"><lucide-icon class="mt-0.5 shrink-0" [img]="icons.pin" [size]="18" /><span>{{ address }}</span></p> }
-          @if (settings()['restaurant.phone']; as phone) { <a class="flex min-h-11 items-center gap-2 font-semibold md:min-h-9" [href]="'tel:' + phone"><lucide-icon class="shrink-0" [img]="icons.phone" [size]="18" />{{ phone }}</a> }
+          @if (settings()['restaurant.phone']; as phone) { <a class="flex min-h-11 items-center gap-2 font-medium md:min-h-9" [href]="'tel:' + phone"><lucide-icon class="shrink-0" [img]="icons.phone" [size]="18" />{{ phone }}</a> }
         </div>
         @if (socials().length > 0) {
           <div class="mt-3 flex flex-wrap gap-2">
