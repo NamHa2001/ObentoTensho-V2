@@ -184,7 +184,7 @@ h1, h2, h3, b, strong { font-weight: 600; }
 .a-auth-field { position: relative; display: block; margin-top: 4px; }
 .a-auth-field .ot-input { margin-top: 0; padding-left: 44px; }
 .a-auth-field:has(.a-auth-eye) .ot-input { padding-right: 48px; }
-.a-auth-icon { position: absolute; top: 14px; left: 16px; display: flex; color: var(--ot-text-muted); pointer-events: none; }
+.a-auth-icon { position: absolute; top: 15px; left: 16px; display: flex; color: var(--ot-text-muted); pointer-events: none; }
 .a-auth-eye { position: absolute; top: 2px; right: 2px; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--ot-text-muted); }
 .a-auth-key { padding: 12px 16px; border: 1px dashed var(--ot-accent); border-radius: var(--ot-radius-md); background: var(--ot-primary-soft); font-family: ui-monospace, Consolas, monospace; font-weight: 600; word-break: break-all; }
 .a-auth-codes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; font-family: ui-monospace, Consolas, monospace; }
@@ -202,7 +202,7 @@ h1, h2, h3, b, strong { font-weight: 600; }
   .a-auth-tag { position: relative; display: block; color: rgb(255 255 255 / 85%); font-size: 17px; }
   .a-auth-points { position: relative; display: grid; gap: 12px; margin-top: 12px; color: rgb(255 255 255 / 90%); }
   .a-auth-points li { display: flex; align-items: center; gap: 12px; }
-  .a-auth-points lucide-icon { flex: 0 0 auto; color: var(--ot-sakura); }
+  .a-auth-points lucide-icon { flex: 0 0 auto; }
   .a-auth .ot-form h1 { font-size: 34px; }
 }
 

@@ -4,7 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { Check, Eye, EyeOff, KeyRound, Lock, LucideAngularModule, Mail, ShieldCheck } from 'lucide-angular';
+import { Check, ChevronLeft, Eye, EyeOff, KeyRound, Lock, LucideAngularModule, Mail, ShieldCheck } from 'lucide-angular';
 import { catchError, map, Observable, of, switchMap, throwError } from 'rxjs';
 
 import { Api } from '../core/api';
@@ -179,12 +179,13 @@ function takeToken(doc: Document): string {
           @if (form.error(); as e) { <p class="ot-error">{{ e }}</p> }
           <button class="ot-btn ot-btn-primary" [disabled]="form.busy()">Gửi liên kết</button>
         }
-        <a class="a-auth-link" routerLink="/login">‹ Quay lại đăng nhập</a>
+        <a class="a-auth-link inline-flex items-center gap-1" routerLink="/login"><lucide-icon [img]="icons.back" [size]="16" />Quay lại đăng nhập</a>
       </form>
     </ot-admin-auth>
   `,
 })
 export class Forgot {
+  protected readonly icons = { back: ChevronLeft };
   private readonly api = inject(Api);
   protected readonly mail = Mail;
   protected readonly form = new Submit();

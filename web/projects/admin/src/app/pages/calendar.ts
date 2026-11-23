@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
+import { ChevronLeft, ChevronRight, LucideAngularModule } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { reloadOnLive } from '../core/live';
@@ -30,14 +31,14 @@ export function shiftMonth(month: string, delta: number): string {
 
 @Component({
   selector: 'ot-calendar',
-  imports: [RouterLink, VnDatePipe],
+  imports: [RouterLink, VnDatePipe, LucideAngularModule],
   template: `
     <div class="a-head">
       <h1>Lịch đặt bàn</h1>
       <div class="a-btns items-center">
-        <button type="button" class="ot-chip" aria-label="Tháng trước" (click)="go(-1)">‹</button>
+        <button type="button" class="ot-chip" aria-label="Tháng trước" (click)="go(-1)"><lucide-icon [img]="icons.prev" [size]="18" /></button>
         <b class="w-24 text-center">{{ title() }}</b>
-        <button type="button" class="ot-chip" aria-label="Tháng sau" (click)="go(1)">›</button>
+        <button type="button" class="ot-chip" aria-label="Tháng sau" (click)="go(1)"><lucide-icon [img]="icons.next" [size]="18" /></button>
         <button type="button" class="ot-chip" (click)="thisMonth()">Hôm nay</button>
       </div>
     </div>
@@ -71,6 +72,7 @@ export function shiftMonth(month: string, delta: number): string {
   `,
 })
 export class Calendar {
+  protected readonly icons = { prev: ChevronLeft, next: ChevronRight };
   private readonly api = inject(Api);
   protected readonly week = WEEK;
   protected readonly labels = RESERVATION_STATUS;

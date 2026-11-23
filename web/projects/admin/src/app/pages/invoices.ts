@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
 import { RouterLink } from '@angular/router';
+import { ChevronLeft, ChevronRight, LucideAngularModule } from 'lucide-angular';
 
 import { Api, saveBlob } from '../core/api';
 import { Latest, Submit, VnDatePipe, VndPipe } from '../shared/ui';
@@ -16,7 +17,7 @@ type InvoiceContact = Schemas['InvoiceContactDto'];
 
 @Component({
   selector: 'ot-invoices',
-  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, LucideAngularModule],
   template: `
     <div class="a-head">
       <h1>Yêu cầu xuất hóa đơn</h1>
@@ -59,14 +60,15 @@ type InvoiceContact = Schemas['InvoiceContactDto'];
     </table></div>
     @if (total() > pageSize) {
       <div class="mt-3 flex items-center justify-end gap-2">
-        <button type="button" class="ot-chip" [disabled]="page() === 1" (click)="go(page() - 1)">‹ Trước</button>
+        <button type="button" class="ot-chip gap-1" [disabled]="page() === 1" (click)="go(page() - 1)"><lucide-icon [img]="icons.prev" [size]="18" />Trước</button>
         <span>Trang {{ page() }}</span>
-        <button type="button" class="ot-chip" [disabled]="page() * pageSize >= total()" (click)="go(page() + 1)">Sau ›</button>
+        <button type="button" class="ot-chip gap-1" [disabled]="page() * pageSize >= total()" (click)="go(page() + 1)">Sau<lucide-icon [img]="icons.next" [size]="18" /></button>
       </div>
     }
   `,
 })
 export class Invoices {
+  protected readonly icons = { prev: ChevronLeft, next: ChevronRight };
   private readonly api = inject(Api);
   protected readonly statuses = Object.entries(STATUS);
   protected readonly rows = signal<InvoiceRequest[]>([]);

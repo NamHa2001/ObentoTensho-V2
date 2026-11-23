@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, map, of } from 'rxjs';
+import { ChevronLeft, LucideAngularModule, Minus, Plus } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
@@ -54,12 +55,12 @@ function clock(utc: string): string {
 // Sơ đồ gọi món: bàn theo tầng/khu vực; bàn có phiếu thì vào phiếu, bàn trống thì mở bàn
 @Component({
   selector: 'ot-dine-in',
-  imports: [FormsModule, RouterLink, VndPipe],
+  imports: [FormsModule, RouterLink, VndPipe, LucideAngularModule],
   template: `
     <div class="a-head">
       <h1>Gọi món tại bàn</h1>
       <div class="a-btns">
-        <button type="button" class="ot-btn ot-btn-primary" (click)="startCounter()">+ Đơn mang về tại quầy</button>
+        <button type="button" class="ot-btn ot-btn-primary" (click)="startCounter()"><lucide-icon [img]="icons.plus" [size]="18" />Đơn mang về tại quầy</button>
         <button type="button" class="ot-chip" (click)="load()">Tải lại</button>
       </div>
     </div>
@@ -138,6 +139,7 @@ function clock(utc: string): string {
   `,
 })
 export class DineIn {
+  protected readonly icons = { plus: Plus };
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   protected readonly tables = signal<TableCard[]>([]);
@@ -241,11 +243,11 @@ interface DraftLine {
 // chuyển/gộp bàn, in tạm tính, thanh toán (mọi nhân viên phục vụ bàn)
 @Component({
   selector: 'ot-dine-in-bill',
-  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm],
+  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule],
   template: `
     <div class="a-head">
       <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
-      <div class="a-btns a-desk-only"><a class="ot-btn ot-btn-outline" routerLink="/dine-in">‹ Sơ đồ bàn</a></div>
+      <div class="a-btns a-desk-only"><a class="ot-btn ot-btn-outline" routerLink="/dine-in"><lucide-icon [img]="icons.back" [size]="18" />Sơ đồ bàn</a></div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3" role="alert">{{ e }}</p> }
 
@@ -307,9 +309,9 @@ interface DraftLine {
                   <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
                     <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
                     <div class="flex items-center gap-1">
-                      <button type="button" class="ot-chip" aria-label="Bớt" (click)="bump(d, -1)">−</button>
+                      <button type="button" class="ot-chip" aria-label="Bớt" (click)="bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
                       <span class="w-6 text-center">{{ d.quantity }}</span>
-                      <button type="button" class="ot-chip" aria-label="Thêm" (click)="bump(d, 1)">+</button>
+                      <button type="button" class="ot-chip" aria-label="Thêm" (click)="bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
                     </div>
                     <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
                     <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [(ngModel)]="d.note" />
@@ -479,6 +481,7 @@ interface DraftLine {
   `,
 })
 export class DineInBill {
+  protected readonly icons = { back: ChevronLeft, minus: Minus, plus: Plus };
   private readonly api = inject(Api);
   private readonly injector = inject(Injector);
   private readonly auth = inject(Auth);

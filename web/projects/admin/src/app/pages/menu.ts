@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
+import { ChevronLeft, LucideAngularModule } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { altOf, Submit } from '../shared/ui';
@@ -106,9 +107,9 @@ export class OptionGroups {
 
 @Component({
   selector: 'ot-item-images',
-  imports: [RouterLink],
+  imports: [RouterLink, LucideAngularModule],
   template: `
-    <a class="a-desk-only text-muted" routerLink="/r/items">‹ Món ăn</a>
+    <a class="a-desk-only inline-flex items-center gap-1 text-muted" routerLink="/r/items"><lucide-icon [img]="icons.back" [size]="16" />Món ăn</a>
     <h1>Ảnh món</h1>
     @if (form.error(); as e) { <p class="ot-error mt-2">{{ e }}</p> }
     <div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -123,6 +124,7 @@ export class OptionGroups {
   `,
 })
 export class ItemImages {
+  protected readonly icons = { back: ChevronLeft };
   private readonly api = inject(Api);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly form = new Submit();

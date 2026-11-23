@@ -27,10 +27,10 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
         <nav class="py-3">
           @for (group of groups(); track group.title) {
             @if (group.items.length === 1) {
-              <a class="a-nav-link" [routerLink]="group.items[0].path" routerLinkActive="a-nav-on" (click)="drawer.set(false)"><lucide-icon [img]="group.items[0].icon" [size]="19" /><span>{{ group.items[0].label }}</span></a>
+              <a class="a-nav-link" [routerLink]="group.items[0].path" routerLinkActive="a-nav-on" (click)="drawer.set(false)"><lucide-icon [img]="group.items[0].icon" [size]="18" /><span>{{ group.items[0].label }}</span></a>
             } @else {
               <button type="button" class="a-nav-link a-nav-group" [class.a-nav-current]="contains(group)" [attr.aria-expanded]="open() === group.title" (click)="toggle(group.title)">
-                <lucide-icon [img]="group.icon" [size]="19" /><span class="flex-1 text-left">{{ group.title }}</span>
+                <lucide-icon [img]="group.icon" [size]="18" /><span class="flex-1 text-left">{{ group.title }}</span>
                 <lucide-icon class="a-nav-arrow" [class.a-nav-arrow-on]="open() === group.title" [img]="icons.down" [size]="16" />
               </button>
               @if (open() === group.title) {
@@ -47,12 +47,12 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
 
       <div class="a-body">
         <header class="a-top" style="padding-top: var(--ot-safe-top)">
-          <button type="button" class="a-icon-btn a-menu-btn" aria-label="Mở menu" (click)="drawer.set(!drawer())"><lucide-icon [img]="icons.menu" [size]="22" /></button>
-          @if (back.target()) { <button type="button" class="a-icon-btn a-back-btn" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="icons.back" [size]="24" /> <span>Quay lại</span></button> }
+          <button type="button" class="a-icon-btn a-menu-btn" aria-label="Mở menu" (click)="drawer.set(!drawer())"><lucide-icon [img]="icons.menu" [size]="18" /></button>
+          @if (back.target()) { <button type="button" class="a-icon-btn a-back-btn" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="icons.back" [size]="18" /> <span>Quay lại</span></button> }
           <div class="flex-1"></div>
           <div class="relative">
             <button type="button" class="a-icon-btn" [attr.aria-label]="'Thông báo, ' + live.unread() + ' chưa đọc'" (click)="toggleBell()">
-              <lucide-icon [img]="icons.bell" [size]="21" />
+              <lucide-icon [img]="icons.bell" [size]="18" />
               @if (live.unread() > 0) { <span class="a-count">{{ live.unread() }}</span> }
             </button>
             @if (bellOpen()) {
@@ -69,8 +69,8 @@ const ROLES: Record<string, string> = { super_admin: 'SuperAdmin', manager: 'Qu�
             @if (userOpen()) {
               <div class="a-drop">
                 <p class="px-3 py-2 text-sm text-muted">{{ auth.me()?.email }}</p>
-                <a class="a-drop-item" routerLink="/account" (click)="userOpen.set(false)"><lucide-icon [img]="icons.user" [size]="17" /> Tài khoản của tôi</a>
-                <button type="button" class="a-drop-item text-danger" (click)="logout()"><lucide-icon [img]="icons.logout" [size]="17" /> Đăng xuất</button>
+                <a class="a-drop-item" routerLink="/account" (click)="userOpen.set(false)"><lucide-icon [img]="icons.user" [size]="18" /> Tài khoản của tôi</a>
+                <button type="button" class="a-drop-item text-danger" (click)="logout()"><lucide-icon [img]="icons.logout" [size]="18" /> Đăng xuất</button>
               </div>
             }
           </div>
