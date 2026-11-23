@@ -17,7 +17,7 @@
       @if (bannerCount() > 1) {
         <div class="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1">
           @for (x of banners(); track x.id; let i = $index) {
-            <button type="button" class="flex size-6 items-center justify-center" [attr.aria-label]="'Banner ' + (i + 1)" (click)="active.set(i)"><span class="size-2.5 rounded-full shadow-sm" [class.bg-primary]="i === active()" [class.bg-surface]="i !== active()"></span></button>
+            <button type="button" class="flex size-6 items-center justify-center" [attr.aria-label]="'Banner ' + (i + 1)" (click)="active.set(i)"><span class="size-2 rounded-full shadow-sm" [class.bg-primary]="i === active()" [class.bg-surface]="i !== active()"></span></button>
           }
         </div>
       }
