@@ -26,23 +26,23 @@ const ADDED_MS = 1800;
             </div>
           }
           @if (item().status === 'sold_out') {
-            <span class="absolute top-2 left-2 rounded-sm bg-surface px-2 py-1 text-xs font-semibold">Hết món</span>
+            <span class="absolute top-2 left-2 rounded-sm bg-surface px-2 py-1 text-xs font-medium">Hết món</span>
           } @else if (item().labels.isBestseller) {
-            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-semibold text-on-primary">Bán chạy</span>
+            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-on-primary">Bán chạy</span>
           } @else if (item().labels.isNew) {
-            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-semibold text-on-primary">Món mới</span>
+            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-on-primary">Món mới</span>
           }
           <!-- Nhãn Cay/Chay nằm trên ảnh để phần chữ của mọi thẻ cao bằng nhau, không hở trên hàng giá -->
           @if (tags().length > 0) {
             <span class="absolute top-2 right-2 flex gap-1">
-              @for (t of tags(); track t) { <span class="rounded-sm bg-surface/90 px-2 py-0.5 text-xs font-semibold text-ink shadow-sm">{{ t }}</span> }
+              @for (t of tags(); track t) { <span class="rounded-sm bg-surface/90 px-2 py-0.5 text-xs font-medium text-ink shadow-sm">{{ t }}</span> }
             </span>
           }
         </div>
         <div class="flex flex-1 flex-col px-1 pt-3">
-          <h3 class="line-clamp-2 text-[15px] leading-snug font-semibold transition-colors md:text-base">{{ item().name }}</h3>
+          <h3 class="line-clamp-2 text-base leading-snug font-medium transition-colors">{{ item().name }}</h3>
           <!-- Luôn chừa đủ 2 dòng mô tả: thẻ mô tả ngắn vẫn đặt giá cùng độ cao với thẻ bên cạnh -->
-          <p class="mt-1 line-clamp-2 min-h-[2.75em] text-[13px] leading-[1.375] text-muted md:text-sm">{{ item().shortDesc }}</p>
+          <p class="mt-1 line-clamp-2 min-h-[2.75em] text-sm leading-[1.375] text-muted">{{ item().shortDesc }}</p>
         </div>
       </a>
       <div class="flex items-end justify-between gap-2 px-1 pt-3 pb-0.5">
@@ -52,10 +52,10 @@ const ADDED_MS = 1800;
               {{ original | vnd }}
             }
           </p>
-          <p class="font-semibold text-primary tabular-nums">{{ item().price | vnd }}</p>
+          <p class="font-medium text-primary tabular-nums">{{ item().price | vnd }}</p>
         </div>
         @if (unavailable(); as reason) {
-          <span class="pb-1 text-xs font-semibold text-muted">{{ reason }}</span>
+          <span class="pb-1 text-xs font-medium text-muted">{{ reason }}</span>
         } @else {
           <button type="button" class="ot-add-btn" [class.is-added]="added()" [attr.aria-label]="'Thêm ' + item().name + ' vào giỏ'" (click)="open.set(true)">
             <lucide-icon [img]="added() ? icons.check : icons.plus" [size]="18" />

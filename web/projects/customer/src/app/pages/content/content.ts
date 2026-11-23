@@ -69,7 +69,7 @@ export class StaticPage {
           <h2>Thông tin quán</h2>
           <div class="mt-3 grid gap-3">
             @if (settings()['restaurant.address']; as address) { <p><span class="block text-sm text-muted">Địa chỉ</span>{{ address }}</p> }
-            @if (settings()['restaurant.phone']; as phone) { <p><span class="block text-sm text-muted">Điện thoại</span><a class="font-semibold text-primary" [href]="'tel:' + phone">{{ phone }}</a></p> }
+            @if (settings()['restaurant.phone']; as phone) { <p><span class="block text-sm text-muted">Điện thoại</span><a class="font-medium text-primary" [href]="'tel:' + phone">{{ phone }}</a></p> }
             @if (settings()['restaurant.email']; as mail) { <p><span class="block text-sm text-muted">Email</span><a class="text-primary" [href]="'mailto:' + mail">{{ mail }}</a></p> }
             @if (!settings()['restaurant.address'] && !settings()['restaurant.phone']) { <p class="text-muted">Thông tin quán đang được cập nhật.</p> }
           </div>
@@ -123,7 +123,7 @@ const GALLERY = [
           <button type="button" class="ot-chip" [class.ot-chip-active]="category() === c.value" (click)="select(c.value)">{{ c.label }}</button>
         }
       </div>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Chưa có hình ảnh</p><p class="mt-1 text-sm text-muted">Quán sẽ cập nhật hình ảnh không gian sớm.</p></div> }
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có hình ảnh</p><p class="mt-1 text-sm text-muted">Quán sẽ cập nhật hình ảnh không gian sớm.</p></div> }
       <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         @for (item of items(); track item.id) {
           @if (item.mediaType === 'video' && item.embedUrl) {
@@ -191,7 +191,7 @@ export class Gallery {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Khuyến mãi</h1>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (p of items(); track p.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/khuyen-mai', p.slug]">
@@ -269,7 +269,7 @@ export class Promotion {
           <a class="ot-chip" routerLink="/tin-tuc" [queryParams]="{ danhMuc: c.slug }" [class.ot-chip-active]="category() === c.slug">{{ c.name }}</a>
         }
       </div>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-semibold">Chưa có bài viết</p><p class="mt-1 text-sm text-muted">Quán sẽ đăng tin tức và sự kiện sớm.</p></div> }
+      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có bài viết</p><p class="mt-1 text-sm text-muted">Quán sẽ đăng tin tức và sự kiện sớm.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (n of items(); track n.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/tin-tuc', n.slug]">

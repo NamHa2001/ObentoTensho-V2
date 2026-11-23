@@ -45,19 +45,19 @@ export function linesOf(cart: CartStore) {
                     }
                   </a>
                   <div class="min-w-0 flex-1">
-                    <p class="font-semibold">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
+                    <p class="font-medium">{{ line?.name ?? 'Món không còn phục vụ' }}</p>
                     @for (o of line?.options ?? []; track $index) { <p class="text-sm text-muted">{{ o.groupName }}: {{ o.optionName }}</p> }
                     @let note = cart.lines()[row.index]?.note;
                     @if (editing() === row.index) {
                       <form class="mt-2 flex flex-wrap items-center gap-2" (ngSubmit)="saveNote(row.index)">
                         <input class="ot-input min-w-0 flex-1" name="note" [maxlength]="noteMax" placeholder="Ví dụ: ít cay, không hành" aria-label="Ghi chú cho món" [(ngModel)]="draft" />
                         <button class="ot-btn ot-btn-primary min-h-11 px-4">Lưu</button>
-                        <button type="button" class="px-2 font-semibold text-muted" (click)="editing.set(null)">Hủy</button>
+                        <button type="button" class="px-2 font-medium text-muted" (click)="editing.set(null)">Hủy</button>
                       </form>
                     } @else if (note) {
-                      <p class="mt-1 text-sm"><span class="text-muted">Ghi chú:</span> {{ note }} <button type="button" class="ml-1 font-semibold text-primary" (click)="editNote(row.index)">Sửa</button></p>
+                      <p class="mt-1 text-sm"><span class="text-muted">Ghi chú:</span> {{ note }} <button type="button" class="ml-1 font-medium text-primary" (click)="editNote(row.index)">Sửa</button></p>
                     } @else {
-                      <button type="button" class="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-primary" (click)="editNote(row.index)"><lucide-icon [img]="icons.plus" [size]="16" />Thêm ghi chú</button>
+                      <button type="button" class="mt-1 inline-flex items-center gap-1 text-sm font-medium text-primary" (click)="editNote(row.index)"><lucide-icon [img]="icons.plus" [size]="16" />Thêm ghi chú</button>
                     }
                     @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
                     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">

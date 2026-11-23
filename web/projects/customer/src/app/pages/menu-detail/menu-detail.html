@@ -16,13 +16,13 @@
     }
     @case ('missing') {
       <div class="ot-card mt-2 p-8 text-center">
-        <p class="font-semibold">Món này không còn trên thực đơn</p>
+        <p class="font-medium">Món này không còn trên thực đơn</p>
         <a routerLink="/menu" class="ot-btn ot-btn-primary mt-4">Xem thực đơn</a>
       </div>
     }
     @case ('failed') {
       <div class="ot-card mt-2 p-8 text-center">
-        <p class="font-semibold">Chưa tải được món này</p>
+        <p class="font-medium">Chưa tải được món này</p>
         <p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi tải lại trang.</p>
       </div>
     }
@@ -50,7 +50,7 @@
 
           <div>
             @if (d.item.labels.isBestseller || d.item.labels.isNew || d.item.labels.isVegetarian || d.item.labels.isSpicy) {
-              <div class="mb-2 flex flex-wrap gap-2 text-xs font-semibold">
+              <div class="mb-2 flex flex-wrap gap-2 text-xs font-medium">
                 @if (d.item.labels.isBestseller) { <span class="rounded-sm bg-primary px-2 py-1 text-on-primary">Bán chạy</span> }
                 @if (d.item.labels.isNew) { <span class="rounded-sm bg-primary-soft px-2 py-1 text-primary">Món mới</span> }
                 @if (d.item.labels.isVegetarian) { <span class="rounded-sm bg-surface-2 px-2 py-1">Món chay</span> }
@@ -59,7 +59,7 @@
             }
             <h1 class="text-[28px] leading-tight md:text-[36px]">{{ d.item.name }}</h1>
             <div class="mt-2 flex items-baseline gap-3">
-              <span class="text-2xl font-semibold text-primary">{{ d.item.price | vnd }}</span>
+              <span class="text-2xl font-medium text-primary">{{ d.item.price | vnd }}</span>
               @if (d.item.originalPrice; as original) {
                 <span class="text-muted line-through">{{ original | vnd }}</span>
               }
@@ -68,7 +68,7 @@
               <p class="mt-3 text-muted">{{ d.item.shortDesc }}</p>
             }
             @if (d.item.allergens.length > 0) {
-              <p class="mt-3 text-sm"><span class="font-semibold">Dị ứng:</span><span class="ml-1 text-muted">@for (a of d.item.allergens; track a; let last = $last) {{{ allergen(a) }}@if (!last) {, }}</span></p>
+              <p class="mt-3 text-sm"><span class="font-medium">Dị ứng:</span><span class="ml-1 text-muted">@for (a of d.item.allergens; track a; let last = $last) {{{ allergen(a) }}@if (!last) {, }}</span></p>
             }
 
             @if (d.optionGroups.length > 0) {
@@ -107,7 +107,7 @@
               @for (review of reviews(); track review.id) {
                 <article class="ot-card p-4">
                   <div class="flex items-center justify-between gap-3">
-                    <span class="truncate font-semibold">{{ review.authorName }}</span>
+                    <span class="truncate font-medium">{{ review.authorName }}</span>
                     <span class="flex shrink-0 text-accent" [attr.aria-label]="review.rating + ' trên 5 sao'">
                       @for (s of stars; track s) {
                         <lucide-icon [img]="icons.star" [size]="16" [attr.fill]="s <= review.rating ? 'currentColor' : 'none'" />
@@ -116,7 +116,7 @@
                   </div>
                   @if (review.comment) { <p class="mt-2 text-muted">{{ review.comment }}</p> }
                   @if (review.replyContent) {
-                    <p class="mt-3 rounded-md bg-surface-2 p-3 text-sm"><span class="font-semibold">Quán trả lời:</span> {{ review.replyContent }}</p>
+                    <p class="mt-3 rounded-md bg-surface-2 p-3 text-sm"><span class="font-medium">Quán trả lời:</span> {{ review.replyContent }}</p>
                   }
                 </article>
               }

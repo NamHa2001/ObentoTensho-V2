@@ -28,7 +28,7 @@ type Order = Schemas['PublicOrderDto'];
         <ot-order-view [order]="o" class="mt-4 block" />
         @if (o.paymentMethod === 'bank_transfer' && o.paymentStatus === 'unpaid' && bank().accountNumber) {
           <div class="ot-card mt-3 p-4">
-            <p class="font-semibold">Thông tin chuyển khoản</p>
+            <p class="font-medium">Thông tin chuyển khoản</p>
             <p>{{ bank().bankName }} · {{ bank().accountNumber }}</p>
             <p>{{ bank().holder }}</p>
             <p>Nội dung: <b>{{ o.code }}</b></p>

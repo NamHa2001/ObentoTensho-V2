@@ -1,6 +1,6 @@
 <div class="ot-menu ot-container pt-4 pb-8 md:pt-6 md:pb-14">
   <div class="flex items-baseline justify-between gap-4">
-    <h1 class="text-[22px] leading-tight md:text-[26px]">Thực đơn</h1>
+    <h1 class="text-2xl leading-tight md:text-[28px]">Thực đơn</h1>
     @if (!loading() && !failed()) {
       <p class="text-sm whitespace-nowrap text-muted">{{ total() }} món</p>
     }
@@ -80,13 +80,13 @@
         </div>
       } @else if (failed()) {
         <div class="ot-card p-8 text-center">
-          <p class="font-semibold">Chưa tải được thực đơn</p>
+          <p class="font-medium">Chưa tải được thực đơn</p>
           <p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi thử lại.</p>
           <button type="button" class="ot-btn ot-btn-primary mt-4" (click)="reload()">Thử lại</button>
         </div>
       } @else if (items().length === 0) {
         <div class="ot-card p-8 text-center">
-          <p class="font-semibold">Không tìm thấy món phù hợp</p>
+          <p class="font-medium">Không tìm thấy món phù hợp</p>
           <p class="mt-1 text-sm text-muted">Hãy thử từ khóa khác hoặc xem tất cả món.</p>
           <a routerLink="/menu" class="ot-btn ot-btn-outline mt-4">Xem tất cả</a>
         </div>

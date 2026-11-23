@@ -86,7 +86,7 @@
               @if (imageUrl(p.bannerImage); as url) { <img [src]="url" [alt]="p.title" loading="lazy" class="absolute inset-0 size-full object-cover" /> }
             </span>
             <span class="flex flex-1 flex-col gap-1 p-3 md:p-4">
-              <span class="font-heading ot-title-2 font-semibold text-heading">{{ p.title }}</span>
+              <span class="font-heading ot-title-2 font-medium text-heading">{{ p.title }}</span>
               <span class="mt-auto text-sm text-muted">Đến {{ p.endDate | vnDate }}</span>
             </span>
           </a>
@@ -112,7 +112,7 @@
             }
           </span>
           <span class="min-w-0 flex-1">
-            <span class="font-heading block truncate text-xl font-semibold text-heading">{{ category.name }}</span>
+            <span class="font-heading block truncate text-xl font-medium text-heading">{{ category.name }}</span>
             <span class="mt-1 block text-sm text-muted">{{ category.itemCount }} món</span>
           </span>
         </a>
@@ -175,7 +175,7 @@
             }
           </span>
           <blockquote class="ot-title-3">{{ r.comment }}</blockquote>
-          <figcaption class="mt-auto font-semibold">{{ r.authorName }}</figcaption>
+          <figcaption class="mt-auto font-medium">{{ r.authorName }}</figcaption>
         </figure>
       }
     </div>
@@ -211,7 +211,7 @@
             </span>
             <span class="flex flex-1 flex-col gap-1 p-3 md:p-4">
               <span class="text-sm text-muted">{{ n.publishedAtUtc | vnDate }}</span>
-              <span class="font-heading ot-title-2 font-semibold text-heading">{{ n.title }}</span>
+              <span class="font-heading ot-title-2 font-medium text-heading">{{ n.title }}</span>
             </span>
           </a>
         } @else {
@@ -230,7 +230,7 @@
         <p class="flex items-start gap-3"><lucide-icon class="mt-0.5 shrink-0 text-muted" [img]="icons.pin" [size]="18" /><span>{{ address }}</span></p>
       }
       @if (settings()['restaurant.phone']; as phone) {
-        <p class="flex items-center gap-3"><lucide-icon class="shrink-0 text-muted" [img]="icons.phone" [size]="18" /><span class="font-semibold">{{ phone }}</span></p>
+        <p class="flex items-center gap-3"><lucide-icon class="shrink-0 text-muted" [img]="icons.phone" [size]="18" /><span class="font-medium">{{ phone }}</span></p>
       }
       <div class="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
         @if (mapUrl(); as map) { <a class="ot-btn ot-btn-primary" [href]="map" target="_blank" rel="noopener"><lucide-icon [img]="icons.map" [size]="18" /> Chỉ đường</a> }
@@ -244,7 +244,7 @@
     </div>
     @if (week().length > 0) {
       <div class="ot-card flex flex-col gap-4 p-4 md:p-6">
-        <p class="flex items-center gap-3 font-semibold"><lucide-icon class="shrink-0 text-muted" [img]="icons.clock" [size]="18" />Giờ mở cửa</p>
+        <p class="flex items-center gap-3 font-medium"><lucide-icon class="shrink-0 text-muted" [img]="icons.clock" [size]="18" />Giờ mở cửa</p>
         @if (week().length === 1) {
           <dl class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-center">
             <dt class="text-muted">{{ week()[0].day }}</dt>
@@ -255,13 +255,13 @@
             @for (row of week(); track row.day) {
               <div class="flex items-center justify-between gap-4 border-t border-line py-2 first:border-t-0">
                 <dt class="text-muted">{{ row.day }}</dt>
-                <dd class="text-right font-semibold tabular-nums">{{ row.time }}</dd>
+                <dd class="text-right font-medium tabular-nums">{{ row.time }}</dd>
               </div>
             }
           </dl>
         }
         @if (status(); as st) {
-          <p class="mt-auto flex items-center gap-2 border-t border-line pt-4 text-sm font-semibold"><span class="size-2 shrink-0 rounded-full" [class]="st.open ? 'ot-dot-open' : 'ot-dot-closed'"></span>{{ st.text }}</p>
+          <p class="mt-auto flex items-center gap-2 border-t border-line pt-4 text-sm font-medium"><span class="size-2 shrink-0 rounded-full" [class]="st.open ? 'ot-dot-open' : 'ot-dot-closed'"></span>{{ st.text }}</p>
         }
       </div>
     }

@@ -10,7 +10,7 @@ import { VndPipe } from './vnd.pipe';
   template: `
     <div class="ot-card p-4">
       <p class="text-sm text-muted">Mã đơn</p>
-      <p class="text-xl font-semibold">{{ order().code }}</p>
+      <p class="text-xl font-medium">{{ order().code }}</p>
       <p class="mt-2"><b>{{ statuses[order().status] }}</b> · {{ order().paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ order().paymentStatus === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}</p>
       <p class="mt-1">Lấy lúc {{ order().pickupTime.slice(0, 5) }}, {{ order().pickupDate | vnDate }}</p>
       <ul class="mt-3 border-t border-line">
@@ -42,7 +42,7 @@ export class OrderView {
   template: `
     <div class="ot-card p-4">
       <p class="text-sm text-muted">Mã đặt bàn</p>
-      <p class="text-xl font-semibold">{{ reservation().code }}</p>
+      <p class="text-xl font-medium">{{ reservation().code }}</p>
       <p class="mt-2"><b>{{ statuses[reservation().status] }}</b></p>
       <p class="mt-1">{{ reservation().time.slice(0, 5) }}, {{ reservation().date | vnDate }} · {{ reservation().adultCount }} người lớn, {{ reservation().childCount }} trẻ em</p>
       <p class="mt-1">{{ reservation().guestName }} · {{ reservation().maskedPhone }}</p>

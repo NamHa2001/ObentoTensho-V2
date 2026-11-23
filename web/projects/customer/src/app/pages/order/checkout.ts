@@ -106,14 +106,14 @@ const MAX_AUTO_DAYS = 14;
                   <div class="ot-ticket-stub"><lucide-icon [img]="icons.ticket" [size]="18" /><small class="mt-1">-{{ v.voucherDiscount + v.shippingDiscount | vnd }}</small></div>
                   <div class="flex min-w-0 flex-1 items-center justify-between gap-2 p-3">
                     <span class="min-w-0"><b class="block truncate">{{ appliedCode() }}</b><small class="text-muted">Đã áp dụng</small></span>
-                    <span class="flex shrink-0 gap-3 text-sm font-semibold"><button type="button" class="text-primary" (click)="openPicker()">Đổi</button><button type="button" class="text-muted" (click)="removeVoucher()">Bỏ</button></span>
+                    <span class="flex shrink-0 gap-3 text-sm font-medium"><button type="button" class="text-primary" (click)="openPicker()">Đổi</button><button type="button" class="text-muted" (click)="removeVoucher()">Bỏ</button></span>
                   </div>
                 </div>
                 @if (v.memberIsBetter) { <p class="mt-2 text-sm text-muted">Lưu ý: giảm theo hạng thành viên có lợi hơn ({{ v.totalWithMemberDiscount | vnd }}); mỗi đơn chỉ dùng một loại.</p> }
               } @else {
                 <button type="button" class="flex min-h-12 w-full items-center gap-3 rounded-md border border-dashed border-primary px-4 text-left" (click)="openPicker()">
                   <lucide-icon class="shrink-0 text-muted" [img]="icons.ticket" [size]="18" />
-                  <span class="min-w-0 flex-1"><span class="block font-semibold whitespace-nowrap">Chọn mã giảm giá</span>@if (usableCount() > 0) { <small class="block font-semibold text-success">{{ usableCount() }} mã dùng được cho đơn này</small> }</span>
+                  <span class="min-w-0 flex-1"><span class="block font-medium whitespace-nowrap">Chọn mã giảm giá</span>@if (usableCount() > 0) { <small class="block font-medium text-success">{{ usableCount() }} mã dùng được cho đơn này</small> }</span>
                   <lucide-icon class="shrink-0 text-muted" [img]="icons.next" [size]="18" />
                 </button>
               }
@@ -129,7 +129,7 @@ const MAX_AUTO_DAYS = 14;
       <div class="ot-sheet-back" role="dialog" aria-modal="true" aria-label="Chọn mã giảm giá" otModal (dismiss)="picker.set(false)">
         <div class="ot-sheet">
           <div class="ot-sheet-head">
-            <p class="font-heading text-lg font-semibold">Chọn mã giảm giá</p>
+            <p class="font-heading text-lg font-medium">Chọn mã giảm giá</p>
             <button type="button" class="flex size-11 items-center justify-center" aria-label="Đóng" (click)="picker.set(false)"><lucide-icon [img]="icons.close" [size]="18" /></button>
           </div>
           <div class="ot-sheet-body">
@@ -145,18 +145,18 @@ const MAX_AUTO_DAYS = 14;
                 <button type="button" class="ot-ticket w-full text-left" [class.is-off]="!o.usable" [class.is-picked]="o.code === appliedCode() && applied()" [disabled]="!o.usable || checker.busy()" (click)="check(o.code)">
                   <span class="ot-ticket-stub"><span class="ot-ticket-amount">{{ short(o) }}</span><small>giảm</small></span>
                   <span class="flex min-w-0 flex-1 flex-col gap-0.5 p-3">
-                    <span class="text-xs font-semibold text-muted">{{ o.title || sources[o.source] || 'Voucher' }}</span>
+                    <span class="text-xs font-medium text-muted">{{ o.title || sources[o.source] || 'Voucher' }}</span>
                     <b>{{ o.code }}</b>
                     <span class="text-sm text-muted">{{ terms(o) }}@if (o.endDate) { · HSD {{ o.endDate | vnDate }} }</span>
                     @if (o.usable) {
-                      <span class="text-sm font-semibold text-success">Giảm {{ o.discount | vnd }} cho đơn này</span>
+                      <span class="text-sm font-medium text-success">Giảm {{ o.discount | vnd }} cho đơn này</span>
                     } @else {
                       <span class="text-sm text-danger">{{ reasons[o.errorCode ?? ''] || 'Chưa dùng được cho đơn này' }}</span>
                     }
                   </span>
                 </button>
               } @empty {
-                <p class="text-muted">Bạn chưa có mã nào dùng được. Đổi điểm thưởng lấy voucher trong mục <a class="font-semibold text-primary underline" routerLink="/tai-khoan/diem-thuong" (click)="picker.set(false)">Điểm thưởng</a>.</p>
+                <p class="text-muted">Bạn chưa có mã nào dùng được. Đổi điểm thưởng lấy voucher trong mục <a class="font-medium text-primary underline" routerLink="/tai-khoan/diem-thuong" (click)="picker.set(false)">Điểm thưởng</a>.</p>
               }
             }
           </div>
