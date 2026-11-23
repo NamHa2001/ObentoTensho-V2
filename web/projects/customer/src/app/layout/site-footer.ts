@@ -21,7 +21,7 @@ import { Submit } from '../shared/form';
           @if (settings()['restaurant.logoUrl']; as url) { <img class="size-12 rounded-full object-cover" [src]="url" alt="" /> } @else { <span class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none text-on-primary">天</span> }
           <span class="font-heading text-[22px] font-semibold">{{ name() }}</span>
         </a>
-        <p class="ot-footer-muted mt-3">Cơm hộp Nhật, nấu mới mỗi ngày</p>
+        <p class="ot-footer-muted mt-3">Cơm hộp Nhật</p>
         <div class="mt-4 grid gap-1">
           @if (settings()['restaurant.address']; as address) { <p class="ot-footer-muted flex items-start gap-2 py-1"><lucide-icon class="mt-0.5 shrink-0" [img]="icons.pin" [size]="18" /><span>{{ address }}</span></p> }
           @if (settings()['restaurant.phone']; as phone) { <a class="flex min-h-11 items-center gap-2 font-medium md:min-h-9" [href]="'tel:' + phone"><lucide-icon class="shrink-0" [img]="icons.phone" [size]="18" />{{ phone }}</a> }
@@ -61,7 +61,6 @@ import { Submit } from '../shared/form';
     <div class="border-t border-white/15">
       <div class="ot-container ot-footer-muted flex flex-wrap items-center justify-between gap-x-6 gap-y-1 py-4 text-sm">
         <p>© {{ year }} {{ name() }}</p>
-        <p>Nấu mới mỗi ngày tại quán</p>
       </div>
     </div>
   `,

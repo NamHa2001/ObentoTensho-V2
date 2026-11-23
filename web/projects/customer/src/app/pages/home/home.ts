@@ -71,7 +71,7 @@ export class Home {
   protected readonly newsSlots = computed(() => slots(this.news(), 3));
   protected readonly story = computed(() => {
     const text = (this.about()?.contentHtml ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
-    return (text.length > STORY_CHARS ? `${text.slice(0, STORY_CHARS).trimEnd()}…` : text) || 'Cơm hộp Nhật nấu mới mỗi ngày, mang về hoặc thưởng thức ngay tại quán.';
+    return (text.length > STORY_CHARS ? `${text.slice(0, STORY_CHARS).trimEnd()}…` : text) || 'Cơm hộp Nhật mang về hoặc thưởng thức ngay tại quán.';
   });
   protected readonly mapUrl = computed(() => {
     const address = this.settings()['restaurant.address'];
