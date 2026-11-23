@@ -1,6 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
 import { Schemas } from '@ot/api';
-import { CalendarCheck, CalendarRange, Inbox, ShoppingBag, Ticket, TrendingUp, Users, Wallet } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { reloadOnLive } from '../core/live';
@@ -19,18 +18,18 @@ type DashboardData = Schemas['ManagerDashboardDto'] | Schemas['ReceptionDashboar
       @let m = manager(v);
       @if (m) {
         <div class="a-row4">
-          <ot-stat label="Doanh thu hôm nay" [value]="vnd(m.revenueToday.current)" [note]="delta(m.revenueToday)" [icon]="icons.money" [tone]="1" />
-          <ot-stat label="Tuần này" [value]="vnd(m.revenueWeek.current)" [note]="delta(m.revenueWeek)" [icon]="icons.range" [tone]="2" />
-          <ot-stat label="Tháng này" [value]="vnd(m.revenueMonth.current)" [note]="delta(m.revenueMonth)" [icon]="icons.trend" [tone]="4" />
-          <ot-stat label="Khách mới tháng này" [value]="m.newCustomersThisMonth" [icon]="icons.users" [tone]="3" />
+          <ot-stat label="Doanh thu hôm nay" [value]="vnd(m.revenueToday.current)" [note]="delta(m.revenueToday)" [tone]="1" />
+          <ot-stat label="Tuần này" [value]="vnd(m.revenueWeek.current)" [note]="delta(m.revenueWeek)" [tone]="2" />
+          <ot-stat label="Tháng này" [value]="vnd(m.revenueMonth.current)" [note]="delta(m.revenueMonth)" [tone]="4" />
+          <ot-stat label="Khách mới tháng này" [value]="m.newCustomersThisMonth" [tone]="3" />
         </div>
       }
       <div class="a-row4">
-        @if (m) { <ot-stat label="Đơn hôm nay" [value]="sum(m.ordersToday)" [icon]="icons.order" [tone]="1" /> }
-        <ot-stat label="Đặt bàn hôm nay" [value]="sum(v.reservationsToday)" [icon]="icons.booking" [tone]="2" />
+        @if (m) { <ot-stat label="Đơn hôm nay" [value]="sum(m.ordersToday)" [tone]="1" /> }
+        <ot-stat label="Đặt bàn hôm nay" [value]="sum(v.reservationsToday)" [tone]="2" />
         @if (m) {
-          <ot-stat label="Tin liên hệ chưa đọc" [value]="m.unreadContacts" [icon]="icons.inbox" [tone]="3" />
-          <ot-stat label="Voucher sắp hết hạn" [value]="m.expiringVouchers.length" [icon]="icons.ticket" [tone]="5" />
+          <ot-stat label="Tin liên hệ chưa đọc" [value]="m.unreadContacts" [tone]="3" />
+          <ot-stat label="Voucher sắp hết hạn" [value]="m.expiringVouchers.length" [tone]="5" />
         }
       </div>
       @if (m) {
@@ -59,7 +58,6 @@ export class Dashboard {
   protected readonly error = signal<string | null>(null);
   protected readonly days = dayPoints;
   protected readonly named = namedPoints;
-  protected readonly icons = { money: Wallet, range: CalendarRange, trend: TrendingUp, users: Users, order: ShoppingBag, booking: CalendarCheck, inbox: Inbox, ticket: Ticket };
   private readonly api = inject(Api);
 
   protected vnd(value: number): string {

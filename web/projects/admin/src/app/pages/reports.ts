@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
-import { BadgeDollarSign, ClipboardList, TrendingUp, Wallet } from 'lucide-angular';
 
 import { Api, saveBlob } from '../core/api';
 import { ChartCard, ChartPoint, dayPoints, namedPoints, StatCard } from '../shared/chart';
@@ -38,10 +37,10 @@ const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 
         @case ('revenue') {
           @let v = r.data;
           <div class="a-row4">
-            <ot-stat label="Doanh thu" [value]="vnd(v.net)" [icon]="icons.wallet" [tone]="1" />
-            <ot-stat label="Tiền thu" [value]="vnd(v.paid)" [icon]="icons.trend" [tone]="4" />
-            <ot-stat label="Hoàn tiền" [value]="vnd(v.refunds)" [icon]="icons.order" [tone]="3" />
-            <ot-stat label="Kỳ trước" [value]="vnd(v.previousNet)" [icon]="icons.dollar" [tone]="2" />
+            <ot-stat label="Doanh thu" [value]="vnd(v.net)" [tone]="1" />
+            <ot-stat label="Tiền thu" [value]="vnd(v.paid)" [tone]="4" />
+            <ot-stat label="Hoàn tiền" [value]="vnd(v.refunds)" [tone]="3" />
+            <ot-stat label="Kỳ trước" [value]="vnd(v.previousNet)" [tone]="2" />
           </div>
           <div class="a-row84">
             <ot-chart title="Doanh thu theo kỳ" kind="line" [points]="series(v.series)" [money]="true" />
@@ -65,10 +64,10 @@ const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 
         @case ('reservations') {
           @let v = r.data;
           <div class="a-row4">
-            <ot-stat label="Tổng lượt đặt" [value]="v.total" [icon]="icons.order" [tone]="2" />
-            <ot-stat label="Đã đến" [value]="v.arrived" [note]="v.arrivedPercent + '%'" [icon]="icons.trend" [tone]="4" />
-            <ot-stat label="Đã hủy" [value]="v.cancelled" [note]="v.cancelledPercent + '%'" [icon]="icons.dollar" [tone]="3" />
-            <ot-stat label="Không đến" [value]="v.noShow" [note]="v.noShowPercent + '%'" [icon]="icons.wallet" [tone]="1" />
+            <ot-stat label="Tổng lượt đặt" [value]="v.total" [tone]="2" />
+            <ot-stat label="Đã đến" [value]="v.arrived" [note]="v.arrivedPercent + '%'" [tone]="4" />
+            <ot-stat label="Đã hủy" [value]="v.cancelled" [note]="v.cancelledPercent + '%'" [tone]="3" />
+            <ot-stat label="Không đến" [value]="v.noShow" [note]="v.noShowPercent + '%'" [tone]="1" />
           </div>
           <div class="a-row66">
             <ot-chart title="Lượt đặt theo giờ" kind="bar" [points]="named(v.byHour)" />
@@ -78,10 +77,10 @@ const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 
         @case ('orders') {
           @let v = r.data;
           <div class="a-row4">
-            <ot-stat label="Đơn đã tạo" [value]="v.created" [icon]="icons.order" [tone]="2" />
-            <ot-stat label="Hoàn thành" [value]="v.completed" [icon]="icons.trend" [tone]="4" />
-            <ot-stat label="Đã hủy" [value]="v.cancelled" [icon]="icons.dollar" [tone]="3" />
-            <ot-stat label="Giá trị trung bình" [value]="vnd(v.averageValue)" [icon]="icons.wallet" [tone]="1" />
+            <ot-stat label="Đơn đã tạo" [value]="v.created" [tone]="2" />
+            <ot-stat label="Hoàn thành" [value]="v.completed" [tone]="4" />
+            <ot-stat label="Đã hủy" [value]="v.cancelled" [tone]="3" />
+            <ot-stat label="Giá trị trung bình" [value]="vnd(v.averageValue)" [tone]="1" />
           </div>
           <div class="a-row66">
             <ot-chart title="Đơn theo giờ" kind="bar" [points]="named(v.byHour)" />
@@ -91,8 +90,8 @@ const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 
         @case ('customers') {
           @let v = r.data;
           <div class="a-row4">
-            <ot-stat label="Khách mới" [value]="v.newTotal" [icon]="icons.order" [tone]="2" />
-            <ot-stat label="Tỷ lệ quay lại" [value]="v.retentionPercent + '%'" [icon]="icons.trend" [tone]="4" />
+            <ot-stat label="Khách mới" [value]="v.newTotal" [tone]="2" />
+            <ot-stat label="Tỷ lệ quay lại" [value]="v.retentionPercent + '%'" [tone]="4" />
           </div>
           <div class="a-row84">
             <ot-chart title="Khách mới theo ngày" kind="line" [points]="days(v.newByDay)" />
@@ -130,7 +129,6 @@ export class Reports {
     this.load();
   }
 
-  protected readonly icons = { wallet: Wallet, trend: TrendingUp, order: ClipboardList, dollar: BadgeDollarSign };
 
   // Kênh mới server thêm sau mà giao diện chưa có nhãn thì hiện mã kênh
   protected channelLabel(channel: string): string {

@@ -102,7 +102,6 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-stat-label { color: var(--ot-text-muted); font-size: 14px; font-weight: 500; }
 .a-stat-value { margin-top: 2px; font-size: 28px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .a-stat-note { color: var(--ot-text-muted); font-size: 14px; }
-.a-stat-icon { flex-shrink: 0; color: var(--ot-surface-2); }
 .a-chart { position: relative; height: 288px; }
 .a-chart-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--ot-text-muted); }
 .a-link { color: var(--ot-primary); font-size: 14px; font-weight: 500; }
@@ -178,8 +177,8 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-auth .ot-form { display: grid; gap: 16px; max-width: none; margin: 0; padding: 0; }
 .a-auth .ot-form h1 { color: var(--ot-heading); font-size: 28px; line-height: 1.2; }
 .a-auth-sub { margin-top: -8px; color: var(--ot-text-muted); }
-.a-auth .ot-btn { min-height: 48px; border-radius: var(--ot-radius-md); box-shadow: none; font-weight: 500; }
-.a-auth .ot-input { border-radius: var(--ot-radius-md); }
+.a-auth .ot-btn { min-height: 48px; border-radius: var(--ot-radius-sm); box-shadow: none; font-weight: 500; }
+.a-auth .ot-input { border-radius: var(--ot-radius-sm); }
 .a-auth .ot-input:focus { border-color: var(--ot-primary); outline: 3px solid rgb(168 28 31 / 15%); outline-offset: 0; }
 .a-auth-field { position: relative; display: block; margin-top: 4px; }
 .a-auth-field .ot-input { margin-top: 0; padding-left: 44px; }

@@ -1,6 +1,5 @@
 import { Component, DestroyRef, effect, ElementRef, input, signal, viewChild, inject, untracked } from '@angular/core';
 import type { ChartConfiguration, TooltipItem } from 'chart.js';
-import { LucideAngularModule, LucideIconData } from 'lucide-angular';
 
 export interface ChartPoint {
   label: string;
@@ -133,7 +132,6 @@ export class ChartCard {
 
 @Component({
   selector: 'ot-stat',
-  imports: [LucideAngularModule],
   host: { class: 'block' },
   template: `
     <div class="a-card a-stat" [style.--a-tone]="'var(--ot-chart-' + tone() + ')'">
@@ -142,7 +140,6 @@ export class ChartCard {
         <p class="a-stat-value">{{ value() }}</p>
         @if (note()) { <p class="a-stat-note">{{ note() }}</p> }
       </div>
-      <lucide-icon class="a-stat-icon" [img]="icon()" [size]="38" />
     </div>
   `,
 })
@@ -150,7 +147,6 @@ export class StatCard {
   readonly label = input.required<string>();
   readonly value = input.required<string | number>();
   readonly note = input<string | null>(null);
-  readonly icon = input.required<LucideIconData>();
   readonly tone = input(1);
 }
 

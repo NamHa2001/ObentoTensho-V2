@@ -2,7 +2,6 @@ import { DOCUMENT } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
-import { BadgeDollarSign, ClipboardList, TrendingUp, Wallet } from 'lucide-angular';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { Subscription } from 'rxjs';
@@ -85,10 +84,10 @@ export class Customers {
     @if (d(); as c) {
       <div class="a-head"><h1>{{ c.fullName }}</h1><span class="a-badge" [class.a-badge-good]="c.isActive" [class.a-badge-bad]="!c.isActive">{{ c.isActive ? 'Hoạt động' : 'Đã khóa' }}</span></div>
       <div class="a-row4">
-        <ot-stat label="Hạng" [value]="tiers[c.memberTier]" [icon]="icons.trend" [tone]="3" />
-        <ot-stat label="Điểm hiện có" [value]="c.currentPoints" [icon]="icons.wallet" [tone]="1" />
-        <ot-stat label="Tích lũy" [value]="c.accumulatedPoints" [icon]="icons.dollar" [tone]="2" />
-        <ot-stat label="Nợ điểm" [value]="c.pointsDebt" [icon]="icons.order" [tone]="5" />
+        <ot-stat label="Hạng" [value]="tiers[c.memberTier]" [tone]="3" />
+        <ot-stat label="Điểm hiện có" [value]="c.currentPoints" [tone]="1" />
+        <ot-stat label="Tích lũy" [value]="c.accumulatedPoints" [tone]="2" />
+        <ot-stat label="Nợ điểm" [value]="c.pointsDebt" [tone]="5" />
       </div>
       <div class="a-row66">
         <section class="a-card">
@@ -121,7 +120,6 @@ export class Customers {
 })
 export class Customer {
   private readonly api = inject(Api);
-  protected readonly icons = { trend: TrendingUp, wallet: Wallet, dollar: BadgeDollarSign, order: ClipboardList };
   protected readonly tiers = TIERS;
   protected readonly orderLabels = ORDER_STATUS;
   protected readonly reservationLabels = RESERVATION_STATUS;
