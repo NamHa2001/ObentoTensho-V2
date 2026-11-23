@@ -17,7 +17,7 @@ const ADDED_MS = 1800;
   template: `
     <div class="ot-dish ot-card flex h-full flex-col overflow-hidden p-2 md:p-3">
       <a [routerLink]="['/menu', item().slug]" class="flex flex-1 flex-col">
-        <div class="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-surface-2">
+        <div class="relative aspect-[4/3] w-full overflow-hidden rounded-sm bg-surface-2 md:rounded-[4px]">
           @if (imageUrl(); as url) {
             <img [src]="url" [attr.srcset]="srcset()" sizes="(max-width: 767px) 50vw, 300px" [alt]="item().name" [attr.loading]="eager() ? 'eager' : 'lazy'" [attr.fetchpriority]="eager() ? 'high' : null" decoding="async" class="absolute inset-0 size-full object-cover" />
           } @else {
