@@ -61,6 +61,7 @@
 }
 
 body { font-size: 15px; background: var(--ot-bg); font-variant-numeric: tabular-nums; }
+small { font-size: 12px; }
 h1, h2, h3, b, strong { font-weight: 500; }
 .a-wrap { display: flex; min-height: 100dvh; }
 .a-side { position: sticky; top: 0; flex: 0 0 var(--a-side); width: var(--a-side); height: 100dvh; overflow-y: auto; background: var(--ot-surface); border-right: 1px solid var(--ot-border); }

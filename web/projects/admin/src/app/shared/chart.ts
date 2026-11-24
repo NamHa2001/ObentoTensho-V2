@@ -1,4 +1,4 @@
-import { Component, DestroyRef, effect, ElementRef, input, signal, viewChild, inject, untracked } from '@angular/core';
+import { Component, computed, DestroyRef, effect, ElementRef, inject, input, signal, untracked, viewChild } from '@angular/core';
 import type { ChartConfiguration, TooltipItem } from 'chart.js';
 
 export interface ChartPoint {
@@ -69,15 +69,15 @@ export function chartConfig(kind: ChartKind, points: ChartPoint[], format: (v: n
   host: { class: 'block h-full' },
   template: `
     <section class="a-card flex h-full flex-col">
-      <header class="a-card-h"><span>{{ title() }}</span>@if (points().length > 0) { <button type="button" class="a-link" (click)="table.set(!table())">{{ table() ? 'Xem biểu đồ' : 'Xem bảng' }}</button> }</header>
+      <header class="a-card-h"><span>{{ title() }}</span>@if (!empty()) { <button type="button" class="a-link" (click)="table.set(!table())">{{ table() ? 'Xem biểu đồ' : 'Xem bảng' }}</button> }</header>
       <div class="a-card-b flex-1">
         <div class="a-chart" [class.overflow-y-auto]="table()">
-          @if (points().length === 0) {
+          @if (empty()) {
             <div class="a-chart-empty">Chưa có dữ liệu.</div>
           } @else if (table()) {
             <table><tbody>@for (p of points(); track $index) { <tr><td>{{ p.label }}</td><td class="text-right tabular-nums">{{ show(p.value) }}</td></tr> }</tbody></table>
           }
-          <canvas #canvas [class.hidden]="table() || points().length === 0" role="img" [attr.aria-label]="title()"></canvas>
+          <canvas #canvas [class.hidden]="table() || empty()" role="img" [attr.aria-label]="title()"></canvas>
         </div>
       </div>
     </section>
@@ -88,6 +88,8 @@ export class ChartCard {
   readonly kind = input<ChartKind>('line');
   readonly points = input.required<ChartPoint[]>();
   readonly money = input(false);
+  // Biểu đồ tròn toàn số 0 không vẽ được gì, coi như chưa có dữ liệu
+  protected readonly empty = computed(() => this.points().length === 0 || (this.kind() === 'doughnut' && this.points().every((p) => p.value === 0)));
   protected readonly table = signal(false);
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private chart: { destroy(): void } | null = null;

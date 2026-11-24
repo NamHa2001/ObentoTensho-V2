@@ -80,7 +80,7 @@ function clock(utc: string): string {
         </div>
       </section>
     }
-    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "+ Đơn mang về tại quầy".</p>
+    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "Đơn mang về tại quầy".</p>
     @for (g of groups(); track g.name) {
       <section class="a-card mb-6">
         <header class="a-card-h"><span>{{ g.name }} <small class="ml-1 font-normal text-muted">{{ g.tables.length }} bàn</small></span></header>
