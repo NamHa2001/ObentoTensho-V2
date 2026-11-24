@@ -58,7 +58,7 @@ import { Submit } from '../shared/form';
       </form>
     </div>
 
-    <div class="border-t border-white/15">
+    <div class="border-t border-white/10">
       <div class="ot-container ot-footer-muted flex flex-wrap items-center justify-between gap-x-6 gap-y-1 py-4 text-sm">
         <p>© {{ year }} {{ name() }}</p>
       </div>

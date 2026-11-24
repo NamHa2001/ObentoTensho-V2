@@ -32,7 +32,7 @@ export function askText(message: string): Promise<string | null> {
     @if (ask(); as a) {
       <div class="ot-dialog-back" role="dialog" aria-modal="true" [attr.aria-label]="a.message" otModal [closeOnBackdrop]="false" (dismiss)="close(null)">
         <form class="ot-dialog" (ngSubmit)="ok(a)">
-          <p class="font-semibold">{{ a.message }}</p>
+          <p class="font-medium">{{ a.message }}</p>
           @if (a.input) { <textarea class="ot-input" name="v" rows="3" maxlength="500" required [(ngModel)]="text"></textarea> }
           <div class="mt-4 flex justify-end gap-2">
             <button type="button" class="ot-btn ot-btn-outline" (click)="close(null)">Hủy</button>

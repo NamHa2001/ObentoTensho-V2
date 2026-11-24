@@ -22,7 +22,7 @@ import { HEADER_LINKS } from './nav-items';
       <!-- Trang con trên điện thoại: nút quay lại đứng trước logo, dính theo thanh tiêu đề khi kéo xuống -->
       <div class="flex min-w-0 items-center gap-1 justify-self-start">
         @if (back.target()) {
-          <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-full text-primary active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="18" /></button>
+          <button type="button" class="-ml-2 flex size-11 shrink-0 items-center justify-center rounded-sm active:bg-surface-2 lg:hidden" aria-label="Quay lại" (click)="back.go()"><lucide-icon [img]="chevron" [size]="18" /></button>
         }
         <a routerLink="/" class="flex min-w-0 items-center gap-2 md:gap-3">
           @if (logo(); as url) { <img class="size-10 rounded-full object-cover md:size-14 lg:size-10 xl:size-14" [src]="url" alt="" /> } @else { <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-2xl leading-none font-semibold text-on-primary md:size-14 md:text-[34px]" aria-hidden="true">天</span> }
