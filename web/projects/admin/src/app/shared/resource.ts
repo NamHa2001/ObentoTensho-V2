@@ -468,8 +468,17 @@ export class ResourcePage {
     const c = this.config() as Resource;
     const m = this.editing() as Row;
     const tool = m['__toolRef'] as Tool | undefined;
+    const fields = tool?.fields ?? c.fields ?? [];
+    // Ô bắt buộc còn trống thì báo ngay theo nhãn của ô, không gửi để server trả lỗi kỹ thuật
+    const missing = fields.filter((f) => f.required && !(f.createOnly && m['__id'] !== undefined) && (m[f.key] === undefined || m[f.key] === null || String(m[f.key]).trim() === ''));
+    if (missing.length > 0) {
+      this.form.error.set(missing.map((f) => `${f.label}: chưa nhập`).join('. '));
+      return;
+    }
+
+    this.form.labels = Object.fromEntries(fields.map((f) => [f.key.toLowerCase(), f.label]));
     const body: Row = {};
-    for (const f of tool?.fields ?? c.fields ?? []) {
+    for (const f of fields) {
       let v = m[f.key];
       if (v === '' && NULLABLE.has(f.type ?? 'text')) v = null;
       if (f.type === 'number' && v !== null) v = Number(v);
