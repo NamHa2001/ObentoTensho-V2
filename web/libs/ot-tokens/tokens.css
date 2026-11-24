@@ -6,7 +6,7 @@
   --ot-surface-2: #f8e8d6;
   --ot-text: #3a2115;
   --ot-text-muted: #6d5546;
-  --ot-heading: #35190e;
+  --ot-heading: var(--ot-text);
   --ot-primary: #a81c1f;
   --ot-primary-hover: #8d1518;
   --ot-primary-contrast: #ffffff;
