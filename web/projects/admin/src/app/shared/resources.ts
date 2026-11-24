@@ -11,6 +11,30 @@ const GALLERY: Option[] = [{ value: 'interior', label: 'Trong quán' }, { value:
 const ROLES: Option[] = [{ value: 'super_admin', label: 'SuperAdmin' }, { value: 'manager', label: 'Quản lý' }, { value: 'reception', label: 'Lễ tân' }, { value: 'kitchen', label: 'Bếp' }, { value: 'cashier', label: 'Thu ngân' }, { value: 'content_editor', label: 'Biên tập' }];
 const TIERS: Option[] = [{ value: 'bronze', label: 'Đồng' }, { value: 'silver', label: 'Bạc' }, { value: 'gold', label: 'Vàng' }, { value: 'diamond', label: 'Kim cương' }];
 const DAYS: Option[] = [{ value: 1, label: 'Thứ hai' }, { value: 2, label: 'Thứ ba' }, { value: 3, label: 'Thứ tư' }, { value: 4, label: 'Thứ năm' }, { value: 5, label: 'Thứ sáu' }, { value: 6, label: 'Thứ bảy' }, { value: 0, label: 'Chủ nhật' }];
+// Mã hành động trong nhật ký (AuditActions ở backend) đổi sang chữ nhân viên đọc được; mã lạ giữ nguyên
+const AUDIT_ACTIONS: Record<string, string> = {
+  'auth.staff.login_succeeded': 'Đăng nhập', 'auth.staff.login_failed': 'Đăng nhập sai', 'auth.staff.two_factor_enabled': 'Bật xác thực hai bước',
+  'auth.staff.two_factor_disabled': 'Tắt xác thực hai bước', 'auth.staff.recovery_codes_regenerated': 'Tạo lại mã khôi phục', 'auth.staff.recovery_code_used': 'Dùng mã khôi phục',
+  'auth.staff.password_changed': 'Đổi mật khẩu', 'auth.staff.invite_accepted': 'Nhận lời mời', 'auth.staff.step_up': 'Xác thực lại',
+  'auth.refresh_token.reuse_detected': 'Phiên bị hủy do dùng lại mã đăng nhập', 'auth.staff.not_me_reported': 'Báo không phải tôi',
+};
+// Mã dạng "phân hệ.đối tượng.việc": ghép tên phân hệ và việc, mã chưa biết giữ nguyên
+const AUDIT_MODULES: Record<string, string> = {
+  customers: 'Khách hàng', invoices: 'Hóa đơn', loyalty: 'Điểm thưởng', media: 'Ảnh', tables: 'Dữ liệu', orders: 'Đơn hàng', reservations: 'Đặt bàn',
+  dine_in: 'Gọi món tại bàn', menu: 'Thực đơn', content: 'Nội dung', vouchers: 'Voucher', promotions: 'Khuyến mãi',
+};
+const AUDIT_VERBS: Record<string, string> = {
+  created: 'tạo', updated: 'cập nhật', deleted: 'xóa', status_changed: 'đổi trạng thái', exported: 'xuất', contact_revealed: 'xem liên hệ', viewed: 'xem',
+  requested: 'đề nghị', applied: 'áp dụng', rejected: 'từ chối', uploaded: 'tải lên', removed: 'gỡ', changed: 'đổi', issued: 'xuất hóa đơn', cancelled: 'hủy',
+  paid: 'thanh toán', refunded: 'hoàn tiền', item_voided: 'hủy món', table_assigned: 'gán bàn', contact_confirmed: 'xác nhận liên hệ', capacity_overridden: 'vượt sức chứa',
+};
+const AUDIT_ENTITIES: Record<string, string> = { Staff: 'Nhân viên', User: 'Khách', Order: 'Đơn hàng', Reservation: 'Đặt bàn', MenuItem: 'Món', Voucher: 'Voucher', Promotion: 'Khuyến mãi' };
+function auditLabel(action: string): string {
+  const parts = action.split('.');
+  const module = AUDIT_MODULES[parts[0]];
+  const verb = AUDIT_VERBS[parts.at(-1) ?? ''];
+  return AUDIT_ACTIONS[action] ?? (module && verb ? `${module}: ${verb}` : action);
+}
 const MEDIA_TYPES: Option[] = [{ value: 'image', label: 'Ảnh' }, { value: 'video', label: 'Video' }];
 const LANGUAGES: Option[] = [{ value: 'vi', label: 'Tiếng Việt' }, { value: 'en', label: 'Tiếng Anh' }, { value: 'ja', label: 'Tiếng Nhật' }];
 const label = (options: Option[], value: unknown) => options.find((o) => o.value === value)?.label ?? value;
@@ -94,7 +118,7 @@ export const RESOURCES: Record<string, Resource> = {
   pages: resource<Schemas['StaticPageSummaryDto'] & Partial<Schemas['StaticPageDto']>>({
     title: 'Trang tĩnh', path: 'pages', id: 'slug', canEdit: true, detail: true,
     seedRows: [{ slug: 'about', title: 'Giới thiệu' }, { slug: 'contact', title: 'Liên hệ' }, { slug: 'privacy', title: 'Chính sách bảo mật' }, { slug: 'terms', title: 'Điều khoản' }, { slug: 'policy', title: 'Chính sách hủy và hoàn tiền' }],
-    columns: [{ key: 'slug', label: 'Mã' }, { key: 'title', label: 'Tiêu đề' }, { key: 'updatedAtUtc', label: 'Cập nhật' }],
+    columns: [{ key: 'title', label: 'Tiêu đề' }, { key: 'slug', label: 'Đường dẫn' }, { key: 'updatedAtUtc', label: 'Cập nhật' }],
     fields: [{ key: 'title', label: 'Tiêu đề', required: true }, { key: 'contentHtml', label: 'Nội dung', type: 'rich', required: true }],
   }),
   promotions: resource<Schemas['AdminPromotionDto']>({
@@ -223,7 +247,7 @@ export const RESOURCES: Record<string, Resource> = {
   audit: resource<Schemas['AuditLogDto']>({
     title: 'Nhật ký thao tác', path: 'audit-logs', paged: true,
     filters: [{ key: 'action', label: 'Hành động' }, { key: 'entityType', label: 'Đối tượng' }],
-    columns: [{ key: 'createdAtUtc', label: 'Lúc' }, { key: 'actorName', label: 'Người làm' }, { key: 'action', label: 'Hành động' }, { key: 'entityType', label: 'Đối tượng' }, { key: 'entityId', label: 'Mã' }, { key: 'ipAddress', label: 'IP' }],
+    columns: [{ key: 'createdAtUtc', label: 'Lúc' }, { key: 'actorName', label: 'Người làm' }, { key: 'action', label: 'Hành động', map: (r) => auditLabel(r.action) }, { key: 'entityType', label: 'Đối tượng', map: (r) => (r.entityType ? (AUDIT_ENTITIES[r.entityType] ?? r.entityType) : '') }, { key: 'entityId', label: 'Mã' }, { key: 'ipAddress', label: 'IP' }],
   }),
   exports: resource<Schemas['DataExportDto']>({ title: 'Tệp xuất', path: 'exports', columns: [{ key: 'kind', label: 'Loại', map: (r) => EXPORT_KIND[r.kind] ?? r.kind }, { key: 'status', label: 'Trạng thái' }, { key: 'rowCount', label: 'Số dòng' }, { key: 'createdAtUtc', label: 'Lúc' }, { key: 'expiresAtUtc', label: 'Hết hạn' }] }),
 };
