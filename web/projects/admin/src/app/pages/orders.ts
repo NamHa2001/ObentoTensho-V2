@@ -6,12 +6,13 @@ import { Schemas } from '@ot/api';
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
 import { reloadOnLive } from '../core/live';
+import { appLabel } from '../shared/platform';
 import { Latest, ORDER_STATUS, Submit, VnDatePipe, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
 
 const ORDER_NEXT: Record<string, string[]> = { pending: ['preparing', 'cancelled'], preparing: ['ready', 'cancelled'], ready: ['completed', 'cancelled'], delivering: ['completed', 'cancelled'] };
-const CHANNEL: Record<string, string> = { pickup: 'Đặt online', delivery: 'Giao hàng', dine_in: 'Tại bàn', counter: 'Mua tại quầy' };
+const CHANNEL: Record<string, string> = { pickup: 'Đặt online', delivery: 'Giao hàng', dine_in: 'Tại bàn', counter: 'Mua tại quầy', platform: 'Đơn app' };
 
 type OrderRow = Schemas['AdminOrderDto'];
 type OrderDetail = Schemas['AdminOrderDetailDto'];
@@ -118,7 +119,11 @@ export class Orders {
               @if (v.deliveryAddress) {
                 <dt>Giao tới</dt><dd>{{ v.deliveryAddress }} <small class="block text-muted">{{ v.deliveryDistanceKm }} km</small><a class="text-primary" target="_blank" rel="noopener" [href]="mapLink(v)">Mở Google Maps</a>@if (v.deliveryLatitude) { <small class="block text-muted">Khách đã ghim vị trí trên bản đồ</small> }</dd>
               }
-              <dt>Thanh toán</dt><dd>{{ v.order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ v.order.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</dd>
+              @if (v.order.paymentGroup !== 'in_store') {
+                <dt>Thanh toán</dt><dd>Qua app {{ appName(v.order) }} · mã đơn app {{ v.order.externalOrderCode }}</dd>
+              } @else {
+                <dt>Thanh toán</dt><dd>{{ v.order.paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản' }} · {{ v.order.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</dd>
+              }
             </dl></div>
           </section>
           <section class="a-card">
@@ -165,6 +170,10 @@ export class Order {
   protected readonly labels = ORDER_STATUS;
   protected readonly channel = CHANNEL;
   protected readonly d = signal<OrderDetail | null>(null);
+
+  protected appName(o: Schemas['AdminOrderDto']): string {
+    return appLabel(o.paymentGroup ?? 'in_store', o.platform);
+  }
   protected readonly contact = signal<Schemas['OrderContactDto'] | null>(null);
   protected readonly form = new Submit();
   protected readonly invoiceForm = new Submit();

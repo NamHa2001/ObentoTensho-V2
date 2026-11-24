@@ -1,12 +1,19 @@
-import { Component, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { ChevronDown, ChevronUp, LucideAngularModule } from 'lucide-angular';
 import { Schemas } from '@ot/api';
 
 import { Api, saveBlob } from '../core/api';
+import { Auth } from '../core/auth';
+import { appLabel, GROUP_LABEL, PaymentGroup, PLATFORM_LABEL, PlatformEdit } from '../shared/platform';
 import { ChartCard, ChartPoint, dayPoints, namedPoints, StatCard } from '../shared/chart';
 import { Latest, Submit, VndPipe, today } from '../shared/ui';
 
-const CHANNELS: Partial<Record<string, string>> = { pickup: 'Đặt online đến lấy', dine_in: 'Tại bàn', delivery: 'Giao hàng', counter: 'Mua tại quầy' };
+const CHANNELS: Partial<Record<string, string>> = { pickup: 'Đặt online đến lấy', dine_in: 'Tại bàn', delivery: 'Giao hàng', counter: 'Mua tại quầy', platform: 'Đơn từ app' };
+
+type GroupOrder = Schemas['PaymentGroupOrderDto'];
 
 // Mỗi loại báo cáo trả dữ liệu khác nhau; giữ kèm loại để mẫu biết chắc đang hiển thị kiểu nào
 type ReportData =
@@ -14,10 +21,11 @@ type ReportData =
   | { kind: 'reservations'; data: Schemas['ReservationReportDto'] }
   | { kind: 'orders'; data: Schemas['OrderReportDto'] }
   | { kind: 'customers'; data: Schemas['CustomerReportDto'] }
-  | { kind: 'top-dishes'; data: Schemas['TopDishDto'][] };
+  | { kind: 'top-dishes'; data: Schemas['TopDishDto'][] }
+  | { kind: 'payment-groups'; data: Schemas['PaymentGroupReportDto'] };
 type ReportKind = ReportData['kind'];
 
-const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
+const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }, { key: 'payment-groups', label: 'Nhóm thanh toán' }];
 
 // Kỳ báo cáo từ API dạng yyyy-MM-dd hoặc yyyy-MM, hiện theo kiểu ngày Việt Nam như các chỗ khác
 function periodLabel(period: string): string {
@@ -27,7 +35,7 @@ function periodLabel(period: string): string {
 
 @Component({
   selector: 'ot-reports',
-  imports: [FormsModule, ChartCard, StatCard, VndPipe],
+  imports: [FormsModule, NgTemplateOutlet, RouterLink, LucideAngularModule, ChartCard, StatCard, VndPipe, PlatformEdit],
   template: `
     <h1>Báo cáo</h1>
     <div class="ot-scroll-row mb-4" style="margin-inline: 0; padding-inline: 0">@for (r of reports; track r.key) { <button type="button" class="ot-chip" [class.ot-chip-active]="report() === r.key" (click)="select(r.key)">{{ r.label }}</button> }</div>
@@ -108,6 +116,70 @@ function periodLabel(period: string): string {
             <div class="a-card-b">@for (c of v.topCustomers; track c.id) { <div class="a-line"><span>{{ c.fullName }} · {{ c.orders }} đơn</span><b class="tabular-nums">{{ c.spent | vnd }}</b></div> } @empty { <p class="text-muted">Chưa có dữ liệu.</p> }</div>
           </section>
         }
+        @case ('payment-groups') {
+          @let v = r.data;
+          <div class="a-row4">
+            <ot-stat label="Doanh thu ròng" [value]="vnd(v.total.netRevenue)" [note]="v.total.orders + ' đơn'" [tone]="2" />
+            <ot-stat label="Thực nhận" [value]="vnd(v.total.receivedAmount)" [tone]="4" />
+            <ot-stat label="Khấu trừ và thuế" [value]="vnd(v.total.deductionAmount + v.total.vatAmount + v.total.pitAmount)" [tone]="3" />
+            <ot-stat label="Giảm giá" [value]="vnd(v.total.discount)" [tone]="1" />
+          </div>
+          <section class="a-card mt-4">
+            <header class="a-card-h">Theo nhóm thanh toán</header>
+            <div class="a-table"><table class="w-full text-sm">
+              <thead><tr class="bg-surface-2 text-left"><th class="p-2">Nhóm, kênh con</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Giá gốc</th><th class="p-2 text-right">Giảm giá</th><th class="p-2 text-right">Doanh thu ròng</th><th class="p-2 text-right">Khấu trừ</th><th class="p-2 text-right">Thuế GTGT</th><th class="p-2 text-right">Thuế TNCN</th><th class="p-2 text-right">Thực nhận</th></tr></thead>
+              <tbody>
+                @for (g of v.groups; track g.group) {
+                  <tr class="border-t border-line font-medium">
+                    <td class="p-2">
+                      @if (g.group === 'xanh') { {{ groupLabel[g.group] }} }
+                      @else { <button type="button" class="a-link" [attr.aria-expanded]="open().has(g.group)" (click)="toggleGroup(g.group)">{{ groupLabel[g.group] }} <lucide-icon [img]="open().has(g.group) ? icons.up : icons.down" [size]="16" /></button> }
+                    </td>
+                    <ng-container *ngTemplateOutlet="amounts; context: { $implicit: g.amounts }" />
+                  </tr>
+                  @if (open().has(g.group)) {
+                    @for (c of g.channels; track $index) {
+                      <tr class="border-t border-line text-muted"><td class="p-2 pl-6">{{ channelName(c) }}</td><ng-container *ngTemplateOutlet="amounts; context: { $implicit: c.amounts }" /></tr>
+                    }
+                  }
+                }
+                <tr class="border-t-2 border-line font-semibold"><td class="p-2">Tổng cộng</td><ng-container *ngTemplateOutlet="amounts; context: { $implicit: v.total }" /></tr>
+              </tbody>
+            </table></div>
+            <p class="px-4 py-3 text-sm text-muted">{{ v.definition }}</p>
+          </section>
+          <ng-template #amounts let-a>
+            <td class="p-2 text-right tabular-nums">{{ a.orders }}</td><td class="p-2 text-right tabular-nums">{{ a.subTotal | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.discount | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.netRevenue | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.deductionAmount | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.vatAmount | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.pitAmount | vnd }}</td><td class="p-2 text-right tabular-nums">{{ a.receivedAmount | vnd }}</td>
+          </ng-template>
+
+          <section class="a-card mt-4">
+            <header class="a-card-h"><span>Chi tiết từng đơn <small class="ml-1 font-normal text-muted">{{ detailTotal() }} đơn</small></span></header>
+            <div class="a-table"><table class="w-full text-sm">
+              <thead><tr class="bg-surface-2 text-left"><th class="p-2">Thời gian</th><th class="p-2">Mã đơn</th><th class="p-2">Nhóm, kênh con</th><th class="p-2 text-right">Giá gốc</th><th class="p-2 text-right">Giảm giá</th><th class="p-2 text-right">Doanh thu ròng</th><th class="p-2 text-right">Khấu trừ</th><th class="p-2 text-right">Thuế GTGT</th><th class="p-2 text-right">Thuế TNCN</th><th class="p-2 text-right">Thực nhận</th>@if (canEdit()) { <th class="p-2"><span class="sr-only">Sửa</span></th> }</tr></thead>
+              <tbody>
+                @for (o of detail(); track o.id) {
+                  <tr class="border-t border-line" [class.text-muted]="o.status !== 'completed'">
+                    <td class="p-2 whitespace-nowrap">{{ when(o.atUtc) }}</td>
+                    <td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a>@if (o.externalOrderCode) { <small class="block">App: {{ o.externalOrderCode }}</small> }@if (o.status !== 'completed') { <small class="block">Đã hủy, không tính</small> }</td>
+                    <td class="p-2">{{ rowChannel(o) }}</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.subTotal | vnd }}</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.discount | vnd }}@if (o.discountPercent) { <small class="block">{{ o.discountPercent }}%</small> }</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.netRevenue | vnd }}</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.deductionAmount | vnd }}</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.vatAmount | vnd }}</td>
+                    <td class="p-2 text-right tabular-nums">{{ o.pitAmount | vnd }}</td>
+                    <td class="p-2 text-right font-medium tabular-nums">{{ o.receivedAmount | vnd }}</td>
+                    @if (canEdit()) { <td class="p-2">@if (o.group !== 'in_store' && o.status === 'completed') { <button type="button" class="a-link" (click)="editing.set(o)">Sửa</button> }</td> }
+                  </tr>
+                } @empty { <tr><td colspan="11" class="p-4 text-muted">Không có đơn trong khoảng ngày này.</td></tr> }
+              </tbody>
+            </table></div>
+          </section>
+          @if (detail().length < detailTotal()) { <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="moreDetail()">Xem thêm</button> }
+          @if (editing(); as o) {
+            <ot-platform-edit [order]="{ id: o.id, group: o.group, platform: o.platform ?? null, externalOrderCode: o.externalOrderCode ?? '', subTotal: o.subTotal, discountPercent: o.discountPercent ?? null, discount: o.discount }" (saved)="editing.set(null); load()" (closed)="editing.set(null)" />
+          }
+        }
         @case ('top-dishes') { <div class="a-row66"><ot-chart title="Số lượng bán" kind="hbar" [points]="dishes(r.data)" /><ot-chart title="Doanh thu" kind="doughnut" [points]="dishMoney(r.data)" [money]="true" /></div> }
       }
     }
@@ -115,6 +187,15 @@ function periodLabel(period: string): string {
 })
 export class Reports {
   private readonly api = inject(Api);
+  protected readonly icons = { down: ChevronDown, up: ChevronUp };
+  protected readonly groupLabel = GROUP_LABEL;
+  protected readonly open = signal(new Set<PaymentGroup>());
+  protected readonly detail = signal<GroupOrder[]>([]);
+  protected readonly detailTotal = signal(0);
+  protected readonly editing = signal<GroupOrder | null>(null);
+  protected readonly canEdit = computed(() => this.auth.has('orders_void'));
+  private readonly auth = inject(Auth);
+  private detailPage = 1;
   protected readonly reports = REPORTS;
   protected readonly days = dayPoints;
   protected readonly named = namedPoints;
@@ -161,11 +242,59 @@ export class Reports {
     return rows.map((r) => ({ label: periodLabel(r.period), value: r.net }));
   }
 
+  protected toggleGroup(group: PaymentGroup): void {
+    this.open.update((s) => {
+      const next = new Set(s);
+      if (!next.delete(group)) {
+        next.add(group);
+      }
+
+      return next;
+    });
+  }
+
+  protected channelName(c: Schemas['PaymentChannelRowDto']): string {
+    return c.platform ? PLATFORM_LABEL[c.platform] : c.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : 'Tiền mặt';
+  }
+
+  protected rowChannel(o: GroupOrder): string {
+    return o.group === 'in_store' ? `Tại quán · ${o.paymentMethod === 'bank_transfer' ? 'Chuyển khoản' : 'Tiền mặt'}` : appLabel(o.group, o.platform);
+  }
+
+  protected when(utc: string): string {
+    return new Date(utc).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  // Chi tiết từng đơn: 20 đơn một lần, bấm "Xem thêm" để tải tiếp
+  private loadDetail(reset: boolean): void {
+    if (reset) {
+      this.detailPage = 1;
+      this.detail.set([]);
+    }
+
+    this.api.raw<GroupOrder[]>('reports/payment-groups/orders', { from: this.from, to: this.to, page: this.detailPage, pageSize: 20 }).subscribe({
+      next: (r) => {
+        this.detail.update((rows) => [...rows, ...r.data]);
+        this.detailTotal.set(r.meta?.total ?? r.data.length);
+      },
+      error: () => this.form.error.set('Không tải được chi tiết từng đơn.'),
+    });
+  }
+
+  protected moreDetail(): void {
+    this.detailPage += 1;
+    this.loadDetail(false);
+  }
+
   protected load(): void {
     const kind = this.report();
     this.d.set(null);
+    if (kind === 'payment-groups') {
+      this.loadDetail(true);
+    }
+
     // Đường dẫn reports/<loại> quyết định dạng dữ liệu, nên gắn loại vào ngay lúc nhận
-    this.loader.run(this.api.get<ReportData['data']>(`reports/${kind}`, { from: this.from, to: this.to, groupBy: kind === 'revenue' ? 'day' : null, limit: kind === 'revenue' || kind === 'reservations' ? null : 20 }), (data) => this.d.set({ kind, data } as ReportData));
+    this.loader.run(this.api.get<ReportData['data']>(`reports/${kind}`, { from: this.from, to: this.to, groupBy: kind === 'revenue' || kind === 'payment-groups' ? 'day' : null, limit: kind === 'revenue' || kind === 'reservations' || kind === 'payment-groups' ? null : 20 }), (data) => this.d.set({ kind, data } as ReportData));
   }
 
   protected saveChannels(): void {
