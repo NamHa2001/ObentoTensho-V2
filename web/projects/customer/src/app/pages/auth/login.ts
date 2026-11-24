@@ -14,8 +14,8 @@ import { AuthCard } from './auth-card';
   template: `
     <ot-auth-card heading="Đăng nhập" subtitle="Đăng nhập để đặt món, giữ bàn và tích điểm dễ dàng hơn.">
       <form class="ot-auth-form" (ngSubmit)="submit()">
-        <label>Email<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.mail" [size]="18" /></span><input class="ot-input" name="email" type="email" inputmode="email" placeholder="Email của bạn" autocomplete="username" required [(ngModel)]="email" /></span></label>
-        <label>Mật khẩu<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.lock" [size]="18" /></span><input class="ot-input" name="password" [type]="show() ? 'text' : 'password'" placeholder="Nhập mật khẩu của bạn" autocomplete="current-password" required [(ngModel)]="password" /><button type="button" class="ot-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" [attr.aria-pressed]="show()" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.hide : icons.eye" [size]="18" /></button></span></label>
+        <label>Email<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.mail" [size]="18" /></span><input class="ot-input" name="email" type="email" inputmode="email" placeholder="Email của bạn" autocomplete="username" required [attr.aria-invalid]="missing().email || null" [(ngModel)]="email" /></span>@if (missing().email) { <span class="ot-error mt-1 block text-sm">Chưa nhập email</span> }</label>
+        <label>Mật khẩu<span class="ot-auth-field"><span class="ot-auth-icon"><lucide-icon [img]="icons.lock" [size]="18" /></span><input class="ot-input" name="password" [type]="show() ? 'text' : 'password'" placeholder="Nhập mật khẩu của bạn" autocomplete="current-password" required [attr.aria-invalid]="missing().password || null" [(ngModel)]="password" /><button type="button" class="ot-auth-eye" [attr.aria-label]="show() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'" [attr.aria-pressed]="show()" (click)="show.set(!show())"><lucide-icon [img]="show() ? icons.hide : icons.eye" [size]="18" /></button></span>@if (missing().password) { <span class="ot-error mt-1 block text-sm">Chưa nhập mật khẩu</span> }</label>
         <a class="ot-auth-link inline-flex min-h-11 items-center justify-self-end" routerLink="/quen-mat-khau">Quên mật khẩu?</a>
         @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
         <button class="ot-btn ot-btn-primary w-full" [disabled]="form.busy()">Đăng nhập</button>
@@ -34,7 +34,16 @@ export class Login {
   protected email = '';
   protected password = '';
 
+  // Ô trống báo ngay dưới ô đó, không gửi lên server
+  protected readonly missing = signal({ email: false, password: false });
+
   protected submit(): void {
+    const missing = { email: !this.email.trim(), password: !this.password };
+    this.missing.set(missing);
+    if (missing.email || missing.password) {
+      return;
+    }
+
     this.form.run(this.auth.login(this.email, this.password), () => void this.router.navigateByUrl(safeNext(this.next)));
   }
 }

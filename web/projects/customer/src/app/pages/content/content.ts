@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DomSanitizer, Meta, SafeResourceUrl, Title } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, combineLatest, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { ChevronLeft, LucideAngularModule } from 'lucide-angular';
 
 import { Api } from '../../core/api';
@@ -123,7 +123,7 @@ const GALLERY = [
           <button type="button" class="ot-chip" [class.ot-chip-active]="category() === c.value" (click)="select(c.value)">{{ c.label }}</button>
         }
       </div>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có hình ảnh</p><p class="mt-1 text-sm text-muted">Quán sẽ cập nhật hình ảnh không gian sớm.</p></div> }
+      @if (failed()) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa tải được hình ảnh</p><p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi thử lại.</p><button type="button" class="ot-btn ot-btn-primary mt-4" (click)="select(category())">Thử lại</button></div> } @else if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có hình ảnh</p><p class="mt-1 text-sm text-muted">Quán sẽ cập nhật hình ảnh không gian sớm.</p></div> }
       <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         @for (item of items(); track item.id) {
           @if (item.mediaType === 'video' && item.embedUrl) {
@@ -145,6 +145,8 @@ export class Gallery {
   protected readonly categories = GALLERY;
   protected readonly category = signal('');
   protected readonly items = signal<Schemas['PublicGalleryItemDto'][]>([]);
+  // Lỗi tải khác với "chưa có ảnh": không được hiện như danh sách rỗng
+  protected readonly failed = signal(false);
   protected readonly zoom = signal<string | null>(null);
   protected readonly zoomIndex = signal(0);
   protected readonly photos = computed(() => this.items().map((i) => imageUrl(i.image)).filter((u): u is string => u !== null));
@@ -161,10 +163,19 @@ export class Gallery {
   protected select(value: string): void {
     this.category.set(value);
     const run = ++this.run;
-    this.api.getOr<Schemas['PublicGalleryItemDto'][]>('gallery', [], value ? { category: value } : {}).subscribe((i) => {
-      if (run === this.run) {
-        this.items.set(i);
-      }
+    this.failed.set(false);
+    this.api.get<Schemas['PublicGalleryItemDto'][]>('gallery', value ? { category: value } : {}).subscribe({
+      next: (i) => {
+        if (run === this.run) {
+          this.items.set(i);
+        }
+      },
+      error: () => {
+        if (run === this.run) {
+          this.items.set([]);
+          this.failed.set(true);
+        }
+      },
     });
   }
 
@@ -191,7 +202,7 @@ export class Gallery {
   template: `
     <div class="ot-page ot-page-wide">
       <h1>Khuyến mãi</h1>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
+      @if (failed()) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa tải được khuyến mãi</p><p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi thử lại.</p><button type="button" class="ot-btn ot-btn-primary mt-4" (click)="load()">Thử lại</button></div> } @else if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Hiện chưa có khuyến mãi</p><p class="mt-1 text-sm text-muted">Đăng ký nhận tin ở cuối trang để biết ưu đãi mới sớm nhất.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (p of items(); track p.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/khuyen-mai', p.slug]">
@@ -204,7 +215,18 @@ export class Gallery {
   `,
 })
 export class Promotions {
-  protected readonly items = toSignal(inject(Api).getOr<Schemas['PublicPromotionDto'][]>('promotions', []), { initialValue: [] });
+  private readonly api = inject(Api);
+  protected readonly items = signal<Schemas['PublicPromotionDto'][]>([]);
+  protected readonly failed = signal(false);
+
+  constructor() {
+    this.load();
+  }
+
+  protected load(): void {
+    this.failed.set(false);
+    this.api.get<Schemas['PublicPromotionDto'][]>('promotions').subscribe({ next: (i) => this.items.set(i), error: () => this.failed.set(true) });
+  }
 
   protected url(p: Schemas['PublicPromotionDto']): string | null {
     return imageUrl(p.bannerImage);
@@ -269,7 +291,7 @@ export class Promotion {
           <a class="ot-chip" routerLink="/tin-tuc" [queryParams]="{ danhMuc: c.slug }" [class.ot-chip-active]="category() === c.slug">{{ c.name }}</a>
         }
       </div>
-      @if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có bài viết</p><p class="mt-1 text-sm text-muted">Quán sẽ đăng tin tức và sự kiện sớm.</p></div> }
+      @if (failed()) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa tải được tin tức</p><p class="mt-1 text-sm text-muted">Vui lòng kiểm tra kết nối rồi thử lại.</p><button type="button" class="ot-btn ot-btn-primary mt-4" (click)="retry.next()">Thử lại</button></div> } @else if (items().length === 0) { <div class="ot-panel mt-5 text-center"><p class="font-medium">Chưa có bài viết</p><p class="mt-1 text-sm text-muted">Quán sẽ đăng tin tức và sự kiện sớm.</p></div> }
       <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         @for (n of items(); track n.slug) {
           <a class="ot-card block overflow-hidden" [routerLink]="['/tin-tuc', n.slug]">
@@ -286,14 +308,21 @@ export class NewsList {
   protected readonly categories = toSignal(this.api.getOr<Schemas['NewsCategoryDto'][]>('news/categories', []), { initialValue: [] });
   protected readonly category = signal<string | null>(null);
   protected readonly items = signal<Schemas['PublicNewsListItemDto'][]>([]);
+  protected readonly failed = signal(false);
+  protected readonly retry = new Subject<void>();
 
   constructor() {
-    inject(ActivatedRoute).queryParamMap
+    combineLatest([inject(ActivatedRoute).queryParamMap.pipe(map((p) => p.get('danhMuc'))), this.retry.pipe(startWith(undefined))])
       .pipe(
-        map((p) => p.get('danhMuc')),
-        switchMap((c) => {
+        switchMap(([c]) => {
           this.category.set(c);
-          return this.api.getPage<Schemas['PublicNewsListItemDto']>('news', { page: 1, pageSize: 30, ...(c ? { category: c } : {}) }).pipe(catchError(() => of({ data: [] as Schemas['PublicNewsListItemDto'][] })));
+          this.failed.set(false);
+          return this.api.getPage<Schemas['PublicNewsListItemDto']>('news', { page: 1, pageSize: 30, ...(c ? { category: c } : {}) }).pipe(
+            catchError(() => {
+              this.failed.set(true);
+              return of({ data: [] as Schemas['PublicNewsListItemDto'][] });
+            }),
+          );
         }),
         takeUntilDestroyed(inject(DestroyRef)),
       )

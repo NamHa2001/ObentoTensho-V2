@@ -1,4 +1,4 @@
-import { afterNextRender, Component, inject, signal } from '@angular/core';
+import { afterNextRender, Component, computed, inject, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute as ActivatedRoutePublic, RouterLink } from '@angular/router';
@@ -103,7 +103,7 @@ export class Reset {
   selector: 'ot-token-action',
   imports: [RouterLink, AuthCard],
   template: `
-    <ot-auth-card [heading]="title" subtitle="Đang xác nhận liên kết bạn mở từ email.">
+    <ot-auth-card [heading]="title" [subtitle]="subtitle()">
       <div class="ot-auth-form">
       @if (form.busy()) { <p>Đang xử lý…</p> }
       @if (done()) { <p>Thành công.</p><a class="ot-btn ot-btn-primary" routerLink="/">Về trang chủ</a> }
@@ -117,6 +117,8 @@ export class TokenAction {
   protected readonly form = new Submit();
   protected readonly done = signal(false);
   protected title = '';
+  // Dòng phụ đi theo trạng thái: lỗi thì không còn ghi "đang xác nhận"
+  protected readonly subtitle = computed(() => (this.form.error() ? '' : this.done() ? 'Liên kết đã được xác nhận.' : 'Đang xác nhận liên kết bạn mở từ email.'));
 
   constructor() {
     const route = inject(ActivatedRoutePublic).snapshot.data as { title: string; endpoint: string };

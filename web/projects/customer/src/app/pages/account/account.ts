@@ -186,8 +186,8 @@ export class AccountOverview {
     @if (auth.profile(); as p) {
       <h2 class="ot-acc-title">Thông tin tài khoản</h2>
       <div class="grid gap-3">
-        @if (policy.requirePhone() && !p.isPhoneVerified) { <p class="ot-error">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
-        @if (!p.isEmailVerified) { <p class="ot-error">Email chưa xác thực, hãy kiểm tra hộp thư. <button type="button" class="underline" [disabled]="resent()" (click)="resend(p.email)">{{ resent() ? 'Đã gửi lại' : 'Gửi lại thư' }}</button></p> }
+        @if (policy.requirePhone() && !p.isPhoneVerified) { <p class="ot-notice">Số điện thoại chưa xác minh. <a class="underline" routerLink="/xac-minh-sdt">Xác minh ngay</a></p> }
+        @if (!p.isEmailVerified) { <p class="ot-notice">Email chưa xác thực, hãy kiểm tra hộp thư. <button type="button" class="py-2 underline" [disabled]="resent()" (click)="resend(p.email)">{{ resent() ? 'Đã gửi lại' : 'Gửi lại thư' }}</button></p> }
         @if (p.deletionScheduledAtUtc) {
           <p class="ot-error">Tài khoản sẽ bị xóa ngày {{ p.deletionScheduledAtUtc | vnDate }}. <button type="button" class="underline" (click)="cancelDeletion()">Hủy xóa</button></p>
         }
@@ -216,7 +216,7 @@ export class AccountOverview {
               </div>
               <div class="flex shrink-0 flex-col items-start gap-2 sm:items-end">
                 <span class="text-sm text-muted">Hạng thành viên</span>
-                <span class="font-heading text-xl font-medium text-primary">{{ tiers[p.memberTier] }}</span>
+                <span class="font-heading text-xl font-medium">{{ tiers[p.memberTier] }}</span>
                 <button type="button" class="ot-btn ot-btn-primary mt-1" (click)="startEdit()">Sửa thông tin</button>
               </div>
             </div>
@@ -564,9 +564,9 @@ export class AccountOrders {
           }
         </div>
       </div>
-      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-primary px-5 py-4 text-on-primary">
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-2 px-5 py-4">
         <p>{{ rewards().length > 0 ? 'Có ' + rewards().length + ' ưu đãi đổi bằng điểm. Chọn ưu đãi bạn thích, đủ điểm là đổi ngay.' : 'Tích điểm sau mỗi đơn để đổi voucher giảm giá.' }}</p>
-        <button type="button" class="ot-btn bg-surface text-primary" (click)="openRewards()">Đổi điểm</button>
+        <button type="button" class="ot-btn ot-btn-primary" (click)="openRewards()">Đổi điểm</button>
       </div>
       @if (redeemed(); as code) { <p class="mt-2 text-success">Đã đổi điểm. Mã <b>{{ code }}</b> đã nằm trong "Voucher của tôi", nhập ở bước thanh toán để dùng.</p> }
       @if (s.expiringPoints > 0) { <p class="mt-2 text-sm text-muted">{{ s.expiringPoints }} điểm sẽ hết hạn ngày {{ s.nextExpiryAtUtc | vnDate }}.</p> }

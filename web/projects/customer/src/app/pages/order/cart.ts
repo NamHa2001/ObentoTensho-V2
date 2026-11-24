@@ -57,7 +57,7 @@ export function linesOf(cart: CartStore) {
                     } @else if (note) {
                       <p class="mt-1 text-sm"><span class="text-muted">Ghi chú:</span> {{ note }} <button type="button" class="ml-1 font-medium text-primary" (click)="editNote(row.index)">Sửa</button></p>
                     } @else {
-                      <button type="button" class="mt-1 inline-flex items-center gap-1 text-sm font-medium text-primary" (click)="editNote(row.index)"><lucide-icon [img]="icons.plus" [size]="16" />Thêm ghi chú</button>
+                      <button type="button" class="mt-1 -my-2 inline-flex items-center gap-1 py-2 text-sm font-medium text-primary" (click)="editNote(row.index)"><lucide-icon [img]="icons.plus" [size]="16" />Thêm ghi chú</button>
                     }
                     @if (row.errorCode) { <p class="ot-error mt-1">Món hoặc tùy chọn này hiện không đặt được, vui lòng xóa.</p> }
                     <div class="mt-2 flex flex-wrap items-center justify-between gap-3">

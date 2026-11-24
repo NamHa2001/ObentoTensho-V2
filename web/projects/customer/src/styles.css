@@ -1165,6 +1165,11 @@
     color: var(--ot-danger);
   }
 
+  /* Lời nhắc cần làm (chưa xác minh...) dùng màu cảnh báo, để màu đỏ cho lỗi thật */
+  .ot-notice {
+    color: var(--ot-warning-text);
+  }
+
   .ot-prose {
     margin-top: 16px;
     line-height: 1.7;
@@ -1174,6 +1179,32 @@
   .ot-prose ul,
   .ot-prose ol {
     margin-block: 12px;
+  }
+
+  /* Nội dung soạn trong trang quản trị: tiêu đề phải lớn hơn thân bài, danh sách có dấu đầu dòng */
+  .ot-prose h2 {
+    margin-block: 24px 8px;
+    font-size: 20px;
+    line-height: 1.4;
+  }
+
+  .ot-prose h3 {
+    margin-block: 20px 8px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  .ot-prose ul,
+  .ot-prose ol {
+    padding-left: 24px;
+  }
+
+  .ot-prose ul {
+    list-style: disc;
+  }
+
+  .ot-prose ol {
+    list-style: decimal;
   }
 
   .ot-prose img {

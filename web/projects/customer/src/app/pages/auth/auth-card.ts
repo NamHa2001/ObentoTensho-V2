@@ -16,7 +16,7 @@ import { Sakura } from '../../shared/sakura';
       <div class="ot-auth-card">
         <div class="ot-auth-panel">
           <h1 class="ot-auth-title">{{ heading() }}</h1>
-          <p class="ot-auth-sub">{{ subtitle() }}</p>
+          @if (subtitle()) { <p class="ot-auth-sub">{{ subtitle() }}</p> }
           <ng-content />
         </div>
         <div class="ot-auth-aside" aria-hidden="true">
