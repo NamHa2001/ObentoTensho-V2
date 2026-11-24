@@ -23,6 +23,7 @@ public static class OrdersConfiguration
         services.AddScoped<OrderTransitions>();
         services.AddScoped<PublicOrderService>();
         services.AddScoped<DineInService>();
+        services.AddScoped<PlatformOrderService>();
         services.AddScoped<OrderDeskService>();
 
         // Yêu cầu xuất hóa đơn đi kèm đơn (chủ quán 2026-11-13)

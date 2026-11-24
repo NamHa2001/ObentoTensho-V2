@@ -5626,6 +5626,144 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/admin/platform-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePlatformOrderRequest"];
+                    "text/json": components["schemas"]["CreatePlatformOrderRequest"];
+                    "application/*+json": components["schemas"]["CreatePlatformOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePlatformOrderRequest"];
+                    "text/json": components["schemas"]["UpdatePlatformOrderRequest"];
+                    "application/*+json": components["schemas"]["UpdatePlatformOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/platform-orders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DineInReasonRequest"];
+                    "text/json": components["schemas"]["DineInReasonRequest"];
+                    "application/*+json": components["schemas"]["DineInReasonRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/promotions": {
         parameters: {
             query?: never;
@@ -10629,6 +10767,17 @@ export interface components {
             /** Format: double */
             deliveryLongitude?: null | number;
         };
+        CreatePlatformOrderRequest: {
+            paymentGroup: components["schemas"]["PaymentGroup"];
+            platform: components["schemas"]["Platform"];
+            externalOrderCode: null | string;
+            /** Format: double */
+            discountPercent: null | number;
+            /** Format: double */
+            discountAmount: null | number;
+            note: null | string;
+            items: components["schemas"]["OrderLineRequest"][];
+        };
         CreateReservationRequest: {
             /** Format: date */
             date: string;
@@ -11900,6 +12049,38 @@ export interface components {
         };
         /** @enum {unknown} */
         Platform: "grab" | "shopee" | "be" | "xanh";
+        PlatformOrderDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            /** @enum {unknown} */
+            paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+            /** @enum {unknown} */
+            platform: "grab" | "shopee" | "be" | "xanh";
+            externalOrderCode: string;
+            /** @enum {unknown} */
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
+            /** Format: date-time */
+            createdAtUtc: string;
+            /** Format: int32 */
+            unservedCount: number;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            discountPercent: null | number;
+            /** Format: double */
+            discount: number;
+            /** Format: double */
+            netRevenue: number;
+            /** Format: double */
+            deductionAmount: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: double */
+            pitAmount: number;
+            /** Format: double */
+            receivedAmount: number;
+        };
         ProfileDto: {
             fullName: string;
             email: string;
@@ -13114,6 +13295,13 @@ export interface components {
             challengeToken: string;
             code: null | string;
             recoveryCode: null | string;
+        };
+        UpdatePlatformOrderRequest: {
+            externalOrderCode: null | string;
+            /** Format: double */
+            discountPercent: null | number;
+            /** Format: double */
+            discountAmount: null | number;
         };
         UpdateProfileRequest: {
             fullName: string;

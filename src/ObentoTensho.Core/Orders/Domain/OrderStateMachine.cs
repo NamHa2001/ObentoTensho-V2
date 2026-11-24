@@ -8,7 +8,7 @@ public static class OrderStateMachine
     // Tại bàn không qua "Sẵn sàng" cả phiếu (bếp ra từng món): đang phục vụ ⇒ thanh toán xong là hoàn thành
     public static bool CanTransition(OrderStatus from, OrderStatus to, OrderActor actor, OrderChannel channel = OrderChannel.Pickup) => (from, to) switch
     {
-        (OrderStatus.Preparing, OrderStatus.Completed) when channel is OrderChannel.DineIn or OrderChannel.Counter => actor == OrderActor.Staff,
+        (OrderStatus.Preparing, OrderStatus.Completed) when channel is OrderChannel.DineIn or OrderChannel.Counter or OrderChannel.Platform => actor == OrderActor.Staff,
 
         // Giao hàng: sẵn sàng ⇒ đang giao ⇒ đã giao; không bỏ qua bước đang giao
         (OrderStatus.Ready, OrderStatus.Delivering) => channel == OrderChannel.Delivery && actor == OrderActor.Staff,

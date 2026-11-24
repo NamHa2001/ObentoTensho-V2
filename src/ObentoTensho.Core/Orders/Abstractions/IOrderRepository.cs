@@ -1,3 +1,4 @@
+using ObentoTensho.Contracts.Enums;
 using ObentoTensho.Core.Orders.Domain;
 
 namespace ObentoTensho.Core.Orders.Abstractions;
@@ -25,6 +26,12 @@ public interface IOrderRepository
     Task<Order?> FindOpenDineInAsync(Guid id, CancellationToken cancellationToken);
 
     Task<bool> TableHasOpenBillAsync(int tableId, CancellationToken cancellationToken);
+
+    // docs/srs/23 BR-PLT-06: mã đơn app đã có ở đơn chưa hủy cùng nhóm, kênh con
+    Task<bool> ExternalCodeTakenAsync(PaymentGroup group, Platform platform, string code, Guid? exceptOrderId, CancellationToken cancellationToken);
+
+    // Đơn app (mọi trạng thái), theo dõi thay đổi, kèm món
+    Task<Order?> FindPlatformOrderAsync(Guid id, CancellationToken cancellationToken);
 
     // Tại bàn: mọi phiếu đang mở, kèm món (sơ đồ gọi món, màn hình bếp)
     Task<IReadOnlyList<Order>> ListOpenDineInAsync(CancellationToken cancellationToken);

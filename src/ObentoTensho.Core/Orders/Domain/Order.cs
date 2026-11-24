@@ -130,5 +130,6 @@ public sealed class Order
     public bool ReadyForKitchen => !NeedsContactConfirm || ContactConfirmedAtUtc is not null;
 
     // BR-ORD-16: đã thu tiền rồi hủy mà chưa ghi hoàn tiền
-    public bool RefundPending => Status == OrderStatus.Cancelled && PaymentStatus == PaymentStatus.Paid && RefundedAtUtc is null;
+    // Đơn app: tiền do app giữ và hoàn, quán không ghi hoàn tiền (docs/srs/23)
+    public bool RefundPending => Status == OrderStatus.Cancelled && PaymentStatus == PaymentStatus.Paid && PaymentGroup == PaymentGroup.InStore && RefundedAtUtc is null;
 }

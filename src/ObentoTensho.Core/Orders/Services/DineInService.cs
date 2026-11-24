@@ -280,7 +280,7 @@ public sealed class DineInService(
             item.ServedAtUtc = clock.UtcNow;
             bill.UpdatedAtUtc = item.ServedAtUtc;
             realtime.Stage(RealtimeMessages.OrderChanged(bill));
-            if (bill.Channel == OrderChannel.Counter && bill.PaymentStatus == PaymentStatus.Paid && !Unserved(bill).Any())
+            if (bill.Channel is OrderChannel.Counter or OrderChannel.Platform && bill.PaymentStatus == PaymentStatus.Paid && !Unserved(bill).Any())
             {
                 await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, actorId: null, reason: null, cancellationToken);
             }
@@ -614,7 +614,12 @@ public sealed class DineInService(
 
     // Tên hiển thị của phiếu: "Bàn A1", hoặc "Mang về · Lan" với đơn tại quầy
     private static string Label(Order bill, Dictionary<int, string> names) =>
-        bill.Channel == OrderChannel.Counter ? $"Mang về · {bill.CustomerName}" : TableName(names, bill.TableId);
+        bill.Channel switch
+        {
+            OrderChannel.Counter => $"Mang về · {bill.CustomerName}",
+            OrderChannel.Platform => $"App · {bill.CustomerName}",
+            _ => TableName(names, bill.TableId),
+        };
 
     private static string? Reason(string? raw) =>
         string.IsNullOrWhiteSpace(raw) || raw.Trim().Length > ReasonMaxLength ? null : raw.Trim();

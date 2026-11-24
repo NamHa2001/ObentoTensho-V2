@@ -36,7 +36,7 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
         if (query.RefundPending)
         {
-            source = source.Where(o => o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.RefundedAtUtc == null);
+            source = source.Where(o => o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.PaymentGroup == PaymentGroup.InStore && o.RefundedAtUtc == null);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Search))
@@ -67,14 +67,22 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
 
     public Task<Order?> FindOpenDineInAsync(Guid id, CancellationToken cancellationToken) =>
         Source(withItems: true, tracking: true)
-            .SingleOrDefaultAsync(o => o.Id == id && (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter) && Open.Contains(o.Status), cancellationToken);
+            .SingleOrDefaultAsync(o => o.Id == id && (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform) && Open.Contains(o.Status), cancellationToken);
+
+    public Task<bool> ExternalCodeTakenAsync(PaymentGroup group, Platform platform, string code, Guid? exceptOrderId, CancellationToken cancellationToken) =>
+        db.Orders.AnyAsync(
+            o => o.PaymentGroup == group && o.Platform == platform && o.ExternalOrderCode == code && o.Status != OrderStatus.Cancelled && o.Id != exceptOrderId,
+            cancellationToken);
+
+    public Task<Order?> FindPlatformOrderAsync(Guid id, CancellationToken cancellationToken) =>
+        Source(withItems: true, tracking: true).SingleOrDefaultAsync(o => o.Id == id && o.Channel == OrderChannel.Platform, cancellationToken);
 
     public Task<bool> TableHasOpenBillAsync(int tableId, CancellationToken cancellationToken) =>
         db.Orders.AnyAsync(o => o.TableId == tableId && o.Channel == OrderChannel.DineIn && Open.Contains(o.Status), cancellationToken);
 
     public async Task<IReadOnlyList<Order>> ListOpenDineInAsync(CancellationToken cancellationToken) =>
         await Source(withItems: true, tracking: false)
-            .Where(o => (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter) && Open.Contains(o.Status))
+            .Where(o => (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform) && Open.Contains(o.Status))
             .OrderBy(o => o.PickupAtUtc)
             .ToListAsync(cancellationToken);
 
@@ -135,7 +143,7 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
             .Where(o => o.Channel == OrderChannel.Pickup || o.Channel == OrderChannel.Delivery)
             .Where(o => (o.Status == OrderStatus.Pending && (o.CreatedAtUtc <= pendingCreatedBeforeUtc || o.PickupAtUtc <= pendingPickupBeforeUtc))
                 || (o.Status == OrderStatus.Ready && o.PickupAtUtc <= readyPickupBeforeUtc)
-                || (o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.RefundedAtUtc == null))
+                || (o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.PaymentGroup == PaymentGroup.InStore && o.RefundedAtUtc == null))
             .OrderBy(o => o.PickupAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);

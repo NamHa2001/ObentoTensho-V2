@@ -4564,6 +4564,134 @@
         }
       }
     },
+    "/api/v1/admin/platform-orders": {
+      "get": {
+        "tags": [
+          "AdminPlatformOrders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AdminPlatformOrders"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatformOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatformOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlatformOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/platform-orders/{id}": {
+      "put": {
+        "tags": [
+          "AdminPlatformOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlatformOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/platform-orders/{id}/cancel": {
+      "post": {
+        "tags": [
+          "AdminPlatformOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DineInReasonRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DineInReasonRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DineInReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/promotions": {
       "get": {
         "tags": [
@@ -11891,6 +12019,58 @@
           }
         }
       },
+      "CreatePlatformOrderRequest": {
+        "required": [
+          "paymentGroup",
+          "platform",
+          "externalOrderCode",
+          "discountPercent",
+          "discountAmount",
+          "note",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentGroup": {
+            "$ref": "#/components/schemas/PaymentGroup"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Platform"
+          },
+          "externalOrderCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discountPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderLineRequest"
+            }
+          }
+        }
+      },
       "CreateReservationRequest": {
         "required": [
           "date",
@@ -16506,6 +16686,108 @@
           "xanh"
         ]
       },
+      "PlatformOrderDto": {
+        "required": [
+          "id",
+          "code",
+          "paymentGroup",
+          "platform",
+          "externalOrderCode",
+          "status",
+          "createdAtUtc",
+          "unservedCount",
+          "subTotal",
+          "discountPercent",
+          "discount",
+          "netRevenue",
+          "deductionAmount",
+          "vatAmount",
+          "pitAmount",
+          "receivedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "paymentGroup": {
+            "enum": [
+              "in_store",
+              "tensho",
+              "hima",
+              "xanh"
+            ]
+          },
+          "platform": {
+            "enum": [
+              "grab",
+              "shopee",
+              "be",
+              "xanh"
+            ]
+          },
+          "externalOrderCode": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "preparing",
+              "ready",
+              "completed",
+              "cancelled",
+              "delivering"
+            ]
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "unservedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "netRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductionAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "pitAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
       "ProfileDto": {
         "required": [
           "fullName",
@@ -21050,6 +21332,36 @@
           }
         }
       },
+      "UpdatePlatformOrderRequest": {
+        "required": [
+          "externalOrderCode",
+          "discountPercent",
+          "discountAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "externalOrderCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "discountPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discountAmount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "UpdateProfileRequest": {
         "required": [
           "fullName",
@@ -21595,6 +21907,9 @@
     },
     {
       "name": "AdminOrders"
+    },
+    {
+      "name": "AdminPlatformOrders"
     },
     {
       "name": "AdminPromotions"
