@@ -26,7 +26,7 @@ type Setting = Schemas['SettingDto'];
               @if (s.type === 'bool') {
                 <label class="flex items-center gap-2"><input type="checkbox" [name]="s.key" [ngModel]="m[s.key] === 'true'" (ngModelChange)="m[s.key] = $event ? 'true' : 'false'" /> {{ s.description || s.key }}</label>
               } @else if (s.type === 'image') {
-                <label>{{ s.description || s.key }}@if (s.protected) { <small class="ml-1 font-normal text-muted">(cần xác thực lại)</small> }<input class="ot-input" type="file" accept="image/*" (change)="upload($event, s.key)" /></label>
+                <label class="a-file">{{ s.description || s.key }}@if (s.protected) { <small class="ml-1 font-normal text-muted">(cần xác thực lại)</small> }<span class="ot-btn ot-btn-outline mt-1 flex w-fit">Chọn ảnh</span><input class="sr-only" type="file" accept="image/*" (change)="upload($event, s.key)" /></label>
                 @if (m[s.key]) { <p class="-mt-2 text-sm text-muted">Đã có ảnh. <button type="button" class="text-danger" (click)="m[s.key] = ''">Bỏ ảnh</button></p> }
               } @else if (s.type === 'choice') {
                 <label>{{ s.description || s.key }}<select class="ot-input" [name]="s.key" [(ngModel)]="m[s.key]">@for (c of s.choices; track c) { <option [value]="c">{{ c }}</option> }</select></label>

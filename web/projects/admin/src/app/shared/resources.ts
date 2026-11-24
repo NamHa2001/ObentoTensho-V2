@@ -216,7 +216,7 @@ export const RESOURCES: Record<string, Resource> = {
       { label: 'Mở khóa', when: (r) => !r.isActive, run: (a, r) => a.patch(`staff/${r.id}/status`, { isActive: true }) },
       { label: 'Mời lại', when: (r) => r.invitePending, run: (a, r) => a.post(`staff/${r.id}/resend-invite`) },
       { label: 'Thu hồi phiên', confirm: 'Đăng xuất nhân viên này khỏi mọi thiết bị?', run: (a, r) => a.post(`staff/${r.id}/revoke-sessions`) },
-      { label: 'Đặt lại 2FA', confirm: 'Đặt lại 2FA của nhân viên này?', run: (a, r) => a.post(`staff/${r.id}/reset-2fa`) },
+      { label: 'Đặt lại xác thực hai bước', confirm: 'Đặt lại xác thực hai bước của nhân viên này?', run: (a, r) => a.post(`staff/${r.id}/reset-2fa`) },
     ],
     fields: [{ key: 'fullName', label: 'Họ tên', required: true }, { key: 'email', label: 'Email', type: 'email', required: true, createOnly: true }, { key: 'role', label: 'Vai trò', type: 'select', required: true, default: 'reception', options: ROLES }],
   }),

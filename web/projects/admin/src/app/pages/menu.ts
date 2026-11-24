@@ -24,8 +24,8 @@ type OptionDraft = Omit<Option, 'id' | 'version' | 'displayOrder'> & Partial<Pic
     @for (g of groups(); track g.id) {
       <section class="a-card mb-4 p-4">
         <div class="flex flex-wrap items-center justify-between gap-2"><b>{{ g.name }}</b><span class="text-sm text-muted">{{ g.selectionType === 'one' ? 'Chọn một' : 'Chọn nhiều' }} · {{ g.isRequired ? 'Bắt buộc' : 'Tùy ý' }} · {{ g.minSelect }}–{{ g.maxSelect }}</span>
-          <span><button type="button" class="mr-3 text-primary" (click)="editGroup(g)">Sửa</button><button type="button" class="mr-3 text-primary" (click)="newOption(g)">Thêm tùy chọn</button><button type="button" class="text-danger" (click)="removeGroup(g)">Xóa</button></span></div>
-        <ul class="mt-2">@for (o of g.options; track o.id) { <li class="flex justify-between gap-3 border-t border-line py-2"><span>{{ o.name }} · +{{ o.priceDelta | vnd }} · {{ optionStatus[o.status] }}@if (o.isDefault) { · mặc định }</span><span><button type="button" class="mr-3 text-primary" (click)="editOption(o)">Sửa</button><button type="button" class="text-danger" (click)="removeOption(o)">Xóa</button></span></li> }</ul>
+          <span><button type="button" class="mr-3 inline-flex min-h-10 items-center text-primary" (click)="editGroup(g)">Sửa</button><button type="button" class="mr-3 inline-flex min-h-10 items-center text-primary" (click)="newOption(g)">Thêm tùy chọn</button><button type="button" class="inline-flex min-h-10 items-center text-danger" (click)="removeGroup(g)">Xóa</button></span></div>
+        <ul class="mt-2">@for (o of g.options; track o.id) { <li class="flex justify-between gap-3 border-t border-line py-2"><span>{{ o.name }} · +{{ o.priceDelta | vnd }} · {{ optionStatus[o.status] }}@if (o.isDefault) { · mặc định }</span><span><button type="button" class="mr-3 inline-flex min-h-10 items-center text-primary" (click)="editOption(o)">Sửa</button><button type="button" class="inline-flex min-h-10 items-center text-danger" (click)="removeOption(o)">Xóa</button></span></li> }</ul>
       </section>
     }
     @if (group(); as m) {
@@ -120,7 +120,7 @@ export class OptionGroups {
         </figure>
       }
     </div>
-    <label class="mt-4 block max-w-sm">Thêm ảnh (tối đa 1 chính + 4 phụ)<input class="ot-input" type="file" accept="image/*" (change)="add($event)" /></label>
+    <label class="a-file mt-4 block max-w-sm">Thêm ảnh (tối đa 1 chính + 4 phụ)<span class="ot-btn ot-btn-outline mt-1 flex w-fit">Chọn ảnh</span><input class="sr-only" type="file" accept="image/*" (change)="add($event)" /></label>
     @if (form.busy()) { <p class="mt-2">Đang xử lý…</p> }
   `,
 })

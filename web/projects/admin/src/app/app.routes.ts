@@ -5,16 +5,24 @@ import { Auth, authGuard, guestGuard } from './core/auth';
 import { RESOURCES } from './shared/resources';
 
 const login = () => import('./pages/login');
-const res = (key: string, cap: string) => ({ path: `r/${key}`, canActivate: [authGuard], data: { cap, resource: RESOURCES[key] }, loadComponent: () => import('./shared/resource').then((m) => m.ResourcePage) });
+// Tiêu đề tab theo từng trang để nhân viên mở nhiều tab vẫn phân biệt được
+const titled = (name: string) => `${name} | Quản trị Obento Tensho`;
+const TITLES: Record<string, string> = {
+  dashboard: 'Bảng tin', orders: 'Đơn hàng', 'orders/:id': 'Chi tiết đơn', kitchen: 'Màn hình bếp', reservations: 'Đặt bàn', 'reservations/new': 'Đặt bàn hộ khách',
+  'reservations/:id': 'Chi tiết đặt bàn', calendar: 'Lịch đặt bàn', floor: 'Sơ đồ bàn', 'dine-in': 'Gọi món tại bàn', 'dine-in/:id': 'Phiếu bàn', invoices: 'Yêu cầu xuất hóa đơn',
+  'option-groups': 'Nhóm tùy chọn', 'item-images/:id': 'Ảnh món', customers: 'Khách hàng', 'customers/:id': 'Chi tiết khách', reports: 'Báo cáo', settings: 'Cài đặt',
+  hours: 'Giờ mở cửa', translations: 'Bản dịch', 'exports/download': 'Tải tệp xuất', account: 'Tài khoản của tôi',
+};
+const res = (key: string, cap: string) => ({ path: `r/${key}`, title: titled(RESOURCES[key].title), canActivate: [authGuard], data: { cap, resource: RESOURCES[key] }, loadComponent: () => import('./shared/resource').then((m) => m.ResourcePage) });
 // back: trang cha của nút quay lại trên thanh trên cùng (điện thoại)
-const page = (path: string, cap: string | undefined, load: NonNullable<Route['loadComponent']>, back?: string) => ({ path, canActivate: [authGuard], data: { cap, back }, loadComponent: load });
+const page = (path: string, cap: string | undefined, load: NonNullable<Route['loadComponent']>, back?: string) => ({ path, title: titled(TITLES[path] ?? 'Quản trị'), canActivate: [authGuard], data: { cap, back }, loadComponent: load });
 
 export const routes: Routes = [
-  { path: 'login', canActivate: [guestGuard], loadComponent: () => login().then((m) => m.Login) },
-  { path: 'forgot', loadComponent: () => login().then((m) => m.Forgot) },
-  { path: 'auth/reset-password', loadComponent: () => login().then((m) => m.SetPassword) },
-  { path: 'auth/accept-invite', data: { invite: true }, loadComponent: () => login().then((m) => m.SetPassword) },
-  { path: 'auth/not-me', loadComponent: () => login().then((m) => m.NotMe) },
+  { path: 'login', title: titled('Đăng nhập'), canActivate: [guestGuard], loadComponent: () => login().then((m) => m.Login) },
+  { path: 'forgot', title: titled('Quên mật khẩu'), loadComponent: () => login().then((m) => m.Forgot) },
+  { path: 'auth/reset-password', title: titled('Đặt mật khẩu'), loadComponent: () => login().then((m) => m.SetPassword) },
+  { path: 'auth/accept-invite', title: titled('Nhận lời mời'), data: { invite: true }, loadComponent: () => login().then((m) => m.SetPassword) },
+  { path: 'auth/not-me', title: titled('Báo không phải tôi'), loadComponent: () => login().then((m) => m.NotMe) },
   {
     path: '',
     canActivate: [authGuard],

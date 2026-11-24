@@ -28,7 +28,9 @@ export function chartConfig(kind: ChartKind, points: ChartPoint[], format: (v: n
   const data = kind === 'doughnut' ? foldSlices(points) : points;
   const round = kind === 'doughnut';
   const ticks = { color: colors.ink, font: { size: 12 }, maxRotation: 0, autoSkipPadding: 14 };
-  const valueAxis = { beginAtZero: true, grid: { color: colors.line }, border: { display: false }, ticks: { ...ticks, callback: (v: string | number) => format(Number(v)), maxTicksLimit: 6 } };
+  // Trục giá trị chỉ bước nguyên; toàn số 0 thì ẩn số trên trục để không hiện "0,2 ₫" vô nghĩa
+  const allZero = data.every((p) => p.value === 0);
+  const valueAxis = { beginAtZero: true, grid: { color: colors.line }, border: { display: false }, ticks: { ...ticks, display: !allZero, precision: 0, callback: (v: string | number) => format(Number(v)), maxTicksLimit: 6 } };
   const labelAxis = { grid: { display: false }, border: { color: colors.line }, ticks };
   return {
     type: kind === 'hbar' ? 'bar' : kind,

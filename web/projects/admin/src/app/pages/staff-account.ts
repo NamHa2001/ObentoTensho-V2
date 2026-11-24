@@ -32,9 +32,9 @@ import { askConfirm } from '../../../../customer/src/app/core/dialog';
         <button type="button" class="ot-btn ot-btn-primary" [disabled]="twoFactor.busy()" (click)="confirm()">Xác nhận</button>
       } @else if (auth.me()?.totpEnabled) {
         <button type="button" class="ot-btn ot-btn-outline" [disabled]="twoFactor.busy()" (click)="regenerate()">Tạo lại mã khôi phục</button>
-        <button type="button" class="ot-btn ot-btn-outline" [disabled]="twoFactor.busy()" (click)="disable()">Tắt 2FA</button>
+        <button type="button" class="ot-btn ot-btn-outline" [disabled]="twoFactor.busy()" (click)="disable()">Tắt xác thực hai bước</button>
       } @else {
-        <button type="button" class="ot-btn ot-btn-primary" [disabled]="twoFactor.busy()" (click)="begin()">Bật 2FA</button>
+        <button type="button" class="ot-btn ot-btn-primary" [disabled]="twoFactor.busy()" (click)="begin()">Bật xác thực hai bước</button>
       }
       @if (codes().length > 0) {
         <p>Lưu các mã khôi phục sau, chỉ hiện một lần:</p>

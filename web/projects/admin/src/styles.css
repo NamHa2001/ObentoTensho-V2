@@ -105,7 +105,9 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-stat-note { color: var(--ot-text-muted); font-size: 14px; }
 .a-chart { position: relative; height: 288px; }
 .a-chart-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--ot-text-muted); }
-.a-link { color: var(--ot-primary); font-size: 14px; font-weight: 500; }
+.a-link { display: inline-flex; align-items: center; min-height: 40px; color: var(--ot-primary); font-size: 14px; font-weight: 500; }
+/* Ô chọn tệp ẩn sau nút "Chọn ảnh": bấm Tab vẫn thấy vòng focus trên nút */
+.a-file:has(input:focus-visible) .ot-btn { outline: 2px solid var(--ot-primary); outline-offset: 2px; }
 
 .a-filters { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); margin-bottom: var(--a-gap); padding: 16px 20px; background: var(--ot-surface); border: 1px solid var(--ot-border); border-radius: var(--ot-radius-md); box-shadow: var(--ot-shadow-1); }
 .a-filters .ot-input { width: 100%; margin: 0; }

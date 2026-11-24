@@ -208,7 +208,7 @@ function display(value: unknown): string {
                     @case ('select') { <label>{{ f.label }}<select class="ot-input" [name]="f.key" [(ngModel)]="m[f.key]" [required]="!!f.required">@if (!f.required) { <option [ngValue]="null">Không chọn</option> }@for (o of optionsOf(f); track o.value) { <option [ngValue]="o.value">{{ o.label }}</option> }</select></label> }
                     @case ('multi') { <fieldset><legend>{{ f.label }}</legend><div class="mt-1 grid grid-cols-2 gap-2">@for (o of optionsOf(f); track o.value) { <label class="flex items-center gap-2 font-normal"><input type="checkbox" [name]="f.key + o.value" [ngModel]="checked(m, f.key, o.value)" (ngModelChange)="toggle(m, f.key, o.value, $event)" /> {{ o.label }}</label> }</div></fieldset> }
                     @case ('image') {
-                      <label>{{ f.label }}<input class="ot-input" type="file" accept="image/*" (change)="upload($event, m, f.key)" /></label>
+                      <label class="a-file">{{ f.label }}<span class="ot-btn ot-btn-outline mt-1 flex w-fit">Chọn ảnh</span><input class="sr-only" type="file" accept="image/*" (change)="upload($event, m, f.key)" /></label>
                       @if (m[f.key]) { <p class="mt-1 text-sm text-muted">Đã có ảnh</p> @if (previews()[f.key]; as src) { <img class="mt-1 h-24 rounded-sm" [src]="src" alt="" /> } }
                       @if (uploading()) { <p class="mt-1 text-sm">Đang tải ảnh lên…</p> }
                     }
