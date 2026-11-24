@@ -5,7 +5,7 @@ import { Schemas } from '@ot/api';
 import { ChevronLeft, LucideAngularModule } from 'lucide-angular';
 
 import { Api } from '../core/api';
-import { altOf, Submit } from '../shared/ui';
+import { altOf, Submit, VndPipe } from '../shared/ui';
 import { askConfirm } from '../../../../customer/src/app/core/dialog';
 
 type Group = Schemas['AdminOptionGroupDto'];
@@ -17,7 +17,7 @@ type OptionDraft = Omit<Option, 'id' | 'version' | 'displayOrder'> & Partial<Pic
 
 @Component({
   selector: 'ot-option-groups',
-  imports: [FormsModule],
+  imports: [FormsModule, VndPipe],
   template: `
     <div class="a-head"><h1>Nhóm tùy chọn</h1><button type="button" class="ot-btn ot-btn-primary" (click)="newGroup()">Thêm nhóm</button></div>
     @if (form.error(); as e) { <p class="ot-error mt-2">{{ e }}</p> }
@@ -25,7 +25,7 @@ type OptionDraft = Omit<Option, 'id' | 'version' | 'displayOrder'> & Partial<Pic
       <section class="a-card mb-4 p-4">
         <div class="flex flex-wrap items-center justify-between gap-2"><b>{{ g.name }}</b><span class="text-sm text-muted">{{ g.selectionType === 'one' ? 'Chọn một' : 'Chọn nhiều' }} · {{ g.isRequired ? 'Bắt buộc' : 'Tùy ý' }} · {{ g.minSelect }}–{{ g.maxSelect }}</span>
           <span><button type="button" class="mr-3 text-primary" (click)="editGroup(g)">Sửa</button><button type="button" class="mr-3 text-primary" (click)="newOption(g)">Thêm tùy chọn</button><button type="button" class="text-danger" (click)="removeGroup(g)">Xóa</button></span></div>
-        <ul class="mt-2">@for (o of g.options; track o.id) { <li class="flex justify-between gap-3 border-t border-line py-2"><span>{{ o.name }} · +{{ o.priceDelta }} · {{ o.status }}@if (o.isDefault) { · mặc định }</span><span><button type="button" class="mr-3 text-primary" (click)="editOption(o)">Sửa</button><button type="button" class="text-danger" (click)="removeOption(o)">Xóa</button></span></li> }</ul>
+        <ul class="mt-2">@for (o of g.options; track o.id) { <li class="flex justify-between gap-3 border-t border-line py-2"><span>{{ o.name }} · +{{ o.priceDelta | vnd }} · {{ optionStatus[o.status] }}@if (o.isDefault) { · mặc định }</span><span><button type="button" class="mr-3 text-primary" (click)="editOption(o)">Sửa</button><button type="button" class="text-danger" (click)="removeOption(o)">Xóa</button></span></li> }</ul>
       </section>
     }
     @if (group(); as m) {
@@ -50,6 +50,7 @@ type OptionDraft = Omit<Option, 'id' | 'version' | 'displayOrder'> & Partial<Pic
   `,
 })
 export class OptionGroups {
+  protected readonly optionStatus: Record<string, string> = { available: 'Đang bán', sold_out: 'Hết', hidden: 'Ẩn' };
   private readonly api = inject(Api);
   protected readonly form = new Submit();
   protected readonly groups = signal<Group[]>([]);

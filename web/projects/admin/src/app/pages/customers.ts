@@ -11,6 +11,8 @@ import { Auth } from '../core/auth';
 import { StatCard } from '../shared/chart';
 import { ORDER_STATUS, RESERVATION_STATUS, Submit, TIERS, VnDatePipe, errorText } from '../shared/ui';
 import { askText } from '../../../../customer/src/app/core/dialog';
+import { localPhone } from '../../../../customer/src/app/shared/format';
+import { VOUCHER_SOURCE } from '../../../../customer/src/app/shared/voucher';
 
 type CustomerRow = Schemas['CustomerListItemDto'];
 type CustomerDetail = Schemas['CustomerDetailDto'];
@@ -92,7 +94,7 @@ export class Customers {
       <div class="a-row66">
         <section class="a-card">
           <header class="a-card-h">Thông tin</header>
-          <div class="a-card-b"><dl class="a-kv"><dt>Email</dt><dd>{{ c.email }}</dd><dt>Điện thoại</dt><dd>{{ c.phoneNumber }}</dd><dt>Ngày tạo</dt><dd>{{ c.createdAtUtc | vnDate }}</dd></dl>
+          <div class="a-card-b"><dl class="a-kv"><dt>Email</dt><dd>{{ c.email }}</dd><dt>Điện thoại</dt><dd>{{ phone(c.phoneNumber) }}</dd><dt>Ngày tạo</dt><dd>{{ c.createdAtUtc | vnDate }}</dd></dl>
             <div class="a-btns mt-4">
               <button type="button" class="ot-chip" (click)="toggle(c)">{{ c.isActive ? 'Khóa' : 'Mở khóa' }}</button>
               <button type="button" class="ot-chip" (click)="adjust(c)">Điều chỉnh điểm</button>
@@ -102,7 +104,7 @@ export class Customers {
         </section>
         <section class="a-card">
           <header class="a-card-h">Voucher</header>
-          <div class="a-card-b">@for (v of c.vouchers; track v.id) { <div class="a-line"><span>{{ v.code }}</span><span class="text-muted">{{ v.source }}</span></div> } @empty { <p class="text-muted">Chưa có.</p> }</div>
+          <div class="a-card-b">@for (v of c.vouchers; track v.id) { <div class="a-line"><span>{{ v.code }}</span><span class="text-muted">{{ sources[v.source] }}</span></div> } @empty { <p class="text-muted">Chưa có.</p> }</div>
         </section>
       </div>
       <div class="a-row66">
@@ -119,6 +121,8 @@ export class Customers {
   `,
 })
 export class Customer {
+  protected readonly sources = VOUCHER_SOURCE;
+  protected readonly phone = localPhone;
   private readonly api = inject(Api);
   protected readonly tiers = TIERS;
   protected readonly orderLabels = ORDER_STATUS;

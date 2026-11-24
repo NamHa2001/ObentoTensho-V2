@@ -11,6 +11,8 @@ const GALLERY: Option[] = [{ value: 'interior', label: 'Trong quán' }, { value:
 const ROLES: Option[] = [{ value: 'super_admin', label: 'SuperAdmin' }, { value: 'manager', label: 'Quản lý' }, { value: 'reception', label: 'Lễ tân' }, { value: 'kitchen', label: 'Bếp' }, { value: 'cashier', label: 'Thu ngân' }, { value: 'content_editor', label: 'Biên tập' }];
 const TIERS: Option[] = [{ value: 'bronze', label: 'Đồng' }, { value: 'silver', label: 'Bạc' }, { value: 'gold', label: 'Vàng' }, { value: 'diamond', label: 'Kim cương' }];
 const DAYS: Option[] = [{ value: 1, label: 'Thứ hai' }, { value: 2, label: 'Thứ ba' }, { value: 3, label: 'Thứ tư' }, { value: 4, label: 'Thứ năm' }, { value: 5, label: 'Thứ sáu' }, { value: 6, label: 'Thứ bảy' }, { value: 0, label: 'Chủ nhật' }];
+const MEDIA_TYPES: Option[] = [{ value: 'image', label: 'Ảnh' }, { value: 'video', label: 'Video' }];
+const LANGUAGES: Option[] = [{ value: 'vi', label: 'Tiếng Việt' }, { value: 'en', label: 'Tiếng Anh' }, { value: 'ja', label: 'Tiếng Nhật' }];
 const label = (options: Option[], value: unknown) => options.find((o) => o.value === value)?.label ?? value;
 const approval = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối' } as Record<string, string>;
 
@@ -64,9 +66,9 @@ export const RESOURCES: Record<string, Resource> = {
   }),
   gallery: resource<Schemas['AdminGalleryItemDto']>({
     title: 'Không gian', path: 'gallery', reorder: true, canCreate: true, canEdit: true, canDelete: true,
-    columns: [{ key: 'image', label: 'Ảnh', thumb: (r) => r.image?.variants?.at(-1)?.url }, { key: 'caption', label: 'Chú thích' }, { key: 'mediaType', label: 'Loại' }, { key: 'category', label: 'Nhóm', map: (r) => label(GALLERY, r.category) }, { key: 'isActive', label: 'Hiện' }],
+    columns: [{ key: 'image', label: 'Ảnh', thumb: (r) => r.image?.variants?.at(-1)?.url }, { key: 'caption', label: 'Chú thích' }, { key: 'mediaType', label: 'Loại', map: (r) => label(MEDIA_TYPES, r.mediaType) }, { key: 'category', label: 'Nhóm', map: (r) => label(GALLERY, r.category) }, { key: 'isActive', label: 'Hiện' }],
     fields: [
-      { key: 'mediaType', label: 'Loại', type: 'select', required: true, default: 'image', options: [{ value: 'image', label: 'Ảnh' }, { value: 'video', label: 'Video' }] },
+      { key: 'mediaType', label: 'Loại', type: 'select', required: true, default: 'image', options: MEDIA_TYPES },
       { key: 'imageId', label: 'Ảnh', type: 'image', read: (r) => r.image?.id }, { key: 'videoUrl', label: 'Địa chỉ video' },
       { key: 'category', label: 'Nhóm', type: 'select', required: true, default: 'interior', options: GALLERY }, { key: 'caption', label: 'Chú thích' }, { key: 'isActive', label: 'Hiện', type: 'bool', default: true },
     ],
@@ -166,7 +168,7 @@ export const RESOURCES: Record<string, Resource> = {
     columns: [{ key: 'fullName', label: 'Họ tên' }, { key: 'email', label: 'Email' }, { key: 'phoneNumber', label: 'SĐT' }, { key: 'subject', label: 'Tiêu đề' }, { key: 'message', label: 'Nội dung' }, { key: 'isRead', label: 'Đã đọc' }, { key: 'createdAtUtc', label: 'Lúc' }],
     actions: [{ label: 'Đã đọc', when: (r) => !r.isRead, run: (a, r) => a.post(`contact-messages/${r.id}/read`) }, { label: 'Đã trả lời', when: (r) => !r.repliedAtUtc, run: (a, r) => a.post(`contact-messages/${r.id}/replied`) }],
   }),
-  subscribers: resource<Schemas['NewsletterSubscriberDto']>({ title: 'Người nhận bản tin', path: 'newsletter/subscribers', paged: true, tools: [{ label: 'Xuất danh sách', kind: 'reason', path: 'newsletter/subscribers/export', message: 'Lý do xuất danh sách' }], columns: [{ key: 'email', label: 'Email' }, { key: 'lang', label: 'Ngôn ngữ' }, { key: 'isActive', label: 'Đang nhận' }, { key: 'subscribedAtUtc', label: 'Đăng ký lúc' }] }),
+  subscribers: resource<Schemas['NewsletterSubscriberDto']>({ title: 'Người nhận bản tin', path: 'newsletter/subscribers', paged: true, tools: [{ label: 'Xuất danh sách', kind: 'reason', path: 'newsletter/subscribers/export', message: 'Lý do xuất danh sách' }], columns: [{ key: 'email', label: 'Email' }, { key: 'lang', label: 'Ngôn ngữ', map: (r) => label(LANGUAGES, r.lang) }, { key: 'isActive', label: 'Đang nhận' }, { key: 'subscribedAtUtc', label: 'Đăng ký lúc' }] }),
   campaigns: resource<Schemas['NewsletterCampaignDto']>({
     title: 'Chiến dịch bản tin', path: 'newsletter/campaigns', paged: true, canCreate: true, canEdit: true, canDelete: true,
     columns: [{ key: 'subject', label: 'Tiêu đề' }, { key: 'status', label: 'Trạng thái' }, { key: 'sentCount', label: 'Đã gửi' }, { key: 'recipientCount', label: 'Người nhận' }],
@@ -175,7 +177,7 @@ export const RESOURCES: Record<string, Resource> = {
   }),
   'loyalty-adjustments': resource<Schemas['LoyaltyAdjustmentDto']>({
     title: 'Duyệt điều chỉnh điểm', path: 'loyalty/adjustments',
-    columns: [{ key: 'userId', label: 'Khách' }, { key: 'points', label: 'Điểm' }, { key: 'reason', label: 'Lý do' }, { key: 'status', label: 'Trạng thái', map: (r) => approval[r.status] }, { key: 'requestedAtUtc', label: 'Lúc' }],
+    columns: [{ key: 'userId', label: 'Khách', map: (r) => r.customerName ?? 'Khách đã xóa' }, { key: 'points', label: 'Điểm' }, { key: 'reason', label: 'Lý do' }, { key: 'status', label: 'Trạng thái', map: (r) => approval[r.status] }, { key: 'requestedAtUtc', label: 'Lúc' }],
     actions: [
       { label: 'Duyệt', when: (r) => r.status === 'pending', prompt: 'Ghi chú', run: (a, r, note) => a.post(`loyalty/adjustments/${r.id}/approve`, { note }) },
       { label: 'Từ chối', when: (r) => r.status === 'pending', prompt: 'Lý do', run: (a, r, note) => a.post(`loyalty/adjustments/${r.id}/reject`, { note }) },

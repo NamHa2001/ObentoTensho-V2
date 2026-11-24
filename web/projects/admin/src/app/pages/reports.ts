@@ -19,6 +19,12 @@ type ReportKind = ReportData['kind'];
 
 const REPORTS: { key: ReportKind; label: string }[] = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'reservations', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }, { key: 'customers', label: 'Khách hàng' }, { key: 'top-dishes', label: 'Món bán chạy' }];
 
+// Kỳ báo cáo từ API dạng yyyy-MM-dd hoặc yyyy-MM, hiện theo kiểu ngày Việt Nam như các chỗ khác
+function periodLabel(period: string): string {
+  const [y, m, d] = period.split('-');
+  return d ? `${d}/${m}` : m ? `${m}/${y}` : period;
+}
+
 @Component({
   selector: 'ot-reports',
   imports: [FormsModule, ChartCard, StatCard, VndPipe],
@@ -152,7 +158,7 @@ export class Reports {
   }
 
   protected series(rows: Schemas['RevenuePointDto'][]): ChartPoint[] {
-    return rows.map((r) => ({ label: r.period, value: r.net }));
+    return rows.map((r) => ({ label: periodLabel(r.period), value: r.net }));
   }
 
   protected load(): void {
