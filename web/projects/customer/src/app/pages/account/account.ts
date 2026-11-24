@@ -192,6 +192,13 @@ export class AccountOverview {
           <p class="ot-error">Tài khoản sẽ bị xóa ngày {{ p.deletionScheduledAtUtc | vnDate }}. <button type="button" class="underline" (click)="cancelDeletion()">Hủy xóa</button></p>
         }
 
+        <!-- Hồ sơ và phần đăng nhập, bảo mật tách tab, không dồn một trang dài -->
+        <div class="ot-scroll-row" role="tablist" style="margin-inline: 0; padding-inline: 0">
+          <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'profile'" [attr.aria-selected]="tab() === 'profile'" (click)="tab.set('profile')">Hồ sơ</button>
+          <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'security'" [attr.aria-selected]="tab() === 'security'" (click)="tab.set('security')">Đăng nhập và bảo mật</button>
+        </div>
+
+        @if (tab() === 'profile') {
         <section class="ot-panel">
           @if (!editing()) {
             <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -238,7 +245,9 @@ export class AccountOverview {
             </form>
           }
         </section>
+        }
 
+        @if (tab() === 'security') {
         <div class="ot-row-card">
           <p class="ot-row-label">Mật khẩu</p>
           @if (open() !== 'password') { <button type="button" class="ot-btn ot-btn-outline" (click)="toggle('password')">Đổi mật khẩu</button> }
@@ -310,11 +319,13 @@ export class AccountOverview {
             </form>
           }
         </div>
+        }
       </div>
     }
   `,
 })
 export class AccountProfile {
+  protected readonly tab = signal<'profile' | 'security'>('profile');
   protected readonly sessionError = signal<string | null>(null);
   private readonly api = inject(Api);
   protected readonly auth = inject(Auth);
