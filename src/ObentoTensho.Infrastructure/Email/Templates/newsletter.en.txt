@@ -8,4 +8,4 @@ Unsubscribe: {{unsubscribeLink}}
 ===
 {{contentHtml}}
 <hr>
-<p style="font-size:13px;color:#6b6b6b">You receive this email because you subscribed to the Obento Tensho newsletter.<br><a href="{{unsubscribeLink}}">Unsubscribe</a></p>
+<p style="font-size:13px;color:#6b625b">You receive this email because you subscribed to the Obento Tensho newsletter.<br><a href="{{unsubscribeLink}}">Unsubscribe</a></p>

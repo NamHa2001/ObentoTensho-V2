@@ -17,6 +17,6 @@ Obento Tensho
 ===
 <p>Xin chào {{fullName}},</p>
 <p>Cảm ơn bạn đã ủng hộ Obento Tensho. Bạn vừa được cộng điểm thưởng:</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Điểm cộng</td><td style="padding:4px 0"><strong>+{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Từ</td><td style="padding:4px 0">{{reference}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số dư hiện tại</td><td style="padding:4px 0">{{balance}} điểm</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Điểm cộng</td><td style="padding:4px 0"><strong>+{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Từ</td><td style="padding:4px 0">{{reference}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Số dư hiện tại</td><td style="padding:4px 0">{{balance}} điểm</td></tr></table>
 <p>Đủ điểm bạn có thể đổi lấy voucher giảm giá.</p><p><a class="button" href="{{accountLink}}">Xem điểm của bạn</a></p>
 <p>Trân trọng,<br>Obento Tensho</p>

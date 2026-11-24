@@ -16,6 +16,6 @@ Obento Tensho
 ===
 <p>Hello {{fullName}},</p>
 <p>Some of your reward points will expire soon:</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Points</td><td style="padding:4px 0"><strong>{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Expiry date</td><td style="padding:4px 0">{{expiryDate}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Points</td><td style="padding:4px 0"><strong>{{points}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Expiry date</td><td style="padding:4px 0">{{expiryDate}}</td></tr></table>
 <p>Use them to get a voucher before that date.</p><p><a class="button" href="{{accountLink}}">View your points</a></p>
 <p>Kind regards,<br>Obento Tensho</p>

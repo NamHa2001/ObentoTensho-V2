@@ -14,6 +14,6 @@ Obento Tensho
 ===
 <p>Xin chào {{fullName}},</p>
 <p>Nhà hàng đã ghi nhận hoàn tiền cho đơn {{code}} đã hủy.</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số tiền</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ghi chú</td><td style="padding:4px 0">{{refundNote}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Số tiền</td><td style="padding:4px 0"><strong>{{total}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Ghi chú</td><td style="padding:4px 0">{{refundNote}}</td></tr></table>
 <p>Nếu sau 3 ngày làm việc bạn chưa nhận được tiền, vui lòng liên hệ nhà hàng.</p>
 <p>Trân trọng,<br>Obento Tensho</p>

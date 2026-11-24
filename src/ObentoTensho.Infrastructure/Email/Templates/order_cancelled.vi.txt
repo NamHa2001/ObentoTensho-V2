@@ -15,6 +15,6 @@ Obento Tensho
 ===
 <p>Xin chào {{fullName}},</p>
 <p>Rất tiếc, nhà hàng đã hủy đơn {{code}} của bạn.</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Lý do</td><td style="padding:4px 0">{{reason}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Lý do</td><td style="padding:4px 0">{{reason}}</td></tr></table>
 <p>Nếu bạn đã chuyển khoản, nhà hàng sẽ liên hệ để hoàn tiền.</p><p><a class="button" href="{{menuLink}}">Xem thực đơn</a></p>
 <p>Trân trọng,<br>Obento Tensho</p>

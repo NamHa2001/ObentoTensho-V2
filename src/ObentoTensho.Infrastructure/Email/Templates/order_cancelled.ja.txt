@@ -14,6 +14,6 @@ Obento Tensho
 ===
 <p>{{fullName}} 様</p>
 <p>申し訳ございません。ご注文 {{code}} は店舗によりキャンセルされました。</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">理由</td><td style="padding:4px 0">{{reason}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">理由</td><td style="padding:4px 0">{{reason}}</td></tr></table>
 <p>銀行振込でお支払い済みの場合は、返金について店舗からご連絡いたします。</p><p><a class="button" href="{{menuLink}}">メニューを見る</a></p>
 <p>Obento Tensho</p>

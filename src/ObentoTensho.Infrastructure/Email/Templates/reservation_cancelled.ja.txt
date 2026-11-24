@@ -15,6 +15,6 @@ Obento Tensho
 ===
 <p>{{fullName}} 様</p>
 <p>Obento Tensho の以下のご予約はキャンセルされました。</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">予約番号</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">日付</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">時間</td><td style="padding:4px 0">{{time}}（ベトナム時間）</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">人数</td><td style="padding:4px 0">{{guests}}名</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">予約番号</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">日付</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">時間</td><td style="padding:4px 0">{{time}}（ベトナム時間）</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">人数</td><td style="padding:4px 0">{{guests}}名</td></tr></table>
 <p>キャンセルをご依頼されていない場合や、改めてご予約をご希望の場合は、新しくご予約いただくか、店舗までご連絡ください。</p><p><a class="button" href="{{bookingLink}}">新しく予約する</a></p>
 <p>Obento Tensho</p>

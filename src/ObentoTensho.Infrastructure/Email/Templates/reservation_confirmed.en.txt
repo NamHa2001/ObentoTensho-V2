@@ -16,6 +16,6 @@ Obento Tensho
 ===
 <p>Hello {{fullName}},</p>
 <p>Your reservation at Obento Tensho has been confirmed:</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Reservation code</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Date</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Time</td><td style="padding:4px 0">{{time}} (Vietnam time)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Guests</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Reservation code</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Date</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Time</td><td style="padding:4px 0">{{time}} (Vietnam time)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Guests</td><td style="padding:4px 0">{{guests}}</td></tr></table>
 <p>We look forward to welcoming you. If your plans change, you can view or cancel your reservation here:</p><p><a class="button" href="{{manageLink}}">View or cancel reservation</a></p>
 <p>Kind regards,<br>Obento Tensho</p>

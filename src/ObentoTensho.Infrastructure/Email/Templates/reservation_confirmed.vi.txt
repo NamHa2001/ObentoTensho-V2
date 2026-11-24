@@ -16,6 +16,6 @@ Obento Tensho
 ===
 <p>Xin chào {{fullName}},</p>
 <p>Đặt bàn của bạn tại Obento Tensho đã được xác nhận:</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Mã đặt bàn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Ngày</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Giờ</td><td style="padding:4px 0">{{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Số khách</td><td style="padding:4px 0">{{guests}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Mã đặt bàn</td><td style="padding:4px 0"><strong>{{code}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Ngày</td><td style="padding:4px 0">{{date}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Giờ</td><td style="padding:4px 0">{{time}} (giờ Việt Nam)</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Số khách</td><td style="padding:4px 0">{{guests}}</td></tr></table>
 <p>Chúng tôi rất mong được đón tiếp bạn. Nếu thay đổi kế hoạch, bạn có thể xem hoặc hủy đặt bàn tại đây:</p><p><a class="button" href="{{manageLink}}">Xem hoặc hủy đặt bàn</a></p>
 <p>Trân trọng,<br>Obento Tensho</p>

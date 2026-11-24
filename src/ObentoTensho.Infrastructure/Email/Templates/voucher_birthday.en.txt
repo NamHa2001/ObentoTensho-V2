@@ -1,4 +1,4 @@
-subject: Happy birthday, {{fullName}}!
+subject: Happy birthday, {{fullName}}
 ===
 Hello {{fullName}},
 
@@ -17,6 +17,6 @@ Obento Tensho
 ===
 <p>Hello {{fullName}},</p>
 <p>Obento Tensho wishes you a happy birthday. Here is a voucher for you:</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Code</td><td style="padding:4px 0"><strong>{{voucherCode}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Value</td><td style="padding:4px 0">{{value}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">Valid until</td><td style="padding:4px 0">end of {{expiryDate}}</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Code</td><td style="padding:4px 0"><strong>{{voucherCode}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Value</td><td style="padding:4px 0">{{value}}</td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">Valid until</td><td style="padding:4px 0">end of {{expiryDate}}</td></tr></table>
 <p>The voucher can only be used once, while signed in to this account, for a takeaway order. It cannot be combined with your membership discount.</p><p><a class="button" href="{{accountLink}}">View your vouchers</a></p>
 <p>Kind regards,<br>Obento Tensho</p>

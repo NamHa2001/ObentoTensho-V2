@@ -1,4 +1,4 @@
-subject: おめでとうございます！{{tierName}} 会員になりました
+subject: {{tierName}} 会員になりました
 ===
 {{fullName}} 様
 
@@ -15,6 +15,6 @@ Obento Tensho
 ===
 <p>{{fullName}} 様</p>
 <p>Obento Tensho の新しい会員ランクに到達しました。</p>
-<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">新しいランク</td><td style="padding:4px 0"><strong>{{tierName}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b6b6b">特典</td><td style="padding:4px 0">テイクアウト {{discount}}% 割引</td></tr></table>
+<table role="presentation" style="border-collapse:collapse;margin:8px 0 16px"><tr><td style="padding:4px 12px 4px 0;color:#6b625b">新しいランク</td><td style="padding:4px 0"><strong>{{tierName}}</strong></td></tr><tr><td style="padding:4px 12px 4px 0;color:#6b625b">特典</td><td style="padding:4px 0">テイクアウト {{discount}}% 割引</td></tr></table>
 <p>ログインして注文すると自動的に割引が適用されます（クーポンとの併用不可）。</p><p><a class="button" href="{{accountLink}}">特典を確認する</a></p>
 <p>Obento Tensho</p>

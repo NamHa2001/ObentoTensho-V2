@@ -8,4 +8,4 @@ Hủy nhận bản tin: {{unsubscribeLink}}
 ===
 {{contentHtml}}
 <hr>
-<p style="font-size:13px;color:#6b6b6b">Bạn nhận thư này vì đã đăng ký bản tin Obento Tensho.<br><a href="{{unsubscribeLink}}">Hủy nhận bản tin</a></p>
+<p style="font-size:13px;color:#6b625b">Bạn nhận thư này vì đã đăng ký bản tin Obento Tensho.<br><a href="{{unsubscribeLink}}">Hủy nhận bản tin</a></p>
