@@ -46,18 +46,21 @@ interface Translation extends Row {
   imports: [FormsModule],
   template: `
     <h1>Bản dịch</h1>
+    <!-- Mỗi ngôn ngữ một tab, form nhập bản dịch một tab riêng -->
+    <div class="ot-scroll-row mb-4" role="tablist" style="margin-inline: 0; padding-inline: 0">
+      @for (t of tabs; track t.key) { <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === t.key" [attr.aria-selected]="tab() === t.key" (click)="tab.set(t.key)">{{ t.label }}</button> }
+    </div>
     @for (lang of langs; track lang) {
-      @if (data()[lang]; as p) {
-        <h2 class="mt-4 text-lg">{{ lang.toUpperCase() }} · {{ p.enabled ? 'Đang bật' : 'Chưa bật' }} · {{ p.ready ? 'Đủ điều kiện' : 'Chưa đủ' }}</h2>
+      @if (tab() === lang && data()[lang]; as p) {
+        <h2 class="text-lg">{{ p.enabled ? 'Đang bật' : 'Chưa bật' }} · {{ p.ready ? 'Đủ điều kiện' : 'Chưa đủ' }}</h2>
         <div class="a-table mb-4"><table class="w-full text-sm"><tr class="bg-surface-2 text-left"><th class="p-2">Loại</th><th class="p-2">Tổng</th><th class="p-2">Đã duyệt</th><th class="p-2">Lỗi thời</th><th class="p-2">Nháp</th><th class="p-2">Thiếu</th></tr>@for (k of p.kinds; track k.kind) { <tr class="border-b border-line"><td class="p-2">{{ kindLabel(k.kind) }}</td><td class="p-2">{{ k.total }}</td><td class="p-2">{{ k.approved }}</td><td class="p-2">{{ k.outdated }}</td><td class="p-2">{{ k.draft }}</td><td class="p-2">{{ k.missing }}</td></tr> }</table></div>
       }
     }
 
-    <h2 class="mt-6 text-xl">Nhập bản dịch</h2>
-    <form class="ot-stack max-w-xl" (ngSubmit)="save()">
+    <form class="ot-stack max-w-xl" [hidden]="tab() !== 'edit'" (ngSubmit)="save()">
       <label>Loại nội dung<select class="ot-input" name="kind" [ngModel]="kind().value" (ngModelChange)="pickKind($event)">@for (k of kinds; track k.value) { <option [value]="k.value">{{ k.label }}</option> }</select></label>
       <label>Mục<select class="ot-input" name="item" [ngModel]="itemKey()" (ngModelChange)="pickItem($event)"><option [ngValue]="null">Chọn mục</option>@for (r of rows(); track r.key) { <option [ngValue]="r.key">{{ r.name }}</option> }</select></label>
-      <label>Ngôn ngữ<select class="ot-input" name="lang" [ngModel]="lang()" (ngModelChange)="pickLang($event)">@for (l of langs; track l) { <option [value]="l">{{ l.toUpperCase() }}</option> }</select></label>
+      <label>Ngôn ngữ<select class="ot-input" name="lang" [ngModel]="lang()" (ngModelChange)="pickLang($event)">@for (l of langs; track l) { <option [value]="l">{{ l === 'en' ? 'Tiếng Anh' : 'Tiếng Nhật' }}</option> }</select></label>
       @if (itemKey() !== null) {
         @if (status(); as st) { <p class="text-sm text-muted">Hiện tại: {{ st }}</p> }
         @for (f of kind().fields; track f.key) {
@@ -77,6 +80,8 @@ interface Translation extends Row {
 export class Translations {
   private readonly api = inject(Api);
   protected readonly langs = ['en', 'ja'];
+  protected readonly tabs = [{ key: 'en', label: 'Tiếng Anh' }, { key: 'ja', label: 'Tiếng Nhật' }, { key: 'edit', label: 'Nhập bản dịch' }];
+  protected readonly tab = signal('en');
   protected readonly kinds = TRANSLATE;
   protected readonly form = new Submit();
   protected readonly data = signal<Record<string, Schemas['TranslationProgressDto']>>({});
