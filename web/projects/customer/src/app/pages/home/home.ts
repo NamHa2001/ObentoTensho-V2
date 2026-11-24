@@ -69,8 +69,11 @@ export class Home {
   // Đánh giá không chừa ô trống khi chạy dev: chỉ hiện đánh giá thật
   protected readonly topReviews = computed(() => this.reviews().filter((r) => r.comment).slice(0, 3));
   protected readonly newsSlots = computed(() => slots(this.news(), 3));
+  // Chỉ lấy các đoạn văn: tiêu đề trong bài giới thiệu không có dấu câu nên ghép vào sẽ dính liền với đoạn sau
   protected readonly story = computed(() => {
-    const text = (this.about()?.contentHtml ?? '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
+    const html = this.about()?.contentHtml ?? '';
+    const paragraphs = [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)].map((m) => m[1]);
+    const text = (paragraphs.length > 0 ? paragraphs.join(' ') : html).replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').trim();
     return (text.length > STORY_CHARS ? `${text.slice(0, STORY_CHARS).trimEnd()}…` : text) || 'Cơm hộp Nhật mang về hoặc thưởng thức ngay tại quán.';
   });
   protected readonly mapUrl = computed(() => {

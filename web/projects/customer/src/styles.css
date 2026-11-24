@@ -1331,7 +1331,6 @@
   .ot-btn-primary {
     background: var(--ot-primary);
     color: var(--ot-primary-contrast);
-    box-shadow: var(--ot-shadow-2);
   }
 
   .ot-btn-outline {
