@@ -2,7 +2,7 @@ using ObentoTensho.Contracts.Enums;
 
 namespace ObentoTensho.Contracts.Dtos.Loyalty;
 
-/// <summary>Đề nghị điều chỉnh điểm; <c>Status = Approved</c> nghĩa là đã ghi vào sổ cái.</summary>
+/// <summary>Đề nghị điều chỉnh điểm; <c>Status = Approved</c> nghĩa là đã ghi vào sổ cái. <c>CustomerName</c> chỉ có ở danh sách để nhân viên nhận ra khách.</summary>
 public sealed record LoyaltyAdjustmentDto(
     Guid Id,
     Guid UserId,
@@ -13,4 +13,5 @@ public sealed record LoyaltyAdjustmentDto(
     DateTime RequestedAtUtc,
     Guid? ReviewedByStaffId,
     DateTime? ReviewedAtUtc,
-    string? ReviewNote);
+    string? ReviewNote,
+    string? CustomerName = null);

@@ -11229,6 +11229,7 @@ export interface components {
             /** Format: date-time */
             reviewedAtUtc: null | string;
             reviewNote: null | string;
+            customerName?: null | string;
         };
         LoyaltyEntryDto: {
             /** Format: int64 */

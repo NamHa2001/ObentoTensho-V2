@@ -98,4 +98,9 @@ internal sealed class LoyaltyRepository(AppDbContext db) : ILoyaltyRepository
             .OrderByDescending(a => a.RequestedAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyDictionary<Guid, string>> UserNamesAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken) =>
+        await db.Users.AsNoTracking()
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.FullName, cancellationToken);
 }

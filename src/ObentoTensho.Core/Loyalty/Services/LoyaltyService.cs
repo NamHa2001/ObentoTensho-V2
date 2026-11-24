@@ -89,8 +89,12 @@ public sealed class LoyaltyService(
         }, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<LoyaltyAdjustmentDto>> ListAdjustmentsAsync(ApprovalStatus? status, CancellationToken cancellationToken) =>
-        (await loyalty.ListAdjustmentsAsync(status, AdjustmentListLimit, cancellationToken)).Select(a => a.ToDto()).ToArray();
+    public async Task<IReadOnlyList<LoyaltyAdjustmentDto>> ListAdjustmentsAsync(ApprovalStatus? status, CancellationToken cancellationToken)
+    {
+        var adjustments = await loyalty.ListAdjustmentsAsync(status, AdjustmentListLimit, cancellationToken);
+        var names = await loyalty.UserNamesAsync(adjustments.Select(a => a.UserId).Distinct().ToArray(), cancellationToken);
+        return adjustments.Select(a => a.ToDto(names.GetValueOrDefault(a.UserId))).ToArray();
+    }
 
     // Người duyệt phải khác người đề nghị (nguyên tắc bốn mắt)
     public Task<Result<LoyaltyAdjustmentDto>> ApproveAsync(Guid id, Guid staffId, string? note, CancellationToken cancellationToken) =>

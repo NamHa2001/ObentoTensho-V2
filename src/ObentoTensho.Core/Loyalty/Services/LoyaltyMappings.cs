@@ -26,6 +26,6 @@ public static class LoyaltyMappings
     public static LoyaltyEntryDto ToDto(this LoyaltyEntry e) =>
         new(e.Id, e.Points, e.BalanceAfter, e.Type, e.ReferenceId, e.Note, e.CreatedAtUtc);
 
-    public static LoyaltyAdjustmentDto ToDto(this LoyaltyAdjustment a) =>
-        new(a.Id, a.UserId, a.Points, a.Reason, a.Status, a.RequestedByStaffId, a.RequestedAtUtc, a.ReviewedByStaffId, a.ReviewedAtUtc, a.ReviewNote);
+    public static LoyaltyAdjustmentDto ToDto(this LoyaltyAdjustment a, string? customerName = null) =>
+        new(a.Id, a.UserId, a.Points, a.Reason, a.Status, a.RequestedByStaffId, a.RequestedAtUtc, a.ReviewedByStaffId, a.ReviewedAtUtc, a.ReviewNote, customerName);
 }

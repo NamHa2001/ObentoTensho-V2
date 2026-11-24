@@ -45,4 +45,7 @@ public interface ILoyaltyRepository
     Task<LoyaltyAdjustment?> FindAdjustmentAsync(Guid id, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<LoyaltyAdjustment>> ListAdjustmentsAsync(ApprovalStatus? status, int limit, CancellationToken cancellationToken);
+
+    /// <summary>Tên hiển thị của nhiều khách trong một lần truy vấn (cho danh sách đề nghị điều chỉnh).</summary>
+    Task<IReadOnlyDictionary<Guid, string>> UserNamesAsync(IReadOnlyCollection<Guid> userIds, CancellationToken cancellationToken);
 }

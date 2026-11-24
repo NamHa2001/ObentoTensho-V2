@@ -14054,6 +14054,12 @@
               "null",
               "string"
             ]
+          },
+          "customerName": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
