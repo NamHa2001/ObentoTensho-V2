@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ChevronLeft, LucideAngularModule, Minus, Plus } from 'lucide-angular';
+import { ChevronLeft, LucideAngularModule } from 'lucide-angular';
 
-import { POS_DRAFT_LINES, POS_MENU, POS_PICKER, PosMenu } from '../shared/pos-menu';
+import { Api } from '../core/api';
+import { DraftList, PosDraft, PosMenu } from '../shared/pos-menu';
 import { APP_GROUPS, discountBody, discountOf, DUPLICATE_CODE, duplicateCode, GROUP_LABEL, PaymentGroup, Platform, PLATFORM_FIELDS, PLATFORM_LABEL, ratePercent, Rates, splitRevenue } from '../shared/platform';
 import { Submit, VndPipe } from '../shared/ui';
 
@@ -11,7 +12,7 @@ import { Submit, VndPipe } from '../shared/ui';
 // màn hình tính ngay doanh thu ròng, các khoản trừ và thực nhận theo tỉ lệ hiện tại. Lưu là gửi bếp.
 @Component({
   selector: 'ot-platform-order',
-  imports: [FormsModule, RouterLink, VndPipe, LucideAngularModule],
+  imports: [FormsModule, RouterLink, VndPipe, LucideAngularModule, PosMenu, PosDraft],
   template: `
     <div class="a-head">
       <h1>Nhập đơn app</h1>
@@ -22,7 +23,7 @@ import { Submit, VndPipe } from '../shared/ui';
       <section class="a-card">
         <header class="a-card-h">Chọn món</header>
         <div class="a-card-b grid gap-3">
-${POS_MENU}
+          <ot-pos-menu (picked)="draft.add($event)" />
         </div>
       </section>
 
@@ -46,9 +47,9 @@ ${POS_MENU}
           <label>Mã đơn trên app<input class="ot-input" name="code" required maxlength="50" autocomplete="off" placeholder="Ví dụ: GF-123456" [(ngModel)]="code" /></label>
 
           <div id="pos-draft">
-            <h2 class="mb-1 font-medium">Món đã chọn <small class="font-normal text-muted">{{ draftCount() }} món</small></h2>
-            @if (draft().length > 0) {
-${POS_DRAFT_LINES}
+            <h2 class="mb-1 font-medium">Món đã chọn <small class="font-normal text-muted">{{ draft.count() }} món</small></h2>
+            @if (draft.lines().length > 0) {
+              <ot-pos-draft [list]="draft" />
             } @else { <p class="text-sm text-muted">Bấm món ở bảng bên cạnh để thêm.</p> }
           </div>
 
@@ -58,11 +59,11 @@ ${POS_DRAFT_LINES}
             <label class="flex items-center gap-2 font-normal"><input type="radio" name="mode" value="amount" [ngModel]="mode()" (ngModelChange)="setMode($event)" /> Theo số tiền</label>
           </fieldset>
           <label>{{ mode() === 'percent' ? '% giảm' : 'Số tiền giảm' }}
-            <input class="ot-input" name="discount" type="number" min="0" [max]="mode() === 'percent' ? 100 : draftTotal()" [step]="mode() === 'percent' ? 0.01 : 1" [ngModel]="discount()" (ngModelChange)="discount.set($event)" />
+            <input class="ot-input" name="discount" type="number" min="0" [max]="mode() === 'percent' ? 100 : draft.total()" [step]="mode() === 'percent' ? 0.01 : 1" [ngModel]="discount()" (ngModelChange)="discount.set($event)" />
           </label>
 
           <dl class="grid gap-1 rounded-md bg-surface-2 p-3 tabular-nums">
-            <div class="flex justify-between"><dt>Giá gốc</dt><dd>{{ draftTotal() | vnd }}</dd></div>
+            <div class="flex justify-between"><dt>Giá gốc</dt><dd>{{ draft.total() | vnd }}</dd></div>
             <div class="flex justify-between"><dt>Giảm giá ({{ percentText(off().percent) }})</dt><dd>−{{ off().amount | vnd }}</dd></div>
             <div class="flex justify-between font-medium"><dt>Doanh thu ròng</dt><dd>{{ split().net | vnd }}</dd></div>
             @if (rates(); as r) {
@@ -76,15 +77,16 @@ ${POS_DRAFT_LINES}
 
           <label>Ghi chú cho bếp (không bắt buộc)<input class="ot-input" name="note" maxlength="500" [(ngModel)]="note" /></label>
           @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
-          <button class="ot-btn ot-btn-primary w-full" [disabled]="form.busy() || draft().length === 0 || overDiscount()">Lưu và gửi bếp</button>
+          <button class="ot-btn ot-btn-primary w-full" [disabled]="form.busy() || draft.lines().length === 0 || overDiscount()">Lưu và gửi bếp</button>
         </div>
       </form>
     </div>
-${POS_PICKER}
   `,
 })
-export class PlatformOrderEntry extends PosMenu {
-  protected readonly icons = { back: ChevronLeft, minus: Minus, plus: Plus };
+export class PlatformOrderEntry {
+  protected readonly icons = { back: ChevronLeft };
+  private readonly api = inject(Api);
+  protected readonly draft = new DraftList();
   private readonly router = inject(Router);
   protected readonly form = new Submit();
   protected readonly appGroups = APP_GROUPS;
@@ -98,18 +100,16 @@ export class PlatformOrderEntry extends PosMenu {
   protected code = '';
   protected note = '';
   protected readonly platforms = computed(() => APP_GROUPS.find((g) => g.group === this.group())?.platforms ?? []);
-  protected readonly off = computed(() => discountOf(this.draftTotal(), this.mode(), this.discount()));
-  protected readonly overDiscount = computed(() => this.off().amount > this.draftTotal() || this.off().percent > 100);
+  protected readonly off = computed(() => discountOf(this.draft.total(), this.mode(), this.discount()));
+  protected readonly overDiscount = computed(() => this.off().amount > this.draft.total() || this.off().percent > 100);
   protected readonly split = computed(() => {
-    const net = Math.max(0, this.draftTotal() - this.off().amount);
+    const net = Math.max(0, this.draft.total() - this.off().amount);
     const r = this.rates();
     return r ? splitRevenue(net, r) : { net, deduction: 0, vat: 0, pit: 0, received: net };
   });
 
   constructor() {
-    super();
     this.form.labels = PLATFORM_FIELDS;
-    this.loadMenu();
     this.api.get<Rates>('platform-orders/rates').subscribe({ next: (r) => this.rates.set(r), error: () => this.form.error.set('Không tải được tỉ lệ khấu trừ, thuế.') });
   }
 
@@ -140,7 +140,7 @@ export class PlatformOrderEntry extends PosMenu {
       externalOrderCode: this.code.trim(),
       ...discountBody(this.mode(), this.discount()),
       note: this.note.trim() || null,
-      items: this.draftItems(),
+      items: this.draft.items(),
     };
     this.form.run(
       this.api.post('platform-orders', body),

@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, map, of } from 'rxjs';
-import { ChevronLeft, LucideAngularModule, Minus, Plus, Smartphone } from 'lucide-angular';
+import { ChevronLeft, LucideAngularModule, Plus, Smartphone } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
 import { reloadOnLive } from '../core/live';
 import { appLabel, PlatformEdit } from '../shared/platform';
-import { POS_DRAFT_LINES, POS_MENU, POS_PICKER, PosMenu } from '../shared/pos-menu';
+import { DraftList, PosDraft, PosMenu } from '../shared/pos-menu';
 import { Latest, Submit, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
@@ -246,7 +246,7 @@ export class DineIn {
 // chuyển/gộp bàn, in tạm tính, thanh toán (mọi nhân viên phục vụ bàn)
 @Component({
   selector: 'ot-dine-in-bill',
-  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule, PlatformEdit],
+  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule, PlatformEdit, PosMenu, PosDraft],
   template: `
     <div class="a-head">
       <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
@@ -261,20 +261,20 @@ export class DineIn {
           @if (b.channel === 'platform') { <p class="a-card-b font-medium">Đơn app đã thanh toán qua app, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách đặt thêm trên app thì nhập đơn mới.</p> }
           @else if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
-${POS_MENU}
+            <ot-pos-menu (picked)="draft.add($event)" />
 
-            @if (draft().length > 0) {
+            @if (draft.lines().length > 0) {
               <div class="a-pos-send">
-                <button type="button" class="ot-btn ot-btn-outline" (click)="showDraft()">Xem {{ draftCount() }} món đang chọn</button>
+                <button type="button" class="ot-btn ot-btn-outline" (click)="showDraft()">Xem {{ draft.count() }} món đang chọn</button>
                 <button type="button" class="ot-btn ot-btn-primary" [disabled]="form.busy()" (click)="send(b)">Gửi bếp</button>
               </div>
             }
 
-            @if (draft().length > 0) {
+            @if (draft.lines().length > 0) {
               <div id="pos-draft" class="rounded-md border border-line p-3">
                 <h2 class="mb-2 font-medium">Món đang chọn (chưa gửi bếp)</h2>
-${POS_DRAFT_LINES}
-                <button type="button" class="ot-btn ot-btn-primary mt-3 w-full" [disabled]="form.busy()" (click)="send(b)">Gửi bếp ({{ draftCount() }} món)</button>
+                <ot-pos-draft [list]="draft" />
+                <button type="button" class="ot-btn ot-btn-primary mt-3 w-full" [disabled]="form.busy()" (click)="send(b)">Gửi bếp ({{ draft.count() }} món)</button>
               </div>
             }
           </div>
@@ -341,7 +341,6 @@ ${POS_DRAFT_LINES}
       </div>
     }
 
-${POS_PICKER}
 
     @if (moving(); as mode) {
       <div class="a-drawer" role="dialog" aria-modal="true">
@@ -430,8 +429,10 @@ ${POS_PICKER}
     }
   `,
 })
-export class DineInBill extends PosMenu {
-  protected readonly icons = { back: ChevronLeft, minus: Minus, plus: Plus };
+export class DineInBill {
+  protected readonly icons = { back: ChevronLeft };
+  private readonly api = inject(Api);
+  protected readonly draft = new DraftList();
   private readonly injector = inject(Injector);
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
@@ -471,10 +472,12 @@ export class DineInBill extends PosMenu {
   });
 
   constructor() {
-    super();
     this.load();
     reloadOnLive(() => this.load());
-    this.loadMenu();
+  }
+
+  protected showDraft(): void {
+    document.getElementById('pos-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   protected load(): void {
@@ -502,10 +505,10 @@ export class DineInBill extends PosMenu {
   }
 
   protected send(b: Bill): void {
-    const items = this.draftItems();
+    const items = this.draft.items();
     this.form.run(this.api.post<Bill>(`dine-in/${b.id}/items`, { items }), (bill) => {
       this.bill.set(bill);
-      this.draft.set([]);
+      this.draft.clear();
     });
   }
 

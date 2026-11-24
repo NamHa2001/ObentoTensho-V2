@@ -1,15 +1,17 @@
-import { computed, Directive, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, input, output, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Schemas } from '@ot/api';
+import { LucideAngularModule, Minus, Plus } from 'lucide-angular';
 import { map } from 'rxjs';
 
 import { Api } from '../core/api';
-import { Submit } from './ui';
+import { Submit, VndPipe } from './ui';
 
 type MenuItem = Schemas['PublicMenuItemDto'];
 type OptionGroup = Schemas['PublicOptionGroupDto'];
 
 // Bảng chọn tùy chọn cho một món trước khi thêm vào danh sách đang chọn
-export interface Picking {
+interface Picking {
   item: MenuItem;
   groups: OptionGroup[];
   selected: Set<number>;
@@ -27,48 +29,106 @@ export interface DraftLine {
   note: string;
 }
 
-// Tìm món, danh mục dính khi cuộn, lưới món; dùng chung cho phiếu bàn và nhập đơn app
-export const POS_MENU = `
-            <input class="ot-input" name="q" placeholder="Tìm món" [ngModel]="query()" (ngModelChange)="query.set($event)" />
-            <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
-            <div class="a-pos-menu">
-              @if (!query().trim()) {
-                <nav class="a-pos-cats" aria-label="Danh mục">
-                  @for (g of groups(); track g.id) {
-                    <button type="button" class="ot-chip" [id]="'pos-chip-' + g.id" [class.ot-chip-active]="activeCat() === g.id" (click)="jumpCat(g.id)">{{ g.name }}</button>
-                  }
-                </nav>
-              }
-              <div class="min-w-0">
-                @if (query().trim()) {
-                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
-                    @for (m of shown(); track m.id) {
-                      <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                        <span class="font-medium">{{ m.name }}</span>
-                        <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
-                      </button>
-                    } @empty { <p class="text-muted">Không có món phù hợp.</p> }
-                  </div>
-                } @else {
-                  @for (g of groups(); track g.id) {
-                    <section class="a-pos-section" [id]="'pos-cat-' + g.id">
-                      <h3 class="mb-2 font-medium">{{ g.name }}</h3>
-                      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
-                        @for (m of g.items; track m.id) {
-                          <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                            <span class="font-medium">{{ m.name }}</span>
-                            <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
-                          </button>
-                        }
-                      </div>
-                    </section>
-                  } @empty { <p class="text-muted">Chưa có món.</p> }
+export type PickedItem = Omit<DraftLine, 'key' | 'note'>;
+
+// Món đang chọn (chưa gửi bếp): gộp món trùng tùy chọn, tăng giảm số lượng, ghi chú cho bếp
+export class DraftList {
+  private nextKey = 1;
+  readonly lines = signal<DraftLine[]>([]);
+  readonly count = computed(() => this.lines().reduce((n, d) => n + d.quantity, 0));
+  readonly total = computed(() => this.lines().reduce((n, d) => n + d.unitPrice * d.quantity, 0));
+
+  add(item: PickedItem): void {
+    const same = this.lines().find((d) => d.menuItemId === item.menuItemId && d.optionIds.join() === item.optionIds.join() && !d.note);
+    if (same) {
+      this.bump(same, item.quantity);
+      return;
+    }
+
+    this.lines.update((d) => [...d, { ...item, key: this.nextKey++, note: '' }]);
+  }
+
+  bump(d: DraftLine, delta: number): void {
+    this.lines.update((all) => all.map((x) => (x.key === d.key ? { ...x, quantity: Math.min(99, x.quantity + delta) } : x)).filter((x) => x.quantity > 0));
+  }
+
+  clear(): void {
+    this.lines.set([]);
+  }
+
+  items(): { menuItemId: number; quantity: number; optionIds: number[]; note: string | null }[] {
+    return this.lines().map((d) => ({ menuItemId: d.menuItemId, quantity: d.quantity, optionIds: d.optionIds, note: d.note.trim() || null }));
+  }
+}
+
+// Danh sách món đang chọn: tăng giảm số lượng, ghi chú cho bếp
+@Component({
+  selector: 'ot-pos-draft',
+  imports: [FormsModule, VndPipe, LucideAngularModule],
+  template: `
+    @for (d of list().lines(); track d.key) {
+      <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
+        <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
+        <div class="flex items-center gap-1">
+          <button type="button" class="ot-chip" aria-label="Bớt" (click)="list().bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
+          <span class="w-6 text-center">{{ d.quantity }}</span>
+          <button type="button" class="ot-chip" aria-label="Thêm" (click)="list().bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
+        </div>
+        <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
+        <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [ngModelOptions]="{ standalone: true }" [(ngModel)]="d.note" />
+      </div>
+    }
+  `,
+})
+export class PosDraft {
+  protected readonly icons = { minus: Minus, plus: Plus };
+  readonly list = input.required<DraftList>();
+}
+
+// Tìm món, danh mục dính khi cuộn, lưới món, bảng chọn tùy chọn; dùng chung cho phiếu bàn và nhập đơn app
+@Component({
+  selector: 'ot-pos-menu',
+  imports: [FormsModule, VndPipe],
+  template: `
+    <input class="ot-input" name="q" placeholder="Tìm món" [ngModelOptions]="{ standalone: true }" [ngModel]="query()" (ngModelChange)="query.set($event)" />
+    <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
+    <div class="a-pos-menu">
+      @if (!query().trim()) {
+        <nav class="a-pos-cats" aria-label="Danh mục">
+          @for (g of groups(); track g.id) {
+            <button type="button" class="ot-chip" [id]="'pos-chip-' + g.id" [class.ot-chip-active]="activeCat() === g.id" (click)="jumpCat(g.id)">{{ g.name }}</button>
+          }
+        </nav>
+      }
+      <div class="min-w-0">
+        @if (query().trim()) {
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
+            @for (m of shown(); track m.id) {
+              <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
+                <span class="font-medium">{{ m.name }}</span>
+                <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
+              </button>
+            } @empty { <p class="text-muted">Không có món phù hợp.</p> }
+          </div>
+        } @else {
+          @for (g of groups(); track g.id) {
+            <section class="a-pos-section" [id]="'pos-cat-' + g.id">
+              <h3 class="mb-2 font-medium">{{ g.name }}</h3>
+              <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
+                @for (m of g.items; track m.id) {
+                  <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
+                    <span class="font-medium">{{ m.name }}</span>
+                    <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
+                  </button>
                 }
               </div>
-            </div>`;
+            </section>
+          } @empty { <p class="text-muted">Chưa có món.</p> }
+        }
+      </div>
+    </div>
+    @if (form.error(); as e) { <p class="ot-error" role="alert">{{ e }}</p> }
 
-// Bảng chọn tùy chọn và số lượng của một món
-export const POS_PICKER = `
     @if (picking(); as p) {
       <div class="a-drawer" role="dialog" aria-modal="true">
         <form class="a-drawer-panel" (ngSubmit)="addPicked(p)">
@@ -94,36 +154,20 @@ export const POS_PICKER = `
           </div>
         </form>
       </div>
-    }`;
-
-// Danh sách món đang chọn: tăng giảm số lượng, ghi chú cho bếp
-export const POS_DRAFT_LINES = `
-                @for (d of draft(); track d.key) {
-                  <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
-                    <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
-                    <div class="flex items-center gap-1">
-                      <button type="button" class="ot-chip" aria-label="Bớt" (click)="bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
-                      <span class="w-6 text-center">{{ d.quantity }}</span>
-                      <button type="button" class="ot-chip" aria-label="Thêm" (click)="bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
-                    </div>
-                    <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
-                    <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [(ngModel)]="d.note" />
-                  </div>
-                }`;
-
-@Directive()
-export abstract class PosMenu {
-  protected readonly api = inject(Api);
-  protected abstract readonly form: Submit;
+    }
+  `,
+})
+export class PosMenu {
+  private readonly api = inject(Api);
+  readonly picked = output<PickedItem>();
+  protected readonly form = new Submit();
   private readonly details = new Map<string, OptionGroup[]>();
-  private nextKey = 1;
   private spyFrame = 0;
   private jumpingUntil = 0;
   protected readonly menu = signal<MenuItem[]>([]);
   protected readonly categories = signal<Schemas['PublicCategoryDto'][]>([]);
   protected readonly activeCat = signal<number | null>(null);
   protected readonly query = signal('');
-  protected readonly draft = signal<DraftLine[]>([]);
   protected readonly picking = signal<Picking | null>(null);
   protected readonly pickError = signal<string | null>(null);
   protected readonly shown = computed(() => {
@@ -136,16 +180,10 @@ export abstract class PosMenu {
       .map((c) => ({ id: c.id, name: c.name, items: this.menu().filter((m) => m.categoryId === c.id) }))
       .filter((g) => g.items.length > 0),
   );
-  protected readonly draftCount = computed(() => this.draft().reduce((n, d) => n + d.quantity, 0));
-  protected readonly draftTotal = computed(() => this.draft().reduce((n, d) => n + d.unitPrice * d.quantity, 0));
 
-  protected loadMenu(): void {
+  constructor() {
     this.api.publicGet<Schemas['PublicCategoryDto'][]>('menu/categories').subscribe({ next: (c) => this.categories.set(c), error: () => undefined });
     this.api.publicGet<MenuItem[]>('menu/items', { pageSize: 100 }).subscribe({ next: (m) => this.menu.set(m), error: () => this.form.error.set('Không tải được thực đơn.') });
-  }
-
-  protected draftItems(): { menuItemId: number; quantity: number; optionIds: number[]; note: string | null }[] {
-    return this.draft().map((d) => ({ menuItemId: d.menuItemId, quantity: d.quantity, optionIds: d.optionIds, note: d.note.trim() || null }));
   }
 
   protected jumpCat(id: number): void {
@@ -153,10 +191,6 @@ export abstract class PosMenu {
     this.jumpingUntil = Date.now() + 800;
     document.getElementById(`pos-chip-${id}`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
     document.getElementById(`pos-cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  protected showDraft(): void {
-    document.getElementById('pos-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // Nhóm đang xem = nhóm cuối có tiêu đề đã chạm mép dưới thanh danh mục dính
@@ -201,7 +235,7 @@ export abstract class PosMenu {
 
   private pick(m: MenuItem, groups: OptionGroup[]): void {
     if (groups.length === 0) {
-      this.addDraft(m, [], [], 1);
+      this.picked.emit({ menuItemId: m.id, name: m.name, unitPrice: m.price, quantity: 1, optionIds: [], options: [] });
       return;
     }
 
@@ -234,27 +268,14 @@ export abstract class PosMenu {
     }
 
     const chosen = p.groups.flatMap((g) => g.options.filter((o) => p.selected.has(o.id)).map((o) => ({ g, o })));
-    this.addDraft(
-      p.item,
-      chosen.map((x) => x.o.id),
-      chosen.map((x) => `${x.g.name}: ${x.o.name}`),
-      Math.min(99, Math.max(1, Number(p.quantity) || 1)),
-      chosen.reduce((sum, x) => sum + x.o.priceDelta, 0),
-    );
+    this.picked.emit({
+      menuItemId: p.item.id,
+      name: p.item.name,
+      unitPrice: p.item.price + chosen.reduce((sum, x) => sum + x.o.priceDelta, 0),
+      quantity: Math.min(99, Math.max(1, Number(p.quantity) || 1)),
+      optionIds: chosen.map((x) => x.o.id),
+      options: chosen.map((x) => `${x.g.name}: ${x.o.name}`),
+    });
     this.picking.set(null);
-  }
-
-  private addDraft(m: MenuItem, optionIds: number[], options: string[], quantity: number, optionsPrice = 0): void {
-    const same = this.draft().find((d) => d.menuItemId === m.id && d.optionIds.join() === optionIds.join() && !d.note);
-    if (same) {
-      this.bump(same, quantity);
-      return;
-    }
-
-    this.draft.update((d) => [...d, { key: this.nextKey++, menuItemId: m.id, name: m.name, unitPrice: m.price + optionsPrice, quantity, optionIds, options, note: '' }]);
-  }
-
-  protected bump(d: DraftLine, delta: number): void {
-    this.draft.update((all) => all.map((x) => (x.key === d.key ? { ...x, quantity: Math.min(99, x.quantity + delta) } : x)).filter((x) => x.quantity > 0));
   }
 }
