@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using ObentoTensho.Core.Orders.Abstractions;
+using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Settings.Abstractions;
 using ObentoTensho.Infrastructure.Orders;
 using static ObentoTensho.Core.Settings.Domain.SettingKeys;
@@ -9,6 +10,8 @@ namespace ObentoTensho.Infrastructure.Settings;
 internal sealed class StoreOrderSettings(ISettingsReader s, IOptions<OrderOptions> options) : IOrderSettings
 {
     public int MinLeadMinutes => s.GetInt(OrderMinLeadMinutes);
+
+    public RevenueSplit.Rates RevenueRates => new(s.GetDecimal(RevenueDeductionPercent), s.GetDecimal(RevenueVatPercent), s.GetDecimal(RevenuePitPercent));
 
     public int MaxLeadDays => s.GetInt(OrderMaxLeadDays);
 

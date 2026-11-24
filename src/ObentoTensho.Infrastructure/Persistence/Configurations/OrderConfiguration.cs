@@ -39,6 +39,7 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(o => o.CancelReason).HasColumnType("nvarchar(300)");
         builder.Property(o => o.CancelledByType).HasConversion(new SnakeCaseEnumConverter<OrderActor>()).HasColumnType("varchar(10)");
         builder.Property(o => o.RefundNote).HasColumnType("nvarchar(300)");
+        ConfigurePlatform(builder);
         builder.Property(o => o.RowVersion).IsRowVersion();
         builder.Ignore(o => o.ReadyForKitchen);
         builder.Ignore(o => o.RefundPending);
@@ -51,12 +52,37 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         ConfigureIndexes(builder);
     }
 
+    // docs/srs/23: nhóm thanh toán, đơn app và bản chụp doanh thu ròng, thực nhận
+    private static void ConfigurePlatform(EntityTypeBuilder<Order> builder)
+    {
+        builder.Property(o => o.PaymentGroup).HasConversion<byte>().HasColumnType("tinyint").HasDefaultValue(PaymentGroup.InStore).ValueGeneratedNever();
+        builder.Property(o => o.Platform).HasConversion<byte?>().HasColumnType("tinyint");
+        builder.Property(o => o.ExternalOrderCode).HasColumnType("nvarchar(50)");
+        builder.Property(o => o.PlatformDiscountPercent).HasColumnType("decimal(5,2)");
+        builder.Property(o => o.PlatformDiscount).HasColumnType("decimal(18,0)").HasDefaultValue(0m).ValueGeneratedNever();
+
+        // docs/srs/23 BR-PLT-04: bản chụp lúc hoàn thành, cột riêng trên Orders (null khi đơn chưa hoàn thành)
+        builder.OwnsOne(o => o.Revenue, r =>
+        {
+            r.Property(x => x.DeductionPercent).HasColumnName("DeductionPercent").HasColumnType("decimal(5,2)");
+            r.Property(x => x.VatPercent).HasColumnName("VatPercent").HasColumnType("decimal(5,2)");
+            r.Property(x => x.PitPercent).HasColumnName("PitPercent").HasColumnType("decimal(5,2)");
+            r.Property(x => x.NetRevenue).HasColumnName("NetRevenue").HasColumnType("decimal(18,0)");
+            r.Property(x => x.DeductionAmount).HasColumnName("DeductionAmount").HasColumnType("decimal(18,0)");
+            r.Property(x => x.VatAmount).HasColumnName("VatAmount").HasColumnType("decimal(18,0)");
+            r.Property(x => x.PitAmount).HasColumnName("PitAmount").HasColumnType("decimal(18,0)");
+            r.Property(x => x.ReceivedAmount).HasColumnName("ReceivedAmount").HasColumnType("decimal(18,0)");
+        });
+    }
+
     private static void ConfigureChecks(EntityTypeBuilder<Order> builder)
     {
         var maxStatus = (byte)Enum.GetValues<OrderStatus>().Max();
         var maxMethod = (byte)Enum.GetValues<PaymentMethod>().Max();
         var maxPayment = (byte)Enum.GetValues<PaymentStatus>().Max();
         var maxChannel = (byte)Enum.GetValues<OrderChannel>().Max();
+        var maxGroup = (byte)Enum.GetValues<PaymentGroup>().Max();
+        var maxPlatform = (byte)Enum.GetValues<Platform>().Max();
         var actors = string.Join(", ", SnakeCaseEnum.AllValues<OrderActor>().Select(v => $"'{v}'"));
 
         builder.ToTable("Orders", table =>
@@ -72,6 +98,14 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
             table.HasCheckConstraint(
                 "CK_Orders_Amounts",
                 "[SubTotal] >= 0 AND [MemberDiscount] >= 0 AND [VoucherDiscount] >= 0 AND [MemberDiscount] + [VoucherDiscount] <= [SubTotal] AND [TotalAmount] >= 0 AND [DeliveryFee] >= 0 AND [ShippingDiscount] >= 0 AND [ShippingDiscount] <= [DeliveryFee]");
+            // docs/srs/23 BR-PLT-01/06/07: đơn app phải có kênh con và mã đơn app; đơn tại quán không có; giảm giá app không vượt tạm tính
+            table.HasCheckConstraint("CK_Orders_PaymentGroup", $"[PaymentGroup] BETWEEN 0 AND {maxGroup}");
+            table.HasCheckConstraint("CK_Orders_Platform", $"[Platform] IS NULL OR [Platform] BETWEEN 0 AND {maxPlatform}");
+            table.HasCheckConstraint(
+                "CK_Orders_PlatformOrder",
+                "([PaymentGroup] = 0 AND [Platform] IS NULL AND [ExternalOrderCode] IS NULL) OR ([PaymentGroup] <> 0 AND [Platform] IS NOT NULL AND [ExternalOrderCode] IS NOT NULL)");
+            table.HasCheckConstraint("CK_Orders_PlatformDiscount", "[PlatformDiscount] >= 0 AND [PlatformDiscount] <= [SubTotal]");
+
             // Giao hàng: phải có địa chỉ
             table.HasCheckConstraint("CK_Orders_Delivery", "[Channel] <> 2 OR [DeliveryAddress] IS NOT NULL");
 
@@ -94,6 +128,9 @@ internal sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(o => new { o.CustomerPhone, o.NoPickup });
         builder.HasIndex(o => o.UserId);
         // Một bàn chỉ một phiếu tại bàn đang mở (hai nhân viên mở cùng lúc: một bên nhận TABLE_CONFLICT)
+        // BR-PLT-06: mã đơn app duy nhất trong cùng nhóm và kênh con (đã chuẩn hóa chữ thường, bỏ khoảng trắng)
+        builder.HasIndex(o => new { o.PaymentGroup, o.Platform, o.ExternalOrderCode }, "UX_Orders_ExternalCode").IsUnique().HasFilter("[ExternalOrderCode] IS NOT NULL AND [Status] <> 4");
+        builder.HasIndex(o => new { o.Status, o.CompletedAtUtc });
         builder.HasIndex(o => o.TableId, "UX_Orders_OpenTable").IsUnique().HasFilter("[Channel] = 1 AND [Status] IN (0, 1, 2)");
     }
 }

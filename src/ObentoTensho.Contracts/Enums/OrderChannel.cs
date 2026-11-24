@@ -10,5 +10,7 @@ public enum OrderChannel : byte
     Delivery = 2,
 
     // Khách vào quán mua mang đi, nhân viên lên đơn tại quầy (chủ quán 2026-11-13)
-    Counter = 3
+    Counter = 3,
+    // docs/srs/23: đơn khách đặt trên app giao đồ ăn, thu ngân nhập lại từng món (chủ quán 2026-11-24)
+    Platform = 4
 }

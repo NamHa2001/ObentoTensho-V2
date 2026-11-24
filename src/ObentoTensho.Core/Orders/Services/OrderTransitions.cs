@@ -22,6 +22,7 @@ public sealed class OrderTransitions(
     LoyaltyLedger ledger,
     VoucherEvaluator vouchers,
     ILoyaltySettings loyaltySettings,
+    IOrderSettings orderSettings,
     IRealtimeEvents realtime,
     IClock clock)
 {
@@ -42,6 +43,7 @@ public sealed class OrderTransitions(
         {
             case OrderStatus.Completed:
                 order.CompletedAtUtc = now;
+                order.Revenue = RevenueSplit.Compute(RevenueSplit.NetOf(order), orderSettings.RevenueRates);
                 break;
             case OrderStatus.Cancelled:
                 order.CancelledAtUtc = now;

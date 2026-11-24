@@ -103,6 +103,21 @@ public sealed class Order
 
     public int PointsEarned { get; set; }
 
+    // docs/srs/23 BR-PLT-01: nhóm thanh toán; đơn app có nhóm Tensho/Hima/Xanh, kênh con và mã đơn của app
+    public PaymentGroup PaymentGroup { get; set; } = PaymentGroup.InStore;
+
+    public Platform? Platform { get; set; }
+
+    public string? ExternalOrderCode { get; set; }
+
+    // BR-PLT-07: giảm giá khách đã áp trên app (% nhập lại để đối chiếu, số tiền là số được trừ)
+    public decimal? PlatformDiscountPercent { get; set; }
+
+    public decimal PlatformDiscount { get; set; }
+
+    // BR-PLT-03/04: bản chụp tỉ lệ và các khoản lúc đơn hoàn thành; đổi tỉ lệ về sau không đổi số đơn cũ
+    public RevenueSplit? Revenue { get; set; }
+
     public required DateTime CreatedAtUtc { get; init; }
 
     public DateTime? UpdatedAtUtc { get; set; }

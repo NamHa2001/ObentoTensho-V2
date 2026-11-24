@@ -2255,6 +2255,9 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<double?>("DeliveryLongitude")
                         .HasColumnType("float");
 
+                    b.Property<string>("ExternalOrderCode")
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<int?>("GuestCount")
                         .HasColumnType("int");
 
@@ -2285,6 +2288,10 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("PaidByStaffId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<byte>("PaymentGroup")
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((byte)0);
+
                     b.Property<byte>("PaymentMethod")
                         .HasColumnType("tinyint");
 
@@ -2293,6 +2300,16 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("PickupAtUtc")
                         .HasColumnType("datetime2(3)");
+
+                    b.Property<byte?>("Platform")
+                        .HasColumnType("tinyint");
+
+                    b.Property<decimal>("PlatformDiscount")
+                        .HasColumnType("decimal(18,0)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal?>("PlatformDiscountPercent")
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<int>("PointsEarned")
                         .HasColumnType("int");
@@ -2357,9 +2374,15 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CustomerPhone", "Status");
 
+                    b.HasIndex("Status", "CompletedAtUtc");
+
                     b.HasIndex("Status", "CreatedAtUtc");
 
                     b.HasIndex("Status", "PickupAtUtc");
+
+                    b.HasIndex(new[] { "PaymentGroup", "Platform", "ExternalOrderCode" }, "UX_Orders_ExternalCode")
+                        .IsUnique()
+                        .HasFilter("[ExternalOrderCode] IS NOT NULL AND [Status] <> 4");
 
                     b.HasIndex(new[] { "TableId" }, "UX_Orders_OpenTable")
                         .IsUnique()
@@ -2371,7 +2394,7 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Orders_CancelledByType", "[CancelledByType] IS NULL OR [CancelledByType] IN ('customer', 'staff', 'system')");
 
-                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 3");
+                            t.HasCheckConstraint("CK_Orders_Channel", "[Channel] BETWEEN 0 AND 4");
 
                             t.HasCheckConstraint("CK_Orders_CompletedPaid", "[Status] <> 3 OR [PaymentStatus] = 1");
 
@@ -2379,9 +2402,17 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("CK_Orders_DineIn", "[Channel] <> 1 OR ([GuestCount] BETWEEN 1 AND 50)");
 
+                            t.HasCheckConstraint("CK_Orders_PaymentGroup", "[PaymentGroup] BETWEEN 0 AND 3");
+
                             t.HasCheckConstraint("CK_Orders_PaymentMethod", "[PaymentMethod] BETWEEN 0 AND 1");
 
                             t.HasCheckConstraint("CK_Orders_PaymentStatus", "[PaymentStatus] BETWEEN 0 AND 1");
+
+                            t.HasCheckConstraint("CK_Orders_Platform", "[Platform] IS NULL OR [Platform] BETWEEN 0 AND 3");
+
+                            t.HasCheckConstraint("CK_Orders_PlatformDiscount", "[PlatformDiscount] >= 0 AND [PlatformDiscount] <= [SubTotal]");
+
+                            t.HasCheckConstraint("CK_Orders_PlatformOrder", "([PaymentGroup] = 0 AND [Platform] IS NULL AND [ExternalOrderCode] IS NULL) OR ([PaymentGroup] <> 0 AND [Platform] IS NOT NULL AND [ExternalOrderCode] IS NOT NULL)");
 
                             t.HasCheckConstraint("CK_Orders_Status", "[Status] BETWEEN 0 AND 5");
                         });
@@ -3939,6 +3970,53 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("VoucherId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.OwnsOne("ObentoTensho.Core.Orders.Domain.RevenueSplit", "Revenue", b1 =>
+                        {
+                            b1.Property<Guid>("OrderId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("DeductionAmount")
+                                .HasColumnType("decimal(18,0)")
+                                .HasColumnName("DeductionAmount");
+
+                            b1.Property<decimal>("DeductionPercent")
+                                .HasColumnType("decimal(5,2)")
+                                .HasColumnName("DeductionPercent");
+
+                            b1.Property<decimal>("NetRevenue")
+                                .HasColumnType("decimal(18,0)")
+                                .HasColumnName("NetRevenue");
+
+                            b1.Property<decimal>("PitAmount")
+                                .HasColumnType("decimal(18,0)")
+                                .HasColumnName("PitAmount");
+
+                            b1.Property<decimal>("PitPercent")
+                                .HasColumnType("decimal(5,2)")
+                                .HasColumnName("PitPercent");
+
+                            b1.Property<decimal>("ReceivedAmount")
+                                .HasColumnType("decimal(18,0)")
+                                .HasColumnName("ReceivedAmount");
+
+                            b1.Property<decimal>("VatAmount")
+                                .HasColumnType("decimal(18,0)")
+                                .HasColumnName("VatAmount");
+
+                            b1.Property<decimal>("VatPercent")
+                                .HasColumnType("decimal(5,2)")
+                                .HasColumnName("VatPercent");
+
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("Orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.Navigation("Revenue");
                 });
 
             modelBuilder.Entity("ObentoTensho.Core.Orders.Domain.OrderItem", b =>

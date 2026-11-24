@@ -9574,7 +9574,8 @@
                   "pickup",
                   "dine_in",
                   "delivery",
-                  "counter"
+                  "counter",
+                  "platform"
                 ],
                 "default": "pickup"
               }
@@ -9898,7 +9899,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ],
             "default": "pickup"
           }
@@ -11292,7 +11294,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ]
           },
           "orders": {
@@ -11767,7 +11770,8 @@
                   "pickup",
                   "dine_in",
                   "delivery",
-                  "counter"
+                  "counter",
+                  "platform"
                 ],
                 "default": "pickup"
               },
@@ -12774,7 +12778,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ],
             "default": "dine_in"
           },
@@ -13710,7 +13715,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ]
           },
           "totalAmount": {
@@ -13939,7 +13945,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ],
             "default": "pickup"
           }
@@ -15711,7 +15718,8 @@
                     "pickup",
                     "dine_in",
                     "delivery",
-                    "counter"
+                    "counter",
+                    "platform"
                   ],
                   "default": "pickup"
                 }
@@ -15821,7 +15829,8 @@
                     "pickup",
                     "dine_in",
                     "delivery",
-                    "counter"
+                    "counter",
+                    "platform"
                   ],
                   "default": "pickup"
                 }
@@ -15931,7 +15940,8 @@
                     "pickup",
                     "dine_in",
                     "delivery",
-                    "counter"
+                    "counter",
+                    "platform"
                   ],
                   "default": "pickup"
                 }
@@ -15945,7 +15955,8 @@
           "pickup",
           "dine_in",
           "delivery",
-          "counter"
+          "counter",
+          "platform"
         ],
         "default": "pickup"
       },
@@ -16430,6 +16441,14 @@
           }
         }
       },
+      "PaymentGroup": {
+        "enum": [
+          "in_store",
+          "tensho",
+          "hima",
+          "xanh"
+        ]
+      },
       "PaymentMethod": {
         "enum": [
           "cash",
@@ -16478,6 +16497,14 @@
             }
           }
         }
+      },
+      "Platform": {
+        "enum": [
+          "grab",
+          "shopee",
+          "be",
+          "xanh"
+        ]
       },
       "ProfileDto": {
         "required": [
@@ -18451,7 +18478,8 @@
               "pickup",
               "dine_in",
               "delivery",
-              "counter"
+              "counter",
+              "platform"
             ],
             "default": "pickup"
           },
@@ -19549,7 +19577,8 @@
                     "pickup",
                     "dine_in",
                     "delivery",
-                    "counter"
+                    "counter",
+                    "platform"
                   ]
                 },
                 "orders": {

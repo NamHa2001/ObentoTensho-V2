@@ -1,3 +1,5 @@
+using ObentoTensho.Core.Orders.Domain;
+
 namespace ObentoTensho.Core.Orders.Abstractions;
 
 // Núm vặn `order.*` (docs/srs/19 §3)
@@ -28,4 +30,7 @@ public interface IOrderSettings
 
     // docs/srs/20 #30: chờ xác nhận quá bấy nhiêu phút (hoặc còn ít hơn chừng ấy tới giờ lấy) ⇒ cần xử lý
     int PendingAlertMinutes { get; }
+
+    // docs/srs/23 BR-PLT-03/04: khấu trừ, GTGT, TNCN (%) trên doanh thu ròng, chụp vào đơn lúc hoàn thành
+    RevenueSplit.Rates RevenueRates { get; }
 }

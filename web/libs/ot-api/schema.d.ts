@@ -9996,7 +9996,7 @@ export interface components {
                  * @default pickup
                  * @enum {unknown}
                  */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             };
             items: {
                 /** Format: int32 */
@@ -10094,7 +10094,7 @@ export interface components {
              * @default pickup
              * @enum {unknown}
              */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
         };
         AdminPromotionDto: {
             /** Format: int32 */
@@ -10468,7 +10468,7 @@ export interface components {
         };
         ChannelRevenueDto: {
             /** @enum {unknown} */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             /** Format: int32 */
             orders: number;
             /** Format: double */
@@ -10593,7 +10593,7 @@ export interface components {
                  * @default pickup
                  * @enum {unknown}
                  */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
                 deliveryAddress?: null | string;
                 /**
                  * Format: double
@@ -10885,7 +10885,7 @@ export interface components {
              * @default dine_in
              * @enum {unknown}
              */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             /** @default false */
             paid: boolean;
         };
@@ -11136,7 +11136,7 @@ export interface components {
             orderId: string;
             orderCode: string;
             /** @enum {unknown} */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             /** Format: double */
             totalAmount: number;
             /** Format: date-time */
@@ -11196,7 +11196,7 @@ export interface components {
              * @default pickup
              * @enum {unknown}
              */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
         };
         LoginRequest: {
             email: string;
@@ -11671,7 +11671,7 @@ export interface components {
                  * @default pickup
                  * @enum {unknown}
                  */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             }[];
             notPickedUp: {
                 /** Format: uuid */
@@ -11705,7 +11705,7 @@ export interface components {
                  * @default pickup
                  * @enum {unknown}
                  */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             }[];
             refundPending: {
                 /** Format: uuid */
@@ -11739,14 +11739,14 @@ export interface components {
                  * @default pickup
                  * @enum {unknown}
                  */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             }[];
         };
         /**
          * @default pickup
          * @enum {unknown}
          */
-        OrderChannel: "pickup" | "dine_in" | "delivery" | "counter";
+        OrderChannel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
         OrderContactDto: {
             phone: string;
             email: string;
@@ -11882,6 +11882,8 @@ export interface components {
             total: number;
         };
         /** @enum {unknown} */
+        PaymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+        /** @enum {unknown} */
         PaymentMethod: "cash" | "bank_transfer";
         /** @enum {unknown} */
         PaymentStatus: "unpaid" | "paid";
@@ -11896,6 +11898,8 @@ export interface components {
             date: string;
             times: string[];
         };
+        /** @enum {unknown} */
+        Platform: "grab" | "shopee" | "be" | "xanh";
         ProfileDto: {
             fullName: string;
             email: string;
@@ -12405,7 +12409,7 @@ export interface components {
              * @default pickup
              * @enum {unknown}
              */
-            channel: "pickup" | "dine_in" | "delivery" | "counter";
+            channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
             deliveryAddress?: null | string;
             /**
              * Format: double
@@ -12711,7 +12715,7 @@ export interface components {
             definition: string;
             byChannel?: null | {
                 /** @enum {unknown} */
-                channel: "pickup" | "dine_in" | "delivery" | "counter";
+                channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
                 /** Format: int32 */
                 orders: number;
                 /** Format: double */
