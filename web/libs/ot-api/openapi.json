@@ -4606,6 +4606,18 @@
         }
       }
     },
+    "/api/v1/admin/platform-orders/rates": {
+      "get": {
+        "tags": [
+          "AdminPlatformOrders"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/platform-orders/{id}": {
       "put": {
         "tags": [
@@ -9830,6 +9842,30 @@
                   "platform"
                 ],
                 "default": "pickup"
+              },
+              "paymentGroup": {
+                "enum": [
+                  "in_store",
+                  "tensho",
+                  "hima",
+                  "xanh"
+                ],
+                "default": "in_store"
+              },
+              "platform": {
+                "enum": [
+                  "grab",
+                  "shopee",
+                  "be",
+                  "xanh",
+                  null
+                ]
+              },
+              "externalOrderCode": {
+                "type": [
+                  "null",
+                  "string"
+                ]
               }
             }
           },
@@ -10155,6 +10191,30 @@
               "platform"
             ],
             "default": "pickup"
+          },
+          "paymentGroup": {
+            "enum": [
+              "in_store",
+              "tensho",
+              "hima",
+              "xanh"
+            ],
+            "default": "in_store"
+          },
+          "platform": {
+            "enum": [
+              "grab",
+              "shopee",
+              "be",
+              "xanh",
+              null
+            ]
+          },
+          "externalOrderCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -16026,6 +16086,30 @@
                     "platform"
                   ],
                   "default": "pickup"
+                },
+                "paymentGroup": {
+                  "enum": [
+                    "in_store",
+                    "tensho",
+                    "hima",
+                    "xanh"
+                  ],
+                  "default": "in_store"
+                },
+                "platform": {
+                  "enum": [
+                    "grab",
+                    "shopee",
+                    "be",
+                    "xanh",
+                    null
+                  ]
+                },
+                "externalOrderCode": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
                 }
               }
             }
@@ -16137,6 +16221,30 @@
                     "platform"
                   ],
                   "default": "pickup"
+                },
+                "paymentGroup": {
+                  "enum": [
+                    "in_store",
+                    "tensho",
+                    "hima",
+                    "xanh"
+                  ],
+                  "default": "in_store"
+                },
+                "platform": {
+                  "enum": [
+                    "grab",
+                    "shopee",
+                    "be",
+                    "xanh",
+                    null
+                  ]
+                },
+                "externalOrderCode": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
                 }
               }
             }
@@ -16248,6 +16356,30 @@
                     "platform"
                   ],
                   "default": "pickup"
+                },
+                "paymentGroup": {
+                  "enum": [
+                    "in_store",
+                    "tensho",
+                    "hima",
+                    "xanh"
+                  ],
+                  "default": "in_store"
+                },
+                "platform": {
+                  "enum": [
+                    "grab",
+                    "shopee",
+                    "be",
+                    "xanh",
+                    null
+                  ]
+                },
+                "externalOrderCode": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
                 }
               }
             }
@@ -20511,6 +20643,28 @@
             "format": "double"
           },
           "net": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "RevenueRatesDto": {
+        "required": [
+          "deductionPercent",
+          "vatPercent",
+          "pitPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "deductionPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatPercent": {
+            "type": "number",
+            "format": "double"
+          },
+          "pitPercent": {
             "type": "number",
             "format": "double"
           }

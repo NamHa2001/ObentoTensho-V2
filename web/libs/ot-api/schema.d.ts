@@ -5682,6 +5682,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/platform-orders/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/platform-orders/{id}": {
         parameters: {
             query?: never;
@@ -10247,6 +10280,14 @@ export interface components {
                  * @enum {unknown}
                  */
                 channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
+                /**
+                 * @default in_store
+                 * @enum {unknown}
+                 */
+                paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+                /** @enum {unknown} */
+                platform?: "grab" | "shopee" | "be" | "xanh" | null;
+                externalOrderCode?: null | string;
             };
             items: {
                 /** Format: int32 */
@@ -10345,6 +10386,14 @@ export interface components {
              * @enum {unknown}
              */
             channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
+            /**
+             * @default in_store
+             * @enum {unknown}
+             */
+            paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+            /** @enum {unknown} */
+            platform?: "grab" | "shopee" | "be" | "xanh" | null;
+            externalOrderCode?: null | string;
         };
         AdminPromotionDto: {
             /** Format: int32 */
@@ -11933,6 +11982,14 @@ export interface components {
                  * @enum {unknown}
                  */
                 channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
+                /**
+                 * @default in_store
+                 * @enum {unknown}
+                 */
+                paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+                /** @enum {unknown} */
+                platform?: "grab" | "shopee" | "be" | "xanh" | null;
+                externalOrderCode?: null | string;
             }[];
             notPickedUp: {
                 /** Format: uuid */
@@ -11967,6 +12024,14 @@ export interface components {
                  * @enum {unknown}
                  */
                 channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
+                /**
+                 * @default in_store
+                 * @enum {unknown}
+                 */
+                paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+                /** @enum {unknown} */
+                platform?: "grab" | "shopee" | "be" | "xanh" | null;
+                externalOrderCode?: null | string;
             }[];
             refundPending: {
                 /** Format: uuid */
@@ -12001,6 +12066,14 @@ export interface components {
                  * @enum {unknown}
                  */
                 channel: "pickup" | "dine_in" | "delivery" | "counter" | "platform";
+                /**
+                 * @default in_store
+                 * @enum {unknown}
+                 */
+                paymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+                /** @enum {unknown} */
+                platform?: "grab" | "shopee" | "be" | "xanh" | null;
+                externalOrderCode?: null | string;
             }[];
         };
         /**
@@ -13184,6 +13257,14 @@ export interface components {
             refunds: number;
             /** Format: double */
             net: number;
+        };
+        RevenueRatesDto: {
+            /** Format: double */
+            deductionPercent: number;
+            /** Format: double */
+            vatPercent: number;
+            /** Format: double */
+            pitPercent: number;
         };
         RevenueReportDto: {
             /** Format: double */

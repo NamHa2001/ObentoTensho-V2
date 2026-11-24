@@ -43,6 +43,12 @@ public sealed class PlatformOrderService(
     public static bool IsValidChannel(PaymentGroup group, Platform platform) =>
         Channels.TryGetValue(group, out var allowed) && allowed.Contains(platform);
 
+    public RevenueRatesDto Rates()
+    {
+        var rates = settings.RevenueRates;
+        return new RevenueRatesDto(rates.DeductionPercent, rates.VatPercent, rates.PitPercent);
+    }
+
     // Đơn app đang mở (bếp chưa ra hết món), mới nhất trước
     public async Task<IReadOnlyList<PlatformOrderDto>> OpenAsync(CancellationToken cancellationToken) =>
         (await orders.ListOpenDineInAsync(cancellationToken))

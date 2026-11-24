@@ -9,7 +9,7 @@ const login = () => import('./pages/login');
 const titled = (name: string) => `${name} | Quản trị Obento Tensho`;
 const TITLES: Record<string, string> = {
   dashboard: 'Bảng tin', orders: 'Đơn hàng', 'orders/:id': 'Chi tiết đơn', kitchen: 'Màn hình bếp', reservations: 'Đặt bàn', 'reservations/new': 'Đặt bàn hộ khách',
-  'reservations/:id': 'Chi tiết đặt bàn', calendar: 'Lịch đặt bàn', floor: 'Sơ đồ bàn', 'dine-in': 'Gọi món tại bàn', 'dine-in/:id': 'Phiếu bàn', invoices: 'Yêu cầu xuất hóa đơn',
+  'reservations/:id': 'Chi tiết đặt bàn', calendar: 'Lịch đặt bàn', floor: 'Sơ đồ bàn', 'dine-in': 'Gọi món tại bàn', 'dine-in/app': 'Nhập đơn app', 'dine-in/:id': 'Phiếu bàn', invoices: 'Yêu cầu xuất hóa đơn',
   'option-groups': 'Nhóm tùy chọn', 'item-images/:id': 'Ảnh món', customers: 'Khách hàng', 'customers/:id': 'Chi tiết khách', reports: 'Báo cáo', settings: 'Cài đặt',
   hours: 'Giờ mở cửa', translations: 'Bản dịch', 'exports/download': 'Tải tệp xuất', account: 'Tài khoản của tôi',
 };
@@ -39,6 +39,7 @@ export const routes: Routes = [
       page('calendar', 'reservations', () => import('./pages/calendar').then((m) => m.Calendar)),
       page('floor', 'tables_view', () => import('./pages/floor').then((m) => m.Floor)),
       page('dine-in', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineIn)),
+      page('dine-in/app', 'dine_in', () => import('./pages/platform-order').then((m) => m.PlatformOrderEntry), '/dine-in'),
       page('dine-in/:id', 'dine_in', () => import('./pages/dine-in').then((m) => m.DineInBill), '/dine-in'),
       page('invoices', 'invoices', () => import('./pages/invoices').then((m) => m.Invoices)),
       page('option-groups', 'menu', () => import('./pages/menu').then((m) => m.OptionGroups)),

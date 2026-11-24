@@ -22,6 +22,10 @@ public sealed class AdminPlatformOrdersController(PlatformOrderService platformO
     public async Task<IActionResult> Open(CancellationToken cancellationToken) =>
         this.Data(await platformOrders.OpenAsync(cancellationToken));
 
+    [HttpGet("rates")]
+    [RequireCapability(StaffCapability.DineIn)]
+    public IActionResult Rates() => this.Data(platformOrders.Rates());
+
     [HttpPost]
     [RequireCapability(StaffCapability.DineIn)]
     public async Task<IActionResult> Create(CreatePlatformOrderRequest request, CancellationToken cancellationToken) =>

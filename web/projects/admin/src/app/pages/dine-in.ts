@@ -1,14 +1,16 @@
-import { afterNextRender, Component, computed, HostListener, inject, Injector, signal } from '@angular/core';
+import { afterNextRender, Component, computed, inject, Injector, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
 import { catchError, map, of } from 'rxjs';
-import { ChevronLeft, LucideAngularModule, Minus, Plus } from 'lucide-angular';
+import { ChevronLeft, LucideAngularModule, Minus, Plus, Smartphone } from 'lucide-angular';
 
 import { Api } from '../core/api';
 import { Auth } from '../core/auth';
 import { reloadOnLive } from '../core/live';
+import { appLabel, PlatformEdit } from '../shared/platform';
+import { POS_DRAFT_LINES, POS_MENU, POS_PICKER, PosMenu } from '../shared/pos-menu';
 import { Latest, Submit, VndPipe } from '../shared/ui';
 import { askConfirm, askText } from '../../../../customer/src/app/core/dialog';
 import { buyerBody, emptyBuyer, InvoiceForm } from '../../../../customer/src/app/shared/invoice-form';
@@ -17,17 +19,7 @@ type TableCard = Schemas['DineInTableDto'];
 type Bill = Schemas['DineInBillDto'];
 type Line = Bill['items'][number];
 type Receipt = Schemas['DineInReceiptDto'];
-type MenuItem = Schemas['PublicMenuItemDto'];
-type OptionGroup = Schemas['PublicOptionGroupDto'];
-
-// Bảng chọn tùy chọn cho một món trước khi thêm vào đợt gọi
-interface Picking {
-  item: MenuItem;
-  groups: OptionGroup[];
-  selected: Set<number>;
-  quantity: number;
-}
-
+type AppOrder = Schemas['PlatformOrderDto'];
 // Phiếu in: tạm tính lúc khách xem hoặc phiếu thanh toán sau khi thu tiền
 interface Slip {
   title: string;
@@ -61,6 +53,7 @@ function clock(utc: string): string {
       <h1>Gọi món tại bàn</h1>
       <div class="a-btns">
         <button type="button" class="ot-btn ot-btn-primary" (click)="startCounter()"><lucide-icon [img]="icons.plus" [size]="18" />Đơn mang về tại quầy</button>
+        <a class="ot-btn ot-btn-outline" routerLink="/dine-in/app"><lucide-icon [img]="icons.app" [size]="18" />Nhập đơn app</a>
         <button type="button" class="ot-chip" (click)="load()">Tải lại</button>
       </div>
     </div>
@@ -80,7 +73,22 @@ function clock(utc: string): string {
         </div>
       </section>
     }
-    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "Đơn mang về tại quầy".</p>
+    @if (apps().length > 0) {
+      <section class="a-card mb-6">
+        <header class="a-card-h"><span>Đơn app đang làm <small class="ml-1 font-normal text-muted">{{ apps().length }} đơn</small></span></header>
+        <div class="a-card-b grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+          @for (a of apps(); track a.id) {
+            <button type="button" class="a-dine-table" data-status="reserved" (click)="openBill(a.id)">
+              <b class="text-lg">{{ appName(a) }}</b>
+              <span class="text-sm">{{ a.externalOrderCode }} · {{ since(a.createdAtUtc) }} phút</span>
+              <span class="font-medium">Thực nhận {{ a.receivedAmount | vnd }}</span>
+              @if (a.unservedCount > 0) { <span class="a-badge self-start">{{ a.unservedCount }} món chờ bếp</span> }
+            </button>
+          }
+        </div>
+      </section>
+    }
+    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "Đơn mang về tại quầy", đơn khách đặt trên app thì bấm "Nhập đơn app".</p>
     @for (g of groups(); track g.name) {
       <section class="a-card mb-6">
         <header class="a-card-h"><span>{{ g.name }} <small class="ml-1 font-normal text-muted">{{ g.tables.length }} bàn</small></span></header>
@@ -139,11 +147,12 @@ function clock(utc: string): string {
   `,
 })
 export class DineIn {
-  protected readonly icons = { plus: Plus };
+  protected readonly icons = { plus: Plus, app: Smartphone };
   private readonly api = inject(Api);
   private readonly router = inject(Router);
   protected readonly tables = signal<TableCard[]>([]);
   protected readonly counter = signal<Schemas['CounterBillDto'][]>([]);
+  protected readonly apps = signal<AppOrder[]>([]);
   protected readonly counterForm = signal(false);
   protected counterName = '';
   protected readonly loaded = signal(false);
@@ -172,6 +181,11 @@ export class DineIn {
       this.loaded.set(true);
     });
     this.api.get<Schemas['CounterBillDto'][]>('dine-in/counter').subscribe({ next: (c) => this.counter.set(c), error: () => undefined });
+    this.api.get<AppOrder[]>('platform-orders').subscribe({ next: (a) => this.apps.set(a), error: () => undefined });
+  }
+
+  protected appName(a: AppOrder): string {
+    return appLabel(a.paymentGroup, a.platform);
   }
 
   protected label(status: string): string {
@@ -228,22 +242,11 @@ export class DineIn {
   }
 }
 
-interface DraftLine {
-  key: number;
-  menuItemId: number;
-  name: string;
-  unitPrice: number;
-  quantity: number;
-  optionIds: number[];
-  options: string[];
-  note: string;
-}
-
 // Phiếu bàn: chọn món (bên trái) thành một đợt, gửi bếp; xem món theo đợt, đánh dấu đã bưng ra, hủy món (quản lý),
 // chuyển/gộp bàn, in tạm tính, thanh toán (mọi nhân viên phục vụ bàn)
 @Component({
   selector: 'ot-dine-in-bill',
-  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule],
+  imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule, PlatformEdit],
   template: `
     <div class="a-head">
       <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
@@ -255,45 +258,10 @@ interface DraftLine {
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section class="a-card">
           <header class="a-card-h">Chọn món</header>
-          @if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
+          @if (b.channel === 'platform') { <p class="a-card-b font-medium">Đơn app đã thanh toán qua app, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách đặt thêm trên app thì nhập đơn mới.</p> }
+          @else if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
-            <input class="ot-input" name="q" placeholder="Tìm món" [ngModel]="query()" (ngModelChange)="query.set($event)" />
-            <!-- Danh mục dính khi cuộn: hàng ngang trên điện thoại, cột trái từ máy tính bảng; bấm thì cuộn tới nhóm -->
-            <div class="a-pos-menu">
-              @if (!query().trim()) {
-                <nav class="a-pos-cats" aria-label="Danh mục">
-                  @for (g of groups(); track g.id) {
-                    <button type="button" class="ot-chip" [id]="'pos-chip-' + g.id" [class.ot-chip-active]="activeCat() === g.id" (click)="jumpCat(g.id)">{{ g.name }}</button>
-                  }
-                </nav>
-              }
-              <div class="min-w-0">
-                @if (query().trim()) {
-                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
-                    @for (m of shown(); track m.id) {
-                      <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                        <span class="font-medium">{{ m.name }}</span>
-                        <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
-                      </button>
-                    } @empty { <p class="text-muted">Không có món phù hợp.</p> }
-                  </div>
-                } @else {
-                  @for (g of groups(); track g.id) {
-                    <section class="a-pos-section" [id]="'pos-cat-' + g.id">
-                      <h3 class="mb-2 font-medium">{{ g.name }}</h3>
-                      <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 2xl:grid-cols-4">
-                        @for (m of g.items; track m.id) {
-                          <button type="button" class="a-dine-item" [disabled]="m.status !== 'available'" (click)="choose(m)">
-                            <span class="font-medium">{{ m.name }}</span>
-                            <span class="text-sm text-muted">{{ m.status === 'available' ? (m.price | vnd) : 'Hết món' }}</span>
-                          </button>
-                        }
-                      </div>
-                    </section>
-                  } @empty { <p class="text-muted">Chưa có món.</p> }
-                }
-              </div>
-            </div>
+${POS_MENU}
 
             @if (draft().length > 0) {
               <div class="a-pos-send">
@@ -305,18 +273,7 @@ interface DraftLine {
             @if (draft().length > 0) {
               <div id="pos-draft" class="rounded-md border border-line p-3">
                 <h2 class="mb-2 font-medium">Món đang chọn (chưa gửi bếp)</h2>
-                @for (d of draft(); track d.key) {
-                  <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
-                    <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
-                    <div class="flex items-center gap-1">
-                      <button type="button" class="ot-chip" aria-label="Bớt" (click)="bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
-                      <span class="w-6 text-center">{{ d.quantity }}</span>
-                      <button type="button" class="ot-chip" aria-label="Thêm" (click)="bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
-                    </div>
-                    <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
-                    <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [(ngModel)]="d.note" />
-                  </div>
-                }
+${POS_DRAFT_LINES}
                 <button type="button" class="ot-btn ot-btn-primary mt-3 w-full" [disabled]="form.busy()" (click)="send(b)">Gửi bếp ({{ draftCount() }} món)</button>
               </div>
             }
@@ -328,6 +285,24 @@ interface DraftLine {
           <header class="a-card-h"><span>Phiếu {{ b.code }}</span><span>{{ b.subTotal | vnd }}</span></header>
           <div class="a-card-b">
             @if (b.note) { <p class="mb-2 text-sm text-muted">Ghi chú: {{ b.note }}</p> }
+            @if (b.channel === 'platform' && app(); as a) {
+              <dl class="a-kv mb-3 rounded-md bg-surface-2 p-3 tabular-nums">
+                <dt>App</dt><dd>{{ appName(a) }}</dd>
+                <dt>Mã đơn app</dt><dd>{{ a.externalOrderCode }}</dd>
+                <dt>Giảm giá</dt><dd>{{ a.discount | vnd }}@if (a.discountPercent !== null) { ({{ a.discountPercent }}%) }</dd>
+                <dt>Doanh thu ròng</dt><dd>{{ a.netRevenue | vnd }}</dd>
+                <dt>Thực nhận</dt><dd class="font-semibold">{{ a.receivedAmount | vnd }}</dd>
+              </dl>
+              @if (canVoid()) {
+                <div class="mb-3 grid grid-cols-2 gap-2">
+                  <button type="button" class="ot-btn ot-btn-outline" (click)="editing.set(true)">Sửa mã, giảm giá</button>
+                  <button type="button" class="ot-btn ot-btn-outline text-danger" (click)="cancelApp(a)">Hủy đơn app</button>
+                </div>
+              }
+              @if (editing()) {
+                <ot-platform-edit [order]="{ id: a.id, group: a.paymentGroup, platform: a.platform, externalOrderCode: a.externalOrderCode, subTotal: a.subTotal, discountPercent: a.discountPercent ?? null, discount: a.discount }" (saved)="app.set($event); editing.set(false)" (closed)="editing.set(false)" />
+              }
+            }
             @for (r of rounds(); track r.round) {
               <h3 class="mt-3 text-sm font-medium text-muted">Đợt {{ r.round }} · {{ time(r.sentAtUtc) }}</h3>
               @for (i of r.items; track i.id) {
@@ -366,32 +341,7 @@ interface DraftLine {
       </div>
     }
 
-    @if (picking(); as p) {
-      <div class="a-drawer" role="dialog" aria-modal="true">
-        <form class="a-drawer-panel" (ngSubmit)="addPicked(p)">
-          <div class="a-drawer-h">{{ p.item.name }}</div>
-          <div class="a-drawer-b">
-            @for (g of p.groups; track g.id) {
-              <fieldset>
-                <legend>{{ g.name }} <small class="font-normal text-muted">{{ g.isRequired ? 'bắt buộc' : 'không bắt buộc' }}{{ g.selectionType === 'many' ? ', tối đa ' + g.maxSelect : '' }}</small></legend>
-                @for (o of g.options; track o.id) {
-                  <label class="flex items-center gap-2 font-normal">
-                    <input [type]="g.selectionType === 'one' ? 'radio' : 'checkbox'" [name]="'g' + g.id" [disabled]="o.status !== 'available'" [checked]="p.selected.has(o.id)" (change)="toggle(p, g, o.id)" />
-                    {{ o.name }}@if (o.priceDelta) { <small class="text-muted">+{{ o.priceDelta | vnd }}</small> }@if (o.status !== 'available') { <small class="text-muted">(hết)</small> }
-                  </label>
-                }
-              </fieldset>
-            }
-            <label>Số lượng<input class="ot-input" name="qty" type="number" min="1" max="99" [(ngModel)]="p.quantity" /></label>
-            @if (pickError(); as e) { <p class="ot-error">{{ e }}</p> }
-          </div>
-          <div class="a-drawer-f">
-            <button type="button" class="ot-btn ot-btn-outline" (click)="picking.set(null)">Đóng</button>
-            <button class="ot-btn ot-btn-primary">Thêm</button>
-          </div>
-        </form>
-      </div>
-    }
+${POS_PICKER}
 
     @if (moving(); as mode) {
       <div class="a-drawer" role="dialog" aria-modal="true">
@@ -480,25 +430,15 @@ interface DraftLine {
     }
   `,
 })
-export class DineInBill {
+export class DineInBill extends PosMenu {
   protected readonly icons = { back: ChevronLeft, minus: Minus, plus: Plus };
-  private readonly api = inject(Api);
   private readonly injector = inject(Injector);
   private readonly auth = inject(Auth);
   private readonly router = inject(Router);
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
-  private readonly details = new Map<string, OptionGroup[]>();
-  private nextKey = 1;
   protected readonly bill = signal<Bill | null>(null);
-  protected readonly menu = signal<MenuItem[]>([]);
-  protected readonly categories = signal<Schemas['PublicCategoryDto'][]>([]);
-  protected readonly activeCat = signal<number | null>(null);
-  protected readonly query = signal('');
-  private spyFrame = 0;
-  private jumpingUntil = 0;
-  protected readonly draft = signal<DraftLine[]>([]);
-  protected readonly picking = signal<Picking | null>(null);
-  protected readonly pickError = signal<string | null>(null);
+  protected readonly app = signal<AppOrder | null>(null);
+  protected readonly editing = signal(false);
   protected readonly moving = signal<'move' | 'merge' | null>(null);
   protected readonly targets = signal<TableCard[]>([]);
   protected readonly paying = signal<Bill | null>(null);
@@ -520,17 +460,6 @@ export class DineInBill {
     ),
     { initialValue: { name: 'Obento Tensho', address: '', phone: '' } },
   );
-  protected readonly shown = computed(() => {
-    const q = this.query().trim().toLowerCase();
-    return this.menu().filter((m) => !q || m.name.toLowerCase().includes(q));
-  });
-  // Món chia nhóm theo thứ tự danh mục của thực đơn
-  protected readonly groups = computed(() =>
-    this.categories()
-      .map((c) => ({ id: c.id, name: c.name, items: this.menu().filter((m) => m.categoryId === c.id) }))
-      .filter((g) => g.items.length > 0),
-  );
-  protected readonly draftCount = computed(() => this.draft().reduce((n, d) => n + d.quantity, 0));
   protected readonly activeCount = computed(() => (this.bill()?.items ?? []).filter((i) => !i.voided).length);
   protected readonly rounds = computed(() => {
     const byRound = new Map<number, Line[]>();
@@ -542,132 +471,38 @@ export class DineInBill {
   });
 
   constructor() {
+    super();
     this.load();
     reloadOnLive(() => this.load());
-    this.api.publicGet<Schemas['PublicCategoryDto'][]>('menu/categories').subscribe({ next: (c) => this.categories.set(c), error: () => undefined });
-    this.api.publicGet<MenuItem[]>('menu/items', { pageSize: 100 }).subscribe({ next: (m) => this.menu.set(m), error: () => this.form.error.set('Không tải được thực đơn.') });
+    this.loadMenu();
   }
 
   protected load(): void {
-    this.loader.run(this.api.get<Bill>(`dine-in/${this.id}`), (b) => this.bill.set(b));
-  }
-
-  protected jumpCat(id: number): void {
-    this.activeCat.set(id);
-    this.jumpingUntil = Date.now() + 800;
-    document.getElementById(`pos-chip-${id}`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
-    document.getElementById(`pos-cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  protected showDraft(): void {
-    document.getElementById('pos-draft')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  // Nhóm đang xem = nhóm cuối có tiêu đề đã chạm mép dưới thanh danh mục dính
-  @HostListener('window:scroll')
-  protected onScroll(): void {
-    if (this.spyFrame || Date.now() < this.jumpingUntil || this.query().trim()) {
-      return;
-    }
-
-    this.spyFrame = requestAnimationFrame(() => {
-      this.spyFrame = 0;
-      const nav = document.querySelector('.a-pos-cats');
-      const edge = (window.innerWidth < 768 && nav ? nav.getBoundingClientRect().bottom : 86) + 8;
-      let current: number | null = null;
-      for (const g of this.groups()) {
-        if ((document.getElementById(`pos-cat-${g.id}`)?.getBoundingClientRect().top ?? Infinity) <= edge) {
-          current = g.id;
-        }
-      }
-
-      const next = current ?? this.groups()[0]?.id ?? null;
-      if (next !== this.activeCat()) {
-        this.activeCat.set(next);
-        document.getElementById(`pos-chip-${next}`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    this.loader.run(this.api.get<Bill>(`dine-in/${this.id}`), (b) => {
+      this.bill.set(b);
+      if (b.channel === 'platform') {
+        this.api.get<AppOrder[]>('platform-orders').subscribe({ next: (all) => this.app.set(all.find((a) => a.id === b.id) ?? null), error: () => undefined });
       }
     });
+  }
+
+  protected appName(a: AppOrder): string {
+    return appLabel(a.paymentGroup, a.platform);
+  }
+
+  protected async cancelApp(a: AppOrder): Promise<void> {
+    const reason = await askText(`Hủy đơn app ${a.externalOrderCode}? Nhập lý do:`);
+    if (reason?.trim()) {
+      this.form.run(this.api.post(`platform-orders/${a.id}/cancel`, { reason }), () => void this.router.navigateByUrl('/dine-in'));
+    }
   }
 
   protected time(utc: string): string {
     return clock(utc);
   }
 
-  // Món không có tùy chọn thì thêm luôn; có thì mở bảng chọn
-  protected choose(m: MenuItem): void {
-    const cached = this.details.get(m.slug);
-    if (cached) {
-      this.pick(m, cached);
-      return;
-    }
-
-    this.form.run(this.api.publicGet<Schemas['PublicMenuItemDetailDto']>(`menu/items/${m.slug}`).pipe(map((d) => d.optionGroups)), (groups) => {
-      this.details.set(m.slug, groups);
-      this.pick(m, groups);
-    });
-  }
-
-  private pick(m: MenuItem, groups: OptionGroup[]): void {
-    if (groups.length === 0) {
-      this.addDraft(m, [], [], 1);
-      return;
-    }
-
-    const selected = new Set<number>(groups.flatMap((g) => g.options.filter((o) => o.isDefault && o.status === 'available').map((o) => o.id)));
-    this.pickError.set(null);
-    this.picking.set({ item: m, groups, selected, quantity: 1 });
-  }
-
-  protected toggle(p: Picking, g: OptionGroup, optionId: number): void {
-    if (g.selectionType === 'one') {
-      for (const o of g.options) {
-        p.selected.delete(o.id);
-      }
-
-      p.selected.add(optionId);
-    } else if (p.selected.has(optionId)) {
-      p.selected.delete(optionId);
-    } else {
-      p.selected.add(optionId);
-    }
-  }
-
-  protected addPicked(p: Picking): void {
-    for (const g of p.groups) {
-      const count = g.options.filter((o) => p.selected.has(o.id)).length;
-      if (count < g.minSelect || count > g.maxSelect) {
-        this.pickError.set(`Nhóm "${g.name}" cần chọn ${g.minSelect === g.maxSelect ? g.minSelect : `${g.minSelect}–${g.maxSelect}`} lựa chọn.`);
-        return;
-      }
-    }
-
-    const chosen = p.groups.flatMap((g) => g.options.filter((o) => p.selected.has(o.id)).map((o) => ({ g, o })));
-    this.addDraft(
-      p.item,
-      chosen.map((x) => x.o.id),
-      chosen.map((x) => `${x.g.name}: ${x.o.name}`),
-      Math.min(99, Math.max(1, Number(p.quantity) || 1)),
-      chosen.reduce((sum, x) => sum + x.o.priceDelta, 0),
-    );
-    this.picking.set(null);
-  }
-
-  private addDraft(m: MenuItem, optionIds: number[], options: string[], quantity: number, optionsPrice = 0): void {
-    const same = this.draft().find((d) => d.menuItemId === m.id && d.optionIds.join() === optionIds.join() && !d.note);
-    if (same) {
-      this.bump(same, quantity);
-      return;
-    }
-
-    this.draft.update((d) => [...d, { key: this.nextKey++, menuItemId: m.id, name: m.name, unitPrice: m.price + optionsPrice, quantity, optionIds, options, note: '' }]);
-  }
-
-  protected bump(d: DraftLine, delta: number): void {
-    this.draft.update((all) => all.map((x) => (x.key === d.key ? { ...x, quantity: Math.min(99, x.quantity + delta) } : x)).filter((x) => x.quantity > 0));
-  }
-
   protected send(b: Bill): void {
-    const items = this.draft().map((d) => ({ menuItemId: d.menuItemId, quantity: d.quantity, optionIds: d.optionIds, note: d.note.trim() || null }));
+    const items = this.draftItems();
     this.form.run(this.api.post<Bill>(`dine-in/${b.id}/items`, { items }), (bill) => {
       this.bill.set(bill);
       this.draft.set([]);

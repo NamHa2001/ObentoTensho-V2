@@ -61,7 +61,10 @@ public static class OrderMappings
             noPickupFlag,
             o.CreatedAtUtc,
             RowVersions.Encode(o.RowVersion),
-            o.Channel);
+            o.Channel,
+            o.PaymentGroup,
+            o.Platform,
+            o.ExternalOrderCode);
     }
 
     public static AdminOrderDetailDto ToDetail(this Order o, IClock clock, bool noPickupFlag, IReadOnlyList<OrderStatusHistory> history) =>
