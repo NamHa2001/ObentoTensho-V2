@@ -6,7 +6,7 @@ import { Schemas } from '@ot/api';
 import { Api } from '../core/api';
 import { Submit, altOf } from '../shared/ui';
 
-const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán', social: 'Mạng xã hội', payment: 'Thanh toán', reservation: 'Đặt bàn', order: 'Đặt món', delivery: 'Giao hàng', loyalty: 'Điểm thưởng', voucher: 'Voucher', notification: 'Thông báo', email: 'Email', otp: 'Mã OTP', i18n: 'Ngôn ngữ', seo: 'SEO', security: 'Bảo mật', content: 'Nội dung', media: 'Hình ảnh' };
+const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán', social: 'Mạng xã hội', payment: 'Thanh toán', reservation: 'Đặt bàn', order: 'Đặt món', delivery: 'Giao hàng', loyalty: 'Điểm thưởng', voucher: 'Voucher', notification: 'Thông báo', email: 'Email', otp: 'Mã OTP', i18n: 'Ngôn ngữ', seo: 'SEO', security: 'Bảo mật', content: 'Nội dung', media: 'Hình ảnh', report: 'Báo cáo' };
 
 type Setting = Schemas['SettingDto'];
 
