@@ -424,17 +424,6 @@
     }
   }
 
-  /* Tiêu đề khối hai màu, hoa xoay chậm hai bên (tắt khi người dùng chọn giảm chuyển động) */
-  .ot-title-flower {
-    animation: ot-title-spin 14s linear infinite;
-  }
-
-  @keyframes ot-title-spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   @media (min-width: 768px) {
     .ot-title-center {
       justify-content: center;
@@ -1457,7 +1446,7 @@
     background: var(--ot-primary);
     color: var(--ot-primary-contrast);
     box-shadow: var(--ot-shadow-1);
-    transition: background-color 0.18s, transform 0.18s, box-shadow 0.18s;
+    transition: background-color 0.15s, transform 0.15s, box-shadow 0.15s;
   }
 
   .ot-add-btn.is-added {
@@ -1469,7 +1458,7 @@
   }
 
   .ot-dish {
-    transition: border-color 0.18s, box-shadow 0.18s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   @media (hover: hover) {
@@ -1504,7 +1493,7 @@
   .ot-ticket,
   a.ot-card,
   a.ot-line-row {
-    transition: background-color 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
   }
 
   .ot-btn:active:not(:disabled) {
