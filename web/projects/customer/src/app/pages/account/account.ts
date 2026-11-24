@@ -117,7 +117,7 @@ export class Account {
         </div>
       </div>
 
-      <div class="mt-4 flex items-center gap-3 rounded-lg bg-primary px-5 py-4 text-on-primary">
+      <div class="mt-4 flex items-center gap-3 rounded-lg bg-surface-2 px-5 py-4">
         @if (vouchers() > 0) {
           <p>Bạn đang có <b>{{ vouchers() }} voucher</b> dùng được. Nhập mã ở bước thanh toán để được giảm giá.</p>
         } @else {
