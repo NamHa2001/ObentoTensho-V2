@@ -60,7 +60,7 @@
   --ot-chart-5: #8450b0;
 }
 
-body { font-size: 15px; background: var(--ot-bg); }
+body { font-size: 15px; background: var(--ot-bg); font-variant-numeric: tabular-nums; }
 h1, h2, h3, b, strong { font-weight: 500; }
 .a-wrap { display: flex; min-height: 100dvh; }
 .a-side { position: sticky; top: 0; flex: 0 0 var(--a-side); width: var(--a-side); height: 100dvh; overflow-y: auto; background: var(--ot-surface); border-right: 1px solid var(--ot-border); }
@@ -118,7 +118,7 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-main tbody tr:hover td { background: var(--ot-bg); }
 .a-actions { width: 1%; text-align: right; white-space: nowrap; }
 .a-thumb { display: block; width: 72px; height: 44px; border-radius: 6px; background: var(--ot-surface-2); object-fit: cover; }
-.a-badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--ot-surface-2); font-size: 12px; font-weight: 500; white-space: nowrap; }
+.a-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; background: var(--ot-surface-2); font-size: 12px; font-weight: 500; white-space: nowrap; }
 .a-badge-good { background: var(--ot-success-bg); color: var(--ot-success-text); }
 .a-badge-warn { background: var(--ot-warning-bg); color: var(--ot-warning-text); }
 .a-badge-bad { background: var(--ot-primary-soft); color: var(--ot-danger); }
