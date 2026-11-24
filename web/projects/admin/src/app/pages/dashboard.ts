@@ -32,26 +32,45 @@ type DashboardData = Schemas['ManagerDashboardDto'] | Schemas['ReceptionDashboar
           <ot-stat label="Voucher sắp hết hạn" [value]="m.expiringVouchers.length" [tone]="5" />
         }
       </div>
-      @if (m) {
-        <div class="a-row84">
-          <ot-chart title="Doanh thu theo ngày" kind="line" [points]="days(m.revenueByDay)" [money]="true" />
-          <ot-chart title="Doanh thu theo danh mục" kind="doughnut" [points]="named(m.revenueByCategory)" [money]="true" />
+      <!-- Biểu đồ chia tab theo mảng, thẻ số liệu luôn ở trên; nhân viên không xem doanh thu chỉ có tab Đặt bàn -->
+      @let tabs = m ? chartTabs : bookingOnly;
+      @let current = m ? chart() : 'booking';
+      @if (tabs.length > 1) {
+        <div class="ot-scroll-row mb-4" role="tablist" style="margin-inline: 0; padding-inline: 0">
+          @for (t of tabs; track t.key) { <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="current === t.key" [attr.aria-selected]="current === t.key" (click)="chart.set(t.key)">{{ t.label }}</button> }
         </div>
       }
-      <div class="a-row66">
-        <ot-chart title="Lượt đặt bàn theo ngày" kind="bar" [points]="days(v.reservationsByDay)" />
-        <ot-chart title="Đặt bàn hôm nay theo trạng thái" kind="doughnut" [points]="byStatus(v.reservationsToday, rs)" />
-      </div>
-      @if (m) {
-        <div class="a-row66">
-          <ot-chart title="Món bán chạy" kind="hbar" [points]="named(m.topItems)" />
-          <ot-chart title="Đơn hôm nay theo trạng thái" kind="doughnut" [points]="byStatus(m.ordersToday, os)" />
-        </div>
+      @switch (current) {
+        @case ('revenue') {
+          @if (m) {
+            <div class="a-row84">
+              <ot-chart title="Doanh thu theo ngày" kind="line" [points]="days(m.revenueByDay)" [money]="true" />
+              <ot-chart title="Doanh thu theo danh mục" kind="doughnut" [points]="named(m.revenueByCategory)" [money]="true" />
+            </div>
+          }
+        }
+        @case ('booking') {
+          <div class="a-row66">
+            <ot-chart title="Lượt đặt bàn theo ngày" kind="bar" [points]="days(v.reservationsByDay)" />
+            <ot-chart title="Đặt bàn hôm nay theo trạng thái" kind="doughnut" [points]="byStatus(v.reservationsToday, rs)" />
+          </div>
+        }
+        @case ('orders') {
+          @if (m) {
+            <div class="a-row66">
+              <ot-chart title="Món bán chạy" kind="hbar" [points]="named(m.topItems)" />
+              <ot-chart title="Đơn hôm nay theo trạng thái" kind="doughnut" [points]="byStatus(m.ordersToday, os)" />
+            </div>
+          }
+        }
       }
     }
   `,
 })
 export class Dashboard {
+  protected readonly chartTabs = [{ key: 'revenue', label: 'Doanh thu' }, { key: 'booking', label: 'Đặt bàn' }, { key: 'orders', label: 'Đơn hàng' }];
+  protected readonly bookingOnly = [{ key: 'booking', label: 'Đặt bàn' }];
+  protected readonly chart = signal('revenue');
   protected readonly rs = RESERVATION_STATUS;
   protected readonly os = ORDER_STATUS;
   protected readonly d = signal<DashboardData | null>(null);
