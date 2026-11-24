@@ -64,7 +64,7 @@ type Option = Schemas['PublicOptionDto'];
           }
         </div>
         <div class="flex items-center gap-3 border-t border-line px-5 py-3">
-          <div class="flex h-12 shrink-0 items-center rounded-full border border-line bg-surface">
+          <div class="flex h-12 shrink-0 items-center rounded-sm border border-line bg-surface">
             <button type="button" class="flex size-11 items-center justify-center disabled:opacity-40" aria-label="Giảm số lượng" [disabled]="quantity() <= 1" (click)="changeQuantity(-1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
             <span class="w-7 text-center font-medium tabular-nums" aria-live="polite">{{ quantity() }}</span>
             <button type="button" class="flex size-11 items-center justify-center disabled:opacity-40" aria-label="Tăng số lượng" [disabled]="quantity() >= maxQuantity" (click)="changeQuantity(1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>

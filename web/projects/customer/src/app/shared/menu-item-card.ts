@@ -26,16 +26,16 @@ const ADDED_MS = 1800;
             </div>
           }
           @if (item().status === 'sold_out') {
-            <span class="absolute top-2 left-2 rounded-sm bg-surface px-2 py-1 text-xs font-medium">Hết món</span>
+            <span class="absolute top-2 left-2 rounded-[4px] bg-surface px-2 py-1 text-xs font-medium">Hết món</span>
           } @else if (item().labels.isBestseller) {
-            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-on-primary">Bán chạy</span>
+            <span class="absolute top-2 left-2 rounded-[4px] bg-primary px-2 py-1 text-xs font-medium text-on-primary">Bán chạy</span>
           } @else if (item().labels.isNew) {
-            <span class="absolute top-2 left-2 rounded-sm bg-primary px-2 py-1 text-xs font-medium text-on-primary">Món mới</span>
+            <span class="absolute top-2 left-2 rounded-[4px] bg-primary px-2 py-1 text-xs font-medium text-on-primary">Món mới</span>
           }
           <!-- Nhãn Cay/Chay nằm trên ảnh để phần chữ của mọi thẻ cao bằng nhau, không hở trên hàng giá -->
           @if (tags().length > 0) {
             <span class="absolute top-2 right-2 flex gap-1">
-              @for (t of tags(); track t) { <span class="rounded-sm bg-surface/90 px-2 py-0.5 text-xs font-medium text-ink shadow-sm">{{ t }}</span> }
+              @for (t of tags(); track t) { <span class="rounded-[4px] bg-surface/90 px-2 py-0.5 text-xs font-medium text-ink shadow-sm">{{ t }}</span> }
             </span>
           }
         </div>

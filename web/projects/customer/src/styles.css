@@ -50,6 +50,7 @@
     background: var(--ot-bg);
     color: var(--ot-text);
     font-family: var(--ot-font-body);
+    font-variant-numeric: tabular-nums;
     overflow-x: hidden;
     overflow-wrap: anywhere;
     -webkit-tap-highlight-color: transparent;
@@ -381,7 +382,7 @@
     height: 44px;
     padding-inline: 16px;
     border: 1px solid rgb(255 255 255 / 30%);
-    border-radius: 999px;
+    border-radius: var(--ot-radius-sm);
     font-size: 14px;
   }
 
@@ -759,7 +760,7 @@
   .ot-badge {
     justify-self: start;
     padding: 4px 12px;
-    border-radius: 999px;
+    border-radius: 4px;
     background: var(--ot-surface-2);
     color: var(--ot-text-muted);
     font-size: 12px;
@@ -919,7 +920,7 @@
     align-items: center;
     min-height: 40px;
     padding: 0 12px;
-    border-radius: 999px;
+    border-radius: var(--ot-radius-sm);
     background: var(--ot-surface);
     box-shadow: var(--ot-shadow-2);
     font-size: 14px;
@@ -986,7 +987,7 @@
     height: 44px;
     padding-inline: 16px;
     border: 1px solid var(--ot-border);
-    border-radius: 999px;
+    border-radius: var(--ot-radius-sm);
     background: var(--ot-surface);
     font-weight: 500;
     white-space: nowrap;
@@ -1442,7 +1443,7 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    border-radius: 999px;
+    border-radius: var(--ot-radius-sm);
     background: var(--ot-primary);
     color: var(--ot-primary-contrast);
     box-shadow: var(--ot-shadow-1);

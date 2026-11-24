@@ -32,7 +32,7 @@ import { HEADER_LINKS } from './nav-items';
 
       <nav class="hidden items-center gap-1 lg:flex xl:gap-2" aria-label="Điều hướng chính">
         @for (link of links; track link.path) {
-          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-10 items-center rounded-full px-3 text-[15px] font-medium whitespace-nowrap transition-colors hover:text-primary xl:px-4 xl:text-base [&.bg-primary]:hover:text-on-primary">{{ link.label }}</a>
+          <a [routerLink]="link.path" routerLinkActive="bg-primary text-on-primary" class="flex h-10 items-center rounded-sm px-3 text-[15px] font-medium whitespace-nowrap transition-colors hover:text-primary xl:px-4 xl:text-base [&.bg-primary]:hover:text-on-primary">{{ link.label }}</a>
         }
       </nav>
 
