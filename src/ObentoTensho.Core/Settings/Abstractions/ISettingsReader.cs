@@ -6,6 +6,7 @@ public interface ISettingsReader
     string Get(string key);
 
     int GetInt(string key);
+    decimal GetDecimal(string key);
 
     bool GetBool(string key);
 

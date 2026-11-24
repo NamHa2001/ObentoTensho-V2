@@ -17,6 +17,8 @@ internal sealed class SettingsStore : ISettingsReader, ISettingsSnapshot
 
     public int GetInt(string key) => int.Parse(Get(key), CultureInfo.InvariantCulture);
 
+    public decimal GetDecimal(string key) => decimal.Parse(Get(key), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture);
+
     public bool GetBool(string key) => string.Equals(Get(key), "true", StringComparison.Ordinal);
 
     public IReadOnlyDictionary<string, string> Public() =>

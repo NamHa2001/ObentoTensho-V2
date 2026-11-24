@@ -22,6 +22,7 @@ public static class SettingRules
         return definition.Type switch
         {
             SettingType.Number => CheckInt(definition, value),
+            SettingType.Percent => CheckPercent(definition, value),
             SettingType.Bool => value is "true" or "false" ? null : FieldErrorCodes.InvalidFormat,
             SettingType.Url => value.Length == 0 || (Uri.TryCreate(value, UriKind.Absolute, out var uri) && string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal)) ? null : FieldErrorCodes.InvalidFormat,
             SettingType.Email => value.Length == 0 || EmailValidator.IsValid(value) ? null : FieldErrorCodes.InvalidFormat,
@@ -36,6 +37,17 @@ public static class SettingRules
     private static string? CheckInt(SettingDefinition definition, string value)
     {
         if (!int.TryParse(value, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var number))
+        {
+            return FieldErrorCodes.InvalidFormat;
+        }
+
+        return number < definition.Min || number > definition.Max ? FieldErrorCodes.OutOfRange : null;
+    }
+
+    // Phần trăm: số không âm, tối đa 2 chữ số thập phân, dấu chấm thập phân
+    private static string? CheckPercent(SettingDefinition definition, string value)
+    {
+        if (!decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var number) || decimal.Round(number, 2) != number)
         {
             return FieldErrorCodes.InvalidFormat;
         }

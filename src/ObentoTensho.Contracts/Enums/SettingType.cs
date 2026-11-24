@@ -10,5 +10,7 @@ public enum SettingType
     Time,
     Choice,
     List,
-    Image
+    Image,
+    // Phần trăm có tối đa 2 chữ số thập phân, ví dụ 1.5 (dấu chấm)
+    Percent
 }

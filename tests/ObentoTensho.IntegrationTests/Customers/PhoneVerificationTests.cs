@@ -173,6 +173,8 @@ public sealed class PhoneVerificationTests : IDisposable
 
         public int GetInt(string key) => inner.GetInt(key);
 
+        public decimal GetDecimal(string key) => inner.GetDecimal(key);
+
         public bool GetBool(string key) => !string.Equals(key, SettingKeys.OtpRequirePhoneVerify, StringComparison.Ordinal) && inner.GetBool(key);
 
         public IReadOnlyDictionary<string, string> Public() => inner.Public();

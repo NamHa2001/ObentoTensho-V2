@@ -19778,7 +19778,8 @@
               "time",
               "choice",
               "list",
-              "image"
+              "image",
+              "percent"
             ]
           },
           "minValue": {
@@ -19829,7 +19830,8 @@
           "time",
           "choice",
           "list",
-          "image"
+          "image",
+          "percent"
         ]
       },
       "SlotAvailabilityDto": {

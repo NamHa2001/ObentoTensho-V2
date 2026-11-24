@@ -90,6 +90,8 @@ public sealed class TranslationSetTests
 
         public int GetInt(string key) => 0;
 
+        public decimal GetDecimal(string key) => 0;
+
         public bool GetBool(string key) => false;
 
         public IReadOnlyDictionary<string, string> Public() => new Dictionary<string, string>(StringComparer.Ordinal);

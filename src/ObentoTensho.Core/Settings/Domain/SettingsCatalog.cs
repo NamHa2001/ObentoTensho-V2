@@ -79,6 +79,11 @@ public static class SettingsCatalog
         Int(VoucherApprovalAmount, 200_000, 1, IntMax, "Giảm từ mức tiền này cần duyệt (₫)"),
 
         new(ReportDayCutoffLocal, SettingType.Time, "00:00", "Mốc chốt ngày báo cáo", Max: 6),
+
+        // docs/srs/23 BR-PLT-03/04: chủ quán chốt 24/11/2026, tổng 29,5% trên doanh thu ròng
+        new(RevenueDeductionPercent, SettingType.Percent, "25", "Khấu trừ trên doanh thu ròng (%)", 0, 100, Protected: true),
+        new(RevenueVatPercent, SettingType.Percent, "3", "Thuế GTGT trên doanh thu ròng (%)", 0, 100, Protected: true),
+        new(RevenuePitPercent, SettingType.Percent, "1.5", "Thuế TNCN trên doanh thu ròng (%)", 0, 100, Protected: true),
         Int(EmailDailyQuota, 300, 10, 100_000, "Hạn mức thư mỗi ngày của gói gửi thư"),
 
         new("i18n.enabledLocales", SettingType.List, "vi", "Ngôn ngữ đang bật cho khách", Choices: ["vi", "en", "ja"], IsPublic: true),

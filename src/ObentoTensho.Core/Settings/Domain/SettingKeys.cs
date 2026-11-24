@@ -63,6 +63,11 @@ public static class SettingKeys
     public const string VoucherApprovalAmount = "voucher.approvalAmount";
 
     public const string ReportDayCutoffLocal = "report.dayCutoffLocal";
+
+    // docs/srs/23 BR-PLT-03/04: tỉ lệ trừ trên doanh thu ròng, giống nhau cho mọi nhóm thanh toán
+    public const string RevenueDeductionPercent = "revenue.deductionPercent";
+    public const string RevenueVatPercent = "revenue.vatPercent";
+    public const string RevenuePitPercent = "revenue.pitPercent";
     public const string EmailDailyQuota = "email.dailyQuota";
     public const string I18nEnabledLocales = "i18n.enabledLocales";
 }

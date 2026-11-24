@@ -6,7 +6,7 @@ import { Schemas } from '@ot/api';
 import { Api } from '../core/api';
 import { Submit, altOf } from '../shared/ui';
 
-const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán', social: 'Mạng xã hội', payment: 'Thanh toán', reservation: 'Đặt bàn', order: 'Đặt món', delivery: 'Giao hàng', loyalty: 'Điểm thưởng', voucher: 'Voucher', notification: 'Thông báo', email: 'Email', otp: 'Mã OTP', i18n: 'Ngôn ngữ', seo: 'SEO', security: 'Bảo mật', content: 'Nội dung', media: 'Hình ảnh', report: 'Báo cáo' };
+const SETTING_GROUPS: Record<string, string> = { restaurant: 'Thông tin quán', social: 'Mạng xã hội', payment: 'Thanh toán', reservation: 'Đặt bàn', order: 'Đặt món', delivery: 'Giao hàng', loyalty: 'Điểm thưởng', voucher: 'Voucher', notification: 'Thông báo', email: 'Email', otp: 'Mã OTP', i18n: 'Ngôn ngữ', seo: 'SEO', security: 'Bảo mật', content: 'Nội dung', media: 'Hình ảnh', report: 'Báo cáo', revenue: 'Doanh thu' };
 
 type Setting = Schemas['SettingDto'];
 
@@ -36,7 +36,7 @@ type Setting = Schemas['SettingDto'];
               } @else if (s.type === 'choice') {
                 <label>{{ s.description || s.key }}<select class="ot-input" [name]="s.key" [(ngModel)]="m[s.key]">@for (c of s.choices; track c) { <option [value]="c">{{ c }}</option> }</select></label>
               } @else {
-                <label>{{ s.description || s.key }}@if (s.protected) { <small class="ml-1 font-normal text-muted">(cần xác thực lại)</small> }<input class="ot-input" [type]="s.type === 'number' ? 'number' : s.type === 'time' ? 'time' : 'text'" [name]="s.key" [(ngModel)]="m[s.key]" /></label>
+                <label>{{ s.description || s.key }}@if (s.protected) { <small class="ml-1 font-normal text-muted">(cần xác thực lại)</small> }<input class="ot-input" [type]="s.type === 'number' || s.type === 'percent' ? 'number' : s.type === 'time' ? 'time' : 'text'" [attr.step]="s.type === 'percent' ? '0.01' : null" [name]="s.key" [(ngModel)]="m[s.key]" /></label>
               }
             }
           </div>

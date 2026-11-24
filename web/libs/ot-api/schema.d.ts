@@ -12778,7 +12778,7 @@ export interface components {
             key: string;
             value: string;
             /** @enum {unknown} */
-            type: "number" | "bool" | "text" | "url" | "email" | "time" | "choice" | "list" | "image";
+            type: "number" | "bool" | "text" | "url" | "email" | "time" | "choice" | "list" | "image" | "percent";
             /** Format: double */
             minValue: null | number;
             /** Format: double */
@@ -12790,7 +12790,7 @@ export interface components {
             updatedAtUtc: null | string;
         };
         /** @enum {unknown} */
-        SettingType: "number" | "bool" | "text" | "url" | "email" | "time" | "choice" | "list" | "image";
+        SettingType: "number" | "bool" | "text" | "url" | "email" | "time" | "choice" | "list" | "image" | "percent";
         SlotAvailabilityDto: {
             /** Format: int32 */
             slotId: number;

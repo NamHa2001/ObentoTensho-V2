@@ -52,6 +52,8 @@ public static class DeliveryTestHost
 
         public int GetInt(string key) => inner.GetInt(key);
 
+        public decimal GetDecimal(string key) => inner.GetDecimal(key);
+
         public bool GetBool(string key) => string.Equals(key, SettingKeys.DeliveryEnabled, StringComparison.Ordinal) ? enabled : inner.GetBool(key);
 
         public IReadOnlyDictionary<string, string> Public() => inner.Public();
