@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Schemas } from '@ot/api';
 
 import { Api } from '../core/api';
@@ -17,9 +18,13 @@ type Setting = Schemas['SettingDto'];
     @if (form.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     @if (saved()) { <p class="mb-3 font-medium">Đã lưu.</p> }
     @if (notice(); as n) { <p class="mb-3 font-medium">{{ n }}</p> }
-    <form class="a-row66" (ngSubmit)="save()">
-      @for (g of groups(); track g.title) {
-        <section class="a-card">
+    <!-- Mỗi nhóm cài đặt một tab, không dồn mọi nhóm vào một trang dài -->
+    <div class="ot-scroll-row mb-4" role="tablist" style="margin-inline: 0; padding-inline: 0">
+      @for (g of groups(); track g.key) { <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="current() === g.key" [attr.aria-selected]="current() === g.key" (click)="tab.set(g.key)">{{ g.title }}</button> }
+    </div>
+    <form (ngSubmit)="save()">
+      @for (g of groups(); track g.key) {
+        <section class="a-card max-w-3xl" role="tabpanel" [hidden]="current() !== g.key">
           <header class="a-card-h">{{ g.title }}</header>
           <div class="a-card-b grid gap-4">
             @for (s of g.items; track s.key) {
@@ -53,8 +58,11 @@ export class Settings {
       map.set(prefix, [...(map.get(prefix) ?? []), item]);
     }
 
-    return [...map].map(([prefix, items]) => ({ title: SETTING_GROUPS[prefix] ?? prefix, items }));
+    return [...map].map(([prefix, items]) => ({ key: prefix, title: SETTING_GROUPS[prefix] ?? prefix, items }));
   });
+  // Tab đang mở; mở trang bằng ?nhom=delivery để vào thẳng một nhóm
+  protected readonly tab = signal(inject(ActivatedRoute).snapshot.queryParamMap.get('nhom') ?? '');
+  protected readonly current = computed(() => (this.groups().some((g) => g.key === this.tab()) ? this.tab() : (this.groups()[0]?.key ?? '')));
   protected m: Record<string, string> = {};
   private original: Record<string, string> = {};
 
