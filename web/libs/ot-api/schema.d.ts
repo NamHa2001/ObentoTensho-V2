@@ -6241,6 +6241,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/reports/payment-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    groupBy?: components["schemas"]["ReportGrouping"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/payment-groups/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    page?: number;
+                    pageSize?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/payment-groups/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                    format?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/reports/{report}/export": {
         parameters: {
             query?: never;
@@ -12030,8 +12142,213 @@ export interface components {
             /** Format: int32 */
             total: number;
         };
+        PaymentAmountsDto: {
+            /** Format: int32 */
+            orders: number;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            discount: number;
+            /** Format: double */
+            netRevenue: number;
+            /** Format: double */
+            deductionAmount: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: double */
+            pitAmount: number;
+            /** Format: double */
+            receivedAmount: number;
+        };
+        PaymentChannelRowDto: {
+            /** @enum {unknown} */
+            paymentMethod: "cash" | "bank_transfer" | null;
+            /** @enum {unknown} */
+            platform: "grab" | "shopee" | "be" | "xanh" | null;
+            amounts: {
+                /** Format: int32 */
+                orders: number;
+                /** Format: double */
+                subTotal: number;
+                /** Format: double */
+                discount: number;
+                /** Format: double */
+                netRevenue: number;
+                /** Format: double */
+                deductionAmount: number;
+                /** Format: double */
+                vatAmount: number;
+                /** Format: double */
+                pitAmount: number;
+                /** Format: double */
+                receivedAmount: number;
+            };
+        };
         /** @enum {unknown} */
         PaymentGroup: "in_store" | "tensho" | "hima" | "xanh";
+        PaymentGroupOrderDto: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            /** Format: date-time */
+            atUtc: string;
+            /** @enum {unknown} */
+            status: "pending" | "preparing" | "ready" | "completed" | "cancelled" | "delivering";
+            /** @enum {unknown} */
+            group: "in_store" | "tensho" | "hima" | "xanh";
+            /** @enum {unknown} */
+            paymentMethod: "cash" | "bank_transfer";
+            /** @enum {unknown} */
+            platform: "grab" | "shopee" | "be" | "xanh" | null;
+            externalOrderCode: null | string;
+            /** Format: double */
+            subTotal: number;
+            /** Format: double */
+            discountPercent: null | number;
+            /** Format: double */
+            discount: number;
+            /** Format: double */
+            netRevenue: number;
+            /** Format: double */
+            deductionAmount: number;
+            /** Format: double */
+            vatAmount: number;
+            /** Format: double */
+            pitAmount: number;
+            /** Format: double */
+            receivedAmount: number;
+        };
+        PaymentGroupPeriodDto: {
+            period: string;
+            /** @enum {unknown} */
+            group: "in_store" | "tensho" | "hima" | "xanh";
+            /** Format: double */
+            netRevenue: number;
+            /** Format: double */
+            receivedAmount: number;
+        };
+        PaymentGroupReportDto: {
+            groups: {
+                /** @enum {unknown} */
+                group: "in_store" | "tensho" | "hima" | "xanh";
+                amounts: {
+                    /** Format: int32 */
+                    orders: number;
+                    /** Format: double */
+                    subTotal: number;
+                    /** Format: double */
+                    discount: number;
+                    /** Format: double */
+                    netRevenue: number;
+                    /** Format: double */
+                    deductionAmount: number;
+                    /** Format: double */
+                    vatAmount: number;
+                    /** Format: double */
+                    pitAmount: number;
+                    /** Format: double */
+                    receivedAmount: number;
+                };
+                channels: {
+                    /** @enum {unknown} */
+                    paymentMethod: "cash" | "bank_transfer" | null;
+                    /** @enum {unknown} */
+                    platform: "grab" | "shopee" | "be" | "xanh" | null;
+                    amounts: {
+                        /** Format: int32 */
+                        orders: number;
+                        /** Format: double */
+                        subTotal: number;
+                        /** Format: double */
+                        discount: number;
+                        /** Format: double */
+                        netRevenue: number;
+                        /** Format: double */
+                        deductionAmount: number;
+                        /** Format: double */
+                        vatAmount: number;
+                        /** Format: double */
+                        pitAmount: number;
+                        /** Format: double */
+                        receivedAmount: number;
+                    };
+                }[];
+            }[];
+            total: {
+                /** Format: int32 */
+                orders: number;
+                /** Format: double */
+                subTotal: number;
+                /** Format: double */
+                discount: number;
+                /** Format: double */
+                netRevenue: number;
+                /** Format: double */
+                deductionAmount: number;
+                /** Format: double */
+                vatAmount: number;
+                /** Format: double */
+                pitAmount: number;
+                /** Format: double */
+                receivedAmount: number;
+            };
+            series: {
+                period: string;
+                /** @enum {unknown} */
+                group: "in_store" | "tensho" | "hima" | "xanh";
+                /** Format: double */
+                netRevenue: number;
+                /** Format: double */
+                receivedAmount: number;
+            }[];
+            definition: string;
+        };
+        PaymentGroupRowDto: {
+            /** @enum {unknown} */
+            group: "in_store" | "tensho" | "hima" | "xanh";
+            amounts: {
+                /** Format: int32 */
+                orders: number;
+                /** Format: double */
+                subTotal: number;
+                /** Format: double */
+                discount: number;
+                /** Format: double */
+                netRevenue: number;
+                /** Format: double */
+                deductionAmount: number;
+                /** Format: double */
+                vatAmount: number;
+                /** Format: double */
+                pitAmount: number;
+                /** Format: double */
+                receivedAmount: number;
+            };
+            channels: {
+                /** @enum {unknown} */
+                paymentMethod: "cash" | "bank_transfer" | null;
+                /** @enum {unknown} */
+                platform: "grab" | "shopee" | "be" | "xanh" | null;
+                amounts: {
+                    /** Format: int32 */
+                    orders: number;
+                    /** Format: double */
+                    subTotal: number;
+                    /** Format: double */
+                    discount: number;
+                    /** Format: double */
+                    netRevenue: number;
+                    /** Format: double */
+                    deductionAmount: number;
+                    /** Format: double */
+                    vatAmount: number;
+                    /** Format: double */
+                    pitAmount: number;
+                    /** Format: double */
+                    receivedAmount: number;
+                };
+            }[];
+        };
         /** @enum {unknown} */
         PaymentMethod: "cash" | "bank_transfer";
         /** @enum {unknown} */

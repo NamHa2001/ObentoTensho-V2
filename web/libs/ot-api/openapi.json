@@ -5162,6 +5162,130 @@
         }
       }
     },
+    "/api/v1/admin/reports/payment-groups": {
+      "get": {
+        "tags": [
+          "AdminReports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "groupBy",
+            "in": "query",
+            "schema": {
+              "default": "day",
+              "$ref": "#/components/schemas/ReportGrouping"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/reports/payment-groups/orders": {
+      "get": {
+        "tags": [
+          "AdminReports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/reports/payment-groups/export": {
+      "get": {
+        "tags": [
+          "AdminReports"
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "xlsx"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/reports/{report}/export": {
       "get": {
         "tags": [
@@ -16621,6 +16745,126 @@
           }
         }
       },
+      "PaymentAmountsDto": {
+        "required": [
+          "orders",
+          "subTotal",
+          "discount",
+          "netRevenue",
+          "deductionAmount",
+          "vatAmount",
+          "pitAmount",
+          "receivedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "netRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductionAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "pitAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PaymentChannelRowDto": {
+        "required": [
+          "paymentMethod",
+          "platform",
+          "amounts"
+        ],
+        "type": "object",
+        "properties": {
+          "paymentMethod": {
+            "enum": [
+              "cash",
+              "bank_transfer",
+              null
+            ]
+          },
+          "platform": {
+            "enum": [
+              "grab",
+              "shopee",
+              "be",
+              "xanh",
+              null
+            ]
+          },
+          "amounts": {
+            "required": [
+              "orders",
+              "subTotal",
+              "discount",
+              "netRevenue",
+              "deductionAmount",
+              "vatAmount",
+              "pitAmount",
+              "receivedAmount"
+            ],
+            "type": "object",
+            "properties": {
+              "orders": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "subTotal": {
+                "type": "number",
+                "format": "double"
+              },
+              "discount": {
+                "type": "number",
+                "format": "double"
+              },
+              "netRevenue": {
+                "type": "number",
+                "format": "double"
+              },
+              "deductionAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "vatAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "pitAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "receivedAmount": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          }
+        }
+      },
       "PaymentGroup": {
         "enum": [
           "in_store",
@@ -16628,6 +16872,523 @@
           "hima",
           "xanh"
         ]
+      },
+      "PaymentGroupOrderDto": {
+        "required": [
+          "id",
+          "code",
+          "atUtc",
+          "status",
+          "group",
+          "paymentMethod",
+          "platform",
+          "externalOrderCode",
+          "subTotal",
+          "discountPercent",
+          "discount",
+          "netRevenue",
+          "deductionAmount",
+          "vatAmount",
+          "pitAmount",
+          "receivedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "atUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "preparing",
+              "ready",
+              "completed",
+              "cancelled",
+              "delivering"
+            ]
+          },
+          "group": {
+            "enum": [
+              "in_store",
+              "tensho",
+              "hima",
+              "xanh"
+            ]
+          },
+          "paymentMethod": {
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ]
+          },
+          "platform": {
+            "enum": [
+              "grab",
+              "shopee",
+              "be",
+              "xanh",
+              null
+            ]
+          },
+          "externalOrderCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "discountPercent": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "discount": {
+            "type": "number",
+            "format": "double"
+          },
+          "netRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "deductionAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "vatAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "pitAmount": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PaymentGroupPeriodDto": {
+        "required": [
+          "period",
+          "group",
+          "netRevenue",
+          "receivedAmount"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string"
+          },
+          "group": {
+            "enum": [
+              "in_store",
+              "tensho",
+              "hima",
+              "xanh"
+            ]
+          },
+          "netRevenue": {
+            "type": "number",
+            "format": "double"
+          },
+          "receivedAmount": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PaymentGroupReportDto": {
+        "required": [
+          "groups",
+          "total",
+          "series",
+          "definition"
+        ],
+        "type": "object",
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "required": [
+                "group",
+                "amounts",
+                "channels"
+              ],
+              "type": "object",
+              "properties": {
+                "group": {
+                  "enum": [
+                    "in_store",
+                    "tensho",
+                    "hima",
+                    "xanh"
+                  ]
+                },
+                "amounts": {
+                  "required": [
+                    "orders",
+                    "subTotal",
+                    "discount",
+                    "netRevenue",
+                    "deductionAmount",
+                    "vatAmount",
+                    "pitAmount",
+                    "receivedAmount"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "orders": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "subTotal": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "discount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "netRevenue": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "deductionAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "vatAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "pitAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "receivedAmount": {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  }
+                },
+                "channels": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "paymentMethod",
+                      "platform",
+                      "amounts"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "paymentMethod": {
+                        "enum": [
+                          "cash",
+                          "bank_transfer",
+                          null
+                        ]
+                      },
+                      "platform": {
+                        "enum": [
+                          "grab",
+                          "shopee",
+                          "be",
+                          "xanh",
+                          null
+                        ]
+                      },
+                      "amounts": {
+                        "required": [
+                          "orders",
+                          "subTotal",
+                          "discount",
+                          "netRevenue",
+                          "deductionAmount",
+                          "vatAmount",
+                          "pitAmount",
+                          "receivedAmount"
+                        ],
+                        "type": "object",
+                        "properties": {
+                          "orders": {
+                            "type": "integer",
+                            "format": "int32"
+                          },
+                          "subTotal": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "discount": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "netRevenue": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "deductionAmount": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "vatAmount": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "pitAmount": {
+                            "type": "number",
+                            "format": "double"
+                          },
+                          "receivedAmount": {
+                            "type": "number",
+                            "format": "double"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "total": {
+            "required": [
+              "orders",
+              "subTotal",
+              "discount",
+              "netRevenue",
+              "deductionAmount",
+              "vatAmount",
+              "pitAmount",
+              "receivedAmount"
+            ],
+            "type": "object",
+            "properties": {
+              "orders": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "subTotal": {
+                "type": "number",
+                "format": "double"
+              },
+              "discount": {
+                "type": "number",
+                "format": "double"
+              },
+              "netRevenue": {
+                "type": "number",
+                "format": "double"
+              },
+              "deductionAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "vatAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "pitAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "receivedAmount": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "series": {
+            "type": "array",
+            "items": {
+              "required": [
+                "period",
+                "group",
+                "netRevenue",
+                "receivedAmount"
+              ],
+              "type": "object",
+              "properties": {
+                "period": {
+                  "type": "string"
+                },
+                "group": {
+                  "enum": [
+                    "in_store",
+                    "tensho",
+                    "hima",
+                    "xanh"
+                  ]
+                },
+                "netRevenue": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "receivedAmount": {
+                  "type": "number",
+                  "format": "double"
+                }
+              }
+            }
+          },
+          "definition": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentGroupRowDto": {
+        "required": [
+          "group",
+          "amounts",
+          "channels"
+        ],
+        "type": "object",
+        "properties": {
+          "group": {
+            "enum": [
+              "in_store",
+              "tensho",
+              "hima",
+              "xanh"
+            ]
+          },
+          "amounts": {
+            "required": [
+              "orders",
+              "subTotal",
+              "discount",
+              "netRevenue",
+              "deductionAmount",
+              "vatAmount",
+              "pitAmount",
+              "receivedAmount"
+            ],
+            "type": "object",
+            "properties": {
+              "orders": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "subTotal": {
+                "type": "number",
+                "format": "double"
+              },
+              "discount": {
+                "type": "number",
+                "format": "double"
+              },
+              "netRevenue": {
+                "type": "number",
+                "format": "double"
+              },
+              "deductionAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "vatAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "pitAmount": {
+                "type": "number",
+                "format": "double"
+              },
+              "receivedAmount": {
+                "type": "number",
+                "format": "double"
+              }
+            }
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "required": [
+                "paymentMethod",
+                "platform",
+                "amounts"
+              ],
+              "type": "object",
+              "properties": {
+                "paymentMethod": {
+                  "enum": [
+                    "cash",
+                    "bank_transfer",
+                    null
+                  ]
+                },
+                "platform": {
+                  "enum": [
+                    "grab",
+                    "shopee",
+                    "be",
+                    "xanh",
+                    null
+                  ]
+                },
+                "amounts": {
+                  "required": [
+                    "orders",
+                    "subTotal",
+                    "discount",
+                    "netRevenue",
+                    "deductionAmount",
+                    "vatAmount",
+                    "pitAmount",
+                    "receivedAmount"
+                  ],
+                  "type": "object",
+                  "properties": {
+                    "orders": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "subTotal": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "discount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "netRevenue": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "deductionAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "vatAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "pitAmount": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "receivedAmount": {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       "PaymentMethod": {
         "enum": [

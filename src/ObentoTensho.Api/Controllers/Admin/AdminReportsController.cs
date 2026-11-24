@@ -14,7 +14,7 @@ namespace ObentoTensho.Api.Controllers.Admin;
 [EnableCors(AuthConfiguration.AdminCorsPolicy)]
 [RequireCapability(StaffCapability.Reports)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class AdminReportsController(ReportService reports, StatsRollupService rollup) : ControllerBase
+public sealed class AdminReportsController(ReportService reports, StatsRollupService rollup, PaymentGroupReportService paymentGroups) : ControllerBase
 {
     private const string Xlsx = "xlsx";
     private const string Pdf = "pdf";
@@ -48,6 +48,44 @@ public sealed class AdminReportsController(ReportService reports, StatsRollupSer
     public async Task<IActionResult> TopDishes([FromQuery] DateOnly from, [FromQuery] DateOnly to, [FromQuery] int limit = 10, CancellationToken cancellationToken = default) =>
         this.DataOrProblem(await reports.TopDishesAsync(from, to, limit, cancellationToken));
 
+    // docs/srs/23 FR-PLT-03: doanh thu theo 4 nhóm thanh toán và kênh con
+    [HttpGet("payment-groups")]
+    public async Task<IActionResult> PaymentGroups(
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        [FromQuery] ReportGrouping groupBy = ReportGrouping.Day,
+        CancellationToken cancellationToken = default) =>
+        this.DataOrProblem(await paymentGroups.SummaryAsync(from, to, groupBy, cancellationToken));
+
+    [HttpGet("payment-groups/orders")]
+    public async Task<IActionResult> PaymentGroupOrders(
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await paymentGroups.OrdersAsync(from, to, page, pageSize, cancellationToken);
+        return result.IsSuccess ? Ok(result.Value) : this.ToProblem(result);
+    }
+
+    // FR-PLT-04: Excel hai sheet (tổng theo nhóm, chi tiết từng đơn) hoặc PDF A4 ngang
+    [HttpGet("payment-groups/export")]
+    public async Task<IActionResult> ExportPaymentGroups(
+        [FromQuery] DateOnly from,
+        [FromQuery] DateOnly to,
+        [FromQuery] string format = Xlsx,
+        CancellationToken cancellationToken = default)
+    {
+        if (Kind(format) is not { } kind)
+        {
+            return this.ToProblem(Core.Common.Result.Failure(Contracts.Errors.ErrorCodes.ValidationFailed));
+        }
+
+        var file = await paymentGroups.ExportAsync(from, to, kind, User.StaffId(), cancellationToken);
+        return file.IsSuccess ? File(file.Value.Content, file.Value.ContentType, file.Value.FileName) : this.ToProblem(file);
+    }
+
     [HttpGet("{report}/export")]
     public async Task<IActionResult> Export(
         string report,
@@ -57,12 +95,7 @@ public sealed class AdminReportsController(ReportService reports, StatsRollupSer
         [FromQuery] ReportGrouping groupBy = ReportGrouping.Day,
         CancellationToken cancellationToken = default)
     {
-        ReportFormat? kind = format switch
-        {
-            Xlsx => ReportFormat.Xlsx,
-            Pdf => ReportFormat.Pdf,
-            _ => null,
-        };
+        var kind = Kind(format);
         if (kind is null)
         {
             return this.ToProblem(Core.Common.Result.Failure(Contracts.Errors.ErrorCodes.ValidationFailed));
@@ -71,4 +104,11 @@ public sealed class AdminReportsController(ReportService reports, StatsRollupSer
         var file = await reports.ExportAsync(report, from, to, groupBy, kind.Value, cancellationToken);
         return file.IsSuccess ? File(file.Value.Content, file.Value.ContentType, file.Value.FileName) : this.ToProblem(file);
     }
+
+    private static ReportFormat? Kind(string format) => format switch
+    {
+        Xlsx => ReportFormat.Xlsx,
+        Pdf => ReportFormat.Pdf,
+        _ => null,
+    };
 }

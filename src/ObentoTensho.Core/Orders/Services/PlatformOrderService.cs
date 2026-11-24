@@ -167,6 +167,10 @@ public sealed class PlatformOrderService(
             return cancelled;
         }
 
+        // App hoàn tiền cho khách: ghi đã hoàn để báo cáo doanh thu theo ngày thanh toán trừ lại khoản đã ghi thu
+        order.RefundedAtUtc = order.CancelledAtUtc ?? clock.UtcNow;
+        order.RefundedByStaffId = staffId;
+        order.RefundNote = "App hoàn tiền cho khách";
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

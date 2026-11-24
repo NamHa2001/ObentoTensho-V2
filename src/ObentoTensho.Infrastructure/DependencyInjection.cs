@@ -134,6 +134,7 @@ public static class DependencyInjection
         services.AddSingleton<ISettingsSnapshot>(sp => sp.GetRequiredService<SettingsStore>());
         services.AddScoped<ISettingsRepository, SettingsRepository>();
         services.AddScoped<IStatsRepository, StatsRepository>();
+        services.AddScoped<IPaymentGroupReportRepository, PaymentGroupReportRepository>();
         services.AddSingleton<IDashboardCache, MemoryDashboardCache>();
         services.AddHostedService<SettingsRefreshWorker>();
     }
@@ -217,6 +218,7 @@ public static class DependencyInjection
         services.AddSingleton<INewsletterTokenProtector, DataProtectionNewsletterTokenProtector>();
         services.AddSingleton<ITableSpreadsheet, ClosedXmlTableSpreadsheet>();
         services.AddSingleton<IReportPdf, Reports.QuestPdfReport>();
+        services.AddSingleton<IReportWorkbook, ClosedXmlReportWorkbook>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IDataExportRepository, DataExportRepository>();
         services.AddScoped<IAdminEmailOutbox, AdminEmailOutbox>();

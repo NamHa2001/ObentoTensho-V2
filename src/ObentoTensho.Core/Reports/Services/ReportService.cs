@@ -211,6 +211,7 @@ public sealed class ReportService(
         OrderChannel.DineIn => "Tại quán",
         OrderChannel.Delivery => "Giao hàng",
         OrderChannel.Counter => "Mua tại quầy",
+        OrderChannel.Platform => "Đơn từ app",
         _ => "Đặt online đến lấy",
     };
 

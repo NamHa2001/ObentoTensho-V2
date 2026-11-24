@@ -16,6 +16,9 @@ public sealed class BusinessCalendar(IClock clock, ISettingsReader settings)
         }
     }
 
+    // Ngày kinh doanh của một thời điểm UTC (trước giờ cắt thì thuộc ngày hôm trước)
+    public DateOnly DayOf(DateTime utc) => DateOnly.FromDateTime(clock.ToLocal(utc).Subtract(Cutoff.ToTimeSpan()));
+
     private TimeOnly Cutoff => TimeOnly.Parse(settings.Get(SettingKeys.ReportDayCutoffLocal), System.Globalization.CultureInfo.InvariantCulture);
 
     public (DateTime StartUtc, DateTime EndUtc) Bounds(DateOnly day) =>

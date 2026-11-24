@@ -31,6 +31,7 @@ public static class CustomersConfiguration
         services.AddScoped<StatsRollupService>();
         services.AddScoped<DashboardService>();
         services.AddScoped<ReportService>();
+        services.AddScoped<PaymentGroupReportService>();
         services.AddScoped<IRecurringJob, StatsRollupJob>();
         services.AddScoped<IRecurringJob, StatsReconcileJob>();
         services.AddScoped<IRecurringJob, ObentoTensho.Core.Maintenance.Services.DataRetentionJob>();
