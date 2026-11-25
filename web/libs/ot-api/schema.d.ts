@@ -6323,6 +6323,7 @@ export interface paths {
                 query?: {
                     from?: string;
                     to?: string;
+                    group?: components["schemas"]["PaymentGroup"];
                     page?: number;
                     pageSize?: number;
                 };

@@ -61,11 +61,12 @@ public sealed class AdminReportsController(ReportService reports, StatsRollupSer
     public async Task<IActionResult> PaymentGroupOrders(
         [FromQuery] DateOnly from,
         [FromQuery] DateOnly to,
+        [FromQuery] PaymentGroup? group = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        var result = await paymentGroups.OrdersAsync(from, to, page, pageSize, cancellationToken);
+        var result = await paymentGroups.OrdersAsync(from, to, group, page, pageSize, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : this.ToProblem(result);
     }
 

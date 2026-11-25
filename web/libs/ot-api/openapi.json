@@ -5235,6 +5235,13 @@
             }
           },
           {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/PaymentGroup"
+            }
+          },
+          {
             "name": "page",
             "in": "query",
             "schema": {

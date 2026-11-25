@@ -85,7 +85,7 @@ public sealed class PaymentGroupReportService(
         return new PaymentGroupReportDto(groups, Sum(completed), series, Definition);
     }
 
-    public async Task<Result<PagedResponse<PaymentGroupOrderDto>>> OrdersAsync(DateOnly from, DateOnly to, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<Result<PagedResponse<PaymentGroupOrderDto>>> OrdersAsync(DateOnly from, DateOnly to, PaymentGroup? group, int page, int pageSize, CancellationToken cancellationToken)
     {
         if (ReportService.CheckRange(from, to) is { } error)
         {
@@ -96,7 +96,7 @@ public sealed class PaymentGroupReportService(
         pageSize = Math.Clamp(pageSize, 1, MaxPageSize);
         var (start, _) = calendar.Bounds(from);
         var (_, end) = calendar.Bounds(to);
-        var (items, total) = await repository.PageAsync(start, end, page, pageSize, cancellationToken);
+        var (items, total) = await repository.PageAsync(start, end, group, page, pageSize, cancellationToken);
         return Result.Success(new PagedResponse<PaymentGroupOrderDto>(items.Select(ToDto).ToArray(), new PageMeta(page, pageSize, total)));
     }
 

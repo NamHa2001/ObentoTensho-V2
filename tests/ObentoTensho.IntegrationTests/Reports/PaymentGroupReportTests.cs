@@ -145,6 +145,12 @@ public sealed class PaymentGroupReportTests : IDisposable
         var cancelledRow = rows.Single(r => r.GetProperty("id").GetGuid() == cancelled);
         Assert.Equal(("cancelled", 0m), (cancelledRow.GetProperty("status").GetString(), cancelledRow.GetProperty("receivedAmount").GetDecimal()));
         Assert.Equal(Amount(total, "receivedAmount"), rows.Sum(r => r.GetProperty("receivedAmount").GetDecimal()));
+
+        // Lọc theo nhóm: tab Tensho chỉ có đơn Grab
+        var tensho = await _admin.SendAsync(HttpMethod.Get, $"{Admin}/reports/payment-groups/orders?from={date}&to={date}&group=tensho", manager);
+        using var only = JsonDocument.Parse(await tensho.Content.ReadAsStringAsync());
+        Assert.Equal(1, only.RootElement.GetProperty("meta").GetProperty("total").GetInt32());
+        Assert.Equal(59_925m, only.RootElement.GetProperty("data")[0].GetProperty("receivedAmount").GetDecimal());
     }
 
     private async Task AssertExportsAsync(string manager, string date)

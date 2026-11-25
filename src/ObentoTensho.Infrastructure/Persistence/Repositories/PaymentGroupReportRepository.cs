@@ -10,9 +10,14 @@ internal sealed class PaymentGroupReportRepository(AppDbContext db) : IPaymentGr
     public async Task<IReadOnlyList<PaymentGroupOrderRow>> ListAsync(DateTime fromUtc, DateTime toUtc, CancellationToken cancellationToken) =>
         await Project(Source(fromUtc, toUtc).OrderBy(At)).ToListAsync(cancellationToken);
 
-    public async Task<(IReadOnlyList<PaymentGroupOrderRow> Items, int Total)> PageAsync(DateTime fromUtc, DateTime toUtc, int page, int pageSize, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<PaymentGroupOrderRow> Items, int Total)> PageAsync(DateTime fromUtc, DateTime toUtc, PaymentGroup? group, int page, int pageSize, CancellationToken cancellationToken)
     {
         var source = Source(fromUtc, toUtc);
+        if (group is { } only)
+        {
+            source = source.Where(o => o.PaymentGroup == only);
+        }
+
         var total = await source.CountAsync(cancellationToken);
         var items = await Project(source.OrderByDescending(At).ThenBy(o => o.OrderCode).Skip((page - 1) * pageSize).Take(pageSize))
             .ToListAsync(cancellationToken);
