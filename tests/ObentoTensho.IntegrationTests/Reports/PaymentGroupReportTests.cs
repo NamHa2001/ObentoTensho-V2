@@ -151,6 +151,13 @@ public sealed class PaymentGroupReportTests : IDisposable
         using var only = JsonDocument.Parse(await tensho.Content.ReadAsStringAsync());
         Assert.Equal(1, only.RootElement.GetProperty("meta").GetProperty("total").GetInt32());
         Assert.Equal(59_925m, only.RootElement.GetProperty("data")[0].GetProperty("receivedAmount").GetDecimal());
+
+        // Tên nhóm có dấu gạch dưới vẫn lọc được; tên lạ bị từ chối
+        var inStore = await _admin.SendAsync(HttpMethod.Get, $"{Admin}/reports/payment-groups/orders?from={date}&to={date}&group=in_store", manager);
+        Assert.Equal(HttpStatusCode.OK, inStore.StatusCode);
+        using var store = JsonDocument.Parse(await inStore.Content.ReadAsStringAsync());
+        Assert.Equal(1, store.RootElement.GetProperty("meta").GetProperty("total").GetInt32());
+        Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Get, $"{Admin}/reports/payment-groups/orders?from={date}&to={date}&group=khac", manager)).StatusCode);
     }
 
     private async Task AssertExportsAsync(string manager, string date)

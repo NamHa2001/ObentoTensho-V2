@@ -11,7 +11,8 @@ public static class ApiConfiguration
 {
     public static IServiceCollection AddApiControllers(this IServiceCollection services)
     {
-        services.AddControllers()
+        // Enum trên query đọc dạng snake_case giống JSON (vd ?status=no_show)
+        services.AddControllers(o => o.ModelBinderProviders.Insert(0, new SnakeCaseEnumBinderProvider()))
             .AddJsonOptions(o =>
             {
                 // SEC-48: body có trường lạ bị từ chối
