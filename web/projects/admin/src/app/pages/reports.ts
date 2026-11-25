@@ -57,7 +57,7 @@ function periodLabel(period: string): string {
           @if (v.byChannel?.length) {
             <section class="a-card mt-4">
               <header class="a-card-h"><span>Theo kênh bán</span><button type="button" class="a-link" (click)="saveChannels()">Xuất Excel theo kênh</button></header>
-              <div class="a-table"><table class="w-full text-sm">
+              <div class="a-table"><table class="a-table-lines w-full text-sm">
                 <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Tiền thu</th><th class="p-2 text-right">Hoàn tiền</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
                 <tbody>
                   @for (c of v.byChannel; track c.channel) {

@@ -96,7 +96,7 @@ export class AmountsList {
       <section class="a-card mt-4">
         <header class="a-card-h"><span>Đơn của nhóm {{ groupLabel[g.group] }}</span><small class="font-normal text-muted">{{ total() }} đơn</small></header>
         <div class="hidden overflow-x-auto md:block">
-          <table class="a-table-tight">
+          <table class="a-table-tight a-table-lines">
             <thead>
               <tr>
                 <th>Thời gian</th><th>Mã đơn</th>@if (g.group !== 'xanh') { <th>Kênh con</th> }

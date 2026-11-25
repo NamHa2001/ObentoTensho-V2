@@ -180,6 +180,10 @@ ot-pos-menu { display: grid; gap: 12px; min-width: 0; }
 .a-sum-total { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--ot-border); font-size: 18px; font-weight: 600; }
 .a-sum-plain { padding: 0; background: none; }
 .a-main .a-table-tight th, .a-main .a-table-tight td { padding-inline: 12px; }
+/* Cột số: tiêu đề canh phải cùng số bên dưới (luật th chung canh trái có độ ưu tiên cao hơn lớp text-right) */
+.a-main th.text-right { text-align: right; }
+/* Bảng doanh thu: kẻ dọc giữa các cột cho dễ dò số */
+.a-main .a-table-lines th + th, .a-main .a-table-lines td + td { border-left: 1px solid var(--ot-border); }
 .a-group-card { display: flex; flex-direction: column; width: 100%; text-align: left; }
 .a-group-card .a-card-h { width: 100%; }
 .a-group-card:hover { border-color: var(--ot-primary); }
