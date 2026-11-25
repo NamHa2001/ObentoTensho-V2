@@ -67,15 +67,19 @@ export class DraftList {
   imports: [FormsModule, VndPipe, LucideAngularModule],
   template: `
     @for (d of list().lines(); track d.key) {
-      <div class="flex flex-wrap items-center gap-2 border-b border-line py-2 last:border-0">
-        <div class="min-w-0 flex-1"><b>{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
-        <div class="flex items-center gap-1">
-          <button type="button" class="ot-chip" aria-label="Bớt" (click)="list().bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
-          <span class="w-6 text-center">{{ d.quantity }}</span>
-          <button type="button" class="ot-chip" aria-label="Thêm" (click)="list().bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
+      <div class="a-draft-line">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0"><b class="font-medium">{{ d.name }}</b>@for (o of d.options; track $index) { <small class="block text-muted">{{ o }}</small> }</div>
+          <span class="shrink-0 font-medium tabular-nums">{{ d.unitPrice * d.quantity | vnd }}</span>
         </div>
-        <span class="w-24 text-right">{{ d.unitPrice * d.quantity | vnd }}</span>
-        <input class="ot-input basis-full" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp, ví dụ: ít cay" [ngModelOptions]="{ standalone: true }" [(ngModel)]="d.note" />
+        <div class="flex items-center gap-2">
+          <div class="flex shrink-0 items-center gap-1">
+            <button type="button" class="ot-chip" aria-label="Bớt" (click)="list().bump(d, -1)"><lucide-icon [img]="icons.minus" [size]="18" /></button>
+            <span class="w-8 text-center tabular-nums">{{ d.quantity }}</span>
+            <button type="button" class="ot-chip" aria-label="Thêm" (click)="list().bump(d, 1)"><lucide-icon [img]="icons.plus" [size]="18" /></button>
+          </div>
+          <input class="ot-input min-w-0 flex-1" style="margin: 0" [name]="'note' + d.key" maxlength="200" placeholder="Ghi chú cho bếp" aria-label="Ghi chú cho bếp" [ngModelOptions]="{ standalone: true }" [(ngModel)]="d.note" />
+        </div>
       </div>
     }
   `,

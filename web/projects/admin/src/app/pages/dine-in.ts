@@ -34,6 +34,8 @@ interface Slip {
   paymentLabel: string;
 }
 
+const DINE_TABS = ['tables', 'counter', 'app'] as const;
+
 const TABLE_STATUS: Record<string, string> = { available: 'Trống', reserved: 'Đã đặt', occupied: 'Có khách', cleaning: 'Đang dọn' };
 
 function minutesSince(utc: string | null | undefined): number {
@@ -51,17 +53,23 @@ function clock(utc: string): string {
   template: `
     <div class="a-head">
       <h1>Gọi món tại bàn</h1>
-      <div class="a-btns">
+      <div class="a-head-actions">
         <button type="button" class="ot-btn ot-btn-primary" (click)="startCounter()"><lucide-icon [img]="icons.plus" [size]="18" />Đơn mang về tại quầy</button>
         <a class="ot-btn ot-btn-outline" routerLink="/dine-in/app"><lucide-icon [img]="icons.app" [size]="18" />Nhập đơn app</a>
-        <button type="button" class="ot-chip" (click)="load()">Tải lại</button>
+        <button type="button" class="ot-btn ot-btn-outline" (click)="load()">Tải lại</button>
       </div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    @if (counter().length > 0) {
-      <section class="a-card mb-6">
-        <header class="a-card-h"><span>Mua mang về tại quầy <small class="ml-1 font-normal text-muted">{{ counter().length }} đơn</small></span></header>
-        <div class="a-card-b grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+    <div class="a-steps-tabs" role="tablist" aria-label="Loại đơn">
+      <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'tables'" [attr.aria-selected]="tab() === 'tables'" (click)="tab.set('tables')">Bàn ({{ busyTables() }})</button>
+      <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'counter'" [attr.aria-selected]="tab() === 'counter'" (click)="tab.set('counter')">Mang về ({{ counter().length }})</button>
+      <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'app'" [attr.aria-selected]="tab() === 'app'" (click)="tab.set('app')">Đơn app ({{ apps().length }})</button>
+    </div>
+
+    @switch (tab()) {
+      @case ('counter') {
+        <p class="mb-4 text-sm text-muted">Khách mua mang đi tại quầy. Bấm một đơn để gọi thêm món, thanh toán hoặc báo ra món.</p>
+        <div class="a-dine-grid">
           @for (c of counter(); track c.id) {
             <button type="button" class="a-dine-table" [attr.data-status]="c.paid ? 'reserved' : 'occupied'" (click)="openBill(c.id)">
               <b class="text-lg">{{ c.customerName }}</b>
@@ -69,46 +77,47 @@ function clock(utc: string): string {
               @if (c.paid) { <span class="a-badge self-start">Đã trả tiền, chờ món</span> }
               @else if (c.unservedCount > 0) { <span class="a-badge self-start">{{ c.unservedCount }} món chờ bếp</span> }
             </button>
-          }
+          } @empty { <div class="a-card a-card-b col-span-full text-center text-muted">Chưa có đơn mang về. Bấm "Đơn mang về tại quầy" để tạo.</div> }
         </div>
-      </section>
-    }
-    @if (apps().length > 0) {
-      <section class="a-card mb-6">
-        <header class="a-card-h"><span>Đơn app đang làm <small class="ml-1 font-normal text-muted">{{ apps().length }} đơn</small></span></header>
-        <div class="a-card-b grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+      }
+      @case ('app') {
+        <p class="mb-4 text-sm text-muted">Đơn khách đặt trên app, đang chờ bếp. Ra hết món thì đơn tự hoàn thành và tính vào báo cáo.</p>
+        <div class="a-dine-grid">
           @for (a of apps(); track a.id) {
             <button type="button" class="a-dine-table" data-status="reserved" (click)="openBill(a.id)">
               <b class="text-lg">{{ appName(a) }}</b>
-              <span class="text-sm">{{ a.externalOrderCode }} · {{ since(a.createdAtUtc) }} phút</span>
-              <span class="font-medium">Thực nhận {{ a.receivedAmount | vnd }}</span>
+              <span class="truncate text-sm">{{ a.externalOrderCode }}</span>
+              <span class="text-sm text-muted">{{ since(a.createdAtUtc) }} phút trước</span>
+              <span class="flex flex-wrap justify-between gap-x-2 font-medium"><span>Thực nhận</span><span class="tabular-nums">{{ a.receivedAmount | vnd }}</span></span>
               @if (a.unservedCount > 0) { <span class="a-badge self-start">{{ a.unservedCount }} món chờ bếp</span> }
             </button>
-          }
+          } @empty { <div class="a-card a-card-b col-span-full text-center text-muted">Không có đơn app đang làm. Bấm "Nhập đơn app" để nhập.</div> }
         </div>
-      </section>
-    }
-    <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán. Khách mua mang đi thì bấm "Đơn mang về tại quầy", đơn khách đặt trên app thì bấm "Nhập đơn app".</p>
-    @for (g of groups(); track g.name) {
-      <section class="a-card mb-6">
-        <header class="a-card-h"><span>{{ g.name }} <small class="ml-1 font-normal text-muted">{{ g.tables.length }} bàn</small></span></header>
-        <div class="a-card-b grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
-          @for (t of g.tables; track t.tableId) {
-            <button type="button" class="a-dine-table" [attr.data-status]="t.billId ? 'occupied' : t.status" (click)="pick(t)">
-              <b class="text-lg">{{ t.tableName }}</b>
-              @if (t.billId) {
-                <span class="text-sm">{{ t.guestCount }} khách · {{ since(t.openedAtUtc) }} phút</span>
-                <span class="font-medium">{{ t.subTotal ?? 0 | vnd }}</span>
-                @if (t.unservedCount > 0) { <span class="a-badge self-start">{{ t.unservedCount }} món chờ bếp</span> }
-              } @else {
-                <span class="text-sm">{{ label(t.status) }} · tối đa {{ t.maxCapacity }} khách</span>
+      }
+      @default {
+        <p class="mb-4 text-sm text-muted">Bấm bàn trống để mở bàn, bấm bàn có khách để gọi thêm món hoặc thanh toán.</p>
+        @for (g of groups(); track g.name) {
+          <section class="a-card mb-6">
+            <header class="a-card-h"><span>{{ g.name }}</span><small class="font-normal text-muted">{{ g.tables.length }} bàn</small></header>
+            <div class="a-card-b a-dine-grid">
+              @for (t of g.tables; track t.tableId) {
+                <button type="button" class="a-dine-table" [attr.data-status]="t.billId ? 'occupied' : t.status" (click)="pick(t)">
+                  <b class="text-lg">{{ t.tableName }}</b>
+                  @if (t.billId) {
+                    <span class="text-sm">{{ t.guestCount }} khách · {{ since(t.openedAtUtc) }} phút</span>
+                    <span class="font-medium">{{ t.subTotal ?? 0 | vnd }}</span>
+                    @if (t.unservedCount > 0) { <span class="a-badge self-start">{{ t.unservedCount }} món chờ bếp</span> }
+                  } @else {
+                    <span class="text-sm">{{ label(t.status) }} · tối đa {{ t.maxCapacity }} khách</span>
+                  }
+                </button>
               }
-            </button>
-          }
-        </div>
-      </section>
-    } @empty {
-      @if (loaded()) { <div class="a-card a-card-b text-center text-muted">Chưa có bàn nào. Quản lý thêm bàn ở <a class="text-primary" routerLink="/floor">Sơ đồ bàn</a>.</div> }
+            </div>
+          </section>
+        } @empty {
+          @if (loaded()) { <div class="a-card a-card-b text-center text-muted">Chưa có bàn nào. Quản lý thêm bàn ở <a class="text-primary" routerLink="/floor">Sơ đồ bàn</a>.</div> }
+        }
+      }
     }
 
     @if (counterForm()) {
@@ -153,6 +162,9 @@ export class DineIn {
   protected readonly tables = signal<TableCard[]>([]);
   protected readonly counter = signal<Schemas['CounterBillDto'][]>([]);
   protected readonly apps = signal<AppOrder[]>([]);
+  // Mở thẳng một tab bằng ?tab=counter|app (sau khi nhập đơn app thì về tab Đơn app)
+  protected readonly tab = signal<'tables' | 'counter' | 'app'>(DINE_TABS.find((t) => t === inject(ActivatedRoute).snapshot.queryParamMap.get('tab')) ?? 'tables');
+  protected readonly busyTables = computed(() => this.tables().filter((t) => t.billId).length);
   protected readonly counterForm = signal(false);
   protected counterName = '';
   protected readonly loaded = signal(false);
@@ -249,17 +261,50 @@ export class DineIn {
   imports: [FormsModule, RouterLink, VndPipe, InvoiceForm, LucideAngularModule, PlatformEdit, PosMenu, PosDraft],
   template: `
     <div class="a-head">
-      <h1>@if (bill(); as b) { {{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small> } @else { Phiếu bàn }</h1>
+      @if (bill(); as b) {
+        @if (b.channel === 'platform') {
+          <div class="min-w-0"><h1>Đơn app</h1><p class="text-sm text-muted">{{ b.tableName.replace('App · ', '') }} · mở lúc {{ time(b.openedAtUtc) }}</p></div>
+        } @else {
+          <h1>{{ b.tableName }} <small class="font-normal text-muted">@if (b.guestCount) { · {{ b.guestCount }} khách }· mở lúc {{ time(b.openedAtUtc) }}</small></h1>
+        }
+      } @else { <h1>Phiếu bàn</h1> }
       <div class="a-btns a-desk-only"><a class="ot-btn ot-btn-outline" routerLink="/dine-in"><lucide-icon [img]="icons.back" [size]="18" />Sơ đồ bàn</a></div>
     </div>
     @if (form.error() || loader.error(); as e) { <p class="ot-error mb-3" role="alert">{{ e }}</p> }
 
     @if (bill(); as b) {
       <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+        @if (b.channel === 'platform') {
+          <section class="a-card self-start">
+            <header class="a-card-h">Thông tin đơn app</header>
+            <div class="a-card-b grid gap-4">
+              <p class="text-sm text-muted">Đã thanh toán qua app, đang chờ bếp ra món. Khách đặt thêm trên app thì nhập đơn mới.</p>
+              @if (app(); as a) {
+                <dl class="a-sum">
+                  <div><dt>App</dt><dd>{{ appName(a) }}</dd></div>
+                  <div><dt>Mã đơn app</dt><dd>{{ a.externalOrderCode }}</dd></div>
+                  <div><dt>Giá gốc</dt><dd>{{ a.subTotal | vnd }}</dd></div>
+                  <div><dt>Giảm giá@if (a.discountPercent) { ({{ a.discountPercent }}%) }</dt><dd>{{ a.discount ? '−' : '' }}{{ a.discount | vnd }}</dd></div>
+                  <div class="a-sum-strong"><dt>Doanh thu ròng</dt><dd>{{ a.netRevenue | vnd }}</dd></div>
+                  <div class="a-sum-muted"><dt>Khấu trừ và thuế</dt><dd>−{{ a.deductionAmount + a.vatAmount + a.pitAmount | vnd }}</dd></div>
+                  <div class="a-sum-total"><dt>Thực nhận</dt><dd>{{ a.receivedAmount | vnd }}</dd></div>
+                </dl>
+                @if (canVoid()) {
+                  <div class="grid gap-2 sm:grid-cols-2">
+                    <button type="button" class="ot-btn ot-btn-outline" (click)="editing.set(true)">Sửa đơn app</button>
+                    <button type="button" class="ot-btn ot-btn-outline text-danger" (click)="cancelApp(a)">Hủy đơn app</button>
+                  </div>
+                }
+                @if (editing()) {
+                  <ot-platform-edit [order]="{ id: a.id, group: a.paymentGroup, platform: a.platform, externalOrderCode: a.externalOrderCode, subTotal: a.subTotal, discountPercent: a.discountPercent ?? null, discount: a.discount }" (saved)="app.set($event); editing.set(false)" (closed)="editing.set(false)" />
+                }
+              }
+            </div>
+          </section>
+        } @else {
         <section class="a-card">
           <header class="a-card-h">Chọn món</header>
-          @if (b.channel === 'platform') { <p class="a-card-b font-medium">Đơn app đã thanh toán qua app, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách đặt thêm trên app thì nhập đơn mới.</p> }
-          @else if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
+          @if (b.paid) { <p class="a-card-b font-medium">Đơn đã thanh toán, đang chờ bếp ra món. Không gọi thêm vào đơn này; khách mua thêm thì tạo đơn mới.</p> } @else {
           <div class="a-card-b grid gap-3">
             <ot-pos-menu (picked)="draft.add($event)" />
 
@@ -280,29 +325,12 @@ export class DineIn {
           </div>
           }
         </section>
+        }
 
         <section class="a-card self-start">
-          <header class="a-card-h"><span>Phiếu {{ b.code }}</span><span>{{ b.subTotal | vnd }}</span></header>
+          <header class="a-card-h"><span class="min-w-0">Phiếu<small class="block font-normal text-muted">{{ b.code }}</small></span><span class="shrink-0 tabular-nums">{{ b.subTotal | vnd }}</span></header>
           <div class="a-card-b">
             @if (b.note) { <p class="mb-2 text-sm text-muted">Ghi chú: {{ b.note }}</p> }
-            @if (b.channel === 'platform' && app(); as a) {
-              <dl class="a-kv mb-3 rounded-md bg-surface-2 p-3 tabular-nums">
-                <dt>App</dt><dd>{{ appName(a) }}</dd>
-                <dt>Mã đơn app</dt><dd>{{ a.externalOrderCode }}</dd>
-                <dt>Giảm giá</dt><dd>{{ a.discount | vnd }}@if (a.discountPercent !== null) { ({{ a.discountPercent }}%) }</dd>
-                <dt>Doanh thu ròng</dt><dd>{{ a.netRevenue | vnd }}</dd>
-                <dt>Thực nhận</dt><dd class="font-semibold">{{ a.receivedAmount | vnd }}</dd>
-              </dl>
-              @if (canVoid()) {
-                <div class="mb-3 grid grid-cols-2 gap-2">
-                  <button type="button" class="ot-btn ot-btn-outline" (click)="editing.set(true)">Sửa mã, giảm giá</button>
-                  <button type="button" class="ot-btn ot-btn-outline text-danger" (click)="cancelApp(a)">Hủy đơn app</button>
-                </div>
-              }
-              @if (editing()) {
-                <ot-platform-edit [order]="{ id: a.id, group: a.paymentGroup, platform: a.platform, externalOrderCode: a.externalOrderCode, subTotal: a.subTotal, discountPercent: a.discountPercent ?? null, discount: a.discount }" (saved)="app.set($event); editing.set(false)" (closed)="editing.set(false)" />
-              }
-            }
             @for (r of rounds(); track r.round) {
               <h3 class="mt-3 text-sm font-medium text-muted">Đợt {{ r.round }} · {{ time(r.sentAtUtc) }}</h3>
               @for (i of r.items; track i.id) {
@@ -318,7 +346,7 @@ export class DineIn {
                     @else if (i.servedAtUtc) { <span class="a-badge">Đã ra món</span> }
                     @else {
                       <span class="a-badge">Chờ bếp</span>
-                      <button type="button" class="text-primary" (click)="served(b, i)">Đã bưng ra</button>
+                      <button type="button" class="a-link" (click)="served(b, i)">Đã bưng ra</button>
                     }
                     @if (!i.voided && canVoid() && !b.paid) { <button type="button" class="text-danger" (click)="voidItem(b, i)">Hủy món</button> }
                   </div>

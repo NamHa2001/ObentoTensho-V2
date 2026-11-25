@@ -133,6 +133,10 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-line { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-block: 12px; border-top: 1px solid var(--ot-border); }
 .a-line:first-child { border-top: 0; }
 .a-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Nút đầu trang trên điện thoại: nút chính một hàng, các nút phụ chia đều hàng dưới */
+.a-head-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.a-head-actions > :first-child { grid-column: 1 / -1; }
+@media (min-width: 640px) { .a-head-actions { display: flex; width: auto; } }
 .a-main form.ot-stack:not(.a-plain), .a-main section.ot-stack { max-width: 640px; margin-top: 0; margin-bottom: var(--a-gap); padding: 20px; background: var(--ot-surface); border: 1px solid var(--ot-border); border-radius: var(--ot-radius-md); box-shadow: var(--ot-shadow-1); }
 .a-plain { margin: 0; }
 
@@ -145,12 +149,13 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-drawer .ot-btn { flex: 1; min-height: 44px; border-radius: var(--ot-radius-sm); box-shadow: none; }
 
 /* Gọi món tại bàn: ô bàn tô màu theo trạng thái, ô món dạng nút lớn dễ bấm trên máy tính bảng */
+.a-dine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 .a-dine-table { display: grid; align-content: start; gap: 4px; min-height: 112px; padding: 12px; border: 2px solid var(--ot-border); border-radius: var(--ot-radius-md); background: var(--ot-surface); text-align: left; }
 .a-dine-table:hover { border-color: var(--ot-primary); }
 .a-dine-table[data-status='occupied'] { border-color: var(--ot-primary); background: var(--ot-primary-soft); }
 .a-dine-table[data-status='reserved'] { background: var(--ot-info-bg); }
 .a-dine-table[data-status='cleaning'] { background: var(--ot-warning-bg); }
-.a-dine-item { display: grid; gap: 2px; min-height: 64px; padding: 12px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
+.a-dine-item { display: grid; align-content: space-between; gap: 2px; min-height: 64px; padding: 12px; border: 1px solid var(--ot-border); border-radius: var(--ot-radius-sm); background: var(--ot-surface); text-align: left; }
 .a-dine-item:hover:not(:disabled) { border-color: var(--ot-primary); }
 .a-dine-item:disabled { opacity: 0.5; }
 /* Chọn món: danh mục dính khi cuộn (dưới thanh trên cùng cao 72px); nút gửi bếp dính đáy khi đang chọn món */
@@ -158,6 +163,37 @@ h1, h2, h3, b, strong { font-weight: 500; }
 .a-pos-cats::-webkit-scrollbar { display: none; }
 .a-pos-cats .ot-chip { flex: 0 0 auto; white-space: nowrap; }
 .a-pos-section { scroll-margin-top: 132px; }
+/* Bộ chọn món là component: ô tìm và danh mục cách nhau như các ô khác trong thẻ */
+ot-pos-menu { display: grid; gap: 12px; min-width: 0; }
+.a-draft-line { display: grid; gap: 8px; padding-block: 12px; border-top: 1px solid var(--ot-border); }
+.a-draft-line:first-child { padding-top: 0; border-top: 0; }
+/* Nhập theo bước: lựa chọn dạng nút, bảng tiền canh phải, thanh dưới cùng tóm tắt và nút sang bước */
+.a-steps-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+.a-steps-tabs .ot-chip { justify-content: center; padding-inline: 8px; white-space: nowrap; }
+.a-choice { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.a-choice .ot-chip { min-width: 88px; justify-content: center; }
+.a-sum { display: grid; gap: 8px; margin: 0; padding: 16px; border-radius: var(--ot-radius-sm); background: var(--ot-surface-2); font-variant-numeric: tabular-nums; }
+.a-sum > div { display: flex; justify-content: space-between; gap: 16px; white-space: nowrap; }
+.a-sum dd { margin: 0; text-align: right; white-space: nowrap; }
+.a-sum-muted { color: var(--ot-text-muted); }
+.a-sum-strong { font-weight: 500; }
+.a-sum-total { margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--ot-border); font-size: 18px; font-weight: 600; }
+.a-sum-plain { padding: 0; background: none; }
+.a-main .a-table-tight th, .a-main .a-table-tight td { padding-inline: 12px; }
+.a-group-card { display: flex; flex-direction: column; width: 100%; text-align: left; }
+.a-group-card .a-card-h { width: 100%; }
+.a-group-card:hover { border-color: var(--ot-primary); }
+.a-order-item { display: grid; gap: 8px; padding: 16px 20px; border-top: 1px solid var(--ot-border); }
+.a-order-item:first-child { border-top: 0; }
+.a-steps-bar { position: sticky; bottom: 0; z-index: 6; display: grid; gap: 12px; margin-top: var(--a-gap); padding: 12px 16px calc(12px + var(--ot-safe-bottom)); background: var(--ot-surface); border: 1px solid var(--ot-border); border-radius: var(--ot-radius-md); box-shadow: var(--ot-shadow-2); }
+.a-steps-sum { min-width: 0; margin: 0; }
+.a-steps-bar .a-btns { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+@media (min-width: 768px) {
+  .a-steps-tabs { display: flex; }
+  .a-steps-tabs .ot-chip { padding-inline: 16px; }
+  .a-steps-bar { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+  .a-steps-bar .a-btns { grid-auto-columns: minmax(140px, auto); }
+}
 .a-pos-section + .a-pos-section { margin-top: 16px; }
 .a-pos-send { position: sticky; bottom: 0; z-index: 5; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-inline: -4px; padding: 12px 4px calc(12px + var(--ot-safe-bottom)); background: var(--ot-surface); box-shadow: 0 -6px 8px -8px rgb(90 70 50 / 35%); }
 @media (min-width: 768px) {
