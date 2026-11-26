@@ -53,7 +53,9 @@ public sealed class RecomputeTests : IDisposable
             await db.Orders.Where(o => o.CustomerEmail == email).ExecuteUpdateAsync(s => s
                 .SetProperty(o => o.CreatedAtUtc, at)
                 .SetProperty(o => o.PaidAtUtc, at)
-                .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid));
+                .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
+                .SetProperty(o => o.CompletedAtUtc, at)
+                .SetProperty(o => o.Status, OrderStatus.Completed));
             await db.DailyStats.Where(s => s.Date == day).ExecuteDeleteAsync();
         }
 

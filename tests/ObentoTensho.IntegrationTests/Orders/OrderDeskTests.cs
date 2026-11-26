@@ -134,6 +134,61 @@ public sealed class OrderDeskTests : IDisposable
         Assert.Equal(2, detail.GetProperty("history").GetArrayLength());
     }
 
+    // Chủ quán 2026-11-26: bill đã hoàn thành nhập sai thì quản lý xóa, bắt buộc lý do; dòng vẫn giữ (nhãn "Đã xóa"), sang tab Lịch sử
+    [Fact]
+    public async Task Quan_ly_xoa_bill_da_hoan_thanh_bat_buoc_ly_do_va_van_giu_dong()
+    {
+        await TestSchedule.OpenEveryDayAsync(_fixture);
+        var menu = await OrderTestMenu.CreateAsync(_fixture);
+        var cashier = await _admin.SignInAsync(StaffRole.Cashier);
+        var kitchen = await _admin.SignInAsync(StaffRole.Kitchen);
+        var manager = await _admin.SignInAsync(StaffRole.Manager);
+        var (id, code) = await CreateAsync(menu, OrderApiClient.NewPhone(), AuthApiClient.NewEmail());
+
+        // Đơn còn mở: ở tab Đang xử lý, chưa xóa được
+        Assert.Equal(code, (await ListCodesAsync(cashier, code, open: true)).Single());
+        Assert.Equal(ErrorCodes.InvalidTransition, await ErrorOf(Delete(manager, id, "Nhập sai")));
+
+        Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Patch, $"{Admin}/{id}/contact-confirmed", cashier, new { note = "Đã gọi" })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Status(kitchen, id, "pending", "preparing")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Status(kitchen, id, "preparing", "ready")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _admin.SendAsync(HttpMethod.Patch, $"{Admin}/{id}/payment", cashier)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await Status(cashier, id, "ready", "completed")).StatusCode);
+        Assert.Empty(await ListCodesAsync(cashier, code, open: true));
+        Assert.Equal(code, (await ListCodesAsync(cashier, code, open: false)).Single());
+
+        // Thu ngân không có quyền xóa; quản lý phải ghi lý do; không xóa qua đổi trạng thái thường
+        Assert.Equal(HttpStatusCode.Forbidden, (await Delete(cashier, id, "Nhập sai")).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await Delete(manager, id, "   ")).StatusCode);
+        Assert.Equal(ErrorCodes.InvalidTransition, await ErrorOf(Status(manager, id, "completed", "cancelled", "Nhập sai")));
+
+        var deleted = await AdminAuthApiClient.ReadDataAsync(await Delete(manager, id, "Nhập nhầm món"));
+        Assert.True(deleted.GetProperty("deleted").GetBoolean());
+        Assert.Equal("cancelled", deleted.GetProperty("status").GetString());
+        Assert.Equal(ErrorCodes.InvalidTransition, await ErrorOf(Delete(manager, id, "Lần hai")));
+
+        // Dòng vẫn giữ ở Lịch sử; lịch sử ghi lý do và bước Hoàn tất → Hủy; không theo dõi hoàn tiền
+        var row = await FindInListAsync(cashier, code);
+        Assert.True(row.GetProperty("deleted").GetBoolean());
+        Assert.False(row.GetProperty("refundPending").GetBoolean());
+        var detail = await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}/{id}", cashier));
+        Assert.Equal("Nhập nhầm món", detail.GetProperty("cancelReason").GetString());
+        var last = detail.GetProperty("history").EnumerateArray().Last();
+        Assert.Equal("completed", last.GetProperty("fromStatus").GetString());
+        Assert.Equal("cancelled", last.GetProperty("toStatus").GetString());
+
+        await using var db = _fixture.CreateContext();
+        var idText = id.ToString("D", CultureInfo.InvariantCulture);
+        Assert.Equal(1, await db.AuditLogs.CountAsync(a => a.Action == "orders.order.deleted" && a.EntityId == idText));
+    }
+
+    private Task<HttpResponseMessage> Delete(string token, Guid id, string reason) =>
+        _admin.SendAsync(HttpMethod.Post, $"{Admin}/{id}/delete", token, new { reason });
+
+    private async Task<string?[]> ListCodesAsync(string token, string code, bool open) =>
+        (await AdminAuthApiClient.ReadDataAsync(await _admin.SendAsync(HttpMethod.Get, $"{Admin}?q={code}&open={(open ? "true" : "false")}", token)))
+            .EnumerateArray().Select(o => o.GetProperty("code").GetString()).ToArray();
+
     private async Task AssertPaidOnceWithFullHistoryAsync(Guid id)
     {
         await using var db = _fixture.CreateContext();

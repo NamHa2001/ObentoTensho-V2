@@ -50,7 +50,8 @@ public sealed class ReportTests : IDisposable
             .SetProperty(o => o.CreatedAtUtc, paidUtc)
             .SetProperty(o => o.PaidAtUtc, paidUtc)
             .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
-            .SetProperty(o => o.Status, OrderStatus.Preparing));
+            .SetProperty(o => o.CompletedAtUtc, paidUtc)
+            .SetProperty(o => o.Status, OrderStatus.Completed));
         return id;
     }
 
@@ -161,7 +162,9 @@ public sealed class ReportTests : IDisposable
             await db.Orders.Where(o => o.CustomerEmail == email).ExecuteUpdateAsync(s => s
                 .SetProperty(o => o.CreatedAtUtc, paid)
                 .SetProperty(o => o.PaidAtUtc, paid)
-                .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid));
+                .SetProperty(o => o.PaymentStatus, PaymentStatus.Paid)
+                .SetProperty(o => o.CompletedAtUtc, paid)
+                .SetProperty(o => o.Status, OrderStatus.Completed));
         }
 
         var report = await GetAsync(manager, "customers?from=2055-03-01&to=2055-03-31&limit=5");
@@ -187,7 +190,7 @@ public sealed class ReportTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, file.StatusCode);
         using (var book = new XLWorkbook(await file.Content.ReadAsStreamAsync()))
         {
-            Assert.Equal("Doanh thu", book.Worksheet(1).Cell(1, 4).GetString());
+            Assert.Equal("Doanh thu", book.Worksheet(1).Cell(1, 2).GetString());
             Assert.Equal("2057-07-07", book.Worksheet(1).Cell(2, 1).GetString());
         }
 

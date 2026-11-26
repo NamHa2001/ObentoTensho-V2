@@ -95,6 +95,11 @@ public sealed class Order
 
     public Guid? RefundedByStaffId { get; set; }
 
+    // Chủ quán 2026-11-26: bill đã hoàn thành bị xóa vì nhập sai — giữ dòng, chuyển Đã hủy, không tính doanh thu; lý do ở CancelReason
+    public DateTime? DeletedAtUtc { get; set; }
+
+    public Guid? DeletedByStaffId { get; set; }
+
     // BR-ORD-18: hủy vì khách không đến lấy — đếm theo SĐT để bật bước gọi xác nhận cho đơn sau
     public bool NoPickup { get; set; }
 
@@ -131,5 +136,6 @@ public sealed class Order
 
     // BR-ORD-16: đã thu tiền rồi hủy mà chưa ghi hoàn tiền
     // Đơn app: tiền do app giữ và hoàn, quán không ghi hoàn tiền (docs/srs/23)
-    public bool RefundPending => Status == OrderStatus.Cancelled && PaymentStatus == PaymentStatus.Paid && PaymentGroup == PaymentGroup.InStore && RefundedAtUtc is null;
+    // Bill bị xóa không theo dõi hoàn tiền: quản lý tự xử lý (chủ quán 2026-11-26)
+    public bool RefundPending => Status == OrderStatus.Cancelled && PaymentStatus == PaymentStatus.Paid && PaymentGroup == PaymentGroup.InStore && RefundedAtUtc is null && DeletedAtUtc is null;
 }

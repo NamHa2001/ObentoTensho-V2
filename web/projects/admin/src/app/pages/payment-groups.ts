@@ -55,6 +55,7 @@ export class AmountsList {
   selector: 'ot-payment-groups',
   imports: [RouterLink, StatCard, VndPipe, AmountsList, PlatformEdit],
   template: `
+    <p class="mb-3 text-sm text-muted">Chỉ tính đơn đã hoàn tất, theo ngày hoàn thành. Đơn đang làm chưa được tính; đơn hủy và bill đã xóa không được tính.</p>
     <div class="ot-scroll-row mb-4" role="tablist" aria-label="Nhóm thanh toán" style="margin-inline: 0; padding-inline: 0">
       <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="tab() === 'overview'" [attr.aria-selected]="tab() === 'overview'" (click)="tab.set('overview')">Tổng quan</button>
       @for (g of data().groups; track g.group) {

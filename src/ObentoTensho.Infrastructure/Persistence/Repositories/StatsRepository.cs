@@ -14,27 +14,26 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
     // BR-RPT-30
     private const int QueryTimeoutSeconds = 15;
 
-    // BR-RPT-10, BR-RPT-31: gom nhóm trong SQL, giờ VN bằng AT TIME ZONE; đơn lấy theo mốc riêng của từng số liệu; đặt bàn theo ReservedDate
+    // BR-RPT-10, BR-RPT-31: gom nhóm trong SQL, giờ VN bằng AT TIME ZONE; đặt bàn theo ReservedDate.
+    // Chủ quán 2026-11-26: doanh thu và món bán chỉ tính đơn Hoàn tất theo ngày hoàn thành (cùng mốc với báo cáo nhóm thanh toán, BR-PLT-09);
+    // đơn hủy (kể cả bill bị xóa) không bao giờ được tính nên không còn khoản trừ hoàn tiền
     public async Task<IReadOnlyList<StatRow>> ComputeDayAsync(DateOnly day, DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken)
     {
         var rows = await db.Database.SqlQuery<StatSqlRow>($"""
             SELECT 'revenue_paid' AS Metric, '' AS Dimension, CAST(SUM(o.TotalAmount) AS decimal(18,2)) AS Value
-            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} HAVING COUNT(*) > 0
-            UNION ALL
-            SELECT 'refunds_amount', '', CAST(SUM(o.TotalAmount) AS decimal(18,2))
-            FROM Orders o WHERE o.RefundedAtUtc >= {startUtc} AND o.RefundedAtUtc < {endUtc} HAVING COUNT(*) > 0
+            FROM Orders o WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} HAVING COUNT(*) > 0
             UNION ALL
             SELECT 'revenue_paid', CONCAT('category:', m.CategoryId), CAST(SUM((i.ItemPrice + i.OptionsPrice) * i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id JOIN MenuItems m ON m.Id = i.MenuItemId
-            WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} AND i.VoidedAtUtc IS NULL GROUP BY m.CategoryId
+            WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} AND i.VoidedAtUtc IS NULL GROUP BY m.CategoryId
             UNION ALL
             SELECT 'item_quantity', CONCAT('item:', i.MenuItemId), CAST(SUM(i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id
-            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
+            WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
             UNION ALL
             SELECT 'item_revenue', CONCAT('item:', i.MenuItemId), CAST(SUM((i.ItemPrice + i.OptionsPrice) * i.Quantity) AS decimal(18,2))
             FROM Orders o JOIN OrderItems i ON i.OrderId = o.Id
-            WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} AND o.Status <> 4 AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
+            WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} AND i.MenuItemId IS NOT NULL AND i.VoidedAtUtc IS NULL GROUP BY i.MenuItemId
             UNION ALL
             SELECT 'orders_created', '', COUNT(*) FROM Orders o WHERE o.CreatedAtUtc >= {startUtc} AND o.CreatedAtUtc < {endUtc} HAVING COUNT(*) > 0
             UNION ALL
@@ -72,20 +71,17 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
         return rows.Concat(await ComputeChannelsAsync(startUtc, endUtc, cancellationToken)).Select(r => new StatRow(r.Metric, r.Dimension, r.Value)).ToArray();
     }
 
-    // Theo kênh bán (mang về / tại quán / giao hàng) và tiền ship thực thu, cùng mốc ngày thanh toán/hoàn tiền như tổng
+    // Theo kênh bán (mang về / tại quán / giao hàng) và tiền ship thực thu, cùng mốc ngày hoàn thành như tổng
     private async Task<List<StatSqlRow>> ComputeChannelsAsync(DateTime startUtc, DateTime endUtc, CancellationToken cancellationToken) =>
         await db.Database.SqlQuery<StatSqlRow>($"""
             SELECT 'revenue_paid' AS Metric, CONCAT('channel:', o.Channel) AS Dimension, CAST(SUM(o.TotalAmount) AS decimal(18,2)) AS Value
-            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} GROUP BY o.Channel
-            UNION ALL
-            SELECT 'refunds_amount', CONCAT('channel:', o.Channel), CAST(SUM(o.TotalAmount) AS decimal(18,2))
-            FROM Orders o WHERE o.RefundedAtUtc >= {startUtc} AND o.RefundedAtUtc < {endUtc} GROUP BY o.Channel
+            FROM Orders o WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} GROUP BY o.Channel
             UNION ALL
             SELECT 'orders_paid', CONCAT('channel:', o.Channel), COUNT(*)
-            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} GROUP BY o.Channel
+            FROM Orders o WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} GROUP BY o.Channel
             UNION ALL
             SELECT 'shipping_collected', '', CAST(SUM(o.DeliveryFee - o.ShippingDiscount) AS decimal(18,2))
-            FROM Orders o WHERE o.PaidAtUtc >= {startUtc} AND o.PaidAtUtc < {endUtc} AND o.Channel = 2 HAVING COUNT(*) > 0
+            FROM Orders o WHERE o.Status = 3 AND o.CompletedAtUtc >= {startUtc} AND o.CompletedAtUtc < {endUtc} AND o.Channel = 2 HAVING COUNT(*) > 0
             """).ToListAsync(cancellationToken);
 
     public async Task ReplaceDayAsync(DateOnly day, IReadOnlyList<StatRow> rows, DateTime nowUtc, CancellationToken cancellationToken)
@@ -120,7 +116,7 @@ internal sealed class StatsRepository(AppDbContext db) : IStatsRepository
         var active = await perCustomer.CountAsync(cancellationToken);
         var returning = await perCustomer.CountAsync(c => c >= 2, cancellationToken);
         var top = await db.Orders.AsNoTracking()
-            .Where(o => o.UserId != null && o.Status != OrderStatus.Cancelled && o.PaidAtUtc >= fromUtc && o.PaidAtUtc < toUtc)
+            .Where(o => o.UserId != null && o.Status == OrderStatus.Completed && o.CompletedAtUtc >= fromUtc && o.CompletedAtUtc < toUtc)
             .GroupBy(o => o.UserId)
             .Select(g => new { UserId = g.Key, Orders = g.Count(), Spent = g.Sum(o => o.TotalAmount) })
             .OrderByDescending(x => x.Spent)

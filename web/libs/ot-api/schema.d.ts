@@ -5308,6 +5308,7 @@ export interface paths {
                     refundPending?: boolean;
                     page?: number;
                     pageSize?: number;
+                    open?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -5583,6 +5584,47 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/v1/admin/orders/{id}/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DeleteOrderRequest"];
+                    "text/json": components["schemas"]["DeleteOrderRequest"];
+                    "application/*+json": components["schemas"]["DeleteOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/admin/orders/{id}/refund": {
@@ -10289,6 +10331,8 @@ export interface components {
                 /** @enum {unknown} */
                 platform?: "grab" | "shopee" | "be" | "xanh" | null;
                 externalOrderCode?: null | string;
+                /** @default false */
+                deleted: boolean;
             };
             items: {
                 /** Format: int32 */
@@ -10395,6 +10439,8 @@ export interface components {
             /** @enum {unknown} */
             platform?: "grab" | "shopee" | "be" | "xanh" | null;
             externalOrderCode?: null | string;
+            /** @default false */
+            deleted: boolean;
         };
         AdminPromotionDto: {
             /** Format: int32 */
@@ -11133,6 +11179,9 @@ export interface components {
             date: string;
             /** Format: double */
             value: number;
+        };
+        DeleteOrderRequest: {
+            reason: null | string;
         };
         DeliveryQuoteDto: {
             address: string;
@@ -11991,6 +12040,8 @@ export interface components {
                 /** @enum {unknown} */
                 platform?: "grab" | "shopee" | "be" | "xanh" | null;
                 externalOrderCode?: null | string;
+                /** @default false */
+                deleted: boolean;
             }[];
             notPickedUp: {
                 /** Format: uuid */
@@ -12033,6 +12084,8 @@ export interface components {
                 /** @enum {unknown} */
                 platform?: "grab" | "shopee" | "be" | "xanh" | null;
                 externalOrderCode?: null | string;
+                /** @default false */
+                deleted: boolean;
             }[];
             refundPending: {
                 /** Format: uuid */
@@ -12075,6 +12128,8 @@ export interface components {
                 /** @enum {unknown} */
                 platform?: "grab" | "shopee" | "be" | "xanh" | null;
                 externalOrderCode?: null | string;
+                /** @default false */
+                deleted: boolean;
             }[];
         };
         /**

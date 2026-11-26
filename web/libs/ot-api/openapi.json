@@ -4333,6 +4333,13 @@
               "format": "int32",
               "default": 20
             }
+          },
+          {
+            "name": "open",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -4514,6 +4521,49 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/orders/{id}/delete": {
+      "post": {
+        "tags": [
+          "AdminOrders"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteOrderRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteOrderRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteOrderRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -9873,6 +9923,10 @@
                   "null",
                   "string"
                 ]
+              },
+              "deleted": {
+                "type": "boolean",
+                "default": false
               }
             }
           },
@@ -10222,6 +10276,10 @@
               "null",
               "string"
             ]
+          },
+          "deleted": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -12944,6 +13002,20 @@
           "value": {
             "type": "number",
             "format": "double"
+          }
+        }
+      },
+      "DeleteOrderRequest": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -16117,6 +16189,10 @@
                     "null",
                     "string"
                   ]
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "default": false
                 }
               }
             }
@@ -16252,6 +16328,10 @@
                     "null",
                     "string"
                   ]
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "default": false
                 }
               }
             }
@@ -16387,6 +16467,10 @@
                     "null",
                     "string"
                   ]
+                },
+                "deleted": {
+                  "type": "boolean",
+                  "default": false
                 }
               }
             }

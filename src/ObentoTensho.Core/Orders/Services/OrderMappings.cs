@@ -64,7 +64,8 @@ public static class OrderMappings
             o.Channel,
             o.PaymentGroup,
             o.Platform,
-            o.ExternalOrderCode);
+            o.ExternalOrderCode,
+            o.DeletedAtUtc is not null);
     }
 
     public static AdminOrderDetailDto ToDetail(this Order o, IClock clock, bool noPickupFlag, IReadOnlyList<OrderStatusHistory> history) =>

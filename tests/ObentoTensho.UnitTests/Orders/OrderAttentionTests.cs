@@ -20,8 +20,8 @@ public sealed class OrderAttentionTests
     [InlineData(OrderStatus.Ready, -120, -59, PaymentStatus.Unpaid, null)]
     [InlineData(OrderStatus.Preparing, -120, -90, PaymentStatus.Unpaid, null)]
 
-    // Hủy sau khi đã thu tiền mà chưa ghi hoàn tiền
-    [InlineData(OrderStatus.Cancelled, -120, 60, PaymentStatus.Paid, OrderAttention.Kind.RefundPending)]
+    // Hủy sau khi đã thu tiền: không còn theo dõi hoàn tiền, quản lý tự xử lý (chủ quán 2026-11-26)
+    [InlineData(OrderStatus.Cancelled, -120, 60, PaymentStatus.Paid, null)]
     [InlineData(OrderStatus.Cancelled, -120, 60, PaymentStatus.Unpaid, null)]
     [InlineData(OrderStatus.Completed, -120, -60, PaymentStatus.Paid, null)]
     public void Phan_loai_don_can_xu_ly(OrderStatus status, int createdMinutes, int pickupMinutes, PaymentStatus payment, OrderAttention.Kind? expected)

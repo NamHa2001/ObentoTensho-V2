@@ -74,6 +74,36 @@ public sealed class OrderTransitions(
         return Result.Success();
     }
 
+    // Chủ quán 2026-11-26: xóa bill đã hoàn thành (nhập sai). Hoàn tất vẫn là trạng thái cuối của máy trạng thái thường;
+    // thao tác riêng này chuyển Đã hủy, ghi lịch sử, thu hồi điểm, hoàn lượt voucher, không gửi thư cho khách
+    public async Task DeleteCompletedAsync(Order order, Guid staffId, string reason, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        var now = clock.UtcNow;
+        order.Status = OrderStatus.Cancelled;
+        order.UpdatedAtUtc = now;
+        order.CancelledAtUtc = now;
+        order.CancelReason = reason;
+        order.CancelledByType = OrderActor.Staff;
+        order.DeletedAtUtc = now;
+        order.DeletedByStaffId = staffId;
+        orders.AddHistory(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            FromStatus = OrderStatus.Completed,
+            ToStatus = OrderStatus.Cancelled,
+            ChangedByType = OrderActor.Staff,
+            ChangedById = staffId,
+            Reason = reason,
+            ChangedAtUtc = now,
+        });
+        await SettleLoyaltyAsync(order, OrderStatus.Cancelled, cancellationToken);
+        if (order.VoucherId is { } voucherId)
+        {
+            await vouchers.ReleaseAsync(voucherId, order.UserId, cancellationToken);
+        }
+    }
+
     // BR-ORD-08/13: điểm cộng đúng một lần khi đơn của thành viên hoàn thành (đã thanh toán — BR-ORD-10), tính trên tổng sau giảm;
     // đơn đã cộng mà bị hủy thì thu hồi (máy trạng thái hiện không cho hủy đơn đã hoàn thành — giữ cho an toàn)
     private async Task SettleLoyaltyAsync(Order order, OrderStatus to, CancellationToken cancellationToken)

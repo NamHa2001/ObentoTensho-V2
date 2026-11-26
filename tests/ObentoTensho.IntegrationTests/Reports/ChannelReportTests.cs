@@ -104,7 +104,7 @@ public sealed class ChannelReportTests : IDisposable
         int categoryId;
         await using (var db = _fixture.CreateContext())
         {
-            await db.Orders.Where(o => ids.Contains(o.Id)).ExecuteUpdateAsync(s => s.SetProperty(o => o.CreatedAtUtc, at).SetProperty(o => o.PaidAtUtc, at));
+            await db.Orders.Where(o => ids.Contains(o.Id)).ExecuteUpdateAsync(s => s.SetProperty(o => o.CreatedAtUtc, at).SetProperty(o => o.PaidAtUtc, at).SetProperty(o => o.CompletedAtUtc, at).SetProperty(o => o.Status, OrderStatus.Completed));
             await db.DailyStats.Where(s => s.Date == day).ExecuteDeleteAsync();
             categoryId = await db.MenuItems.Where(m => m.Id == menu.Tea).Select(m => m.CategoryId).SingleAsync();
         }

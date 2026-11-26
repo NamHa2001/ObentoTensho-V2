@@ -47,15 +47,17 @@ public sealed class DashboardTests : IDisposable
 
     private static DateTime Utc(int year, int month, int day, int hour, int minute = 0) => new(year, month, day, hour, minute, 0, DateTimeKind.Utc);
 
-    private async Task SetTimesAsync(Guid id, DateTime created, DateTime? paid, DateTime? refunded = null, OrderStatus status = OrderStatus.Preparing)
+    // Doanh thu tính theo ngày hoàn thành (chủ quán 2026-11-26): completed là lúc đơn hoàn tất (đã thu tiền); cancelled là lúc bill bị hủy/xóa
+    private async Task SetTimesAsync(Guid id, DateTime created, DateTime? completed, DateTime? cancelled = null)
     {
+        var status = cancelled is not null ? OrderStatus.Cancelled : completed is not null ? OrderStatus.Completed : OrderStatus.Preparing;
         await using var db = _fixture.CreateContext();
         await db.Orders.Where(o => o.Id == id).ExecuteUpdateAsync(s => s
             .SetProperty(o => o.CreatedAtUtc, created)
-            .SetProperty(o => o.PaidAtUtc, paid)
-            .SetProperty(o => o.PaymentStatus, paid is null ? PaymentStatus.Unpaid : PaymentStatus.Paid)
-            .SetProperty(o => o.RefundedAtUtc, refunded)
-            .SetProperty(o => o.CancelledAtUtc, status == OrderStatus.Cancelled ? refunded : null)
+            .SetProperty(o => o.PaidAtUtc, completed)
+            .SetProperty(o => o.PaymentStatus, completed is null ? PaymentStatus.Unpaid : PaymentStatus.Paid)
+            .SetProperty(o => o.CompletedAtUtc, completed)
+            .SetProperty(o => o.CancelledAtUtc, cancelled)
             .SetProperty(o => o.Status, status));
     }
 
@@ -85,13 +87,13 @@ public sealed class DashboardTests : IDisposable
     }
 
     [Fact]
-    public async Task Doanh_thu_theo_ngay_thanh_toan_don_dat_theo_ngay_tao_va_hoan_tien_ghi_am_ngay_hoan()
+    public async Task Doanh_thu_theo_ngay_hoan_thanh_don_dat_theo_ngay_tao_bill_xoa_thi_mat_khoi_ngay_ban()
     {
         await TestSchedule.OpenEveryDayAsync(_fixture);
         var menu = await OrderTestMenu.CreateAsync(_fixture);
         var id = await OrderAsync(menu);
 
-        // 23:30 VN ngày 30 = 16:30 UTC; thanh toán 09:00 VN ngày 31
+        // 23:30 VN ngày 30 = 16:30 UTC; hoàn tất 09:00 VN ngày 31
         await SetTimesAsync(id, Utc(2043, 3, 30, 16, 30), Utc(2043, 3, 31, 2));
         var created = await RollupAsync(new DateOnly(2043, 3, 30));
         var paid = await RollupAsync(new DateOnly(2043, 3, 31));
@@ -101,13 +103,13 @@ public sealed class DashboardTests : IDisposable
         Assert.False(paid.ContainsKey((StatMetrics.OrdersCreated, string.Empty)));
         Assert.Equal(amount, paid.Single(p => string.Equals(p.Key.Metric, StatMetrics.RevenuePaid, StringComparison.Ordinal) && p.Key.Dimension.StartsWith(StatMetrics.CategoryPrefix, StringComparison.Ordinal)).Value);
 
-        // Hoàn tiền ngày 02/04: ngày 31 giữ nguyên, ngày hoàn có khoản hoàn
-        await SetTimesAsync(id, Utc(2043, 3, 30, 16, 30), Utc(2043, 3, 31, 2), Utc(2043, 4, 2, 3), OrderStatus.Cancelled);
+        // Bill bị xóa ngày 02/04: doanh thu ngày bán (31) mất khoản đó, không có khoản trừ hoàn tiền ở ngày xóa
+        await SetTimesAsync(id, Utc(2043, 3, 30, 16, 30), Utc(2043, 3, 31, 2), Utc(2043, 4, 2, 3));
         var after = await RollupAsync(new DateOnly(2043, 3, 31));
-        var refund = await RollupAsync(new DateOnly(2043, 4, 2));
-        Assert.Equal(amount, after[(StatMetrics.RevenuePaid, string.Empty)]);
-        Assert.Equal(amount, refund[(StatMetrics.RefundsAmount, string.Empty)]);
-        Assert.Equal(1, refund[(StatMetrics.OrdersCancelled, string.Empty)]);
+        var deleted = await RollupAsync(new DateOnly(2043, 4, 2));
+        Assert.False(after.ContainsKey((StatMetrics.RevenuePaid, string.Empty)));
+        Assert.False(deleted.ContainsKey((StatMetrics.RefundsAmount, string.Empty)));
+        Assert.Equal(1, deleted[(StatMetrics.OrdersCancelled, string.Empty)]);
     }
 
     [Fact]
@@ -155,10 +157,9 @@ public sealed class DashboardTests : IDisposable
         var start = TestSchedule.TodayVn.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc).AddHours(-7);
         var end = start.AddDays(1);
         await using var db = _fixture.CreateContext();
-        var paid = await db.Orders.Where(o => o.PaidAtUtc >= start && o.PaidAtUtc < end).SumAsync(o => o.TotalAmount);
-        var refunded = await db.Orders.Where(o => o.RefundedAtUtc >= start && o.RefundedAtUtc < end).SumAsync(o => o.TotalAmount);
-        Assert.True(paid > 0);
-        Assert.Equal(paid - refunded, full.GetProperty("revenueToday").GetProperty("current").GetDecimal());
+        var completed = await db.Orders.Where(o => o.Status == OrderStatus.Completed && o.CompletedAtUtc >= start && o.CompletedAtUtc < end).SumAsync(o => o.TotalAmount);
+        Assert.True(completed > 0);
+        Assert.Equal(completed, full.GetProperty("revenueToday").GetProperty("current").GetDecimal());
         Assert.Equal(7, full.GetProperty("revenueByDay").GetArrayLength());
         Assert.True(full.GetProperty("topItems").GetArrayLength() > 0);
         Assert.NotEmpty(full.GetProperty("topItems")[0].GetProperty("name").GetString()!);

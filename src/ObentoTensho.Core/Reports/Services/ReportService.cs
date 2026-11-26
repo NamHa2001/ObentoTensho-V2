@@ -27,7 +27,7 @@ public sealed class ReportService(
     public const string RevenueDefinition = "Doanh thu = tiền thu của đơn theo ngày thanh toán, trừ hoàn tiền theo ngày hoàn.";
     public const string RetentionDefinition = "Retention = % khách có từ 2 đơn không hủy trong 90 ngày, trên số khách có đơn trong 90 ngày đó.";
 
-    private static readonly string[] RevenueColumns = ["Kỳ", "Tiền thu", "Hoàn tiền", "Doanh thu"];
+    private static readonly string[] RevenueColumns = ["Kỳ", "Doanh thu"];
     private static readonly string[] SummaryColumns = ["Chỉ số", "Giá trị"];
 
     private static readonly Dictionary<string, string> Titles = new(StringComparer.Ordinal)
@@ -39,7 +39,7 @@ public sealed class ReportService(
         ["top-dishes"] = "Báo cáo món bán chạy",
         ["channels"] = "Báo cáo doanh thu theo kênh",
     };
-    private static readonly string[] ChannelColumns = ["Kênh", "Số đơn", "Tiền thu", "Hoàn tiền", "Doanh thu"];
+    private static readonly string[] ChannelColumns = ["Kênh", "Số đơn", "Doanh thu"];
     private static readonly string[] CustomerColumns = ["Khách", "Số đơn", "Đã chi"];
     private static readonly string[] DishColumns = ["Món", "Số lượng", "Doanh thu"];
 
@@ -187,7 +187,7 @@ public sealed class ReportService(
     {
         var report = await RevenueAsync(from, to, grouping, cancellationToken);
         return report.IsSuccess
-            ? Result.Success((RevenueColumns, report.Value.Series.Select(p => new[] { p.Period, Number(p.Paid), Number(p.Refunds), Number(p.Net) }).ToArray()))
+            ? Result.Success((RevenueColumns, report.Value.Series.Select(p => new[] { p.Period, Number(p.Net) }).ToArray()))
             : Result.Failure<(string[], string[][])>(report.ErrorCode ?? ErrorCodes.ValidationFailed);
     }
 
@@ -200,7 +200,7 @@ public sealed class ReportService(
         }
 
         var rows = (report.Value.ByChannel ?? [])
-            .Select(c => new[] { ChannelName(c.Channel), Number(c.Orders), Number(c.Paid), Number(c.Refunds), Number(c.Net) })
+            .Select(c => new[] { ChannelName(c.Channel), Number(c.Orders), Number(c.Net) })
             .Append(["Trong đó tiền ship thực thu", string.Empty, Number(report.Value.ShippingCollected), string.Empty, string.Empty])
             .ToArray();
         return Result.Success((ChannelColumns, rows));

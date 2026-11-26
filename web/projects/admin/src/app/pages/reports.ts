@@ -44,10 +44,9 @@ function periodLabel(period: string): string {
       @switch (r.kind) {
         @case ('revenue') {
           @let v = r.data;
+          <p class="mb-3 text-sm text-muted">Chỉ tính đơn đã hoàn tất, theo ngày hoàn thành. Đơn hủy và bill đã xóa không được tính.</p>
           <div class="a-row4">
             <ot-stat label="Doanh thu" [value]="vnd(v.net)" [tone]="1" />
-            <ot-stat label="Tiền thu" [value]="vnd(v.paid)" [tone]="4" />
-            <ot-stat label="Hoàn tiền" [value]="vnd(v.refunds)" [tone]="3" />
             <ot-stat label="Kỳ trước" [value]="vnd(v.previousNet)" [tone]="2" />
           </div>
           <div class="a-row84">
@@ -58,10 +57,10 @@ function periodLabel(period: string): string {
             <section class="a-card mt-4">
               <header class="a-card-h"><span>Theo kênh bán</span><button type="button" class="a-link" (click)="saveChannels()">Xuất Excel theo kênh</button></header>
               <div class="a-table"><table class="a-table-lines w-full text-sm">
-                <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Tiền thu</th><th class="p-2 text-right">Hoàn tiền</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
+                <thead><tr class="bg-surface-2 text-left"><th class="p-2">Kênh</th><th class="p-2 text-right">Số đơn</th><th class="p-2 text-right">Doanh thu</th></tr></thead>
                 <tbody>
                   @for (c of v.byChannel; track c.channel) {
-                    <tr class="border-t border-line"><td class="p-2">{{ channelLabel(c.channel) }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right tabular-nums">{{ c.paid | vnd }}</td><td class="p-2 text-right tabular-nums">{{ c.refunds | vnd }}</td><td class="p-2 text-right font-medium tabular-nums">{{ c.net | vnd }}</td></tr>
+                    <tr class="border-t border-line"><td class="p-2">{{ channelLabel(c.channel) }}</td><td class="p-2 text-right tabular-nums">{{ c.orders }}</td><td class="p-2 text-right font-medium tabular-nums">{{ c.net | vnd }}</td></tr>
                   }
                 </tbody>
               </table></div>

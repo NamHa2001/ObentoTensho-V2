@@ -7,10 +7,12 @@ using ObentoTensho.Core.Audit.Abstractions;
 using ObentoTensho.Core.Audit.Domain;
 using ObentoTensho.Core.Auth.Domain;
 using ObentoTensho.Core.Common;
+using ObentoTensho.Core.Invoices.Abstractions;
 using ObentoTensho.Core.Orders.Abstractions;
 using ObentoTensho.Core.Orders.Domain;
 using ObentoTensho.Core.Realtime.Abstractions;
 using ObentoTensho.Core.Realtime.Domain;
+using ObentoTensho.Core.Reports.Services;
 using ObentoTensho.Core.Time;
 
 namespace ObentoTensho.Core.Orders.Services;
@@ -25,6 +27,9 @@ public sealed class OrderDeskService(
     IAuditTrail audit,
     IUnitOfWork unitOfWork,
     IRealtimeEvents realtime,
+    IInvoiceRepository invoices,
+    StatsRollupService rollup,
+    BusinessCalendar calendar,
     IClock clock)
 {
     public const int MaxPageSize = 100;
@@ -36,6 +41,7 @@ public sealed class OrderDeskService(
     private const int RevealLimitPerHour = 100;
     private const string Entity = "order";
     private const int RefundNoteMaxLength = 300;
+    private const int DeleteReasonMaxLength = 300;
     private const string NoPickupReason = "Khách không đến lấy";
     private static readonly TimeSpan NoPickupWindow = TimeSpan.FromDays(90);
 
@@ -213,6 +219,47 @@ public sealed class OrderDeskService(
             emails.EnqueueRefunded(order);
             return Result.Success();
         }, cancellationToken);
+    }
+
+    // Chủ quán 2026-11-26: xóa bill đã hoàn thành vì nhập sai — bắt buộc lý do, dòng vẫn giữ (nhãn "Đã xóa"), không tính doanh thu.
+    // Bill đã có yêu cầu xuất hóa đơn thì không xóa: hóa đơn phải xử lý trước
+    public async Task<Result<AdminOrderDto>> DeleteCompletedAsync(Guid id, string? reason, Guid staffId, CancellationToken cancellationToken)
+    {
+        var clean = Clean(reason);
+        if (clean is null || clean.Length > DeleteReasonMaxLength)
+        {
+            return Result.Failure<AdminOrderDto>(ErrorCodes.ValidationFailed, new Dictionary<string, string[]>(StringComparer.Ordinal)
+            {
+                ["reason"] = [clean is null ? FieldErrorCodes.Required : FieldErrorCodes.TooLong],
+            });
+        }
+
+        DateTime? completedAtUtc = null;
+        var deleted = await UpdateAsync(id, async (order, ct) =>
+        {
+            if (order.Status != OrderStatus.Completed)
+            {
+                return Result.Failure(ErrorCodes.InvalidTransition);
+            }
+
+            if (await invoices.HasActiveForOrderAsync(order.Id, ct))
+            {
+                return Result.Failure(ErrorCodes.InvoiceExists);
+            }
+
+            completedAtUtc = order.CompletedAtUtc;
+            await transitions.DeleteCompletedAsync(order, staffId, clean, ct);
+            audit.Record(new AuditEntry("orders.order.deleted", Entity, Id(order), After: new { order.TotalAmount, reason = clean }));
+            return Result.Success();
+        }, cancellationToken);
+
+        // Doanh thu ngày bán tính lại ngay (bảng thống kê theo ngày; hôm nay vốn tính trực tiếp)
+        if (deleted.IsSuccess && completedAtUtc is { } at)
+        {
+            await rollup.RefreshDayAsync(calendar.DayOf(at), cancellationToken);
+        }
+
+        return deleted;
     }
 
     private Task<Result<AdminOrderDto>> UpdateAsync(Guid id, Func<Order, Result> change, CancellationToken cancellationToken) =>

@@ -27,8 +27,9 @@ public sealed class AdminOrdersController(OrderDeskService desk) : ControllerBas
         [FromQuery] bool refundPending = false,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
+        [FromQuery] bool? open = null,
         CancellationToken cancellationToken = default) =>
-        Ok(await desk.ListAsync(new OrderQuery(status, from, to, q, refundPending, page, pageSize), cancellationToken));
+        Ok(await desk.ListAsync(new OrderQuery(status, from, to, q, refundPending, page, pageSize, open), cancellationToken));
 
     [HttpGet("kitchen-view")]
     [RequireCapability(StaffCapability.OrdersView)]
@@ -66,6 +67,12 @@ public sealed class AdminOrdersController(OrderDeskService desk) : ControllerBas
     [RequireCapability(StaffCapability.OrdersCashier)]
     public async Task<IActionResult> MarkPaid(Guid id, CancellationToken cancellationToken) =>
         this.DataOrProblem(await desk.MarkPaidAsync(id, User.StaffId(), cancellationToken));
+
+    // Chủ quán 2026-11-26: xóa bill đã hoàn thành vì nhập sai — chỉ quản lý (quyền hủy món), bắt buộc lý do; dòng vẫn giữ
+    [HttpPost("{id:guid}/delete")]
+    [RequireCapability(StaffCapability.OrdersVoid)]
+    public async Task<IActionResult> Delete(Guid id, DeleteOrderRequest request, CancellationToken cancellationToken) =>
+        this.DataOrProblem(await desk.DeleteCompletedAsync(id, request?.Reason, User.StaffId(), cancellationToken));
 
     [HttpPatch("{id:guid}/refund")]
     [RequireCapability(StaffCapability.OrdersCashier)]

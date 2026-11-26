@@ -39,6 +39,13 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
             source = source.Where(o => o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.PaymentGroup == PaymentGroup.InStore && o.RefundedAtUtc == null);
         }
 
+        if (query.Open is { } open)
+        {
+            source = open
+                ? source.Where(o => o.Status == OrderStatus.Pending || o.Status == OrderStatus.Preparing || o.Status == OrderStatus.Ready || o.Status == OrderStatus.Delivering)
+                : source.Where(o => o.Status == OrderStatus.Completed || o.Status == OrderStatus.Cancelled);
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var term = query.Search.Trim();
@@ -48,8 +55,8 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
         }
 
         var total = await source.CountAsync(cancellationToken);
-        var items = await source
-            .OrderByDescending(o => o.CreatedAtUtc)
+        var ordered = query.Open == true ? source.OrderBy(o => o.PickupAtUtc) : source.OrderByDescending(o => o.CreatedAtUtc);
+        var items = await ordered
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .Include(o => o.Items)
@@ -142,8 +149,7 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
         await Source(withItems: true, tracking: false)
             .Where(o => o.Channel == OrderChannel.Pickup || o.Channel == OrderChannel.Delivery)
             .Where(o => (o.Status == OrderStatus.Pending && (o.CreatedAtUtc <= pendingCreatedBeforeUtc || o.PickupAtUtc <= pendingPickupBeforeUtc))
-                || (o.Status == OrderStatus.Ready && o.PickupAtUtc <= readyPickupBeforeUtc)
-                || (o.Status == OrderStatus.Cancelled && o.PaymentStatus == PaymentStatus.Paid && o.PaymentGroup == PaymentGroup.InStore && o.RefundedAtUtc == null))
+                || (o.Status == OrderStatus.Ready && o.PickupAtUtc <= readyPickupBeforeUtc))
             .OrderBy(o => o.PickupAtUtc)
             .Take(limit)
             .ToListAsync(cancellationToken);

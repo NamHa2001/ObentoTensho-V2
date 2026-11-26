@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Schemas } from '@ot/api';
@@ -17,8 +17,26 @@ const CHANNEL: Record<string, string> = { pickup: 'Đặt online', delivery: 'Gi
 type OrderRow = Schemas['AdminOrderDto'];
 type OrderDetail = Schemas['AdminOrderDetailDto'];
 
+// Đơn tại bàn và mua tại quầy xử lý ở màn hình Gọi món (nút "Mở phiếu"), không đổi trạng thái ở đây
+const BILL_CHANNELS = new Set(['dine_in', 'counter']);
+const OPEN_STATUSES = ['pending', 'preparing', 'ready', 'delivering'];
+const HISTORY_STATUSES = ['completed', 'cancelled'];
+
+function isOpenBill(order: Pick<OrderRow, 'status' | 'channel'>): boolean {
+  return BILL_CHANNELS.has(order.channel ?? '') && OPEN_STATUSES.includes(order.status);
+}
+
+function statusLabel(order: Pick<OrderRow, 'status' | 'deleted'>): string {
+  return order.deleted ? 'Đã xóa' : ORDER_STATUS[order.status];
+}
+
+function isoDay(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // Đơn giao hàng: sẵn sàng thì chuyển "Đang giao" (không hoàn thành thẳng)
 function nextSteps(order: Pick<OrderRow, 'status' | 'channel'>): string[] {
+  if (BILL_CHANNELS.has(order.channel ?? '')) return [];
   const steps = ORDER_NEXT[order.status] ?? [];
   return order.channel === 'delivery' && order.status === 'ready' ? ['delivering', 'cancelled'] : steps;
 }
@@ -29,33 +47,50 @@ function nextSteps(order: Pick<OrderRow, 'status' | 'channel'>): string[] {
   template: `
     <h1>Đơn hàng</h1>
     @if (attention(); as a) {
-      @if (a.pendingOverdue.length + a.notPickedUp.length + a.refundPending.length > 0) {
-        <p class="ot-error mt-2">Cần xử lý: {{ a.pendingOverdue.length }} chờ quá hạn · {{ a.notPickedUp.length }} chưa lấy · {{ a.refundPending.length }} chưa ghi hoàn tiền</p>
+      @if (a.pendingOverdue.length + a.notPickedUp.length > 0) {
+        <p class="ot-error mt-2">Cần xử lý: {{ a.pendingOverdue.length }} chờ quá hạn · {{ a.notPickedUp.length }} chưa lấy</p>
       }
     }
+    <div class="ot-scroll-row my-3" role="tablist" aria-label="Nhóm đơn" style="margin-inline: 0; padding-inline: 0">
+      <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="view() === 'open'" [attr.aria-selected]="view() === 'open'" (click)="setView('open')">Đang xử lý</button>
+      <button type="button" role="tab" class="ot-chip" [class.ot-chip-active]="view() === 'history'" [attr.aria-selected]="view() === 'history'" (click)="setView('history')">Lịch sử</button>
+    </div>
     <div class="a-filters">
       <input class="ot-input" name="q" placeholder="Tìm mã, tên" [(ngModel)]="q" (change)="reload()" />
-      <select class="ot-input" name="s" [(ngModel)]="status" (change)="reload()"><option value="">Mọi trạng thái</option>@for (s of statusKeys; track s) { <option [value]="s">{{ labels[s] }}</option> }</select>
-      <input class="ot-input" name="from" type="date" [(ngModel)]="from" (change)="reload()" />
-      <input class="ot-input" name="to" type="date" [(ngModel)]="to" (change)="reload()" />
+      <select class="ot-input" name="s" [(ngModel)]="status" (change)="reload()"><option value="">Mọi trạng thái</option>@for (s of statusKeys(); track s) { <option [value]="s">{{ labels[s] }}</option> }</select>
+      @if (view() === 'history') {
+        <input class="ot-input" name="from" type="date" aria-label="Từ ngày" [(ngModel)]="from" (change)="reload()" />
+        <input class="ot-input" name="to" type="date" aria-label="Đến ngày" [(ngModel)]="to" (change)="reload()" />
+      }
     </div>
     @if (list.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    <div class="a-table"><table class="w-full text-sm"><thead><tr class="bg-surface-2 text-left"><th class="p-2">Mã</th><th class="p-2">Khách</th><th class="p-2">Lấy lúc</th><th class="p-2">Tổng</th><th class="p-2">Trạng thái</th><th class="p-2">Thanh toán</th></tr></thead>
+    @if (act.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
+    <div class="a-table"><table class="w-full text-sm"><thead><tr class="bg-surface-2 text-left"><th class="p-2">Mã</th><th class="p-2">Khách</th><th class="p-2">Lấy lúc</th><th class="p-2">Tổng</th><th class="p-2">Trạng thái</th><th class="p-2">Thanh toán</th><th class="p-2"><span class="sr-only">Thao tác</span></th></tr></thead>
       <tbody>@for (o of rows(); track o.id) {
-        <tr class="border-b border-line"><td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a><small class="block text-muted">{{ channel[o.channel] }}</small></td><td class="p-2">{{ o.customerName }}<small class="block text-muted">{{ o.maskedPhone }}</small></td><td class="p-2 whitespace-nowrap">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }}</td><td class="p-2">{{ o.totalAmount | vnd }}</td><td class="p-2">{{ labels[o.status] }}</td><td class="p-2">{{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</td></tr>
-      } @empty { <tr><td colspan="6" class="p-4 text-muted">Không có đơn.</td></tr> }</tbody></table></div>
+        <tr class="border-b border-line" [class.text-muted]="o.deleted"><td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a><small class="block text-muted">{{ channel[o.channel] }}</small></td><td class="p-2">{{ o.customerName }}<small class="block text-muted">{{ o.maskedPhone }}</small></td><td class="p-2 whitespace-nowrap">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }}</td><td class="p-2" [class.line-through]="o.deleted">{{ o.totalAmount | vnd }}</td><td class="p-2">@if (o.deleted) { <span class="a-badge">Đã xóa</span> } @else { {{ labels[o.status] }} }</td><td class="p-2">{{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</td>
+          <td class="p-2 whitespace-nowrap text-right">
+            @if (openBill(o)) { <a class="ot-chip" [routerLink]="['/dine-in', o.id]">Mở phiếu</a> }
+            @if (o.status === 'completed' && canDelete()) { <button type="button" class="ot-chip" (click)="remove(o)">Xóa</button> }
+          </td></tr>
+      } @empty { <tr><td colspan="7" class="p-4 text-muted">Không có đơn.</td></tr> }</tbody></table></div>
     @if (rows().length < total()) { <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="more()">Xem thêm</button> }
   `,
 })
 export class Orders {
   private readonly api = inject(Api);
+  private readonly auth = inject(Auth);
   protected readonly channel = CHANNEL;
   protected readonly labels = ORDER_STATUS;
-  protected readonly statusKeys = Object.keys(ORDER_STATUS);
+  protected readonly openBill = isOpenBill;
+  // Đang xử lý: đơn còn mở, cũ nhất trước. Lịch sử: đã hoàn tất, đã hủy, đã xóa; mặc định 7 ngày gần nhất
+  protected readonly view = signal<'open' | 'history'>('open');
+  protected readonly statusKeys = computed(() => (this.view() === 'open' ? OPEN_STATUSES : HISTORY_STATUSES));
+  protected readonly canDelete = computed(() => this.auth.has('orders_void'));
   protected readonly rows = signal<OrderRow[]>([]);
   protected readonly total = signal(0);
   protected readonly attention = signal<Schemas['OrderAttentionDto'] | null>(null);
   protected readonly list = new Latest();
+  protected readonly act = new Submit();
   protected q = '';
   protected status = '';
   protected from = '';
@@ -79,8 +114,26 @@ export class Orders {
     this.fetch();
   }
 
+  protected setView(view: 'open' | 'history'): void {
+    this.view.set(view);
+    this.status = '';
+    const today = new Date();
+    this.to = view === 'history' ? isoDay(today) : '';
+    this.from = view === 'history' ? isoDay(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6)) : '';
+    this.reload();
+  }
+
+  // Chủ quán 2026-11-26: xóa bill đã hoàn thành vì nhập sai — bắt buộc lý do, dòng vẫn giữ với nhãn "Đã xóa"
+  protected async remove(o: OrderRow): Promise<void> {
+    const reason = await askText(`Lý do xóa bill ${o.code}`);
+    if (reason) {
+      this.act.run(this.api.post(`orders/${o.id}/delete`, { reason }), () => this.reload());
+    }
+  }
+
   private fetch(): void {
-    this.list.run(this.api.raw<OrderRow[]>('orders', { q: this.q, status: this.status, from: this.from, to: this.to, page: this.page, pageSize: 30 }), (r) => {
+    const open = this.view() === 'open';
+    this.list.run(this.api.raw<OrderRow[]>('orders', { q: this.q, status: this.status, from: open ? '' : this.from, to: open ? '' : this.to, open, page: this.page, pageSize: 30 }), (r) => {
       this.rows.update((x) => [...x, ...r.data]);
       this.total.set(r.meta?.total ?? 0);
     });
@@ -89,11 +142,11 @@ export class Orders {
 
 @Component({
   selector: 'ot-order',
-  imports: [FormsModule, VndPipe, VnDatePipe, InvoiceForm],
+  imports: [FormsModule, RouterLink, VndPipe, VnDatePipe, InvoiceForm],
   template: `
     @if (form.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     @if (d(); as v) {
-      <div class="a-head"><h1>Đơn {{ v.order.code }}</h1><span class="a-badge">{{ labels[v.order.status] }}</span></div>
+      <div class="a-head"><h1>Đơn {{ v.order.code }}</h1><span class="a-badge">{{ status(v.order) }}</span></div>
       <div class="a-row84">
         <section class="a-card">
           <header class="a-card-h">Món đã đặt</header>
@@ -130,18 +183,19 @@ export class Orders {
             <header class="a-card-h">Xử lý</header>
             <div class="a-card-b a-btns">
               @if (!contact()) { <button type="button" class="ot-chip" (click)="reveal(v)">Hiện SĐT</button> }
+              @if (openBill(v.order)) { <a class="ot-chip" [routerLink]="['/dine-in', v.order.id]">Mở phiếu</a> }
+              @if (v.order.status === 'completed' && auth.has('orders_void')) { <button type="button" class="ot-chip" (click)="remove(v)">Xóa bill</button> }
               @for (s of next(v.order); track s) { <button type="button" class="ot-chip" (click)="move(v, s)">{{ labels[s] }}</button> }
               @if (v.order.status === 'ready' && auth.has('orders_cancel')) { <button type="button" class="ot-chip" (click)="noPickup(v)">Khách không đến lấy</button> }
               @if (v.order.needsContactConfirm && !v.order.contactConfirmed) { <button type="button" class="ot-chip" (click)="confirmContact(v)">Đã gọi xác nhận</button> }
-              @if (v.order.paymentStatus === 'unpaid' && v.order.status !== 'cancelled') { <button type="button" class="ot-chip" (click)="pay(v)">Đã thu tiền</button> }
-              @if (v.order.refundPending) { <button type="button" class="ot-chip" (click)="refund(v)">Ghi hoàn tiền</button> }
+              @if (v.order.paymentStatus === 'unpaid' && v.order.status !== 'cancelled' && !openBill(v.order)) { <button type="button" class="ot-chip" (click)="pay(v)">Đã thu tiền</button> }
               @if (v.order.status !== 'cancelled') { <button type="button" class="ot-chip" (click)="startInvoice()">Yêu cầu xuất hóa đơn</button> }
             </div>
             @if (invoiceSent()) { <p class="px-4 pb-3 text-sm font-medium">Đã gửi yêu cầu xuất hóa đơn cho kế toán.</p> }
           </section>
           <section class="a-card">
             <header class="a-card-h">Lịch sử</header>
-            <div class="a-card-b">@for (h of v.history; track $index) { <div class="a-line text-sm"><span>{{ labels[h.toStatus] }} @if (h.reason) { ({{ h.reason }}) }</span><span class="whitespace-nowrap text-muted">{{ h.changedAtUtc | vnDate: true }}</span></div> } @empty { <p class="text-muted">Chưa có.</p> }</div>
+            <div class="a-card-b">@for (h of v.history; track $index) { <div class="a-line text-sm"><span>{{ h.fromStatus === 'completed' && h.toStatus === 'cancelled' ? 'Đã xóa' : labels[h.toStatus] }} @if (h.reason) { ({{ h.reason }}) }</span><span class="whitespace-nowrap text-muted">{{ h.changedAtUtc | vnDate: true }}</span></div> } @empty { <p class="text-muted">Chưa có.</p> }</div>
           </section>
         </div>
       </div>
@@ -169,6 +223,8 @@ export class Order {
   private readonly id = inject(ActivatedRoute).snapshot.paramMap.get('id') ?? '';
   protected readonly labels = ORDER_STATUS;
   protected readonly channel = CHANNEL;
+  protected readonly openBill = isOpenBill;
+  protected readonly status = statusLabel;
   protected readonly d = signal<OrderDetail | null>(null);
 
   protected appName(o: Schemas['AdminOrderDto']): string {
@@ -245,11 +301,11 @@ export class Order {
     this.form.run(this.api.patch(`orders/${v.order.id}/payment`, {}, v.order.version), () => this.load());
   }
 
-  // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì
-  protected async refund(v: OrderDetail): Promise<void> {
-    const note = await askText('Ghi chú hoàn tiền');
-    if (note !== null) {
-      this.form.run(this.api.patch(`orders/${v.order.id}/refund`, { note }, v.order.version), () => this.load());
+  // Bấm Hủy trong hộp thoại (askText trả null) thì không ghi gì; lý do bắt buộc để quản lý hỏi lại
+  protected async remove(v: OrderDetail): Promise<void> {
+    const reason = await askText(`Lý do xóa bill ${v.order.code}`);
+    if (reason) {
+      this.form.run(this.api.post(`orders/${v.order.id}/delete`, { reason }), () => this.load());
     }
   }
 }

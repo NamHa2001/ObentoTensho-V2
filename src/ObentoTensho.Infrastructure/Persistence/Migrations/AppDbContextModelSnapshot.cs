@@ -2239,6 +2239,12 @@ namespace ObentoTensho.Infrastructure.Persistence.Migrations
                     b.Property<int>("DailySeq")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DeletedAtUtc")
+                        .HasColumnType("datetime2(3)");
+
+                    b.Property<Guid?>("DeletedByStaffId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("DeliveryAddress")
                         .HasColumnType("nvarchar(300)");
 
