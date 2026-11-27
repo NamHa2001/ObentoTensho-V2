@@ -106,6 +106,9 @@ public sealed class PlatformOrderService(
         Price(order, subTotal, discount);
         orders.Add(order);
         orders.AddHistory(new OrderStatusHistory { OrderId = order.Id, ToStatus = OrderStatus.Preparing, ChangedByType = OrderActor.Staff, ChangedById = staffId, ChangedAtUtc = now });
+
+        // Chủ quán 2026-11-27: đơn app đã trả qua app nên hoàn tất ngay (chụp tỉ lệ doanh thu thực nhận); bếp vẫn thấy món chưa ra
+        await transitions.ApplyAsync(order, OrderStatus.Completed, OrderActor.Staff, staffId, reason: null, cancellationToken);
         audit.Record(new AuditEntry("orders.platform_order.created", Entity, order.Id.ToString(), After: new { order.PaymentGroup, order.Platform, order.ExternalOrderCode, order.SubTotal, order.PlatformDiscount }));
         realtime.Stage(RealtimeMessages.OrderCreated(order));
         var saved = await unitOfWork.TrySaveAsync(ErrorCodes.ValidationFailed, cancellationToken);
@@ -167,16 +170,20 @@ public sealed class PlatformOrderService(
             return Result.Failure(ErrorCodes.NotFound);
         }
 
-        var cancelled = await transitions.ApplyAsync(order, OrderStatus.Cancelled, OrderActor.Staff, staffId, clean, cancellationToken);
-        if (!cancelled.IsSuccess)
+        if (order.Status == OrderStatus.Completed)
         {
-            return cancelled;
+            // Đơn app hoàn tất ngay khi nhập (chủ quán 2026-11-27): hủy là xóa bill, giữ dòng kèm lý do, không tính doanh thu
+            await transitions.DeleteCompletedAsync(order, staffId, clean, cancellationToken);
+        }
+        else
+        {
+            var cancelled = await transitions.ApplyAsync(order, OrderStatus.Cancelled, OrderActor.Staff, staffId, clean, cancellationToken);
+            if (!cancelled.IsSuccess)
+            {
+                return cancelled;
+            }
         }
 
-        // App hoàn tiền cho khách: ghi đã hoàn để báo cáo doanh thu theo ngày thanh toán trừ lại khoản đã ghi thu
-        order.RefundedAtUtc = order.CancelledAtUtc ?? clock.UtcNow;
-        order.RefundedByStaffId = staffId;
-        order.RefundNote = "App hoàn tiền cho khách";
         await unitOfWork.SaveChangesAsync(cancellationToken);
         return Result.Success();
     }

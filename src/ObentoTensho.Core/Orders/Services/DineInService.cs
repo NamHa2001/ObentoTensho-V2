@@ -39,6 +39,9 @@ public sealed class DineInService(
     IRealtimeEvents realtime,
     IClock clock)
 {
+    private static readonly TimeSpan KitchenCompletedWindow = TimeSpan.FromHours(24);
+    private const int PaidBillBatch = 200;
+
     public const int MaxGuests = 50;
     public const int MaxLinesPerRound = 30;
     public const int NoteMaxLength = 500;
@@ -111,11 +114,12 @@ public sealed class DineInService(
         return Result.Success(ToBill(bill, Label(bill, [])));
     }
 
-    // Bếp: phiếu còn món chưa ra (chỉ món chưa ra, chưa hủy)
+    // Bếp: phiếu còn món chưa ra (chỉ món chưa ra, chưa hủy). Đơn đã trả tiền là Hoàn tất ngay (chủ quán 2026-11-27)
+    // nhưng món chưa ra vẫn hiện cho bếp tới khi bấm ra món, trong vòng KitchenCompletedWindow
     public async Task<IReadOnlyList<DineInKitchenTicketDto>> KitchenAsync(CancellationToken cancellationToken)
     {
         var names = await TableNamesAsync(cancellationToken);
-        return (await orders.ListOpenDineInAsync(cancellationToken))
+        return (await orders.ListKitchenBillsAsync(clock.UtcNow - KitchenCompletedWindow, cancellationToken))
             .Select(o => new DineInKitchenTicketDto(o.Id, o.OrderCode, Label(o, names), Unserved(o)
                 .OrderBy(i => i.SentAtUtc).ThenBy(i => i.Id)
                 .Select(i => new DineInKitchenLineDto(i.Id, i.Round, i.ItemName, i.Quantity, OptionLabels(i), i.Note, i.SentAtUtc ?? o.CreatedAtUtc))
@@ -269,7 +273,7 @@ public sealed class DineInService(
     // Bếp ra món (hoặc nhân viên đã bưng ra); gọi lại cho món đã ra thì giữ nguyên
     public async Task<Result<DineInBillDto>> ServeItemAsync(Guid billId, long itemId, CancellationToken cancellationToken)
     {
-        if (await orders.FindOpenDineInAsync(billId, cancellationToken) is not { } bill
+        if (await orders.FindKitchenBillAsync(billId, cancellationToken) is not { } bill
             || bill.Items.FirstOrDefault(i => i.Id == itemId) is not { IsVoided: false } item)
         {
             return Result.Failure<DineInBillDto>(ErrorCodes.NotFound);
@@ -280,7 +284,7 @@ public sealed class DineInService(
             item.ServedAtUtc = clock.UtcNow;
             bill.UpdatedAtUtc = item.ServedAtUtc;
             realtime.Stage(RealtimeMessages.OrderChanged(bill));
-            if (bill.Channel is OrderChannel.Counter or OrderChannel.Platform && bill.PaymentStatus == PaymentStatus.Paid && !Unserved(bill).Any())
+            if (bill.Status != OrderStatus.Completed && bill.Channel is OrderChannel.Counter or OrderChannel.Platform && bill.PaymentStatus == PaymentStatus.Paid && !Unserved(bill).Any())
             {
                 await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, actorId: null, reason: null, cancellationToken);
             }
@@ -420,8 +424,8 @@ public sealed class DineInService(
 
             var now = clock.UtcNow;
             ApplyPayment(bill, priced.Value, request.PaymentMethod, staffId, now);
-            var waiting = bill.Channel == OrderChannel.Counter && Unserved(bill).Any();
-            var completed = waiting ? Result.Success() : await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, staffId, reason: null, ct);
+            // Chủ quán 2026-11-27: đã trả tiền là hoàn tất (sang Lịch sử, tính doanh thu); món chưa ra vẫn ở màn hình bếp
+            var completed = await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, staffId, reason: null, ct);
             if (!completed.IsSuccess)
             {
                 return Result.Failure<DineInReceiptDto>(completed.ErrorCode ?? ErrorCodes.InvalidTransition);
@@ -599,6 +603,28 @@ public sealed class DineInService(
                 i.IsVoided,
                 i.VoidReason))
             .ToArray();
+
+    // Dữ liệu trước 2026-11-27: đơn quầy/app đã trả tiền mà còn mở ⇒ Hoàn tất, ngày hoàn thành = lúc trả tiền
+    public async Task<int> CompletePaidBillsAsync(CancellationToken cancellationToken)
+    {
+        var bills = await orders.ListPaidOpenBillsAsync(PaidBillBatch, cancellationToken);
+        foreach (var bill in bills)
+        {
+            var paidAt = bill.PaidAtUtc;
+            var completed = await transitions.ApplyAsync(bill, OrderStatus.Completed, OrderActor.Staff, actorId: null, reason: null, cancellationToken);
+            if (completed.IsSuccess && paidAt is { } at)
+            {
+                bill.CompletedAtUtc = at;
+            }
+        }
+
+        if (bills.Count > 0)
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return bills.Count;
+    }
 
     private static IEnumerable<OrderItem> Unserved(Order bill) => bill.Items.Where(i => !i.IsVoided && i.ServedAtUtc is null);
 

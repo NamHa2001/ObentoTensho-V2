@@ -36,6 +36,7 @@ public static class OrdersConfiguration
         // Việc định kỳ (docs/srs/20 §4)
         services.AddScoped<OrderJobs>();
         services.AddScoped<IRecurringJob, OrderAttentionJob>();
+        services.AddScoped<IRecurringJob, PaidBillCompletionJob>();
         return services;
     }
 }

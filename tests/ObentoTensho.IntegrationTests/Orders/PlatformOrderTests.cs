@@ -132,9 +132,12 @@ public sealed class PlatformOrderTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, (await _admin.SendAsync(HttpMethod.Post, $"{Api}/{id}/cancel", manager, new { reason = " " })).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await _admin.SendAsync(HttpMethod.Post, $"{Api}/{id}/cancel", manager, new { reason = "Khách hủy trên app" })).StatusCode);
 
+        // Đơn app hoàn tất ngay khi nhập nên hủy là xóa bill: giữ dòng, có lý do, không theo dõi hoàn tiền
         await using var db = _fixture.CreateContext();
         var saved = await db.Orders.SingleAsync(o => o.Id == id);
         Assert.Equal(OrderStatus.Cancelled, saved.Status);
+        Assert.NotNull(saved.DeletedAtUtc);
+        Assert.Equal("Khách hủy trên app", saved.CancelReason);
         Assert.False(saved.RefundPending);
     }
 }

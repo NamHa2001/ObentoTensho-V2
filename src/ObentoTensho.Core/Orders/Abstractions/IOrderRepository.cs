@@ -36,6 +36,14 @@ public interface IOrderRepository
     // Tại bàn: mọi phiếu đang mở, kèm món (sơ đồ gọi món, màn hình bếp)
     Task<IReadOnlyList<Order>> ListOpenDineInAsync(CancellationToken cancellationToken);
 
+    // Bếp: phiếu tại bàn/quầy/app còn mở, hoặc đã hoàn tất (đã trả tiền) từ completedSinceUtc mà còn món chưa ra
+    Task<IReadOnlyList<Order>> ListKitchenBillsAsync(DateTime completedSinceUtc, CancellationToken cancellationToken);
+
+    Task<Order?> FindKitchenBillAsync(Guid id, CancellationToken cancellationToken);
+
+    // Đơn quầy/app đã trả tiền mà còn ở trạng thái mở (dữ liệu trước 2026-11-27): việc nền chuyển sang Hoàn tất
+    Task<IReadOnlyList<Order>> ListPaidOpenBillsAsync(int limit, CancellationToken cancellationToken);
+
     Task<(IReadOnlyList<Order> Items, int Total)> ListForUserAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken);
 
     // BR-ORD-20: đơn đang xử lý của một SĐT

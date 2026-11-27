@@ -76,6 +76,26 @@ internal sealed class OrderRepository(AppDbContext db) : IOrderRepository
         Source(withItems: true, tracking: true)
             .SingleOrDefaultAsync(o => o.Id == id && (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform) && Open.Contains(o.Status), cancellationToken);
 
+    public async Task<IReadOnlyList<Order>> ListKitchenBillsAsync(DateTime completedSinceUtc, CancellationToken cancellationToken) =>
+        await Source(withItems: true, tracking: false)
+            .Where(o => (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform)
+                && (Open.Contains(o.Status)
+                    || (o.Status == OrderStatus.Completed && o.CompletedAtUtc >= completedSinceUtc && o.Items.Any(i => i.VoidedAtUtc == null && i.ServedAtUtc == null))))
+            .OrderBy(o => o.PickupAtUtc)
+            .ToListAsync(cancellationToken);
+
+    public Task<Order?> FindKitchenBillAsync(Guid id, CancellationToken cancellationToken) =>
+        Source(withItems: true, tracking: true)
+            .SingleOrDefaultAsync(o => o.Id == id && (o.Channel == OrderChannel.DineIn || o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform)
+                && (Open.Contains(o.Status) || o.Status == OrderStatus.Completed), cancellationToken);
+
+    public async Task<IReadOnlyList<Order>> ListPaidOpenBillsAsync(int limit, CancellationToken cancellationToken) =>
+        await Source(withItems: true, tracking: true)
+            .Where(o => (o.Channel == OrderChannel.Counter || o.Channel == OrderChannel.Platform) && o.PaymentStatus == PaymentStatus.Paid && Open.Contains(o.Status))
+            .OrderBy(o => o.PaidAtUtc)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
+
     public Task<bool> ExternalCodeTakenAsync(PaymentGroup group, Platform platform, string code, Guid? exceptOrderId, CancellationToken cancellationToken) =>
         db.Orders.AnyAsync(
             o => o.PaymentGroup == group && o.Platform == platform && o.ExternalOrderCode == code && o.Status != OrderStatus.Cancelled && o.Id != exceptOrderId,
