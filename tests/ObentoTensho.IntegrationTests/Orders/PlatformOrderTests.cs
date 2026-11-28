@@ -76,6 +76,20 @@ public sealed class PlatformOrderTests : IDisposable
     }
 
     [Fact]
+    public async Task Chi_tiet_don_app_tra_ve_so_tien_giam_tren_app_de_tam_tinh_khop_tong()
+    {
+        // Chủ quán 2026-11-28: chi tiết đơn ghi Tạm tính 100.000 mà Tổng 85.000, không thấy khoản trừ
+        var menu = await OrderTestMenu.CreateAsync(_fixture);
+        var cashier = await _admin.SignInAsync(StaffRole.Cashier);
+        var id = (await OkAsync(_admin.SendAsync(HttpMethod.Post, Api, cashier, Body(menu, "tensho", "grab", Code(), percent: 15)))).GetProperty("id").GetGuid();
+
+        var detail = await OkAsync(_admin.SendAsync(HttpMethod.Get, $"/api/v1/admin/orders/{id}", cashier));
+        Assert.True(detail.TryGetProperty("platformDiscount", out var discount), detail.ToString());
+        Assert.Equal(15_000m, discount.GetDecimal());
+        Assert.Equal(detail.GetProperty("subTotal").GetDecimal() - discount.GetDecimal(), detail.GetProperty("order").GetProperty("totalAmount").GetDecimal());
+    }
+
+    [Fact]
     public async Task Trung_ma_cung_nhom_cung_kenh_bi_chan_khac_kenh_thi_duoc_khong_phan_biet_hoa_thuong()
     {
         var menu = await OrderTestMenu.CreateAsync(_fixture);
