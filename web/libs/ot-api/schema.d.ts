@@ -10397,6 +10397,11 @@ export interface components {
             deliveryLatitude?: null | number;
             /** Format: double */
             deliveryLongitude?: null | number;
+            /**
+             * Format: double
+             * @default 0
+             */
+            platformDiscount: number;
         };
         AdminOrderDto: {
             /** Format: uuid */

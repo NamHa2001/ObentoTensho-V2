@@ -18,4 +18,5 @@ public sealed record AdminOrderDetailDto(
     decimal DeliveryFee = 0,
     decimal ShippingDiscount = 0,
     double? DeliveryLatitude = null,
-    double? DeliveryLongitude = null);
+    double? DeliveryLongitude = null,
+    decimal PlatformDiscount = 0);

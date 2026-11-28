@@ -65,7 +65,7 @@ function nextSteps(order: Pick<OrderRow, 'status' | 'channel'>): string[] {
     </div>
     @if (list.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
     @if (act.error(); as e) { <p class="ot-error mb-3">{{ e }}</p> }
-    <div class="a-table"><table class="w-full text-sm"><thead><tr class="bg-surface-2 text-left"><th class="p-2">Mã</th><th class="p-2">Khách</th><th class="p-2">Lấy lúc</th><th class="p-2">Tổng</th><th class="p-2">Trạng thái</th><th class="p-2">Thanh toán</th><th class="p-2"><span class="sr-only">Thao tác</span></th></tr></thead>
+    <div class="a-table hidden md:block"><table class="w-full text-sm"><thead><tr class="bg-surface-2 text-left"><th class="p-2">Mã</th><th class="p-2">Khách</th><th class="p-2">Lấy lúc</th><th class="p-2">Tổng</th><th class="p-2">Trạng thái</th><th class="p-2">Thanh toán</th><th class="p-2"><span class="sr-only">Thao tác</span></th></tr></thead>
       <tbody>@for (o of rows(); track o.id) {
         <tr class="border-b border-line" [class.text-muted]="o.deleted"><td class="p-2"><a class="text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a><small class="block text-muted">{{ channel[o.channel] }}</small></td><td class="p-2">{{ o.customerName }}<small class="block text-muted">{{ o.maskedPhone }}</small></td><td class="p-2 whitespace-nowrap">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }}</td><td class="p-2" [class.line-through]="o.deleted">{{ o.totalAmount | vnd }}</td><td class="p-2">@if (o.deleted) { <span class="a-badge">Đã xóa</span> } @else { {{ labels[o.status] }} }</td><td class="p-2">{{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</td>
           <td class="p-2 whitespace-nowrap text-right">
@@ -73,6 +73,21 @@ function nextSteps(order: Pick<OrderRow, 'status' | 'channel'>): string[] {
             @if (o.status === 'completed' && canDelete()) { <button type="button" class="ot-chip" (click)="remove(o)">Xóa</button> }
           </td></tr>
       } @empty { <tr><td colspan="7" class="p-4 text-muted">Không có đơn.</td></tr> }</tbody></table></div>
+    <!-- Điện thoại: mỗi đơn một thẻ, không kéo ngang -->
+    <ul class="a-card md:hidden">
+      @for (o of rows(); track o.id) {
+        <li class="a-order-item" [class.text-muted]="o.deleted">
+          <div class="flex items-baseline justify-between gap-3">
+            <a class="font-medium text-primary" [routerLink]="['/orders', o.id]">{{ o.code }}</a>
+            <span class="shrink-0 font-medium tabular-nums" [class.line-through]="o.deleted">{{ o.totalAmount | vnd }}</span>
+          </div>
+          <p class="text-sm">{{ o.customerName }} · {{ channel[o.channel] }}</p>
+          <p class="text-sm text-muted">{{ o.pickupTime.slice(0, 5) }} {{ o.pickupDate | vnDate }} · @if (o.deleted) { <span class="a-badge">Đã xóa</span> } @else { {{ labels[o.status] }} } · {{ o.paymentStatus === 'paid' ? 'Đã trả' : 'Chưa trả' }}</p>
+          @if (openBill(o)) { <a class="ot-btn ot-btn-outline w-full" [routerLink]="['/dine-in', o.id]">Mở phiếu</a> }
+          @if (o.status === 'completed' && canDelete()) { <button type="button" class="ot-btn ot-btn-outline w-full" (click)="remove(o)">Xóa bill</button> }
+        </li>
+      } @empty { <li class="a-order-item text-muted">Không có đơn.</li> }
+    </ul>
     @if (rows().length < total()) { <button type="button" class="ot-btn ot-btn-outline mt-3" (click)="more()">Xem thêm</button> }
   `,
 })
@@ -155,7 +170,9 @@ export class Orders {
             <div class="a-line"><span>Tạm tính</span><span class="tabular-nums">{{ v.subTotal | vnd }}</span></div>
             @if (v.memberDiscount > 0) { <div class="a-line"><span>Giảm hạng</span><span class="tabular-nums">-{{ v.memberDiscount | vnd }}</span></div> }
             @if (v.voucherDiscount > 0) { <div class="a-line"><span>Voucher</span><span class="tabular-nums">-{{ v.voucherDiscount | vnd }}</span></div> }
+            @if (v.platformDiscount > 0) { <div class="a-line"><span>Giảm giá trên app</span><span class="tabular-nums">-{{ v.platformDiscount | vnd }}</span></div> }
             @if (v.order.channel === 'delivery') { <div class="a-line"><span>Phí ship</span><span class="tabular-nums">{{ v.deliveryFee | vnd }}</span></div> }
+            @if (v.shippingDiscount > 0) { <div class="a-line"><span>Giảm phí ship</span><span class="tabular-nums">-{{ v.shippingDiscount | vnd }}</span></div> }
             <div class="a-line font-semibold"><span>Tổng cộng</span><span class="text-primary tabular-nums">{{ v.order.totalAmount | vnd }}</span></div>
             @if (v.note) { <p class="mt-2 text-muted">Ghi chú: {{ v.note }}</p> }
           </div>

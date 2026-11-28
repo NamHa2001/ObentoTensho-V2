@@ -86,7 +86,8 @@ public static class OrderMappings
             o.DeliveryFee,
             o.ShippingDiscount,
             o.DeliveryLatitude,
-            o.DeliveryLongitude);
+            o.DeliveryLongitude,
+            o.PlatformDiscount);
 
     public static KitchenOrderDto ToKitchen(this Order o, IClock clock)
     {

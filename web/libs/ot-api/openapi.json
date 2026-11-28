@@ -10144,6 +10144,11 @@
               "number"
             ],
             "format": "double"
+          },
+          "platformDiscount": {
+            "type": "number",
+            "format": "double",
+            "default": 0
           }
         }
       },
